@@ -1,0 +1,54 @@
+wifimanager.cpp. refactor. does not use timers right. superfluous checking
+//@@ token
+timermanager.cpp - getActiveCount??
+bootmaster.cpp - refactor, clean
+voting.cpp - contains selection of random file?!?
+systemboot en bootmaster overlap?dead code?
+why is status policy a stub? is refactor needed?
+static_cast< is used often. too often? newest c++ still too stupid??
+reconsider the use of TimerManager::instance() - a single,  global timers is less pedantic and safe,too
+style: bool : isOK is a function because of is - isOk(); ok, Ok, OK is a bool , not a nice name
+
+
+Sleep je favicon.ico (of favicon.png) naar de hoofdmap, waar index.html staat
+een vierkant icoontje van 32x32 pixels of 16x16 pixels
+
+NAS: enable WebDAV in the Dashboard (Settings → Network → Network Services → WebDAV). �
+URL format: http://<NAS-IP>:8080/Public/<path> (common WD docs/examples). �
+Ports are commonly 8080 (HTTP) / 4443 (HTTPS). 
+
+The real architectural rule (this matters)
+Dependency and Injection Rule
+Composition Root
+All concrete manager objects are constructed only in the composition root (main.cpp or App.cpp).
+Exactly one instance per manager class exists.
+No other module may construct, delete, or replace managers.
+Example: static TimerManager  timerManager; static LightManager  lightManager(timerManager); static AudioManager  audioManager(timerManager);
+Injected Reference
+An injected reference is the only allowed way for one module to access another manager.
+Definition:
+The referenced object is constructed in the composition root.
+A reference to it is passed explicitly via constructor or begin(X&).
+The reference is stored as a member (X&).
+The receiving module does not own the object and never deletes or replaces it.
+All access is performed through this reference.
+Example: class ConductManager { public: ConductManager(LightManager& light) : light(light) {} private: LightManager& light; };
+Access Rules
+Modules may access other managers only through injected references.
+Static accessors (X::instance()), global variables, and extern objects are forbidden.
+No module may perform dynamic lookup of managers.
+No module may create a manager it does not own.
+Allowed: light.playScene();
+Forbidden: LightManager::instance().playScene(); extern LightManager light; new LightManager();
+Ownership Rules
+Ownership is determined solely by construction location.
+The composition root owns all managers for the entire program lifetime.
+All injected references are guaranteed to outlive their consumers.
+Consequences
+This rule guarantees:
+Deterministic initialization order
+Explicit and visible dependencies in headers
+No hidden coupling via globals or singletons
+Safe refactoring guided by the compiler
+No service containers, no wrappers, no indirection layers
+

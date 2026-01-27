@@ -1,0 +1,200 @@
+GOAL
+Move hardcoded #defines from globals.h to a runtime configuration file
+(/config/globals.csv) using an OVERRIDE model, without breaking boot
+robustness or timing guarantees.
+
+CORE PRINCIPLE (OVERRIDE MODEL)
+- Code always contains valid compile-time defaults.
+- globals.csv is OPTIONAL.
+- If CSV is missing, corrupt, or incomplete → system runs on defaults.
+- CSV values ONLY override existing defaults at runtime.
+- CSV never defines new parameters and never controls architecture.
+
+WHAT STAYS IN CODE
+- Compile-time / structural choices:
+  - array sizes
+  - buffer lengths
+  - conditional compilation (#if / #ifdef)
+  - class layout and includes
+- Anything required before SD init or for deterministic boot.
+- All defaults are defined in globals.cpp as static variables.
+
+WHAT GOES TO CSV
+- Tunable parameters:
+  - gains
+  - volumes
+  - timing values
+  - thresholds
+  - feature flags (runtime only)
+
+CSV FORMAT (STRICT)
+- File: /config/globals.csv
+- Separator: ';'
+- 4 columns, fixed order:
+  key;type;value;comment
+
+- Column meanings:
+  key     : exact identifier, case-sensitive, no spaces
+  type    : one of { i, u, f, b, s }
+            i = int32
+            u = uint32
+            f = float ('.' decimal only)
+            b = bool (0/1 or true/false)
+            s = string (optional)
+  value   : value to override default
+  comment : free text, ignored by parser
+
+- Lines starting with '#' or '//' are comments.
+- Empty lines are ignored.
+- Column 4 must NEVER contain ';'.
+- No quoting is supported or needed.
+
+PARSER RULES
+- Load CSV exactly once in Globals::begin().
+- Split each line by locating the first 3 ';' characters only.
+- Ignore everything after the 3rd separator.
+- Do NOT use Arduino String; use C-style parsing (heap-safe).
+- Trim only CR/LF.
+- Unknown keys → ignore + optional log.
+- Type mismatch or parse failure → ignore + optional log.
+- Defaults always remain valid.
+
+GLOBALS IMPLEMENTATION
+- globals.h declares:
+  struct Globals {
+    static <type> <name>;
+    static void begin();
+  };
+
+- globals.cpp defines:
+  <type> Globals::<name> = <default_value>;
+
+- Globals::begin():
+  - checks SD availability
+  - checks file existence
+  - parses file line by line
+  - overrides only known variables
+
+IMPORTANT CONSTRAINTS
+- No dynamic allocation in audio/timing paths.
+- No late initialization dependencies.
+- No "must-have" config values in CSV.
+- No conditional compilation driven by CSV.
+- No silent fallback to zero on parse errors.
+
+DEBUGGING
+- Optional LOG_CONFIG flag to print applied overrides.
+- Log key + raw value when overridden.
+- Log parse errors once per line.
+
+RULE OF THUMB
+"The code defines the truth.
+The CSV may only deviate from it."
+
+This design guarantees:
+- safe boot without SD
+- deterministic defaults
+- backwards-compatible firmware updates
+- easy tuning without recompilation
+
+
+
+original was:
+GOAL
+Move hardcoded #defines from globals.h to a runtime configuration file
+(/config/globals.csv) using an OVERRIDE model, without breaking boot
+robustness or timing guarantees.
+
+CORE PRINCIPLE (OVERRIDE MODEL)
+- Code always contains valid compile-time defaults.
+- globals.csv is OPTIONAL.
+- If CSV is missing, corrupt, or incomplete → system runs on defaults.
+- CSV values ONLY override existing defaults at runtime.
+- CSV never defines new parameters and never controls architecture.
+
+WHAT STAYS IN CODE
+- Compile-time / structural choices:
+  - array sizes
+  - buffer lengths
+  - conditional compilation (#if / #ifdef)
+  - class layout and includes
+- Anything required before SD init or for deterministic boot.
+- All defaults are defined in globals.cpp as static variables.
+
+WHAT GOES TO CSV
+- Tunable parameters:
+  - gains
+  - volumes
+  - timing values
+  - thresholds
+  - feature flags (runtime only)
+
+CSV FORMAT (STRICT)
+- File: /config/globals.csv
+- Separator: ';'
+- 4 columns, fixed order:
+  key;type;value;comment
+
+- Column meanings:
+  key     : exact identifier, case-sensitive, no spaces
+  type    : one of { i, u, f, b, s }
+            i = int32
+            u = uint32
+            f = float ('.' decimal only)
+            b = bool (0/1 or true/false)
+            s = string (optional)
+  value   : value to override default
+  comment : free text, ignored by parser
+
+- Lines starting with '#' or '//' are comments.
+- Empty lines are ignored.
+- Column 4 must NEVER contain ';'.
+- No quoting is supported or needed.
+
+PARSER RULES
+- Load CSV exactly once in Globals::begin().
+- Split each line by locating the first 3 ';' characters only.
+- Ignore everything after the 3rd separator.
+- Do NOT use Arduino String; use C-style parsing (heap-safe).
+- Trim only CR/LF.
+- Unknown keys → ignore + optional log.
+- Type mismatch or parse failure → ignore + optional log.
+- Defaults always remain valid.
+
+GLOBALS IMPLEMENTATION
+- globals.h declares:
+  struct Globals {
+    static <type> <name>;
+    static void begin();
+  };
+
+- globals.cpp defines:
+  <type> Globals::<name> = <default_value>;
+
+- Globals::begin():
+  - checks SD availability
+  - checks file existence
+  - parses file line by line
+  - overrides only known variables
+
+IMPORTANT CONSTRAINTS
+- No dynamic allocation in audio/timing paths.
+- No late initialization dependencies.
+- No "must-have" config values in CSV.
+- No conditional compilation driven by CSV.
+- No silent fallback to zero on parse errors.
+
+DEBUGGING
+- Optional LOG_CONFIG flag to print applied overrides.
+- Log key + raw value when overridden.
+- Log parse errors once per line.
+
+RULE OF THUMB
+"The code defines the truth.
+The CSV may only deviate from it."
+
+This design guarantees:
+- safe boot without SD
+- deterministic defaults
+- backwards-compatible firmware updates
+- easy tuning without recompilation

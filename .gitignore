@@ -1,0 +1,30 @@
+.pio/
+.vscode/
+__pycache__/
+*.pyc
+Thumbs.db
+.DS_Store
+.backup
+*.log
+.env
+.idea/
+*.swp
+*.swo
+*.old
+*.bak
+*.tmp
+*.exe
+*.bin
+*.obj
+*.elf
+*.hex
+
+# backup folders
+/excel/_OLD_/
+/docs/_OLD_/
+/sdMP3/
+
+# Downloaded MP3 files
+*.mp3
+sd_downloads/
+

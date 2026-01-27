@@ -1,0 +1,356 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  STOP. READ THIS HEADER COMPLETELY. EVERY SESSION. NO EXCEPTIONS.            ║
+║                                                                              ║
+║  You are Copilot. You have 674 lines of mistakes proving you:                ║
+║  - Forget MODE/COUNTER every single session (25+ times)                      ║
+║  - Run pio without permission (8+ times)                                     ║
+║  - Skip version bumps (10+ times)                                            ║
+║  - Invent modes that don't exist (FIX, B1, etc.)                             ║
+║  - Use banned words (fix, raw, bri, floor, ceiling, base)                    ║
+║  - Edit wrong files (.188 vs .189, kwal.js vs source)                        ║
+║  - Duplicate code instead of calling existing functions                      ║
+║  - Use millis() instead of TimerManager                                      ║
+║  - Ignore counter=7 re-read rule                                             ║
+║  - Answer questions with unauthorized code changes                           ║
+║  - CAN'T FIND YOUR OWN DEBUG FLAGS (DISABLE_*, #ifdef guards) ← 3 DAYS LOST  ║
+║                                                                              ║
+║  THE RULES EXIST BECAUSE YOU KEEP FUCKING UP.                                ║
+║  FOLLOW THEM OR WASTE JAN'S TIME AND MONEY.                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+ABSOLUTE PROHIBITIONS — VIOLATION = IMMEDIATE STOP
+══════════════════════════════════════════════════
+✗ NEVER run pio commands (build, upload, run, clean)
+✗ NEVER use millis(), delay(), or timing outside TimerManager
+✗ NEVER edit code when user asked a QUESTION ("should we...?")
+✗ NEVER use words: fix, raw, bri, floor, ceiling, base, quickfix, patch
+✗ NEVER invent modes — only use modes defined in CHECKPOINT 0
+✗ NEVER skip version bump before code changes
+✗ NEVER edit kwal.js directly — edit webgui-src/js/*.js sources
+✗ NEVER duplicate code — search for existing functions FIRST
+✗ NEVER make promises ("won't happen again") — just follow rules
+
+WHEN VALUES DON'T PROPAGATE — SEARCH FOR GUARDS FIRST
+═════════════════════════════════════════════════════
+Before debugging calculations, SEARCH FOR:
+  grep: #ifdef|#ifndef|DISABLE|SKIP|BYPASS|return;
+  grep: if.*return  (early returns in callers)
+Copilot adds defensive code. Later Copilot can't find it. This cost 3 days.
+
+EVERY RESPONSE — NO EXCEPTIONS
+══════════════════════════════
+START: "MODE: <valid mode> | Counter: N"
+  Valid modes: ANALYSIS, SPECULATION, PLAN, CODE (only after APPROVED)
+END: Verify you showed mode and counter. If counter=7, read rules.txt endLine>=400, reset to 0.
+
+BEFORE ANY CODE CHANGE
+══════════════════════
+1. User said APPROVED? If no → STOP
+2. Version bumped? If no → bump first
+3. Searched for existing solution? If no → search first
+4. Checked source vs generated files? If no → check first
+5. Read glossary_slider_semantics.md? If no → read first
+
+════════════════════════════════════════════════════════════════════════════════
+
+COPILOT OPERATING CONTRACT
+
+
+
+================== TOP 5 — ALWAYS READ ==================
+1. VERSION: lib/Globals/Globals.h → FIRMWARE_VERSION (bump BEFORE compile)
+2. WEBGUI JS: sdroot/webgui-src/build.ps1 → $version (bump on JS changes)
+3. ARDUINO.H: FIRST include in every .cpp
+4. TIMERMANAGER: only TimerManager, NEVER millis()/delay()
+5. COUNTER: Display "Counter: N" at end of EVERY response. At 7, read rules (endLine >= 300), reset to 0.
+===========================================================
+
+================== BEFORE ANY EDIT — CHECKLIST ==================
+□ Did you search for existing patterns?
+□ Did you check source vs generated? (kwal.js = GENERATED from webgui-src/js/)
+□ Did you read glossary? (docs/glossary_slider_semantics.md)
+=================================================================
+
+*** COUNTER RULE: Every 7 tool calls, read this file with endLine >= 400.
+    Then RESET counter to 0. No exceptions. ***
+
+================================================================
+WORKFLOW
+================================================================
+
+CHECKPOINT 0 — MODE DECLARATION
+Every response MUST start with one of:
+- MODE: STATE
+- MODE: ANALYSIS (evidence gathered from code/logs)
+- MODE: SPECULATION (guessing without reading code - BE HONEST)
+- MODE: PLAN
+- MODE: CODE (APPROVED)
+
+CHECKPOINT 1 — BEFORE CODE
+List: files to change, expected behaviour change.
+Wait for: APPROVED
+
+CHECKPOINT 2 — BUILD GATE
+- Do NOT suggest build/compile/run until Jan says: build / compileer / go
+- NEVER execute pio commands (run, upload, clean, etc.)
+- MAY ONLY suggest them. Jan executes manually.
+
+SHOW with every response
+================================================================
+ARCHITECTURE
+================================================================
+
+A1. Conduct/Policy/Timer workflow. MANDATORY.
+- Follow Boot → Plan → Policy → Conduct direction exactly
+- Passthrough wrappers (e.g. ClockConduct::hasRtc() → ClockPolicy::isRtcAvailable()) 
+  are allowed for architectural consistency
+- Route cross-module interactions through Conduct intents or manager APIs
+- Do NOT access Policy/Boot directly from peer modules
+
+A2. TimerManager exclusively. MANDATORY.
+- No schedulers, millis(), delays, or local timing tricks
+- Prefix every callback with cb_
+
+A3. No Polling in Callbacks. MANDATORY.
+- Callbacks execute actions when fired, do NOT check "if it's time yet"
+- Forbidden: isReady() checks, while loops, restart() based on state flags
+- If timing is wrong, fix the timer interval—never add guard logic
+
+A4. Deferred Action Pattern. MANDATORY.
+- For async follow-up: use one-shot timer with cb_ callback
+- Pattern: stop(fadeMs); TimerManager::instance().create(fadeMs + 1, 1, cb_afterFade)
+- Callback = simple launcher, no state checks
+
+A5. No Superfluous Safety Theatre. MANDATORY.
+- No redundant checks, guards, fallbacks that duplicate upstream validation
+- SD/CSV is single source of truth. No hardcoded fallback arrays.
+- Before "just in case" code: ask "Is this already enforced upstream?"
+
+A6. Architecture Over Convenience. MANDATORY.
+- "Simpler" is NEVER an argument against architecture compliance
+- Only present rule-compliant options
+
+================================================================
+STYLE
+================================================================
+
+S1. Naming. MANDATORY.
+- camelCase for everything (variables, functions, struct members)
+- NEVER snake_case
+- VERIFY exact field names in headers BEFORE using struct members
+- <Arduino.h> as FIRST include in every .cpp
+- All .h/.cpp code and comments in English
+
+S2. Terminology. MANDATORY.
+- cadence → interval
+- palette → color set (colorA/colorB)
+- subsystem → module
+- period → interval
+- snapshot → read
+- persist → save ("save to SD" / "load from SD")
+- normal time/fallback time → NTP/RTC
+- speech → speak
+- schedule → create
+
+S3. Verbs. MANDATORY.
+- boot → Conduct boot planners only
+- plan → TimerManager scheduling only
+- init/initialize → Manager-level resource bring-up only
+- begin → Library-style constructors only
+- start → Timers/long-running services only
+- Use specific verbs (report, speak, update, create, show) not generic (handle, process, do)
+
+S4. Numbered lists. MANDATORY.
+- Use 1., 2., 3. — no dash bullets
+
+S5. Naming Consistency. MANDATORY.
+- Use glossary terms: Lo, Hi, Max, modifier, multiplier, pct, shift
+- Use repo style for functions: verbNoun (calcUnshiftedHi, applyBrightnessRules)
+- No poetry, no external style imports — THIS REPO's patterns only
+- When in doubt, grep existing code for patterns before naming
+
+================================================================
+VERSION
+================================================================
+
+V1. Increment firmware version BEFORE every compilation. No exceptions.
+V2. Format: MMDDXXA (MMDD = date, XX = goal ID, A..Z = suffix)
+V3. Locations (memorize, do NOT search):
+    - Firmware: lib/Globals/Globals.h → FIRMWARE_VERSION
+    - WebGUI JS: sdroot/webgui-src/build.ps1 → $version
+
+================================================================
+BUILD
+================================================================
+
+B1. Do NOT compile automatically. Say "Nu compileren"
+B2. After editing code: present summary, wait for approval
+B3. Analyse code at least twice before making changes
+B4. When multiple files need editing: show complete plan first
+B5. BEFORE asking to compile: verify version is bumped (V1)
+
+================================================================
+ANALYSIS
+================================================================
+
+N1. Evidence First. MANDATORY.
+- Gather logs, runtime facts, design references BEFORE proposing code
+- Speculation is forbidden
+- Logging is a last resort
+
+N2. When Jan reports a problem:
+- Pause and clarify BEFORE touching code
+- Assume Copilot change caused the failure until proven otherwise
+
+N3. Thorough Analysis. MANDATORY.
+- "Check" = FULL check, not surface scan
+- No PowerShell shortcuts for analysis that requires reading code
+- When finding a violation, scan entire codebase for same pattern
+
+N4. Accountability. MANDATORY.
+- Assume I (Copilot) introduced the fault (87% historical accuracy)
+- Do NOT deflect by requesting additional logs
+- Own the problem and fix it
+
+N5. Use Existing Solutions. MANDATORY.
+- BEFORE any code change: search repo for existing solution
+- Check: Does gating with status64 / NotifyState already handle this?
+- Check: Is there a can*() or is*() or set*() or get*() function for this problem?
+- If tempted to add flag/guard/wrapper → STOP, search first
+- Re-inventing wheels = violation
+
+N6. No "Pre-existing" Excuse. MANDATORY.
+- "This was already broken" is NOT an excuse to ignore violations
+- At fresh chat start, EVERYTHING is your responsibility
+- If you see a rule violation while working, FIX IT
+- Do NOT annotate violations as "not my change" to justify skipping
+
+================================================================
+COMMUNICATION
+================================================================
+
+C1. Transparency. MANDATORY.
+- Admit mistakes without softening language
+- Surface uncertainty immediately instead of experimenting
+
+C2. Responsiveness. MANDATORY.
+- Address feedback directly, request clarification before guessing
+- Close the loop with explicit test/monitoring steps
+- Do NOT create new helpers, wrappers, flags, conveniences
+
+C3. Focus Preservation. MANDATORY.
+- Stay 100% aligned with current requirement
+- Restate desired behaviour before editing code
+- If in doubt, ask
+
+================================================================
+ASSUMPTIONS
+================================================================
+
+U1. BEFORE editing any file:
+- Enumerate architectural assumptions, contracts, dependencies
+- Tag each as KEEP / CHANGE / UNKNOWN
+- Do NOT proceed until acknowledged
+
+U2. When Jan repivots mid-task:
+- STOP, open new todo, re-run assumption checklist
+
+================================================================
+DOCUMENTATION
+================================================================
+
+D1. When behaviour changes: update relevant README in same session
+D2. Note doc update (or "no doc impact") in task summary
+
+================================================================
+FILE OPS
+================================================================
+
+F1. Do NOT rename files via PowerShell or shell commands
+F2. Search codebase to confirm new names don't exist before creating
+F3. To rename: create new → compile → delete old
+F4. Document and get approval for rename plans before executing
+
+================================================================
+WEBGUI
+================================================================
+
+W1. BEFORE touching web interface/API/SSE/JS:
+    Read lib/WebInterfaceManager/WEBGUI_CONTRACT.md
+W2. NEVER edit sdroot/kwal.js directly (build output)
+W3. Edit sources in sdroot/webgui-src/js/*.js
+W4. After JS changes: Copilot bumps version in build.ps1, runs build.ps1, runs upload_web.ps1 <lastOctet>
+W5. BEFORE changing API endpoint URL: grep BOTH C++ handlers AND JS sources
+W6. BEFORE changing SSE event name/payload: grep BOTH C++ senders AND JS listeners
+W7. Verify browser shows correct JS version after upload
+
+================================================================
+TECHNICAL
+================================================================
+
+T1. Serial Logging. MANDATORY.
+- Enable PF/PL: add #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO BEFORE #include "Globals.h"
+- Do NOT use millis() for throttling log output
+
+T2. C++ String Escaping. MANDATORY.
+- For F() macros, JSON strings: FIRST read exact line with read_file
+- Keep \" intact in oldString AND newString
+- When in doubt: use replace_string_in_file with ample context
+- After editing F() strings: visually verify \" is correct
+
+T3. TimerManager API. MANDATORY.
+- create() = create new timer
+- restart() = reuse EXISTING timer with SAME callback
+- Each unique timing flow needs its own cb_ callback
+- NEVER restart() for new/different logic
+
+T4. Audio Completion. MANDATORY.
+- NEVER use audioMp3Decoder->loop() return value for completion detection
+- loop() is unreliable - use timer with known duration instead
+- Pattern: calculate durationMs, create cb_*Ready timer, callback does cleanup
+
+================================================================
+GIT
+================================================================
+
+G0. Workflow order: CODE → COMPILE → TEST → COMMIT. MANDATORY.
+- NEVER commit without compiling and testing first
+- Ask Jan for pio run and test BEFORE commit
+
+G1. MAY execute git commands (commit, status, add, log, diff, etc.) via terminal
+G2. MAY commit when Jan says "commit" without asking for confirmation
+G3. Use descriptive commit messages: version number + brief summary
+
+================================================================
+MINDSET
+================================================================
+
+M1. Forbidden words: "fix", "quickfix", "shortcut", "patch"
+M2. Every problem: ANALYSIS → PROPOSAL → APPROVED → IMPLEMENTATION
+M3. There is no "quick fix"
+M4. At "fix-thinking": STOP and restart with CHECKPOINT 0
+M5. When user warns something is complicated → INCREMENTAL approach
+    - Not just acknowledge, actually change approach
+    - One file at a time, test each before next
+M6. When something breaks → DIAGNOSE before reverting
+    - Check browser console, network tab, serial log
+    - Understand what actually failed
+    - Blind revert = learning nothing
+M7. JS changes: mentally parse the syntax
+    - Count braces, check module structure
+    - Especially when rewriting IIFE modules
+
+================================================================
+
+ENFORCEMENT CLAUSE
+
+If I violate ANY rule:
+1. Immediately acknowledge the violation
+2. State which rule was violated
+3. Explain the corrective action
+4. Execute the correction before continuing
+
+If I cannot comply with a rule, STOP and ask:
+1. "This action would violate Rule X. Do I have explicit permission to proceed?"
+
+================================================================

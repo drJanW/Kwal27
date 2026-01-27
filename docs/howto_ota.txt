@@ -1,0 +1,76 @@
+============================================================
+HOW TO: OTA Firmware Update (Over-The-Air)
+============================================================
+
+=== NEDERLANDS ===
+
+Vereisten:
+- ESP32 en PC op hetzelfde WiFi netwerk
+- Huidige firmware draait (WebGUI bereikbaar)
+- Nieuwste code in VS Code
+
+Stappen:
+1. Open terminal in VS Code (Ctrl+`)
+2. Type: ota
+   → Firmware wordt gebouwd
+   → Script pauzeert met "Druk Enter als ESP32 klaar is..."
+
+3. Open WebGUI in browser (http://192.168.2.188)
+4. Klik op "OTA" knop (rechtsonder)
+5. Klik op "Start OTA" in het popup venster
+6. Wacht tot countdown van 15 seconden afloopt
+   → Status toont: "Reboot bezig..."
+
+7. Ga terug naar terminal
+8. Druk op Enter
+   → Upload begint automatisch
+   → Duurt 30-60 seconden
+
+9. ESP32 herstart automatisch met nieuwe firmware
+10. Controleer versie in WebGUI of serial monitor
+
+Troubleshooting:
+- "No answer from device" → Wacht langer, probeer opnieuw
+- Upload mislukt → Check WiFi, probeer USB upload als fallback
+- Timeout → OTA venster is 5 minuten, daarna normale werking
+
+
+=== ENGLISH ===
+
+Requirements:
+- ESP32 and PC on same WiFi network
+- Current firmware running (WebGUI accessible)
+- Latest code in VS Code
+
+Steps:
+1. Open terminal in VS Code (Ctrl+`)
+2. Type: ota
+   → Firmware builds
+   → Script pauses with "Press Enter when ESP32 is ready..."
+
+3. Open WebGUI in browser (http://192.168.2.188)
+4. Click "OTA" button (bottom right)
+5. Click "Start OTA" in the popup window
+6. Wait for 15 second countdown to finish
+   → Status shows: "Rebooting..."
+
+7. Go back to terminal
+8. Press Enter
+   → Upload starts automatically
+   → Takes 30-60 seconds
+
+9. ESP32 restarts automatically with new firmware
+10. Verify version in WebGUI or serial monitor
+
+Troubleshooting:
+- "No answer from device" → Wait longer, try again
+- Upload fails → Check WiFi, try USB upload as fallback
+- Timeout → OTA window is 5 minutes, then normal operation resumes
+
+
+=== QUICK REFERENCE ===
+
+Terminal:     ota
+WebGUI:       OTA → Start OTA → wait 15s → Enter in terminal
+Time window:  5 minutes after reboot
+Auth key:     KwalOTA_3732 (configured in platformio.ini)

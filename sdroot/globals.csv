@@ -1,0 +1,118 @@
+# globals.csv - Runtime-overridable parameters
+# Format: key;type;value;comment
+# Types: u=uint, f=float, b=bool, s=string
+# Lines starting with # or // are ignored
+# Missing/corrupt file = use code defaults
+
+# ═══════════════════════════════════════════════════════════════════
+# AUDIO (11 params)
+# ═══════════════════════════════════════════════════════════════════
+#minAudioIntervalMs;u;360000;lower=more frequent, creature feels restless
+#maxAudioIntervalMs;u;1080000;higher=longer silence, creature feels calm
+#baseFadeMs;u;5000;crossfade between fragments, smooth transitions
+#webAudioNextFadeMs;u;957;quick fade for manual skip via webgui
+#fragmentStartFraction;u;50;0=always start, 100=random position in file
+#volumeLo;f;0.05;slider left boundary (fraction of MAX_VOLUME)
+#basePlaybackVolume;f;0.6;normal playback level before distance scaling
+#minDistanceVolume;f;0.2;minimal when visitor far away, never silent
+#pingVolumeMax;f;1.0;ping volume at distanceMinMm (hand close)
+#pingVolumeMin;f;0.35;ping volume at distanceMaxMm (hand far)
+#busyRetryMs;u;120;how long to wait before retry if audio busy
+
+# ═══════════════════════════════════════════════════════════════════
+# SPEECH (2 params)
+# ═══════════════════════════════════════════════════════════════════
+#minSaytimeIntervalMs;u;2700000;shortest wait between time announcements
+#maxSaytimeIntervalMs;u;8700000;longest wait, keeps it unpredictable
+
+# ═══════════════════════════════════════════════════════════════════
+# LIGHT/PATTERN (4 params)
+# ═══════════════════════════════════════════════════════════════════
+#lightFallbackIntervalMs;u;300;animation step when no distance trigger
+#shiftCheckIntervalMs;u;60000;how often to check shift CSVs for changes
+#defaultFadeWidth;f;64.0;LED gradient softness, higher=more blur
+#maxBrightness;u;242;cap to prevent eye strain, 255=full blast
+
+# ═══════════════════════════════════════════════════════════════════
+# BRIGHTNESS/LUX (5 params)
+# ═══════════════════════════════════════════════════════════════════
+brightnessLo;u;10;LEDs never go darker than this value
+#luxBeta;f;0.005;curve steepness: higher=faster response to light
+#luxMax;f;800.0;lux reading at which brightness reaches Hi
+#maxMilliamps;u;1200;power budget, prevents PSU overload
+
+# ═══════════════════════════════════════════════════════════════════
+# SENSORS (12 params)
+# ═══════════════════════════════════════════════════════════════════
+luxMeasurementDelayMs;u;200;LED blackout time before lux read
+#luxMeasurementIntervalMs;u;10000;how often to sample ambient light
+# I2C sensor init retry timing (first delay and growth factor for exponential backoff)
+#distanceSensorInitDelayMs;u;500;VL53L1X first retry delay (ms)
+#distanceSensorInitGrowth;f;1.5;VL53L1X interval multiplier per retry
+#luxSensorInitDelayMs;u;1000;VEML7700 first retry delay (ms)
+#luxSensorInitGrowth;f;1.5;VEML7700 interval multiplier per retry
+#sensorBaseDefaultMs;u;100;normal polling rate for all sensors
+#sensorFastIntervalMs;u;30;rapid polling when motion detected
+#sensorFastDurationMs;u;800;how long to stay in fast mode
+#sensorFastDeltaMm;f;80.0;movement threshold to trigger fast mode
+#distanceNewWindowMs;u;1500;reading considered fresh for this long
+#distanceSensorDummyMm;u;9999;fake reading when VL53L1X absent/broken
+#luxSensorDummyLux;f;0.5;fake reading when VEML7700 absent/broken
+#sensor3DummyTemp;f;25.0;fake board temp when sensor3 absent
+#distanceMinMm;f;40.0;min distance for audio, heartbeat, light
+#distanceMaxMm;f;3600.0;max distance for audio, heartbeat, light
+
+# ═══════════════════════════════════════════════════════════════════
+# HEARTBEAT (3 params)
+# ═══════════════════════════════════════════════════════════════════
+#heartbeatMinMs;u;90;flash rate when hand touches dome
+#heartbeatMaxMs;u;2000;flash rate when room is empty
+#heartbeatDefaultMs;u;500;flash rate before first distance reading
+
+# ═══════════════════════════════════════════════════════════════════
+# NOTIFY (6 params)
+# ═════════════════════════════════════════════════════════════════
+# Flash burst: immediate repeating flashes when error detected
+#flashBurstIntervalMs;u;50000;interval between flash bursts (ms)
+#flashBurstRepeats;u;2;number of flash bursts after error
+#flashBurstGrowth;f;5.0;multiplier for exponential backoff (1.0 = constant)
+# Long-term reminder: periodic flashes after burst completes
+#reminderIntervalMs;u;1140000;how often to flash failure colors
+#reminderIntervalGrowth;f;5.3;multiplier for exponential backoff on reminders
+#flashCriticalMs;u;2000;duration of SD/WiFi fail flash
+#flashNormalMs;u;1000;duration of sensor fail flash
+
+# ═══════════════════════════════════════════════════════════════════
+# BOOT/CLOCK (3 params)
+# ═══════════════════════════════════════════════════════════════════
+#clockBootstrapIntervalMs;u;500;poll rate while waiting for NTP sync
+#ntpFallbackTimeoutMs;u;15000;give up on NTP after this, use RTC
+#bootPhaseMs;u;500;delay between boot stages for stability
+
+# ═══════════════════════════════════════════════════════════════════
+# NETWORK/FETCH (4 params)
+# ═══════════════════════════════════════════════════════════════════
+#timeCacheIntervalMs;u;300000;how often to refresh time cache file
+#weatherRefreshIntervalMs;u;3600000;weather API call spacing (rate limit)
+#sunRefreshIntervalMs;u;7200000;sunrise API call spacing
+#calendarRefreshIntervalMs;u;3600000;how often to re-parse calendar.csv
+
+# ═══════════════════════════════════════════════════════════════════
+# LOCATION (2 params)
+# ═══════════════════════════════════════════════════════════════════
+#locationLat;f;52.37;for sunrise/sunset calc, default=Amsterdam
+#locationLon;f;4.90;for sunrise/sunset calc, default=Amsterdam
+
+# ═══════════════════════════════════════════════════════════════════
+# TIME FALLBACK (4 params)
+# ═══════════════════════════════════════════════════════════════════
+#fallbackMonth;u;4;used when no RTC/NTP/cache available
+#fallbackDay;u;20;used when no RTC/NTP/cache available
+#fallbackHour;u;4;used when no RTC/NTP/cache available
+#fallbackYear;u;2026;used when no RTC/NTP/cache available
+
+# ═══════════════════════════════════════════════════════════════════
+# DEBUG (2 params)
+# ═══════════════════════════════════════════════════════════════════
+#timerStatusIntervalMs;u;60000;Serial output of timer slot usage
+#timeDisplayIntervalMs;u;60000;Serial output of current time

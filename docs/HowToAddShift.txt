@@ -1,0 +1,67 @@
+How to Add a New Shift Context
+================================
+This guide explains the steps required to introduce a new context flag ("shift")
+so that it can influence both colors and patterns. Follow the checklist in order.
+
+1. Extend the enums
+--------------------
+File: lib/ContextManager20251111/ShiftEnums.h
+- Add a new value to the `TimeStatus` enum (make sure it remains < 64 entries).
+- Pick a descriptive name (e.g., STATUS_RAINY) and add a short comment about the
+  intended condition.
+- The bit position defines the CSV keyword (see Step 4), so keep naming
+  consistent with existing flags.
+
+2. Provide a bit generator
+--------------------------
+File: lib/ContextManager20251111/ContextFlags.cpp
+- Either extend an existing helper (time-of-day, season, weather, weekday,
+  moon) or create a new helper function.
+- The helper should check the required data source (PRTClock, ContextManager,
+  SensorManager, etc.) and set the corresponding bit using
+  `bits |= (1ULL << STATUS_XXX);` when the condition is true.
+- Make sure the helper is included in `getFullContextBits()` so LightConduct
+  can see the new bit.
+
+3. Update parser support
+------------------------
+File: lib/ConductManager20251111/Light/ShiftStore.cpp
+- Add a string alias in `parseStatusString()` so the CSV can reference the new
+  flag (e.g., `if (s == "isRainy") { out = STATUS_RAINY; return true; }`).
+- Keep naming consistent between CSV and enum (the CSV uses `isCamelCase`).
+
+4. Update CSV templates
+-----------------------
+Files: sdroot/colorsShifts.csv, sdroot/patternShifts.csv
+- CSVs now use a "wide" layout: first column is `status`, all remaining
+  columns are numeric percentage shifts for a single parameter.
+- The old three-column (status;parameter;value) format is no longer read by
+  firmware—always edit/export the wide tables described below.
+- Keep files ASCII and semicolon-separated (;) so Excel/LibreOffice can open
+  them without guessing delimiters. Leave values as plain integers/floats.
+- Colors header order (8 columns) must be:
+  `status;colorA.brightness;colorA.hue;colorA.saturation;colorA.value;` 
+  `colorB.brightness;colorB.hue;colorB.saturation;colorB.value`
+- Patterns header order (14 columns) must be:
+  `status;colorCycleSec;brightCycleSec;fadeWidth;minBrightness;gradientSpeed;`
+  `centerX;centerY;radius;windowWidth;radiusOsc;xAmp;yAmp;xCycleSec;yCycleSec`
+- Add a row for every status keyword from Step 3 even if all values stay zero;
+  this keeps the parser stable and makes spreadsheets easier to compare.
+- Enter positive/negative percentages for the columns influenced by the new
+  flag; leave unused columns at `0` (zeros are ignored at load time).
+
+5. Rebuild and verify
+---------------------
+- Run `pio run -e esp32_v3` to compile.
+- Monitor serial logs to confirm the new status bit appears in the
+  `[LightConduct] Applied ... (status=0x...)` dumps when the condition is met.
+- Confirm LEDs behave as expected; adjust CSV percentages if needed.
+
+6. Document behavior (optional but recommended)
+-----------------------------------------------
+- Update README or inline comments describing when the new flag activates and
+  the artistic intent behind its shifts.
+- This helps future tweaking without reverse-engineering.
+
+Following this checklist keeps the context system maintainable and ensures that
+CSV editors, parsers, and runtime code remain in sync.

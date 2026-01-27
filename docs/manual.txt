@@ -1,0 +1,25 @@
+KWAL HANDLEIDING
+================
+
+RGB NOTIFY KLEUREN (foutmeldingen)
+----------------------------------
+Bij een hardware storing knippert de Kwal in een specifieke kleur.
+Tussen elke kleur zit een zwarte pauze (1 seconde).
+
+Kritieke fouten (2 seconden):
+  ROOD        - SD-kaart fout
+  ORANJE      - WiFi niet verbonden
+
+Normale fouten (1 seconde):
+  GEEL        - RTC klok fout
+  WIT         - NTP tijdsync fout
+  GROEN       - Afstandssensor fout
+  MAGENTA     - Lichtsensor fout
+  CYAAN       - Sensor 3 fout (optioneel)
+
+Volgorde: zwart → kleur → zwart → kleur → etc → herstel naar patroon
+
+FIRMWARE VERSIES
+----------------
+Huidige versie: 251223J
+WebGUI versie: 1221A

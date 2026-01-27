@@ -1,0 +1,5 @@
+CONFIG_ESP_COREDUMP_ENABLE=n
+
+# Enable task watchdog - design is non-blocking, 10s timeout for safety margin
+CONFIG_ESP_TASK_WDT=y
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=10

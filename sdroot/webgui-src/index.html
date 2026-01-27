@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kwal</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    
+    <section class="panel">
+      <div class="row audio-header-row">
+        <h2>Audio</h2>
+        <span class="fragment-id"><span id="audio-dir" class="clickable">---</span>/<span id="audio-file" class="clickable">---</span></span>
+        <button id="audio-next" class="btn-icon">⏭</button>
+        <span class="spacer"></span>
+        <button id="vote-down" class="btn-icon">👎</button>
+        <span id="vote-score" class="vote-value">-</span>
+        <button id="vote-up" class="btn-icon">👍</button>
+      </div>
+      <div class="row">
+        <label>Volume</label>
+        <input type="range" id="volume" min="0" max="100" value="100">
+        <span id="vol-num">100%</span>
+      </div>
+    </section>
+    
+    <section class="panel">
+      <h2>Licht</h2>
+      <div class="row">
+        <label>Helderheid</label>
+        <input type="range" id="brightness" min="0" max="100" value="100">
+        <span id="bri-num">100%</span>
+      </div>
+      <div class="row">
+        <label>Patroon</label>
+        <span id="current-pattern" class="status">-</span>
+        <button id="pattern-prev" class="btn-icon">⏮</button>
+        <button id="pattern-next" class="btn-icon">⏭</button>
+      </div>
+      <div class="row">
+        <label>Kleuren</label>
+        <span id="current-colors" class="status">-</span>
+        <button id="colors-prev" class="btn-icon">⏮</button>
+        <button id="colors-next" class="btn-icon">⏭</button>
+      </div>
+    </section>
+    
+    <div id="save-buttons">
+      <button id="save-colors-btn" class="btn-save" style="display:none;">Kleuren opslaan</button>
+      <button id="save-pattern-btn" class="btn-save" style="display:none;">Patroon opslaan</button>
+    </div>
+    
+    <footer>
+      <button id="dev-btn">⚙</button>
+    </footer>
+  </div>
+
+  <div id="dev-modal" class="modal">
+    <div class="modal-box">
+      <h3>Dev</h3>
+      <button data-open="sd-modal">SD</button>
+      <button data-open="ota-modal">OTA</button>
+      <button data-open="pattern-modal">Pattern</button>
+      <button data-open="colors-modal">Colors</button>
+      <button data-open="health-modal">Status</button>
+      <button data-close>Close</button>
+    </div>
+  </div>
+
+  <div id="save-colors-modal" class="modal">
+    <div class="modal-box">
+      <h3>Save Colors</h3>
+      <div class="edit-row">
+        <label>Name</label>
+        <input type="text" id="save-colors-name" maxlength="48">
+      </div>
+      <button id="save-colors-confirm" class="btn-ok">Save</button>
+      <button data-close data-return="dev-modal">Cancel</button>
+    </div>
+  </div>
+
+  <div id="sd-modal" class="modal">
+    <div class="modal-box">
+      <h3>SD Card Upload</h3>
+      <p>Upload file to SD root:</p>
+      <div class="upload-box">
+        <input type="file" id="upload-file">
+        <button id="upload-btn">Upload</button>
+        <span id="upload-msg"></span>
+      </div>
+      <button data-close data-return="dev-modal">Close</button>
+    </div>
+  </div>
+
+  <div id="ota-modal" class="modal">
+    <div class="modal-box">
+      <h3>OTA Update</h3>
+      <p>Start OTA mode to upload firmware via PlatformIO.</p>
+      <button id="ota-start" class="btn-warn">Start OTA</button>
+      <div id="ota-status"></div>
+      <button data-close data-return="dev-modal">Close</button>
+    </div>
+  </div>
+
+  <div id="pattern-modal" class="modal">
+    <div class="modal-box wide">
+      <h3>Pattern</h3>
+      <div id="pattern-list" class="pattern-list"></div>
+      <button data-close data-return="dev-modal">Close</button>
+    </div>
+  </div>
+
+  <div id="colors-modal" class="modal">
+    <div class="modal-box wide">
+      <h3>Colors</h3>
+      <div id="colors-list" class="color-list"></div>
+      <button data-close data-return="dev-modal">Close</button>
+    </div>
+  </div>
+
+  <div id="save-pattern-modal" class="modal">
+    <div class="modal-box">
+      <h3>Save Pattern</h3>
+      <div class="edit-row">
+        <label>Name</label>
+        <input type="text" id="save-pattern-name" maxlength="48">
+      </div>
+      <button id="save-pattern-confirm" class="btn-ok">Save</button>
+      <button data-close>Cancel</button>
+    </div>
+  </div>
+
+  <div id="health-modal" class="modal">
+    <div class="modal-box">
+      <h3>System Status</h3>
+      <div id="health-content"></div>
+      <button id="health-refresh" class="btn-icon">🔄</button>
+      <button data-close data-return="dev-modal">Close</button>
+    </div>
+  </div>
+
+  <script src="kwal.js"></script>
+</body>
+</html>

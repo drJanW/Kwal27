@@ -1,0 +1,58 @@
+#include "MPU9250.h"
+
+bool MPU9250Sensor::begin(AccelRange aRange, GyroRange gRange) {
+    if (!SensorManager::isI2CReady()) return false;
+
+    imu.initialize();
+    if (!imu.testConnection()) {
+        return false;
+    }
+
+    // Configure ranges
+    imu.setFullScaleAccelRange(static_cast<uint8_t>(aRange));
+    imu.setFullScaleGyroRange(static_cast<uint8_t>(gRange));
+
+    // Enable DMP if needed (for advanced features)
+    // imu.dmpInitialize();
+
+    initialized = true;
+    return true;
+}
+
+bool MPU9250Sensor::readData() {
+    if (!initialized || !SensorManager::isI2CReady()) return false;
+
+    int16_t ax, ay, az;
+    int16_t gx, gy, gz;
+    
+    imu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    
+    // Convert to proper units
+    float accelScale = 1.0f;
+    switch (imu.getFullScaleAccelRange()) {
+        case 0: accelScale = 16384.0f; break; // ±2g
+        case 1: accelScale = 8192.0f; break;  // ±4g
+        case 2: accelScale = 4096.0f; break;  // ±8g
+        case 3: accelScale = 2048.0f; break;  // ±16g
+    }
+
+    float gyroScale = 1.0f;
+    switch (imu.getFullScaleGyroRange()) {
+        case 0: gyroScale = 131.0f; break;    // ±250°/s
+        case 1: gyroScale = 65.5f; break;     // ±500°/s
+        case 2: gyroScale = 32.8f; break;     // ±1000°/s
+        case 3: gyroScale = 16.4f; break;     // ±2000°/s
+    }
+
+    accel.x = ax / accelScale;
+    accel.y = ay / accelScale;
+    accel.z = az / accelScale;
+
+    gyro.x = gx / gyroScale;
+    gyro.y = gy / gyroScale;
+    gyro.z = gz / gyroScale;
+
+    temp = imu.getTemperature() / 340.0f + 36.53f;
+
+    return true;
+}

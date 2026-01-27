@@ -1,0 +1,14 @@
+light_pattern_id;light_pattern_name;color_cycle_sec;bright_cycle_sec;fade_width;min_brightness;gradient_speed;center_x;center_y;radius;window_width;radius_osc;x_amp;y_amp;x_cycle_sec;y_cycle_sec
+1;Smooth Orbit;18;14;99;12;0.6;0;0;22;24;4;3.5;2.5;22;20
+2;Slow Breathing;30;28;16;8;0.3;22;0;18;28;2;2;2;32;34
+3;Rapid Sparks;8;6;44;20;1.2;33;0;10;14;6;5;55;9;11
+4;Wide Sweep;20;18;11;12;0.6;44;-4;40;48;7;8;5;26;24
+5;Calm Center;24;18;66;4;0.2;2;3;55;12;12;4;77;77;66
+6;Energetic Pulse;12;10;77;16;0.8012;66;11;16;20;4;3;66;16;18
+7;Radiant Glow;16;14;10;10;0.4006;77;22;20;26;2.5;2.5;3;28;30
+8;Twinkling Stars;10;8;55;18;1.0024;22;11;12;16;5;4;6;12;14
+9;Gentle Waves;22;20;12;8;0.3012;11;22;55;32;3.5;44;3.5;30;28
+10;Vibrant Flash;6;4;33;22;1.5048;22;11;6;8;7;6;8;8;10
+11;Pulsing Halo;14;12;22;14;0.5012;44;55;14;18;11;66;4;20;22
+12;Dynamic Flow;18;16;11;10;0.6024;4;4;22;26;3;5;66;24;26
+13;Serene Fade;26;22;15;6;0.2003;34;56;30;36;21;2;2;36;38

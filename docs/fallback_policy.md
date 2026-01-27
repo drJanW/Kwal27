@@ -1,0 +1,117 @@
+# Fallback Policy
+
+Defines graceful degradation when hardware or services fail.
+
+**Version**: 251224L
+
+## SD Card Failure
+
+**Trigger**: SD init fails after 10 retries
+
+**Behavior**:
+- **Audio**: TTS only (no MP3 playback)
+- **RGB**: Ambient mode - pink ↔ turquoise fade
+  - Pink: hue ~350°, high saturation
+  - Turquoise/Aqua: hue ~180°, high saturation
+  - Brightness varies 30%-100%
+  - Slow crossfade between colors
+- **Calendar**: disabled, no shifts
+- **Web UI**: returns "OUT OF ORDER" (HTTP 503)
+- **Config**: flash defaults only
+
+## No RTC Hardware
+
+**Trigger**: DS3231 not detected on I2C
+
+**Behavior**:
+1. Try NTP sync
+2. If NTP OK → use NTP time
+3. If NTP fails → fallback time: **20 april, 04:00**
+   - 20 april: no holidays, no special triggers
+   - 04:00: quiet night, minimal impact
+   - Configurable via `Globals::fallbackMonth`, `fallbackDay`, `fallbackHour`
+
+## No WiFi
+
+**Trigger**: WiFi connect fails or disconnects
+
+**Behavior**:
+- **Time**: use RTC (if available)
+- **NTP**: skip, rely on RTC
+- **Weather**: use defaults
+  - temp: 15°C
+  - conditions: "unknown"
+- **Sunrise/Sunset**: calculate locally
+  - Uses lat/lon from Globals (default: 51.45, 5.45)
+  - Simplified solar calculation
+  - Calc error fallback: 07:00 / 19:00
+- **Recovery**: background retry, fetch all on reconnect
+
+## Sensor Failures
+
+**Trigger**: Sensor init fails after retries with growing interval
+
+**Behavior**:
+- RGB notify flash burst (NotifyRGB state machine)
+- TTS announcement of failure
+- Sensor returns dummy values
+
+**Dummy values**:
+
+| Sensor | Dummy Value | Rationale |
+|--------|-------------|-----------|
+| DistanceSensor (VL53L1X) | 9999 mm | "far away" - no proximity triggers |
+| LuxSensor (VEML7700) | 0.5 (50%) | medium brightness |
+| Sensor3 (board temp) | 25.0°C | placeholder - no hardware |
+
+## Boot Fragment Timing
+
+**Trigger**: CalendarConduct sets theme box
+
+**Behavior**:
+- `ConductManager::triggerBootFragment()` called after theme box ready
+- One-shot flag prevents duplicate triggers
+- 500ms delay before `cb_bootFragment`
+- Retry if audio busy (TTS speaking sensor failures)
+
+## Voting Score Storage
+
+**Range**: 0-200 (uint8_t in SD index, int16_t in WebGuiStatus)
+
+**Behavior**:
+- Score 0 = banned file (excluded from selection)
+- Vote delta clamped to ±10 per request
+- WebGuiStatus uses int16_t to prevent overflow in UI
+
+## Implementation Locations
+
+| Fallback | File |
+|----------|------|
+| SD fail ambient show | LightManager.cpp |
+| Fallback date config | Globals.h/cpp (fallbackMonth/Day/Hour) |
+| Sunrise calculation | FetchManager.cpp |
+| Sensor dummy returns | SensorManager.cpp |
+| "OUT OF ORDER" response | WebInterfaceManager.cpp |
+| Boot fragment trigger | CalendarConduct.cpp → ConductManager.cpp |
+| Voting score | SDVoting.cpp, WebGuiStatus.cpp |
+
+## NotifyRGB Flash Patterns
+
+State machine in NotifyRGB.cpp handles flash sequences:
+- Builds sequence from context bits (failures/successes)
+- Single `cb_sequenceStep` callback advances through steps
+- Colors: cyan (OK), magenta (warning), red (error), black (gap)
+
+## NotifyState Reports
+
+Each failure should report via `NotifyState::set*Status()`:
+
+- `SD_FAIL` - after retries exhausted
+- `WIFI_FAIL` - on disconnect (transition)
+- `RTC_FAIL` - hardware not detected
+- `NTP_FAIL` - timeout before fallback
+- `DISTANCE_SENSOR_FAIL` / `LUX_SENSOR_FAIL` - init failed
+- `TTS_FAIL` / `CALENDAR_FAIL` - subsystem errors
+
+Success reports only when component actually works:
+- `SD_OK`, `WIFI_OK`, `RTC_OK`, `NTP_OK`, `SENSOR*_OK`, `TTS_OK`, `CALENDAR_OK`

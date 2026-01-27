@@ -1,0 +1,63 @@
+MP3 ID Mapping voor /000/ directory
+=====================================
+SD_MAX_FILES_PER_SUBDIR = 101 (max file: 100.mp3)
+
+== NUMBERS (0-59) ==
+| ID  | Audio           |
+|-----|----------------|
+| 0   | "nul"          |
+| 1   | "een"          |
+| ... | ...            |
+| 59  | "negenenvijftig" |
+
+== MODULAIRE STATUSWOORDEN (60-90) ==
+Deze 31 woorden vervangen de oude samengestelde zinnen. Combineer een onderwerp + staat + (optioneel) modifier om uitspraken als
+"wifi gereed", "temperatuur sensor fout", "geheugenkaart controle mislukt" te bouwen.
+
+**Onderwerpen (60-72)**
+| Constant             | ID | Audio           |
+|----------------------|----|-----------------|
+| MP3_SYSTEM           | 60 | "systeem"       |
+| MP3_WIFI             | 61 | "wifi"          |
+| MP3_SENSOR           | 62 | "sensor"        |
+| MP3_TEMPERATUUR      | 63 | "temperatuur"   |
+| MP3_SD               | 64 | "geheugenkaart" |
+| MP3_OTA              | 65 | "update"        |
+| MP3_WEB              | 66 | "webinterface"  |
+| MP3_AUDIO            | 67 | "audio"         |
+| MP3_LIGHT            | 68 | "licht"         |
+| MP3_DISTANCE         | 69 | "afstand"       |
+| MP3_CALENDAR         | 70 | "kalender"      |
+| MP3_TIME             | 71 | "tijd"          |
+| MP3_POWER            | 72 | "voeding"       |
+
+**Staten / acties (73-83)**
+| Constant             | ID | Audio        |
+|----------------------|----|-------------|
+| MP3_START            | 73 | "start"      |
+| MP3_GEREED           | 74 | "gereed"     |
+| MP3_BEZIG            | 75 | "bezig"      |
+| MP3_FOUT             | 76 | "fout"       |
+| MP3_MISLUKT          | 77 | "mislukt"    |
+| MP3_OPNIEUW          | 78 | "opnieuw"    |
+| MP3_VERBINDING       | 79 | "verbinding" |
+| MP3_UPDATE           | 80 | "update"     |
+| MP3_CONTROLE         | 81 | "controle"   |
+| MP3_HERSTELD         | 82 | "hersteld"   |
+| MP3_BESCHIKBAAR      | 83 | "beschikbaar"|
+
+**Modifiers (84-90)**
+| Constant              | ID | Audio         |
+|-----------------------|----|---------------|
+| MP3_GEEN              | 84 | "geen"        |
+| MP3_LAGE              | 85 | "lage"        |
+| MP3_HOGE              | 86 | "hoge"        |
+| MP3_KRITIEK           | 87 | "kritiek"     |
+| MP3_INFORMATIE        | 88 | "informatie"  |
+| MP3_MELDING           | 89 | "melding"     |
+| MP3_AUTOMATISCH       | 90 | "automatisch" |
+
+De bestaande tijdzinnen ("het is", "uur", "minuten", etc.) kun je in de vrije slots 91-100 plaatsen of behouden wanneer nodig.
+
+== SPECIAL ==
+| MP3_END             | 255 | (end marker, geen bestand) |

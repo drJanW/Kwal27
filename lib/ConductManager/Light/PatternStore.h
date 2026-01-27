@@ -1,0 +1,65 @@
+/**
+ * @file PatternStore.h
+ * @brief LED pattern storage
+ * @version 251231E
+ * @date 2025-12-31
+ *
+ * Stores and manages LED animation patterns loaded from CSV configuration.
+ * Provides pattern selection, CRUD operations, and JSON serialization for
+ * web interface. Single source of truth for pattern definitions.
+ */
+
+#pragma once
+
+#include <Arduino.h>
+#include <ArduinoJson.h>
+#include <FastLED.h>
+#include <vector>
+
+#include "LightManager.h"
+// ShiftEnums.h no longer needed - shifts handled in LightConduct
+
+class PatternStore {
+public:
+    static PatternStore& instance();
+
+    void begin();
+    bool isReady() const { return ready_; }
+
+    String buildJson(const char* source = "context") const;
+
+    bool select(const String& id, String& errorMessage);
+    bool selectNext(String& errorMessage);
+    bool selectPrev(String& errorMessage);
+    bool update(JsonVariantConst body, String& affectedId, String& errorMessage);
+    bool remove(JsonVariantConst body, String& affectedId, String& errorMessage);
+
+    const String& activeId() const { return activePatternId_; }
+    String firstPatternId() const { return patterns_.empty() ? String() : patterns_.front().id; }
+
+    LightShowParams getActiveParams() const;  // Returns RAW params, shifts applied in LightConduct
+    bool parseParams(JsonVariantConst src, LightShowParams& out, String& errorMessage) const;
+    bool getParamsForId(const String& id, LightShowParams& out) const;
+    String getLabelForId(const String& id) const;  // Returns label or empty string if not found
+
+private:
+    PatternStore() = default;
+
+    struct PatternEntry {
+        String id;
+        String label;
+        LightShowParams params;
+    };
+
+    bool loadFromSD();
+    bool saveToSD() const;
+
+    PatternEntry* findEntry(const String& id);
+    const PatternEntry* findEntry(const String& id) const;
+
+    String generateId() const;
+
+    std::vector<PatternEntry> patterns_;
+    String activePatternId_;
+    bool ready_{false};
+};

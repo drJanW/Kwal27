@@ -1,0 +1,9 @@
+SDMANAGER V2.01
+Index format V3
+All MP3 files: mono, 128 kbps (max)
+headless files only (no ID3 tags)
+Bitrate: 128 kbps = 16,000 bytes/sec (1 ms ≈ 16 bytes)
+Estimate ms = (file size / 16) - 160 [header]
+Folders: /NNN/   (NNN=0..200, max 200)
+Files:   MMM.mp3 (MMM=1..101, max 101 per folder)
+Special: /000/ = reserved/skip

@@ -1,0 +1,55 @@
+HowTo: Configure for a Different LAN / Router
+==============================================
+
+All WiFi/LAN settings are in: lib/Globals/HWconfig.h
+
+REQUIRED CHANGES
+----------------
+1. WIFI_SSID        - Your WiFi network name
+2. WIFI_PASSWORD    - Your WiFi password
+3. IP_LAN_STR       - Your LAN subnet prefix (e.g. "192.168.1.")
+
+OPTIONAL CHANGES
+----------------
+4. IP_MARMER / IP_HOUT  - Device IP last octet (default: 188/189)
+5. USE_STATIC_IP        - Set to 'false' for DHCP instead of static IP
+6. STATIC_GATEWAY_STR   - Router IP (defaults to IP_LAN_STR + "1")
+
+EXAMPLE: Changing to 192.168.1.x network
+----------------------------------------
+Before:
+  #define WIFI_SSID "keijebijter"
+  #define WIFI_PASSWORD "Helmondia'55"
+  #define IP_LAN_STR "192.168.2."
+
+After:
+  #define WIFI_SSID "MyHomeWiFi"
+  #define WIFI_PASSWORD "MySecretPassword"
+  #define IP_LAN_STR "192.168.1."
+
+DHCP MODE (no static IP)
+------------------------
+If you prefer DHCP (router assigns IP automatically):
+  #define USE_STATIC_IP false
+
+Note: With DHCP you need to find the assigned IP via serial monitor
+or check your router's connected devices list.
+
+DEVICE SELECTION
+----------------
+To select which device IP to use (for multiple ESP32 units):
+  #define IP_KWAL IP_MARMER   // Uses IP_MARMER (188)
+  #define IP_KWAL IP_HOUT     // Uses IP_HOUT (189)
+
+AFTER CHANGES
+-------------
+1. Recompile: pio run
+2. Upload: pio run --target upload
+3. Verify connection via serial monitor (trace.ps1)
+
+OTA URL
+-------
+OTA firmware URL is derived from IP_LAN_STR:
+  #define OTA_URL "http://" IP_LAN_STR "2/firmware.bin"
+
+This assumes firmware server is at x.x.x.2 - adjust if needed.

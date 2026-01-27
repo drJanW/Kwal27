@@ -1,0 +1,101 @@
+# Kwal27 ESP32 Firmware - Copilot Instructions
+
+## Project Overview
+ESP32 ambient art installation (jellyfish sculpture) with LED lights, audio playback, web interface, and sensor integration. PlatformIO project using Arduino framework with ESP32-S3, 16MB flash.
+
+## Architecture: Boot → Plan → Policy → Conduct → Manager
+
+```
+TimerManager (central timing) → ConductManager (orchestration)
+    ↓                              ↓
+Boot layers (one-time init)    Policy layers (rules/constraints)
+    ↓                              ↓
+Managers (hardware APIs)       Directors (context→requests)
+```
+
+- **Boot**: One-time initialization, register timers, seed caches
+- **Conduct**: Owns timer callbacks (`cb_*` prefix), sequences work, raises intents
+- **Policy**: Domain rules, approve/deny requests - NO side effects, NO timers
+- **Director**: Build requests from context - NO policy decisions
+- **Manager**: Hardware drivers (FastLED, I2S, SPI) - ONLY managers touch hardware
+
+## Critical Rules
+
+### Timing
+- **ONLY use TimerManager** - never `millis()`, `delay()`, or local timing
+- Callbacks: prefix with `cb_`, execute actions, NO polling or "if ready" checks
+- `create()` = new timer, `restart()` = reuse existing with same callback
+
+### Version Bumping (BEFORE any code change)
+- Firmware: [lib/Globals/Globals.h](../lib/Globals/Globals.h) → `FIRMWARE_VERSION`
+- WebGUI JS: [sdroot/webgui-src/build.ps1](../sdroot/webgui-src/build.ps1#L23) → `$version`
+
+### WebGUI Pipeline (JS is NOT auto-built)
+```powershell
+# Edit sources in sdroot/webgui-src/js/*.js (NEVER edit sdroot/kwal.js directly)
+cd sdroot\webgui-src
+.\build.ps1                    # Concatenates to ../kwal.js
+cd ..\..
+.\upload_web.ps1               # Uploads to ESP32 SD card
+```
+
+### Include Order
+Every `.cpp` file: `#include <Arduino.h>` as FIRST include
+
+## Code Style
+
+- **camelCase** for all identifiers (never snake_case)
+- Callbacks: `cb_verbNoun()` pattern
+- Functions: `verbNoun()` (e.g., `calcUnshiftedHi`, `applyBrightnessRules`)
+- **English only** in all `.cpp`, `.h`, `.md` files and code comments
+
+### Terminology (use these exact terms)
+| Use | NOT |
+|-----|-----|
+| interval | cadence, period |
+| multiplier (0.0+) | modifier, fraction |
+| factor (0.0-1.0) | mult |
+| shift | offset |
+| brightness | bri, bright |
+| volume | gain (except I2S registers) |
+| speak | speech |
+| create | schedule |
+
+## Key Directories
+
+| Path | Purpose |
+|------|---------|
+| `lib/ConductManager/` | Boot/Conduct/Policy/Director layers per subsystem |
+| `lib/TimerManager/` | Central non-blocking timer system (60 slots) |
+| `lib/Globals/` | Shared config, `Globals.h`, `HWconfig.h`, `macros.inc` |
+| `sdroot/` | SD card content: web assets, CSV configs |
+| `sdroot/webgui-src/js/` | JS source modules → built to `kwal.js` |
+| `A56/` | Staging area for work-in-progress refactors |
+| `docs/` | Design docs, `glossary_slider_semantics.md` (read before brightness work) |
+
+## Build & Deploy Commands
+
+```powershell
+.\go.ps1              # Upload existing firmware (no rebuild)
+.\ota.ps1 [188|189]   # OTA update to device
+.\trace.ps1 [COM#]    # Serial monitor
+.\upload_web.ps1      # Upload web files to SD
+.\upload_csv.ps1      # Upload CSV configs to SD
+.\download_csv.ps1    # Download CSVs from device
+.\naspush.ps1 "msg"   # Commit and push to NAS
+```
+
+## Before Editing Code
+
+1. **Search for existing solutions** - check `can*()`, `is*()`, `set*()`, `get*()` functions
+2. **Check source vs generated** - `kwal.js` is generated from `webgui-src/js/`
+3. **Read glossary** if touching brightness/slider logic
+4. **Grep for guards** if values don't propagate: `#ifdef|DISABLE|SKIP|return;`
+
+## What NOT to Do
+
+- Never run `pio` commands directly - say "Nu compileren" and wait
+- Never edit `sdroot/kwal.js` - edit `sdroot/webgui-src/js/*.js` sources
+- Never add "safety" guards that duplicate upstream validation
+- Never use generic verbs (handle, process, do) - be specific (report, speak, update)
+- Never skip version bump before code changes
