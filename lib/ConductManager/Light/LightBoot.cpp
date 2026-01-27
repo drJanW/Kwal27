@@ -19,8 +19,6 @@
 
 namespace {
 
-TimerManager& timers() { return TimerManager::instance(); }
-
 void cb_updateLightManager() { updateLightManager(); }
 
 // Initialize LED hardware and timers

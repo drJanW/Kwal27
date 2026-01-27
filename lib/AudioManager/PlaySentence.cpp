@@ -61,7 +61,6 @@ uint8_t speakQueueTail = 0;
 uint8_t mp3Scratchpad[8];
 
 AudioManager& audio() { return AudioManager::instance(); }
-TimerManager& timers() { return TimerManager::instance(); }
 constexpr uint16_t WORD_FALLBACK_MS = 800;
 
 uint16_t wordDurations[SD_MAX_FILES_PER_SUBDIR] = {0};

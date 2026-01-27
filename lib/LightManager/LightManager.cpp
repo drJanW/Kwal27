@@ -42,8 +42,6 @@ bool LightManager::isMeasurementMode() const {
 
 namespace {
 
-TimerManager& timers() { return TimerManager::instance(); }
-
 float   webShift = 1.0f;              // User brightness multiplier (can be >1.0)
 uint8_t brightnessUnshiftedHi = 100;  // Hi boundary before shifts (from boot or lux)
 uint8_t brightnessShiftedHi = 100;    // Hi boundary after shifts

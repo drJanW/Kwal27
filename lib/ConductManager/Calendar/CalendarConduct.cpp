@@ -28,10 +28,6 @@ constexpr uint32_t retryStartMs      = 2UL * 1000UL;   // Start retry interval (
 constexpr int32_t  retryCount        = -50;            // 50 retries with growing interval
 constexpr uint32_t initialDelayMs    = 5UL * 1000UL;
 
-TimerManager& timers() {
-  return TimerManager::instance();
-}
-
 bool clockReady() {
   return PRTClock::instance().hasValidDate();
 }

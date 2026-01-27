@@ -33,11 +33,6 @@ namespace
     constexpr uint32_t retryStartMs = 2000;
     constexpr int32_t  retryCount = -14;  // 14 retries with growing interval
 
-    TimerManager& timers()
-    {
-        return TimerManager::instance();
-    }
-
     void cb_checkWiFiStatus();
     void cb_healthCheck();
     void cb_retryConnect();

@@ -50,10 +50,6 @@ AudioManager& audio() {
     return AudioManager::instance();
 }
 
-TimerManager& timers() {
-    return TimerManager::instance();
-}
-
 void initCurve() {
     auto& state = fade();
     if (state.curveReady) return;

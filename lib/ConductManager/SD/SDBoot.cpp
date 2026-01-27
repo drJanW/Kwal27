@@ -36,10 +36,6 @@ bool rebuildPending = false;  // Deferred rebuild waiting for time
 CRGB failLeds[NUM_LEDS];
 uint8_t failPhase = 0;
 
-TimerManager& timers() {
-    return TimerManager::instance();
-}
-
 // Forward declarations
 static bool versionStringsEqual(const String& a, const char* b);
 
