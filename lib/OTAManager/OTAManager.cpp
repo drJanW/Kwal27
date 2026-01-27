@@ -42,7 +42,7 @@ static void runOtaSetup(){
   bootWiFiConnect();
   const uint32_t connectDeadline = millis() + 60UL * 1000UL;
   while (!isWiFiConnected() && millis() < connectDeadline) {
-    TimerManager::instance().update();
+    timers.update();
     delay(10);
   }
   if (!isWiFiConnected()) {
@@ -83,7 +83,7 @@ static void runOtaSetup(){
   const uint32_t windowMs = 5UL * 60UL * 1000UL;
   const uint32_t start = millis();
   while (!updateCompleted && !updateFailed && (millis() - start) < windowMs) {
-    TimerManager::instance().update();
+    timers.update();
     ArduinoOTA.handle();
     delay(10);
   }
@@ -117,7 +117,7 @@ bool otaConfirmAndReboot(){
   const uint32_t arm  = nvs_get32("enabled_until");
   if (mode == 1 && nowS <= arm){
     nvs_set8("mode", 2);
-    if (!TimerManager::instance().create(15000UL, 1, restartDeviceCallback)){
+    if (!timers.create(15000UL, 1, restartDeviceCallback)){
       PL("[OTA] confirm -> immediate reboot (timer fail)");
       delay(50);
       ESP.restart();

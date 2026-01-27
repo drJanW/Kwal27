@@ -80,7 +80,7 @@ uint32_t getPollingIntervalMs() {
 
 void exitFastMode() {
     fastModeActive = false;
-    TimerManager::instance().cancel(cb_exitFastMode);
+    timers.cancel(cb_exitFastMode);
 }
 
 bool normaliseDistance(float rawMm, uint32_t sampleTsMs, float& filteredOut) {
@@ -103,7 +103,7 @@ bool normaliseDistance(float rawMm, uint32_t sampleTsMs, float& filteredOut) {
                 PF("[SensorsPolicy] Fast mode triggered (delta=%.1fmm)\n", delta);
             }
             // Reset/extend fast mode duration timer
-            TimerManager::instance().restart(Globals::sensorFastDurationMs, 1, cb_exitFastMode);
+            timers.restart(Globals::sensorFastDurationMs, 1, cb_exitFastMode);
         }
     }
     previousDistanceMm = filtered;
@@ -115,7 +115,7 @@ bool normaliseDistance(float rawMm, uint32_t sampleTsMs, float& filteredOut) {
     SensorManager::setDistanceMillimeters(filtered);
     filteredOut = filtered;
 
-    TimerManager::instance().restart(Globals::distanceNewWindowMs, 1, cb_distanceOld);
+    timers.restart(Globals::distanceNewWindowMs, 1, cb_distanceOld);
 
     SP_LOG("[SensorsPolicy] raw=%.1f filtered=%.1f fast=%d\n",
            rawMm,
@@ -145,7 +145,7 @@ bool canSpeakDistanceCleared() {
         return false;
     }
     distanceClearedCooldownActive = true;
-    TimerManager::instance().create(DISTANCE_CLEARED_COOLDOWN_MS, 1, cb_distanceClearedCooldownEnd);
+    timers.create(DISTANCE_CLEARED_COOLDOWN_MS, 1, cb_distanceClearedCooldownEnd);
     return true;
 }
 

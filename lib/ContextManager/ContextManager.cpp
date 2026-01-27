@@ -133,7 +133,6 @@ bool ContextManager_post(ContextManager::WebCmd cmd, uint8_t dir, uint8_t file, 
 
 void ContextManager::begin() {
   // Start een 20 ms heartbeat die de context events verwerkt.
-  auto &timers = TimerManager::instance();
   timers.cancel(ctx_tick_cb);
   updateTimeContext();
   if (!timers.create(20, 0, ctx_tick_cb)) {

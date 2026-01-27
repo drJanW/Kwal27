@@ -44,7 +44,7 @@ void cb_processSensorEvents() {
         uint32_t dummy = 0;
         if (!AudioPolicy::distancePlaybackInterval(distanceMm, dummy) && distancePlaybackEligible) {
             distancePlaybackEligible = false;
-            TimerManager::instance().cancel(AudioConduct::cb_playPCM);
+            timers.cancel(AudioConduct::cb_playPCM);
         }
 
         float filteredMm = 0.0f;
@@ -71,7 +71,7 @@ void cb_processSensorEvents() {
             }
         } else if (distancePlaybackEligible) {
             distancePlaybackEligible = false;
-            TimerManager::instance().cancel(AudioConduct::cb_playPCM);
+            timers.cancel(AudioConduct::cb_playPCM);
             // Object moved away - speak "geen afstand" if cooldown allows
             if (SensorsPolicy::canSpeakDistanceCleared()) {
                 SpeakConduct::speak(SpeakIntent::DISTANCE_CLEARED);
@@ -82,13 +82,13 @@ void cb_processSensorEvents() {
     }
 
     // Reschedule with current interval (fast or normal)
-    TimerManager::instance().restart(SensorsPolicy::getPollingIntervalMs(), 0, cb_processSensorEvents);
+    timers.restart(SensorsPolicy::getPollingIntervalMs(), 0, cb_processSensorEvents);
 }
 
 } // namespace
 
 void SensorsConduct::plan() {
     distancePlaybackEligible = false;
-    TimerManager::instance().restart(SensorsPolicy::getPollingIntervalMs(), 0, cb_processSensorEvents);
+    timers.restart(SensorsPolicy::getPollingIntervalMs(), 0, cb_processSensorEvents);
     PF("[Conduct][Plan] Sensor processing scheduled\n");
 }

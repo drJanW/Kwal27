@@ -58,7 +58,7 @@ void setup(AsyncWebServer &server, AsyncEventSource &events)
         }
         // DEFER to main loop! Direct send in async_tcp callback causes watchdog crash.
         // Use restart() - multiple clients can connect, reschedule if pending
-        TimerManager::instance().restart(10, 1, cb_deferredPush);
+        timers.restart(10, 1, cb_deferredPush);
     });
     server.addHandler(&events);
 }

@@ -62,9 +62,8 @@ bool AudioOutputI2S_Metered::begin()
 
 	gMeterInstance = this;
 
-	auto &tm = TimerManager::instance();
-	tm.cancel(cb_audioMeter);
-	if (!tm.create(kAudioMeterIntervalMs, 0, cb_audioMeter)) {
+	timers.cancel(cb_audioMeter);
+	if (!timers.create(kAudioMeterIntervalMs, 0, cb_audioMeter)) {
 		AUDIO_LOG_ERROR("[AudioMeter] Failed to start meter timer\n");
 	}
 

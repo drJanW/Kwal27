@@ -64,7 +64,7 @@ void cb_statusReminder() {
 
 void cb_healthStatus() {
     PF("\n[Health] Version %s\n", FIRMWARE_VERSION);
-    PF("[Health] Timers %d/%d\n", TimerManager::instance().getActiveCount(), TimerManager::MAX_TIMERS);
+    PF("[Health] Timers %d/%d\n", timers.getActiveCount(), TimerManager::MAX_TIMERS);
     PL("[Health] Components:");
     
     struct { StatusComponent c; const char* name; const char* icon; } items[] = {
@@ -104,7 +104,7 @@ void NotifyConduct::plan() {
     NotifyState::reset();
     
     // Health status timer
-    TimerManager::instance().create(Globals::healthStatusIntervalMs, 0, cb_healthStatus);
+    timers.create(Globals::healthStatusIntervalMs, 0, cb_healthStatus);
 }
 
 void NotifyConduct::report(NotifyIntent intent) {
@@ -147,7 +147,7 @@ void NotifyConduct::report(NotifyIntent intent) {
         case NotifyIntent::START_RUNTIME: 
             NotifyState::startRuntime();
             // Start reminder timer for failure status flash (exponential backoff)
-            TimerManager::instance().create(Globals::reminderIntervalMs, 0, cb_statusReminder, Globals::reminderIntervalGrowth);
+            timers.create(Globals::reminderIntervalMs, 0, cb_statusReminder, Globals::reminderIntervalGrowth);
             // Welkom queued at WIFI_OK (stage 2), not here
             break;
     }

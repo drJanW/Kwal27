@@ -198,7 +198,7 @@ void SensorManager::init(uint32_t ivMs)
   hasDistance = false;
   lastDistanceMm = 0.0f;
 
-  auto &tm = TimerManager::instance();
+  auto &tm = timers;
   if (!tm.create(baseIntervalMs, 0, SensorManager::cb_sensorRead)) {
     PL("[SensorManager] Failed to create sensor polling timer");
     return;

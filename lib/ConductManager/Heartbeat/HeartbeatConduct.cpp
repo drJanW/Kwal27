@@ -48,7 +48,7 @@ void cb_heartbeat() {
     
     updateFailurePattern();
     uint32_t nextMs = ledState ? onMs : offMs;
-    TimerManager::instance().restart(nextMs, 1, cb_heartbeat);
+    timers.restart(nextMs, 1, cb_heartbeat);
 }
 
 } // namespace
@@ -58,7 +58,7 @@ HeartbeatConduct heartbeatConduct;
 void HeartbeatConduct::plan() {
     HeartbeatPolicy::configure();
     updateFailurePattern();
-    TimerManager::instance().restart(onMs, 1, cb_heartbeat);
+    timers.restart(onMs, 1, cb_heartbeat);
     HB_LOG("[HeartbeatConduct] Started asymmetric heartbeat\n");
 }
 

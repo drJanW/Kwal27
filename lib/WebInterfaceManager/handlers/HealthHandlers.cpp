@@ -26,7 +26,7 @@ void handleHealth(AsyncWebServerRequest *request) {
     json += "\"health\":" + String(NotifyState::getHealthBits()) + ",";
     json += "\"boot\":" + String(NotifyState::getBootStatus()) + ",";
     json += "\"absent\":" + String(NotifyState::getAbsentBits()) + ",";
-    json += "\"timers\":" + String(TimerManager::instance().getActiveCount()) + ",";
+    json += "\"timers\":" + String(timers.getActiveCount()) + ",";
     json += "\"maxTimers\":" + String(TimerManager::MAX_TIMERS);
     json += "}";
     
@@ -40,7 +40,7 @@ void cb_restart() {
 void handleRestart(AsyncWebServerRequest *request) {
     request->send(200, "text/plain", "Restarting...");
     // Delay restart to allow response to be sent
-    TimerManager::instance().create(500, 1, cb_restart);
+    timers.create(500, 1, cb_restart);
 }
 
 void attachRoutes(AsyncWebServer &server) {

@@ -172,14 +172,13 @@ void cb_stopPCMPlayback() {
 }
 
 void stopAfter(uint32_t durationMs) {
-  auto& tm = TimerManager::instance();
-  tm.cancel(cb_stopPCMPlayback);
+  timers.cancel(cb_stopPCMPlayback);
 
   if (durationMs == 0U) {
     durationMs = 1U; // ensure timer fires even for immediate stops
   }
 
-  if (!tm.create(durationMs, 1, cb_stopPCMPlayback)) {
+  if (!timers.create(durationMs, 1, cb_stopPCMPlayback)) {
     PCM_LOG_WARN("[PlayPCM] Failed to arm stop timer (%lu ms)\n", static_cast<unsigned long>(durationMs));
     return;
   }

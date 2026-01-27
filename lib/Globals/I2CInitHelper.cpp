@@ -60,7 +60,7 @@ void start(const I2CInitConfig& cfg, TimerCallback cb) {
     PF("[I2CInit] %s starting, max %d retries with %.1fx growth\n", cfg.name, cfg.maxRetries, cfg.growth);
     
     // Start timer with per-device callback
-    TimerManager::instance().create(cfg.startDelayMs, cfg.maxRetries, cb, cfg.growth);
+    timers.create(cfg.startDelayMs, cfg.maxRetries, cb, cfg.growth);
 }
 
 void tryInit(StatusComponent comp) {
@@ -71,7 +71,7 @@ void tryInit(StatusComponent comp) {
     if (dev.ready || dev.failed) return;  // Guard: already done
     
     // Get remaining retries
-    int16_t remaining = TimerManager::instance().getRepeatCount(dev.cb);
+    int16_t remaining = timers.getRepeatCount(dev.cb);
     if (remaining != -1) {
         NotifyState::set(dev.cfg.comp, static_cast<uint8_t>(remaining));
     }
@@ -79,7 +79,7 @@ void tryInit(StatusComponent comp) {
     // Try probe
     if (dev.cfg.probe()) {
         dev.ready = true;
-        TimerManager::instance().cancel(dev.cb);
+        timers.cancel(dev.cb);
         NotifyConduct::report(dev.cfg.okIntent);  // report() does setOk()
         PF("[I2CInit] %s ready\n", dev.cfg.name);
         return;

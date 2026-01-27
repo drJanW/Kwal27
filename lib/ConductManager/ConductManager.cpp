@@ -104,13 +104,13 @@ void cb_sayTime() {
     TimeStyle style = (random(0, 4) < 3) ? TimeStyle::INFORMAL : static_cast<TimeStyle>(random(0, 2));
     ConductManager::intentSayTime(style);
     // Schedule next with fresh random interval - unpredictable time announcements
-    TimerManager::instance().restart(random(Globals::minSaytimeIntervalMs, Globals::maxSaytimeIntervalMs + 1), 1, cb_sayTime);
+    timers.restart(random(Globals::minSaytimeIntervalMs, Globals::maxSaytimeIntervalMs + 1), 1, cb_sayTime);
 }
 
 void cb_playFragment() {
     ConductManager::intentPlayFragment();
     // Schedule next with fresh random interval - the creature breathes
-    TimerManager::instance().restart(random(Globals::minAudioIntervalMs, Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
+    timers.restart(random(Globals::minAudioIntervalMs, Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
 }
 
 void cb_bootFragment() {
@@ -130,7 +130,7 @@ void cb_playNextFragment() {
 
 void cb_webAudioStopThenNext() {
     PlayAudioFragment::stop(webAudioNextFadeMs);
-    TimerManager::instance().create(static_cast<uint32_t>(webAudioNextFadeMs) + 1U, 1, cb_playNextFragment);
+    timers.create(static_cast<uint32_t>(webAudioNextFadeMs) + 1U, 1, cb_playNextFragment);
 }
 
 } // namespace
@@ -162,13 +162,12 @@ static bool sdPostBootCompleted = false;
 
 void ConductManager::begin() {
     // I2C already initialized in systemBootStage1()
-    auto& tm = TimerManager::instance();
     // First sayTime after random 45-145 min, then reschedules itself
-    tm.create(random(Globals::minSaytimeIntervalMs, Globals::maxSaytimeIntervalMs + 1), 1, cb_sayTime);
+    timers.create(random(Globals::minSaytimeIntervalMs, Globals::maxSaytimeIntervalMs + 1), 1, cb_sayTime);
     // First audio after random 6-18 min, then reschedules itself
-    tm.create(random(Globals::minAudioIntervalMs, Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
-    tm.create(Globals::timerStatusIntervalMs, 0, cb_showTimerStatus);
-    tm.create(Globals::timeDisplayIntervalMs, 0, cb_timeDisplay);
+    timers.create(random(Globals::minAudioIntervalMs, Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
+    timers.create(Globals::timerStatusIntervalMs, 0, cb_showTimerStatus);
+    timers.create(Globals::timeDisplayIntervalMs, 0, cb_timeDisplay);
     // Note: Periodic lux measurement is now handled by LightConduct::plan()
     bootMaster.begin();
 
@@ -272,7 +271,7 @@ void ConductManager::triggerBootFragment() {
         return;  // Only once
     }
     bootFragmentTriggered = true;
-    TimerManager::instance().create(500, 1, cb_bootFragment);
+    timers.create(500, 1, cb_bootFragment);
 }
 
 void ConductManager::intentSayTime(TimeStyle style) {
@@ -292,18 +291,16 @@ void ConductManager::intentSetAudioLevel(float value) {
 }
 
 void ConductManager::intentShowTimerStatus() {
-    TimerManager::instance().showAvailableTimers(true);
+    timers.showAvailableTimers(true);
 }
 
 bool ConductManager::intentStartClockTick(bool fallbackMode) {
-    auto &tm = TimerManager::instance();
-
     if (clockRunning && clockInFallback == fallbackMode) {
         return true;
     }
 
     bool wasRunning = clockRunning;
-    if (!tm.create(SECONDS_TICK, 0, cb_clockUpdate)) {
+    if (!timers.create(SECONDS_TICK, 0, cb_clockUpdate)) {
         CONDUCT_LOG_ERROR("[Conduct] Failed to start clock tick (%s)\n", fallbackMode ? "fallback" : "normal");
         if (wasRunning) {
             clockRunning = false;
@@ -365,6 +362,6 @@ void ConductManager::resumeAfterSDBoot() {
 
 void ConductManager::intentWebAudioNext(uint16_t fadeMs) {
     webAudioNextFadeMs = fadeMs;
-    TimerManager::instance().cancel(cb_webAudioStopThenNext);
-    TimerManager::instance().create(1, 1, cb_webAudioStopThenNext);
+    timers.cancel(cb_webAudioStopThenNext);
+    timers.create(1, 1, cb_webAudioStopThenNext);
 }

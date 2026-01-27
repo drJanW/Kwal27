@@ -39,12 +39,12 @@ void cancelRetry();
 
 void cb_retry() {
   // Update boot status with remaining retries
-  int remaining = TimerManager::instance().getRepeatCount(cb_retry);
+  int remaining = timers.getRepeatCount(cb_retry);
   if (remaining != -1)
     NotifyState::set(SC_CALENDAR, abs(remaining));
 
   // Check if timer exhausted
-  if (!TimerManager::instance().isActive(cb_retry)) {
+  if (!timers.isActive(cb_retry)) {
     NotifyState::setStatusOK(SC_CALENDAR, false);
     PF("[CalendarBoot] Gave up after 14 retries\n");
     return;
@@ -54,7 +54,6 @@ void cb_retry() {
 }
 
 void armRetry() {
-  auto &timers = TimerManager::instance();
   // Growing interval: starts at 2s, grows 1.5x each retry, max 30s
   // Use restart() because armRetry() can be called while timer is pending
   if (!timers.restart(retryStartMs, retryCount, cb_retry)) {
@@ -63,7 +62,7 @@ void armRetry() {
 }
 
 void cancelRetry() {
-  TimerManager::instance().cancel(cb_retry);
+  timers.cancel(cb_retry);
 }
 
 } // namespace

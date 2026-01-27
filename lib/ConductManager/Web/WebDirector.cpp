@@ -102,7 +102,7 @@ WebDirector &WebDirector::instance() {
 
 void WebDirector::plan() {
     if (!timerStarted_) {
-        if (TimerManager::instance().create(kJobTickIntervalMs, 0, cb_webDirectorTick)) {
+        if (timers.create(kJobTickIntervalMs, 0, cb_webDirectorTick)) {
             timerStarted_ = true;
             WD_LOG("[WebDirector] Job timer started (interval %lu ms)\n", static_cast<unsigned long>(kJobTickIntervalMs));
         } else {

@@ -80,7 +80,7 @@ void applyLightshowUpdate() {
 bool scheduleAnimation(uint32_t intervalMs) {
     TimerCallback cb = LightConduct::cb_animation;
     // Use restart() - called on every pattern change, timer may already exist
-    if (!TimerManager::instance().restart(intervalMs, 1, cb)) {
+    if (!timers.restart(intervalMs, 1, cb)) {
         PF("[LightConduct] Failed to create animation timer (%lu ms)\n",
            static_cast<unsigned long>(intervalMs));
         timerActive = false;
@@ -93,7 +93,7 @@ bool scheduleAnimation(uint32_t intervalMs) {
 
 void stopAnimation() {
     if (timerActive) {
-        TimerManager::instance().cancel(LightConduct::cb_animation);
+        timers.cancel(LightConduct::cb_animation);
         timerActive = false;
     }
     currentIntervalMs = 0;
@@ -104,7 +104,7 @@ void stopAnimation() {
 bool scheduleShiftTimer() {
     TimerCallback cb = LightConduct::cb_shiftTimer;
     // Use restart() - called repeatedly to reschedule shift checks
-    if (!TimerManager::instance().restart(Globals::shiftCheckIntervalMs, 1, cb)) {
+    if (!timers.restart(Globals::shiftCheckIntervalMs, 1, cb)) {
         PF("[LightConduct] Failed to create shift timer (%lu ms)\n",
            static_cast<unsigned long>(Globals::shiftCheckIntervalMs));
         shiftTimerActive = false;
@@ -133,7 +133,7 @@ void LightConduct::plan() {
     scheduleShiftTimer();
     
     // Periodic lux measurement (Light's responsibility)
-    TimerManager::instance().create(Globals::luxMeasurementIntervalMs, 0, LightConduct::cb_luxMeasure);
+    timers.create(Globals::luxMeasurementIntervalMs, 0, LightConduct::cb_luxMeasure);
     
     // NOTE: Status flash handled by NotifyRGB reminder system (61 min interval)
     
@@ -189,7 +189,7 @@ void LightConduct::cb_luxMeasure() {
     LightManager::instance().setMeasurementMode(true);
     luxMeasureActive = true;
     // Step 2: Schedule delayed read after LEDs settle
-    TimerManager::instance().create(Globals::luxMeasurementDelayMs, 1, LightConduct::cb_luxMeasureRead);
+    timers.create(Globals::luxMeasurementDelayMs, 1, LightConduct::cb_luxMeasureRead);
 }
 
 void LightConduct::cb_luxMeasureRead() {
@@ -222,9 +222,9 @@ void LightConduct::cb_luxMeasureRead() {
     
     // B6: Start cooldown, check for pending slider request
     luxInCooldown = true;
-    TimerManager::instance().create(100, 1, LightConduct::cb_cooldownExpired);
+    timers.create(100, 1, LightConduct::cb_cooldownExpired);
     if (luxRequestPending) {
-        TimerManager::instance().create(100, 1, LightConduct::cb_tryLuxMeasure);
+        timers.create(100, 1, LightConduct::cb_tryLuxMeasure);
     }
 }
 
@@ -249,7 +249,7 @@ void LightConduct::cb_tryLuxMeasure() {
     
     if (luxInCooldown) {
         // In cooldown - schedule retry after full cooldown period
-        TimerManager::instance().create(100, 1, LightConduct::cb_tryLuxMeasure);
+        timers.create(100, 1, LightConduct::cb_tryLuxMeasure);
         return;
     }
     

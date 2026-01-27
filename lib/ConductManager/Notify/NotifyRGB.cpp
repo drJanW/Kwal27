@@ -75,7 +75,7 @@ void scheduleNextStep() {
     sequenceStep++;
     
     // Use restart() - timer may already exist from previous step
-    TimerManager::instance().restart(duration, 1, cb_sequenceStep);
+    timers.restart(duration, 1, cb_sequenceStep);
 }
 
 void cb_sequenceStep() {
@@ -127,7 +127,7 @@ void buildSequence() {
 
 void cb_flash() {
     // Cancel any running sequence timer from previous burst
-    TimerManager::instance().cancel(cb_sequenceStep);
+    timers.cancel(cb_sequenceStep);
     
     cachedNotOkBits = ContextFlags::getHardwareFailBits();
     if (cachedNotOkBits == 0) {
@@ -151,13 +151,13 @@ void startFlashing() {
     // Flash burst: configurable via globals.csv
     // Interval between bursts, repeats, and optional growth factor for exponential backoff
     // Only start if not already flashing (create fails if timer exists)
-    if (TimerManager::instance().create(Globals::flashBurstIntervalMs, Globals::flashBurstRepeats, cb_flash, Globals::flashBurstGrowth)) {
+    if (timers.create(Globals::flashBurstIntervalMs, Globals::flashBurstRepeats, cb_flash, Globals::flashBurstGrowth)) {
         cb_flash();  // immediate first flash only if newly created
     }
 }
 
 void stopFlashing() {
-    TimerManager::instance().cancel(cb_flash);
+    timers.cancel(cb_flash);
     applySolid(0);
     LightConduct::reapplyCurrentShow();
 }

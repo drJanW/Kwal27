@@ -40,7 +40,6 @@ namespace {
             NotifyConduct::report(NotifyIntent::START_RUNTIME);
         }
 
-        auto &timers = TimerManager::instance();
         timers.cancel(cb_moduleInit);
         moduleTimerStarted = false;
     }
@@ -76,8 +75,6 @@ namespace {
         lastWiFiState = wifiUp;
 
         if (wifiUp) {
-            auto &timers = TimerManager::instance();
-
             if (!fetchCreated) {
                 if (bootFetchManager()) {
                     timers.cancel(cb_wifiBootCheck);
@@ -101,7 +98,6 @@ namespace {
 }
 
 void WiFiBoot::plan() {
-    auto &timers = TimerManager::instance();
     if (!timers.create(1000, 0, cb_wifiBootCheck)) {
         PL("[Main] Failed to create WiFi boot check timer");
     }
