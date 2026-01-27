@@ -47,7 +47,7 @@
 #define SHOW_TIMER_STATUS false  // Set true to see timer usage in serial
 
 // Growing interval cap (TimerManager)
-constexpr uint32_t MAX_GROWING_INTERVAL_MS = MINUTES(120);   // cap
+constexpr uint32_t MAX_GROWTH_INTERVAL_MS = MINUTES(1200);   // cap
 
 // ─────────────────────────────────────────────────────────────
 // Hardware status register (graceful degradation)

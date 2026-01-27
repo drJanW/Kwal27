@@ -36,17 +36,10 @@ TimerManager& TimerManager::instance() {
     return ::timers;  // explicit global namespace
 }
 
-/// @brief Initialize all timer slots to safe defaults
+/// @brief Constructor - Timer struct defaults handle initialization
 TimerManager::TimerManager() {
-    for (uint8_t i = 0; i < MAX_TIMERS; i++) {
-        timers[i].active = false;
-        timers[i].cb = nullptr;
-        timers[i].token = 1;
-        timers[i].interval = 0;
-        timers[i].nextTime = 0;
-        timers[i].repeat = 0;
-        timers[i].growthFactor = 1.0f;
-    }
+    // All Timer fields have in-class defaults (C++11)
+    // No explicit initialization needed
 }
 
 bool TimerManager::create(uint32_t interval, uint8_t repeat, TimerCallback cb, float growth, uint8_t token) {
@@ -69,8 +62,8 @@ bool TimerManager::create(uint32_t interval, uint8_t repeat, TimerCallback cb, f
             timers[i].interval = interval;
             timers[i].nextTime = millis() + interval;
             timers[i].repeat = repeat;
-            // Infinite timers (repeat=0) force growth=1.0 to prevent runaway intervals
-            timers[i].growthFactor = (repeat == 0) ? 1.0f : growth;
+            // Growth allowed for all timers; interval capped at MAX_GROWTH_INTERVAL_MS in update()
+            timers[i].growthFactor = growth;
             return true;
         }
     }
@@ -165,18 +158,16 @@ void TimerManager::update() {
                 timers[i].cb = nullptr;
                 timers[i].growthFactor = 1.0f;
                 timers[i].token = 1;
-            } else if (originalRepeat > 1) {
-                // More repeats - count down
-                timers[i].repeat--;
-
+            } else {
+                // Continuing timer: finite (repeat > 1) or infinite (repeat == 0)
+                if (originalRepeat > 1) {
+                    timers[i].repeat--;
+                }
                 // Apply growth factor if > 1.0
                 if (timers[i].growthFactor > 1.0f) {
                     uint32_t newInterval = (uint32_t)(timers[i].interval * timers[i].growthFactor);
-                    timers[i].interval = min(newInterval, MAX_GROWING_INTERVAL_MS);
+                    timers[i].interval = min(newInterval, MAX_GROWTH_INTERVAL_MS);
                 }
-                timers[i].nextTime += timers[i].interval;
-            } else {
-                // Infinite timer (repeat == 0)
                 timers[i].nextTime += timers[i].interval;
             }
         }

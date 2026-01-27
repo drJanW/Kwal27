@@ -34,7 +34,7 @@
  * ## Growing Interval (Retry/Backoff)
  * - Set growthFactor > 1.0 to multiply interval after each fire.
  * - Only applies to finite timers (repeat > 0); infinite timers force growth = 1.0.
- * - Growth is capped at MAX_GROWING_INTERVAL_MS (defined in Globals.h).
+ * - Growth is capped at MAX_GROWTH_INTERVAL_MS (defined in Globals.h).
  *
  * ## Usage Example
  * ```cpp

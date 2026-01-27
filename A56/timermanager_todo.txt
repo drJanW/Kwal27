@@ -1,96 +1,17 @@
 TimerManager Improvement Notes
 ==============================
-Extracted from A56/TimerManager.cpp review markers
 Date: 2026-01-27
+Updated: 2026-01-27
 
-=== Header Improvements ===
 T1. Adopt better contract documentation from A56/TimerManager.h
-    - "Identity = callback pointer" explanation
+    - "Identity = callback pointer + token" explanation
     - "Callbacks must be plain function pointers" warning
-    - "Cadence policy" explanation (nextTime += interval, not now + interval)
+    - "Cadence policy" explanation (nextTime += interval)
     - "Callback reentrancy is allowed" note
-    Source: A56/TimerManager.h lines 1-30
 
-=== Constructor (line 36-37) ===
-T2. Question: Why initialize cb = nullptr in constructor?
-    - Timer struct already has `TimerCallback cb = nullptr` default
-    - Redundant initialization?
-    - Decision: Keep or remove redundant init
+T4. ✅ Allow growth for infinite timers
+    Removed `(repeat == 0) ? 1.0f : growth` guard
+    Cap at MAX_GROWTH_INTERVAL_MS protects against runaway
 
-T3. Question: Why initialize growthFactor = 1.0f in constructor?
-    - Timer struct already has `float growthFactor = 1.0f` default
-    - Redundant initialization?
-    - Decision: Keep or remove redundant init
-
-=== create() (line 60) ===
-T4. Question: Why force growth = 1.0f for infinite timers?
-    Current: `timers[i].growthFactor = (repeat == 0) ? 1.0f : growth;`
-    Alternative: Allow growth for infinite timers but cap interval to MAX_GROWING_INTERVAL_MS
-    - Pro: More flexible API
-    - Con: Infinite timer with growth could eventually fire rarely (every 2 hours)
-    - Decision needed: Is capping better than blocking?
-
-=== restart() (line 80) ===
-T5. Question: Can restart() be abandoned?
-    Answer: NO - 30+ usages found across codebase
-    - Variable interval patterns (heartbeat, random audio delays)
-    - Sequence steps (NotifyRGB, PlaySentence)
-    - Dynamic polling (fast/normal sensor modes)
-    - Retry with backoff (CalendarConduct)
-    Status: CLOSED - restart() is essential
-
-=== update() (lines 109-130) ===
-T6. Document why local buffered values are needed
-    ```cpp
-    const uint8_t originalRepeat = timers[i].repeat;
-    const uint32_t originalInterval = timers[i].interval;
-    const uint32_t originalNextTime = timers[i].nextTime;
-    const float originalGrowthFactor = timers[i].growthFactor;
-    ```
-    Reason: Callback may modify its own timer (restart, cancel, change interval).
-    After callback returns, we check if timer was modified.
-    If modified: respect callback's changes, don't overwrite.
-    If unchanged: apply normal reschedule logic.
-    Action: Add comment explaining this pattern
-
-T7. Question: Why check `if (cb) cb();`?
-    - cb was already validated non-null in create()
-    - Could cb become null between create() and update()?
-    - Only via cancel(), which also sets active = false
-    - Decision: Defensive check is harmless, keep it
-
-T8. Question: Redundant active/cb checks after callback?
-    ```cpp
-    if (!timers[i].active) continue;
-    if (timers[i].cb != cb) continue;
-    ```
-    Not redundant - these detect if callback modified its own timer:
-    - `!active`: callback called cancel(cb) on itself
-    - `cb != cb`: callback called restart() with different callback (edge case)
-    Action: Add comment explaining reentrancy detection
-
-T9. Code smell: nextTime update outside conditional
-    Current code has `timers[i].nextTime += timers[i].interval;` inside both
-    `else if (originalRepeat > 1)` and `else` blocks.
-    Could be: single statement after the if/else for repeat > 0 cases.
-    Minor refactor opportunity.
-
-=== showAvailableTimers() (line 169) ===
-T10. Question: Why not use getActiveCount() here?
-     Current: Manual loop counting active timers
-     Alternative: `uint8_t usedCount = getActiveCount();`
-     - Pro: DRY principle
-     - Con: None (function is const, no side effects)
-     Action: Replace manual loop with getActiveCount()
-
-=== General ===
-T11. Question: Is getActiveCount() ever used?
-     Need to grep codebase for usage.
-     If unused, consider removing or documenting as diagnostic-only.
-
-=== Priority Order ===
-1. T6, T8 - Add comments explaining reentrancy pattern (documentation)
-2. T10 - Use getActiveCount() in showAvailableTimers() (simple fix)
-3. T1 - Adopt header documentation improvements (documentation)
-4. T4 - Decide on growth for infinite timers (design decision)
-5. T2, T3, T9 - Minor cleanups (low priority)
+T8. Document reentrancy detection checks
+    Action: Add comment explaining `!active` and `cb != cb` checks

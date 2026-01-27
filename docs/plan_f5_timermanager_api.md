@@ -47,7 +47,7 @@ bool restart(uint32_t interval, uint8_t repeat, TimerCallback cb, float growth =
 - `repeat = 1` → one-shot
 - `repeat = 2-255` → N repeats
 - `growth = 1.0f` → constant interval (default)
-- `growth > 1.0f` → interval multiplied by growth each run (capped at `MAX_GROWING_INTERVAL_MS`)
+- `growth > 1.0f` → interval multiplied by growth each run (capped at `MAX_GROWTH_INTERVAL_MS`)
 
 ## Files to Change
 
@@ -149,7 +149,7 @@ if (originalRepeat == 1 || originalRepeat == -1) {
     
     if (timers[i].intervalGrows) {
         uint32_t newInterval = (uint32_t)(timers[i].interval * GROWING_MULTIPLIER);
-        timers[i].interval = min(newInterval, MAX_GROWING_INTERVAL_MS);
+        timers[i].interval = min(newInterval, MAX_GROWTH_INTERVAL_MS);
     }
     timers[i].nextTime += timers[i].interval;
 } else {
@@ -169,7 +169,7 @@ if (originalRepeat == 1) {
     // Apply growth factor
     if (timers[i].growthFactor > 1.0f) {
         uint32_t newInterval = (uint32_t)(timers[i].interval * timers[i].growthFactor);
-        timers[i].interval = min(newInterval, MAX_GROWING_INTERVAL_MS);
+        timers[i].interval = min(newInterval, MAX_GROWTH_INTERVAL_MS);
     }
     timers[i].nextTime += timers[i].interval;
 } else {
@@ -205,7 +205,7 @@ TimerManager::TimerManager() {
 constexpr float GROWING_MULTIPLIER = 1.5f;
 
 // KEEP this line (still used as cap):
-constexpr uint32_t MAX_GROWING_INTERVAL_MS = MINUTES(120);
+constexpr uint32_t MAX_GROWTH_INTERVAL_MS = MINUTES(120);
 ```
 
 ### 7. docs/sensor3_implementation_guide.md
