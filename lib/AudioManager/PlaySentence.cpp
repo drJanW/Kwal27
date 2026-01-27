@@ -316,8 +316,8 @@ void playNextSpeakItem() {
         PF("[TTS] Started: %s (%ums)\n", sentence, durationMs);
         
         // T4: Timer-based completion
-        timers().cancel(cb_ttsReady);
-        timers().create(durationMs, 1, cb_ttsReady);
+        timers.cancel(cb_ttsReady);
+        timers.create(durationMs, 1, cb_ttsReady);
         
     } else {  // MP3_WORDS
         const uint8_t* words = static_cast<const uint8_t*>(item.payload);
@@ -388,7 +388,7 @@ void playWord() {
         // Skip this word and continue with next
         shiftQueue();
         if (wordQueue[0] != END_OF_SENTENCE) {
-            timers().restart(50, 1, cb_wordTimer);  // Try next word quickly
+            timers.restart(50, 1, cb_wordTimer);  // Try next word quickly
         } else {
             // Sentence done (all words skipped or finished)
             setSentencePlaying(false);
@@ -409,7 +409,7 @@ void playWord() {
         // Skip this word and continue with next
         shiftQueue();
         if (wordQueue[0] != END_OF_SENTENCE) {
-            timers().restart(50, 1, cb_wordTimer);  // Try next word quickly
+            timers.restart(50, 1, cb_wordTimer);  // Try next word quickly
         } else {
             // Sentence done (all words skipped or finished)
             setSentencePlaying(false);
@@ -428,7 +428,7 @@ void playWord() {
     PF("[PlaySentence] Playing word %u\n", mp3Id);
     
     uint16_t durationMs = getMp3DurationMs(mp3Id);
-    timers().restart(durationMs, 1, cb_wordTimer);
+    timers.restart(durationMs, 1, cb_wordTimer);
 }
 
 void addWords(const uint8_t* words) {
@@ -456,8 +456,8 @@ uint8_t* getScratchpad() {
 }
 
 void stop() {
-    timers().cancel(cb_ttsReady);
-    timers().cancel(cb_wordTimer);
+    timers.cancel(cb_ttsReady);
+    timers.cancel(cb_wordTimer);
     
     // Clear unified queue
     speakQueueHead = 0;

@@ -33,7 +33,7 @@ TimerManager timers;
 
 /// @brief [DEPRECATED] Returns reference to global `timers` for backward compatibility
 TimerManager& TimerManager::instance() {
-    return timers;
+    return ::timers;  // explicit global namespace
 }
 
 /// @brief Initialize all timer slots to safe defaults

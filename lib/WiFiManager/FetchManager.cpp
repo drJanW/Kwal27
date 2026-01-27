@@ -30,7 +30,6 @@
 #include <sys/time.h>
 
 namespace {
-    TimerManager &TM() { return TimerManager::instance(); }
     PRTClock &clockSvc() { return PRTClock::instance(); }
 }
 
@@ -76,7 +75,7 @@ static void cb_fetchNTP() {
     }
 
     // Update boot status with remaining retries
-    int remaining = TM().getRepeatCount(cb_fetchNTP);
+    int remaining = timers.getRepeatCount(cb_fetchNTP);
     if (remaining != -1)
         NotifyState::set(SC_NTP, abs(remaining));
 
@@ -149,7 +148,7 @@ static void cb_fetchNTP() {
 
     clockSvc().setTimeFetched(true);
     NotifyState::setNtpStatus(true);
-    TM().cancel(cb_fetchNTP);
+    timers.cancel(cb_fetchNTP);
     clk.setMoonPhaseValue();
     ConductManager::intentSyncRtcFromClock();
 }
@@ -160,7 +159,7 @@ static void cb_fetchNTP() {
 
 static void cb_fetchWeather() {
     // Update boot status with remaining retries
-    int remaining = TM().getRepeatCount(cb_fetchWeather);
+    int remaining = timers.getRepeatCount(cb_fetchWeather);
     if (remaining != -1)
         NotifyState::set(SC_WEATHER, abs(remaining));
 
@@ -232,7 +231,7 @@ static void cb_fetchWeather() {
         PF("[Fetch] Ext. Temperature: min=%.1f max=%.1f\n", tMin, tMax);
     }
 
-    TM().cancel(cb_fetchWeather);
+    timers.cancel(cb_fetchWeather);
 }
 
 // ===================================================
@@ -251,14 +250,14 @@ static void cb_fetchSunrise() {
         if (DEBUG_FETCH) {
             PL("[Fetch] No WiFi, skipping sun data");
         }
-        TM().restart(Globals::sunRefreshIntervalMs, 0, cb_fetchSunrise);
+        timers.restart(Globals::sunRefreshIntervalMs, 0, cb_fetchSunrise);
         return;
     }
     if (!clockSvc().isTimeFetched()) {
         if (DEBUG_FETCH) {
             PL("[Fetch] No NTP/time, skipping sun data");
         }
-        TM().restart(Globals::sunRefreshIntervalMs, 0, cb_fetchSunrise);
+        timers.restart(Globals::sunRefreshIntervalMs, 0, cb_fetchSunrise);
         return;
     }
 
@@ -267,7 +266,7 @@ static void cb_fetchSunrise() {
         if (DEBUG_FETCH) {
             PL("[Fetch] Sun fetch failed, will retry");
         }
-        TM().restart(Globals::sunRefreshIntervalMs, 0, cb_fetchSunrise);
+        timers.restart(Globals::sunRefreshIntervalMs, 0, cb_fetchSunrise);
         return;
     }
 
@@ -312,7 +311,7 @@ static void cb_fetchSunrise() {
            ltmRise.tm_hour, ltmRise.tm_min, ltmSet.tm_hour, ltmSet.tm_min);
     }
 
-    TM().cancel(cb_fetchSunrise);
+    timers.cancel(cb_fetchSunrise);
 }
 
 // ===================================================
@@ -324,14 +323,14 @@ bool bootFetchManager() {
         return false;
     }
 
-    TM().cancel(cb_fetchNTP);
-    TM().cancel(cb_fetchWeather);
-    TM().cancel(cb_fetchSunrise);
+    timers.cancel(cb_fetchNTP);
+    timers.cancel(cb_fetchWeather);
+    timers.cancel(cb_fetchSunrise);
 
     clockSvc().setTimeFetched(false);
-    bool ntpOk = TM().create(1000, 25, cb_fetchNTP, 1.5f);
-    bool weatherOk = TM().create(2000, 24, cb_fetchWeather, 1.5f);
-    bool sunOk = TM().create(3000, 0, cb_fetchSunrise);
+    bool ntpOk = timers.create(1000, 25, cb_fetchNTP, 1.5f);
+    bool weatherOk = timers.create(2000, 24, cb_fetchWeather, 1.5f);
+    bool sunOk = timers.create(3000, 0, cb_fetchSunrise);
 
     if (!ntpOk && DEBUG_FETCH) PL("[Fetch] Failed to schedule NTP timer");
     if (!weatherOk && DEBUG_FETCH) PL("[Fetch] Failed to schedule weather timer");
@@ -346,8 +345,8 @@ bool bootFetchManager() {
 namespace FetchManager {
     void requestNtpResync() {
         PL("[Fetch] Midnight NTP resync requested");
-        TM().cancel(cb_fetchNTP);
-        TM().create(100, 34, cb_fetchNTP, 1.5f);
+        timers.cancel(cb_fetchNTP);
+        timers.create(100, 34, cb_fetchNTP, 1.5f);
     }
 }
 

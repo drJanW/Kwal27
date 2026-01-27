@@ -56,6 +56,6 @@ void setup()
  */
 void loop()
 {
-    TimerManager::instance().update();
+    timers.update();
     ConductManager::update();
 }

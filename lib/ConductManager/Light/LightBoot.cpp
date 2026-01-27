@@ -33,9 +33,9 @@ void initLight() {
     }
 
     // LED update timer 50ms (20 FPS)
-    timers().create(50, 0, cb_updateLightManager);
-    timers().create((10 * 1000UL) / 255UL, 0, cb_colorCycle);
-    timers().create((10 * 1000UL) / 255UL, 0, cb_brightCycle);
+    timers.create(50, 0, cb_updateLightManager);
+    timers.create((10 * 1000UL) / 255UL, 0, cb_colorCycle);
+    timers.create((10 * 1000UL) / 255UL, 0, cb_brightCycle);
     PF("[LightBoot] init done\n");
 }
 

@@ -90,7 +90,7 @@ void startSdFailPattern() {
     FastLED.setBrightness(Globals::maxBrightness / 2);
     
     // Start pattern update timer (50ms = 20 FPS)
-    timers().create(50, 0, cb_sdFailPattern);
+    timers.create(50, 0, cb_sdFailPattern);
     PL("[SDBoot] SD fail pattern started");
 }
 
@@ -186,7 +186,7 @@ bool SDBoot::plan() {
 
     // Success path
     if (SDManager::isReady()) {
-        timers().cancel(cb_retryBoot);
+        timers.cancel(cb_retryBoot);
         loggedStart = false;
         SDPolicy::showStatus();
         NotifyConduct::report(NotifyIntent::SD_OK);
@@ -204,7 +204,7 @@ bool SDBoot::plan() {
 
     // Check again after init attempt
     if (SDManager::isReady()) {
-        timers().cancel(cb_retryBoot);
+        timers.cancel(cb_retryBoot);
         loggedStart = false;
         SDPolicy::showStatus();
         NotifyConduct::report(NotifyIntent::SD_OK);
@@ -212,18 +212,18 @@ bool SDBoot::plan() {
     }
 
     // Arm retry timer (creates if not active)
-    if (!timers().isActive(cb_retryBoot)) {
-        timers().create(retryIntervalMs, retryCount, cb_retryBoot);
+    if (!timers.isActive(cb_retryBoot)) {
+        timers.create(retryIntervalMs, retryCount, cb_retryBoot);
     }
 
     // Update retry status for WebGUI
-    int32_t remaining = timers().getRepeatCount(cb_retryBoot);
+    int32_t remaining = timers.getRepeatCount(cb_retryBoot);
     if (remaining > 0) {
         NotifyState::set(SC_SD, static_cast<uint8_t>(remaining));
     }
 
     // Still waiting for retries?
-    if (timers().isActive(cb_retryBoot)) {
+    if (timers.isActive(cb_retryBoot)) {
         return false;
     }
 
@@ -248,4 +248,4 @@ void SDBoot::onTimeAvailable() {
     }
     rebuildPending = false;
     // Defer rebuild to avoid blocking NTP_OK event processing
-    timers().create(100, 1, cb_deferredRebuild);}
+    timers.create(100, 1, cb_deferredRebuild);}

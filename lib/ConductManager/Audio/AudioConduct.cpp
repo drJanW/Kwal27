@@ -53,11 +53,6 @@ namespace
         return AudioManager::instance();
     }
 
-    TimerManager &timers()
-    {
-        return TimerManager::instance();
-    }
-
     void applyVolumeShift(uint64_t statusBits)
     {
         float effectiveVolume = AudioShiftStore::instance().getEffectiveVolume(statusBits);
@@ -136,18 +131,18 @@ void AudioConduct::cb_volumeShiftTimer()
         applyVolumeShift(statusBits);
     }
     
-    timers().create(volumeShiftCheckMs, 1, AudioConduct::cb_volumeShiftTimer);
+    timers.create(volumeShiftCheckMs, 1, AudioConduct::cb_volumeShiftTimer);
 }
 
 void AudioConduct::plan()
 {
-    timers().cancel(AudioConduct::cb_playPCM);
-    timers().cancel(AudioConduct::cb_volumeShiftTimer);
+    timers.cancel(AudioConduct::cb_playPCM);
+    timers.cancel(AudioConduct::cb_volumeShiftTimer);
     
     // Apply initial volume shift and start periodic timer
     lastStatusBits = ContextFlags::getFullContextBits();
     applyVolumeShift(lastStatusBits);
-    timers().create(volumeShiftCheckMs, 1, AudioConduct::cb_volumeShiftTimer);
+    timers.create(volumeShiftCheckMs, 1, AudioConduct::cb_volumeShiftTimer);
     
     PF("[Conduct][Plan] Distance playback ready with clip %s\n", kDistanceClipId);
 }
@@ -169,7 +164,7 @@ void AudioConduct::startDistanceResponse(bool playImmediately)
         intervalMs = 1000 * 60 * 60 * 1000U; // park the timer far in the future when policy declines
     }
 
-    auto &tm = timers();
+    auto &tm = timers;  // global TimerManager
 
     auto &mgr = audio();
     // fragments fade out before distance pings; stop using existing fade behaviour

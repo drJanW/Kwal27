@@ -22,10 +22,6 @@ BootMaster bootMaster;
 
 namespace {
 
-TimerManager &timers() {
-    return TimerManager::instance();
-}
-
 void cb_endOfBoot() {
     if (!NotifyState::isBootPhase()) return;  // already ended
     PL("[Boot] Timeout - forcing START_RUNTIME");
@@ -37,20 +33,20 @@ void cb_endOfBoot() {
 bool BootMaster::begin() {
     cancelFallbackTimer();
     fallback.resetFlags();
-    if (!timers().create(Globals::clockBootstrapIntervalMs, 0, cb_bootstrapThunk)) {
+    if (!timers.create(Globals::clockBootstrapIntervalMs, 0, cb_bootstrapThunk)) {
         PL("[Conduct] BootMaster failed to arm bootstrap timer");
         return false;
     }
     // Boot timeout: force START_RUNTIME after bootPhaseMs regardless of clock
     // Uses code default; restartBootTimer() updates after globals.csv load
-    timers().create(Globals::bootPhaseMs, 1, cb_endOfBoot);
+    timers.create(Globals::bootPhaseMs, 1, cb_endOfBoot);
     return true;
 }
 
 void BootMaster::restartBootTimer() {
     if (!NotifyState::isBootPhase()) return;  // already ended
-    timers().cancel(cb_endOfBoot);
-    timers().create(Globals::bootPhaseMs, 1, cb_endOfBoot);
+    timers.cancel(cb_endOfBoot);
+    timers.create(Globals::bootPhaseMs, 1, cb_endOfBoot);
     PF("[Boot] Timer restarted with bootPhaseMs=%u\n", Globals::bootPhaseMs);
 }
 
@@ -97,7 +93,7 @@ void BootMaster::cb_bootstrap() {
         return;
     }
 
-    timers().restart(Globals::ntpFallbackTimeoutMs, 1, cb_fallbackThunk);
+    timers.restart(Globals::ntpFallbackTimeoutMs, 1, cb_fallbackThunk);
 }
 
 void BootMaster::cb_fallbackThunk() {
@@ -105,7 +101,7 @@ void BootMaster::cb_fallbackThunk() {
 }
 
 void BootMaster::cancelFallbackTimer() {
-    timers().cancel(cb_fallbackThunk);
+    timers.cancel(cb_fallbackThunk);
 }
 
 void BootMaster::fallbackTimeout() {
@@ -151,6 +147,6 @@ void BootMaster::fallbackTimeout() {
         PL("[Conduct] Failed to start clock tick in fallback mode");
         fallback.seedAttempted = false;
         fallback.seededFromCache = false;
-        timers().restart(Globals::ntpFallbackTimeoutMs, 1, cb_fallbackThunk);
+        timers.restart(Globals::ntpFallbackTimeoutMs, 1, cb_fallbackThunk);
     }
 }

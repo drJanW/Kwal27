@@ -69,13 +69,13 @@ namespace
         WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
         // Start poll timer (continuous)
-        if (!timers().isActive(cb_checkWiFiStatus)) {
-            timers().create(pollIntervalMs, 0, cb_checkWiFiStatus);
+        if (!timers.isActive(cb_checkWiFiStatus)) {
+            timers.create(pollIntervalMs, 0, cb_checkWiFiStatus);
         }
 
         // Arm retry timer with growing interval
-        if (!timers().isActive(cb_retryConnect)) {
-            timers().create(retryStartMs, retryCount, cb_retryConnect);
+        if (!timers.isActive(cb_retryConnect)) {
+            timers.create(retryStartMs, retryCount, cb_retryConnect);
         }
     }
 
@@ -88,9 +88,9 @@ namespace
         PF("[WiFi] Connected. IP: %s\n", WiFi.localIP().toString().c_str());
 
         // Stop retry and poll timers, start health check
-        timers().cancel(cb_retryConnect);
-        timers().cancel(cb_checkWiFiStatus);
-        timers().create(healthIntervalMs, 0, cb_healthCheck);
+        timers.cancel(cb_retryConnect);
+        timers.cancel(cb_checkWiFiStatus);
+        timers.create(healthIntervalMs, 0, cb_healthCheck);
     }
 
     void onDisconnected()
@@ -121,15 +121,15 @@ namespace
             return;
 
         // Update boot status with remaining retries
-        int remaining = timers().getRepeatCount(cb_retryConnect);
+        int remaining = timers.getRepeatCount(cb_retryConnect);
         if (remaining != -1)
             NotifyState::set(SC_WIFI, abs(remaining));
 
         // Timer exhausted?
-        if (!timers().isActive(cb_retryConnect)) {
+        if (!timers.isActive(cb_retryConnect)) {
             PL("[WiFi] Max retries reached — giving up");
             NotifyState::setStatusOK(SC_WIFI, false);
-            timers().cancel(cb_checkWiFiStatus);
+            timers.cancel(cb_checkWiFiStatus);
             return;
         }
 
@@ -144,7 +144,7 @@ namespace
             return;
 
         PL("[WiFi] Health check failed \u2014 restarting connection");
-        timers().cancel(cb_healthCheck);
+        timers.cancel(cb_healthCheck);
         connected = false;
         beginConnect();
     }

@@ -187,10 +187,10 @@ void PlayLightShow(const LightShowParams &p) {
   xCycleSec = p.xCycleSec > 0 ? p.xCycleSec : 10;
   yCycleSec = p.yCycleSec > 0 ? p.yCycleSec : 10;
 
-  timers().restart((ccs * 1000UL) / 255UL, 0, cb_colorCycle);
-  timers().restart((bcs * 1000UL) / 255UL, 0, cb_brightCycle);
-  timers().restart((xCycleSec * 1000UL) / 255UL, 0, cb_xPhase);
-  timers().restart((yCycleSec * 1000UL) / 255UL, 0, cb_yPhase);
+  timers.restart((ccs * 1000UL) / 255UL, 0, cb_colorCycle);
+  timers.restart((bcs * 1000UL) / 255UL, 0, cb_brightCycle);
+  timers.restart((xCycleSec * 1000UL) / 255UL, 0, cb_xPhase);
+  timers.restart((yCycleSec * 1000UL) / 255UL, 0, cb_yPhase);
 }
 
 // === Brightness ===

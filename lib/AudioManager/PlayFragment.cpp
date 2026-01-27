@@ -172,27 +172,27 @@ bool start(const AudioFragment& fragment) {
     setCurrentDirFile(fragment.dirIndex, fragment.fileIndex, fragment.score);
     WebGuiStatus::setFragment(fragment.dirIndex, fragment.fileIndex, fragment.score, fragment.durationMs);
 
-    timers().cancel(cb_beginFadeOut);
-    timers().cancel(cb_fadeIn);
-    timers().cancel(cb_fadeOut);
+    timers.cancel(cb_beginFadeOut);
+    timers.cancel(cb_fadeIn);
+    timers.cancel(cb_fadeOut);
 
-    if (!timers().create(state.stepMs, kFadeSteps, cb_fadeIn)) {
+    if (!timers.create(state.stepMs, kFadeSteps, cb_fadeIn)) {
         LOG_WARN("[Fade] Failed to start fade-in timer\n");
     }
 
     if (state.fadeOutDelayMs == 0) {
-        if (!timers().create(state.stepMs, kFadeSteps, cb_fadeOut)) {
+        if (!timers.create(state.stepMs, kFadeSteps, cb_fadeOut)) {
             LOG_WARN("[Fade] Failed to start fade-out timer\n");
         }
     } else {
-        if (!timers().create(state.fadeOutDelayMs, 1, cb_beginFadeOut)) {
+        if (!timers.create(state.fadeOutDelayMs, 1, cb_beginFadeOut)) {
             LOG_WARN("[Fade] Failed to create fade-out delay (%lu ms)\n", static_cast<unsigned long>(state.fadeOutDelayMs));
         }
     }
 
     // Timer-based completion (T4 rule: never use loop() return for completion)
-    timers().cancel(cb_fragmentReady);
-    if (!timers().create(fragment.durationMs, 1, cb_fragmentReady)) {
+    timers.cancel(cb_fragmentReady);
+    if (!timers.create(fragment.durationMs, 1, cb_fragmentReady)) {
         LOG_WARN("[Audio] Failed to create fragment completion timer\n");
     }
 
@@ -211,10 +211,10 @@ void stop(uint16_t fadeOutMs) {
 
     auto& state = fade();
 
-    timers().cancel(cb_fragmentReady);
-    timers().cancel(cb_beginFadeOut);
-    timers().cancel(cb_fadeOut);
-    timers().cancel(cb_fadeIn);
+    timers.cancel(cb_fragmentReady);
+    timers.cancel(cb_beginFadeOut);
+    timers.cancel(cb_fadeOut);
+    timers.cancel(cb_fadeIn);
 
     uint16_t effective = fadeOutMs;
     if (effective == kFadeUseCurrent) {
@@ -239,7 +239,7 @@ void stop(uint16_t fadeOutMs) {
     }
     state.outIndex = startOffset;
 
-    if (!timers().create(state.stepMs, kFadeSteps, cb_fadeOut)) {
+    if (!timers.create(state.stepMs, kFadeSteps, cb_fadeOut)) {
         LOG_WARN("[Fade] Failed to create stop() fade-out timer\n");
         stopPlayback();
     }
@@ -255,10 +255,10 @@ void updateGain() {
 namespace {
 
 void stopPlayback() {
-    timers().cancel(cb_fragmentReady);
-    timers().cancel(cb_beginFadeOut);
-    timers().cancel(cb_fadeIn);
-    timers().cancel(cb_fadeOut);
+    timers.cancel(cb_fragmentReady);
+    timers.cancel(cb_beginFadeOut);
+    timers.cancel(cb_fadeIn);
+    timers.cancel(cb_fadeOut);
 
     if (audio().audioMp3Decoder) {
         audio().audioMp3Decoder->stop();
@@ -301,7 +301,7 @@ void cb_fadeIn() {
 
     state.inIndex++;
     if (state.inIndex >= kFadeSteps) {
-        timers().cancel(cb_fadeIn);
+        timers.cancel(cb_fadeIn);
         state.inIndex = 0;
     }
 }
@@ -318,7 +318,7 @@ void cb_fadeOut() {
 
     state.outIndex++;
     if (state.outIndex >= kFadeSteps) {
-        timers().cancel(cb_fadeOut);
+        timers.cancel(cb_fadeOut);
         state.outIndex = 0;
         stopPlayback();
     }
@@ -331,12 +331,12 @@ void cb_beginFadeOut() {
         startOffset = static_cast<uint8_t>((kFadeSteps - 1U) - state.lastCurveIndex);
     }
     state.outIndex = startOffset;
-    timers().cancel(cb_fadeOut);
+    timers.cancel(cb_fadeOut);
     uint16_t step = state.stepMs;
     if (step == 0) {
         step = 1;
     }
-    if (!timers().create(step, kFadeSteps, cb_fadeOut)) {
+    if (!timers.create(step, kFadeSteps, cb_fadeOut)) {
         LOG_WARN("[Fade] Failed to launch delayed fade-out timer\n");
         stopPlayback();
     }

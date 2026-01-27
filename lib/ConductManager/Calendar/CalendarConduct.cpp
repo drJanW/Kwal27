@@ -67,7 +67,7 @@ String sentence;
 uint32_t sentenceIntervalMs = 0;
 
 void clearSentenceTimer() {
-  timers().cancel(CalendarConduct::cb_calendarSentence);
+  timers.cancel(CalendarConduct::cb_calendarSentence);
   sentence = "";
   sentenceIntervalMs = 0;
 }
@@ -92,7 +92,7 @@ bool getValidDate(uint16_t& year, uint8_t& month, uint8_t& day) {
 CalendarConduct calendarConduct;
 
 void CalendarConduct::plan() {
-  timers().cancel(CalendarConduct::cb_loadCalendar);
+  timers.cancel(CalendarConduct::cb_loadCalendar);
   clearSentenceTimer();
 
   if (!calendarManager.isReady()) {
@@ -100,20 +100,20 @@ void CalendarConduct::plan() {
       PF("[CalendarConduct] Calendar manager not ready, retrying\n");
       logFlags.managerNotReady = true;
     }
-    timers().restart(retryStartMs, retryCount, CalendarConduct::cb_loadCalendar);
+    timers.restart(retryStartMs, retryCount, CalendarConduct::cb_loadCalendar);
     return;
   }
   logFlags.managerNotReady = false;
 
   if (!clockReady()) {
-    timers().restart(retryStartMs, retryCount, CalendarConduct::cb_loadCalendar);
+    timers.restart(retryStartMs, retryCount, CalendarConduct::cb_loadCalendar);
     return;
   }
 
   PF("[CalendarConduct] Calendar scheduling enabled\n");
 
   if (initialDelayPending) {
-    if (!timers().create(initialDelayMs, 1, CalendarConduct::cb_loadCalendar)) {
+    if (!timers.create(initialDelayMs, 1, CalendarConduct::cb_loadCalendar)) {
       PF("[CalendarConduct] Failed to arm initial calendar delay\n");
     } else {
       initialDelayPending = false;
@@ -130,13 +130,13 @@ void CalendarConduct::cb_loadCalendar() {
       PF("[CalendarConduct] Calendar manager not ready, retrying\n");
       logFlags.managerNotReady = true;
     }
-    timers().restart(retryStartMs, retryCount, CalendarConduct::cb_loadCalendar);
+    timers.restart(retryStartMs, retryCount, CalendarConduct::cb_loadCalendar);
     return;
   }
   logFlags.managerNotReady = false;
 
   if (!clockReady()) {
-    timers().restart(retryStartMs, retryCount, CalendarConduct::cb_loadCalendar);
+    timers.restart(retryStartMs, retryCount, CalendarConduct::cb_loadCalendar);
     return;
   }
 
@@ -144,7 +144,7 @@ void CalendarConduct::cb_loadCalendar() {
   uint8_t month = 0;
   uint8_t day = 0;
   if (!getValidDate(year, month, day)) {
-    timers().restart(retryStartMs, retryCount, CalendarConduct::cb_loadCalendar);
+    timers.restart(retryStartMs, retryCount, CalendarConduct::cb_loadCalendar);
     return;
   }
 
@@ -155,7 +155,7 @@ void CalendarConduct::cb_loadCalendar() {
         PF("[CalendarConduct] SD busy, retrying\n");
         logFlags.sdBusy = true;
       }
-      timers().restart(retryStartMs, retryCount, CalendarConduct::cb_loadCalendar);
+      timers.restart(retryStartMs, retryCount, CalendarConduct::cb_loadCalendar);
       return;
     }
     logFlags.sdBusy = false;
@@ -173,7 +173,7 @@ void CalendarConduct::cb_loadCalendar() {
     NotifyState::setCalendarStatus(true);  // OK - geen bijzondere dag
     ConductManager::triggerBootFragment();  // Theme box set, play first fragment
     PL("[CalendarConduct] No calendar data for today");
-    timers().restart(Globals::calendarRefreshIntervalMs, 0, CalendarConduct::cb_loadCalendar);
+    timers.restart(Globals::calendarRefreshIntervalMs, 0, CalendarConduct::cb_loadCalendar);
     return;
   }
 
@@ -185,7 +185,7 @@ void CalendarConduct::cb_loadCalendar() {
     LightConduct::applyPattern(0);
     LightConduct::applyColor(0);
     clearTodayContextRead();
-    timers().restart(Globals::calendarRefreshIntervalMs, 0, CalendarConduct::cb_loadCalendar);
+    timers.restart(Globals::calendarRefreshIntervalMs, 0, CalendarConduct::cb_loadCalendar);
     return;
   }
 
@@ -195,7 +195,7 @@ void CalendarConduct::cb_loadCalendar() {
 
     if (sentenceIntervalMs > 0) {
       // Use restart() - calendar can reload, replacing previous sentence timer
-      if (!timers().restart(sentenceIntervalMs, 0, CalendarConduct::cb_calendarSentence)) {
+      if (!timers.restart(sentenceIntervalMs, 0, CalendarConduct::cb_calendarSentence)) {
         PF("[CalendarConduct] Failed to start calendar sentence timer (%lu ms)\n",
            static_cast<unsigned long>(sentenceIntervalMs));
       } else {
@@ -224,7 +224,7 @@ void CalendarConduct::cb_loadCalendar() {
   NotifyState::setCalendarStatus(true);
   ConductManager::triggerBootFragment();  // Theme box set, play first fragment
   PL("[CalendarConduct] Calendar loaded");
-  timers().restart(Globals::calendarRefreshIntervalMs, 0, CalendarConduct::cb_loadCalendar);
+  timers.restart(Globals::calendarRefreshIntervalMs, 0, CalendarConduct::cb_loadCalendar);
   resetLogFlags();
 }
 
