@@ -76,8 +76,9 @@ Every `.cpp` file: `#include <Arduino.h>` as FIRST include
 ## Build & Deploy Commands
 
 ```powershell
-.\go.ps1              # Upload existing firmware (no rebuild)
-.\ota.ps1 [188|189]   # OTA update to device
+.\deploy.ps1 hout     # USB upload to HOUT (189)
+.\deploy.ps1 marmer   # OTA upload to MARMER (188)
+.\ota.ps1 [188|189]   # Standalone OTA update
 .\trace.ps1 [COM#]    # Serial monitor
 .\upload_web.ps1      # Upload web files to SD
 .\upload_csv.ps1      # Upload CSV configs to SD

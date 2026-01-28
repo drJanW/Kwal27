@@ -4,10 +4,14 @@ Helper scripts for development, deployment and backup of the Kwal26 ESP32 projec
 
 ## Build & Upload
 
-### `go.ps1`
-Upload existing firmware build to ESP32 (no rebuild).
+### `deploy.ps1`
+Unified deployment script for HOUT and MARMER devices.
 ```
-.\go.ps1
+.\deploy.ps1 hout         # USB upload to HOUT (189)
+.\deploy.ps1 hout +       # USB upload with CSV/JS
+.\deploy.ps1 marmer       # OTA upload to MARMER (188)
+.\deploy.ps1 marmer +     # OTA upload with CSV/JS
+.\deploy.ps1 hout -SkipBuild   # Upload only (no rebuild)
 ```
 
 ### `ota.ps1`
