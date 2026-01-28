@@ -81,8 +81,8 @@ bool isStatusOK(StatusComponent c) {
     return get(c) == STATUS_OK;
 }
 
-void setStatusOK(StatusComponent c, bool isOK) {
-    set(c, isOK ? STATUS_OK : STATUS_NOTOK);
+void setStatusOK(StatusComponent c, bool status) {
+    set(c, status ? STATUS_OK : STATUS_NOTOK);
 }
 
 uint64_t getBootStatus() {
@@ -108,88 +108,88 @@ void reset() {
     bootPhase = true;
 }
 
-void setSdStatus(bool isOK) {
-    if (get(SC_SD) == (isOK ? STATUS_OK : STATUS_NOTOK)) return;
-    setStatusOK(SC_SD, isOK);
-    PF("[*State] SD: %s\n", isOK ? "OK" : "NOTOK");
-    if (!isOK) SpeakConduct::speak(SpeakIntent::SD_FAIL);
+void setSdStatus(bool status) {
+    if (get(SC_SD) == (status ? STATUS_OK : STATUS_NOTOK)) return;
+    setStatusOK(SC_SD, status);
+    PF("[*State] SD: %s\n", status ? "OK" : "NOTOK");
+    if (!status) SpeakConduct::speak(SpeakIntent::SD_FAIL);
 }
 
-void setWifiStatus(bool isOK) {
-    if (get(SC_WIFI) == (isOK ? STATUS_OK : STATUS_NOTOK)) return;
-    setStatusOK(SC_WIFI, isOK);
-    PF("[*State] WiFi: %s\n", isOK ? "OK" : "NOTOK");
-    if (!isOK) SpeakConduct::speak(SpeakIntent::WIFI_FAIL);
+void setWifiStatus(bool status) {
+    if (get(SC_WIFI) == (status ? STATUS_OK : STATUS_NOTOK)) return;
+    setStatusOK(SC_WIFI, status);
+    PF("[*State] WiFi: %s\n", status ? "OK" : "NOTOK");
+    if (!status) SpeakConduct::speak(SpeakIntent::WIFI_FAIL);
 }
 
-void setRtcStatus(bool isOK) {
-    if (get(SC_RTC) == (isOK ? STATUS_OK : STATUS_NOTOK)) return;
-    setStatusOK(SC_RTC, isOK);
-    PF("[*State] RTC: %s\n", isOK ? "OK" : "NOTOK");
-    if (!isOK) SpeakConduct::speak(SpeakIntent::RTC_FAIL);
+void setRtcStatus(bool status) {
+    if (get(SC_RTC) == (status ? STATUS_OK : STATUS_NOTOK)) return;
+    setStatusOK(SC_RTC, status);
+    PF("[*State] RTC: %s\n", status ? "OK" : "NOTOK");
+    if (!status) SpeakConduct::speak(SpeakIntent::RTC_FAIL);
 }
 
-void setNtpStatus(bool isOK) {
-    if (get(SC_NTP) == (isOK ? STATUS_OK : STATUS_NOTOK)) return;
-    setStatusOK(SC_NTP, isOK);
-    PF("[*State] NTP: %s\n", isOK ? "OK" : "NOTOK");
-    if (!isOK) SpeakConduct::speak(SpeakIntent::NTP_FAIL);
+void setNtpStatus(bool status) {
+    if (get(SC_NTP) == (status ? STATUS_OK : STATUS_NOTOK)) return;
+    setStatusOK(SC_NTP, status);
+    PF("[*State] NTP: %s\n", status ? "OK" : "NOTOK");
+    if (!status) SpeakConduct::speak(SpeakIntent::NTP_FAIL);
 }
 
-void setDistanceSensorStatus(bool isOK) {
-    if (get(SC_DIST) == (isOK ? STATUS_OK : STATUS_NOTOK)) return;
-    setStatusOK(SC_DIST, isOK);
-    PF("[*State] DistanceSensor: %s\n", isOK ? "OK" : "NOTOK");
-    if (!isOK) {
+void setDistanceSensorStatus(bool status) {
+    if (get(SC_DIST) == (status ? STATUS_OK : STATUS_NOTOK)) return;
+    setStatusOK(SC_DIST, status);
+    PF("[*State] DistanceSensor: %s\n", status ? "OK" : "NOTOK");
+    if (!status) {
         SpeakConduct::speak(SpeakIntent::DISTANCE_SENSOR_FAIL);
         if (!bootPhase) NotifyRGB::startFlashing();
     }
 }
 
-void setLuxSensorStatus(bool isOK) {
-    if (get(SC_LUX) == (isOK ? STATUS_OK : STATUS_NOTOK)) return;
-    setStatusOK(SC_LUX, isOK);
-    PF("[*State] LuxSensor: %s\n", isOK ? "OK" : "NOTOK");
-    if (!isOK) {
+void setLuxSensorStatus(bool status) {
+    if (get(SC_LUX) == (status ? STATUS_OK : STATUS_NOTOK)) return;
+    setStatusOK(SC_LUX, status);
+    PF("[*State] LuxSensor: %s\n", status ? "OK" : "NOTOK");
+    if (!status) {
         SpeakConduct::speak(SpeakIntent::LUX_SENSOR_FAIL);
         if (!bootPhase) NotifyRGB::startFlashing();
     }
 }
 
-void setSensor3Status(bool isOK) {
-    if (get(SC_SENSOR3) == (isOK ? STATUS_OK : STATUS_NOTOK)) return;
-    setStatusOK(SC_SENSOR3, isOK);
-    PF("[*State] Sensor3: %s\n", isOK ? "OK" : "NOTOK");
-    if (!isOK) {
+void setSensor3Status(bool status) {
+    if (get(SC_SENSOR3) == (status ? STATUS_OK : STATUS_NOTOK)) return;
+    setStatusOK(SC_SENSOR3, status);
+    PF("[*State] Sensor3: %s\n", status ? "OK" : "NOTOK");
+    if (!status) {
         SpeakConduct::speak(SpeakIntent::SENSOR3_FAIL);
         if (!bootPhase) NotifyRGB::startFlashing();
     }
 }
 
-void setAudioStatus(bool isOK) {
-    if (get(SC_AUDIO) == (isOK ? STATUS_OK : STATUS_NOTOK)) return;
-    setStatusOK(SC_AUDIO, isOK);
-    PF("[*State] Audio: %s\n", isOK ? "OK" : "NOTOK");
+void setAudioStatus(bool status) {
+    if (get(SC_AUDIO) == (status ? STATUS_OK : STATUS_NOTOK)) return;
+    setStatusOK(SC_AUDIO, status);
+    PF("[*State] Audio: %s\n", status ? "OK" : "NOTOK");
 }
 
-void setWeatherStatus(bool isOK) {
-    if (get(SC_WEATHER) == (isOK ? STATUS_OK : STATUS_NOTOK)) return;
-    setStatusOK(SC_WEATHER, isOK);
-    PF("[*State] Weather: %s\n", isOK ? "OK" : "NOTOK");
-    if (!isOK) SpeakConduct::speak(SpeakIntent::WEATHER_FAIL);
+void setWeatherStatus(bool status) {
+    if (get(SC_WEATHER) == (status ? STATUS_OK : STATUS_NOTOK)) return;
+    setStatusOK(SC_WEATHER, status);
+    PF("[*State] Weather: %s\n", status ? "OK" : "NOTOK");
+    if (!status) SpeakConduct::speak(SpeakIntent::WEATHER_FAIL);
 }
 
-void setCalendarStatus(bool isOK) {
-    if (get(SC_CALENDAR) == (isOK ? STATUS_OK : STATUS_NOTOK)) return;
-    setStatusOK(SC_CALENDAR, isOK);
-    PF("[*State] Calendar: %s\n", isOK ? "OK" : "NOTOK");
-    if (!isOK) SpeakConduct::speak(SpeakIntent::CALENDAR_FAIL);
+void setCalendarStatus(bool status) {
+    if (get(SC_CALENDAR) == (status ? STATUS_OK : STATUS_NOTOK)) return;
+    setStatusOK(SC_CALENDAR, status);
+    PF("[*State] Calendar: %s\n", status ? "OK" : "NOTOK");
+    if (!status) SpeakConduct::speak(SpeakIntent::CALENDAR_FAIL);
 }
 
-void setTtsStatus(bool isOK) {
-    if (get(SC_TTS) == (isOK ? STATUS_OK : STATUS_NOTOK)) return;
-    setStatusOK(SC_TTS, isOK);
-    PF("[*State] TTS: %s\n", isOK ? "OK" : "NOTOK");
+void setTtsStatus(bool status) {
+    if (get(SC_TTS) == (status ? STATUS_OK : STATUS_NOTOK)) return;
+    setStatusOK(SC_TTS, status);
+    PF("[*State] TTS: %s\n", status ? "OK" : "NOTOK");
 }
 
 void startRuntime() {

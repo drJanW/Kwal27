@@ -3,8 +3,19 @@ bootmaster.cpp - refactor, clean
 voting.cpp - contains selection of random file?!?
 systemboot en bootmaster overlap?dead code?
 why is status policy a stub? is refactor needed?
-static_cast< is used often. too often? newest c++ still too stupid??
+
 style: bool : isOK is a function because of is - isOk(); ok, Ok, OK is a bool , not a nice name
+
+=== DONE 2026-01-28 ===
+✅ SystemBoot.cpp refactored:
+   - Wire.begin() success check + hwStatus |= HW_I2C
+   - Serial timeout for headless boot
+   - systemBootStage1() returns bool
+   - Magic numbers → HWconfig.h constants (SERIAL_BAUD, I2C_CLOCK_HZ, HALT_BLINK_MS)
+✅ HW_I2C bit added to HWconfig.h (bit 7)
+✅ main.cpp updated: logs Stage 1 incomplete in degraded mode
+✅ fallback_policy.md: added hwStatus bits mapping table
+✅ HWconfig.h: cross-reference to fallback_policy.md
 
 === DONE 2026-01-27 ===
 ✅ TimerManager::instance() eliminated - global `timers` now used everywhere

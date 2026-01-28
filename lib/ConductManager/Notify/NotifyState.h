@@ -64,22 +64,22 @@ namespace NotifyState {
     
     // Legacy - backward compatible
     bool isStatusOK(StatusComponent c);
-    void setStatusOK(StatusComponent c, bool isOK=true);
+    void setStatusOK(StatusComponent c, bool status=true);
     uint64_t getBootStatus();
     
     // ===== LEGACY API (backward compatible) =====
     // Status setters - alleen aangeroepen door NotifyConduct::report()
-    void setSdStatus(bool isOK);
-    void setWifiStatus(bool isOK);
-    void setRtcStatus(bool isOK);
-    void setNtpStatus(bool isOK);
-    void setDistanceSensorStatus(bool isOK);
-    void setLuxSensorStatus(bool isOK);
-    void setSensor3Status(bool isOK);
-    void setAudioStatus(bool isOK);
-    void setWeatherStatus(bool isOK);
-    void setCalendarStatus(bool isOK);
-    void setTtsStatus(bool isOK);
+    void setSdStatus(bool status);
+    void setWifiStatus(bool status);
+    void setRtcStatus(bool status);
+    void setNtpStatus(bool status);
+    void setDistanceSensorStatus(bool status);
+    void setLuxSensorStatus(bool status);
+    void setSensor3Status(bool status);
+    void setAudioStatus(bool status);
+    void setWeatherStatus(bool status);
+    void setCalendarStatus(bool status);
+    void setTtsStatus(bool status);
     void startRuntime();
     
     // Status getters - voor Policy en andere modules
