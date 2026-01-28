@@ -2,7 +2,24 @@
 
 Defines graceful degradation when hardware or services fail.
 
-**Version**: 251224L
+**Version**: 260128A
+
+## hwStatus Bits (HWconfig.h)
+
+Runtime flags set during boot. Check with `if (hwStatus & HW_xxx)`.
+
+| Bit | Flag | Set When | Missing → Trigger |
+|-----|------|----------|-------------------|
+| 0 | `HW_SD` | SD init OK | SD Card Failure |
+| 1 | `HW_WIFI` | WiFi connected | No WiFi |
+| 2 | `HW_AUDIO` | I2S init OK | (fatal) |
+| 3 | `HW_RGB` | FastLED init OK | (fatal) |
+| 4 | `HW_LUX` | VEML7700 detected | Sensor Failures |
+| 5 | `HW_DIST` | VL53L1X detected | Sensor Failures |
+| 6 | `HW_RTC` | DS3231 detected | No RTC Hardware |
+| 7 | `HW_I2C` | Wire.begin() OK | All I2C sensors fail |
+
+`HW_ALL_CRITICAL = HW_SD | HW_AUDIO | HW_RGB` — missing any triggers halt.
 
 ## SD Card Failure
 

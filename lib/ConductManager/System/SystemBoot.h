@@ -25,7 +25,7 @@ bool systemBootStage0();
  * Initializes I2C, probes all components, populates status64.
  * Stage 2 triggers automatically via OK reports.
  */
-void systemBootStage1();
+bool systemBootStage1();
 
 /**
  * @brief Fatal halt with frantic LED blink - never returns

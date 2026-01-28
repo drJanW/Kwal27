@@ -1,8 +1,8 @@
 /**
  * @file main.cpp
  * @brief Kwal ESP32 Firmware - Main entry point
- * @version 251231E
- * @date 2025-12-31
+ * @version 260128A
+ * @date 2026-01-28
  *
  * This is the main entry point for the Kwal ambient light and audio sculpture.
  * The firmware runs on ESP32-S3 and orchestrates:
@@ -46,7 +46,9 @@ void setup()
         haltBlink();
     }
     // Stage 1: Component probing (Stage 2 via OK reports)
-    systemBootStage1();
+    if (!systemBootStage1()) {
+        PL("[Main] Stage 1 incomplete - degraded mode");
+    }
 }
 
 /**

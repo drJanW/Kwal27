@@ -47,6 +47,11 @@
 // #define TEST_FAIL_LUX_SENSOR
 // #define TEST_FAIL_SENSOR3
 
+// ======================= Communication Settings =======================
+#define SERIAL_BAUD       115200
+#define I2C_CLOCK_HZ      400000   // 400kHz Fast Mode
+#define HALT_BLINK_MS     150      // haltBlink() flash interval
+
 // ======================= Debug & Test Flags =======================
 // Uncomment to disable color/pattern shifts (for testing without context shifts)
 // #define DISABLE_SHIFTS
@@ -124,6 +129,7 @@
 
 // ======================= Hardware Status Bits =======================
 // Runtime flags for graceful degradation (set during boot)
+// See docs/fallback_policy.md for degradation behavior per flag
 #define HW_SD     (1<<0)
 #define HW_WIFI   (1<<1)
 #define HW_AUDIO  (1<<2)
@@ -131,6 +137,7 @@
 #define HW_LUX    (1<<4)
 #define HW_DIST   (1<<5)
 #define HW_RTC    (1<<6)
+#define HW_I2C    (1<<7)
 #define HW_ALL_CRITICAL (HW_SD | HW_AUDIO | HW_RGB)
 
 // ======================= LED Configuration =======================
