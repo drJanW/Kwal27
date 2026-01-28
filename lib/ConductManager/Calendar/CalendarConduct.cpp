@@ -29,7 +29,7 @@ constexpr int32_t  retryCount        = -50;            // 50 retries with growin
 constexpr uint32_t initialDelayMs    = 5UL * 1000UL;
 
 bool clockReady() {
-  return PRTClock::instance().hasValidDate();
+  return prtClock.hasValidDate();
 }
 
 struct CalendarConductLogFlags {
@@ -73,14 +73,13 @@ void clearSentenceTimer() {
 }
 
 bool getValidDate(uint16_t& year, uint8_t& month, uint8_t& day) {
-  auto& clock = PRTClock::instance();
-  const uint16_t rawYear = clock.getYear();
+  const uint16_t rawYear = prtClock.getYear();
   if (rawYear == 0) {
     return false;
   }
   year = rawYear >= 2000 ? rawYear : static_cast<uint16_t>(2000 + rawYear);
-  month = clock.getMonth();
-  day = clock.getDay();
+  month = prtClock.getMonth();
+  day = prtClock.getDay();
   if (month == 0 || day == 0) {
     return false;
   }

@@ -32,21 +32,20 @@ static bool weatherValid = false;
 namespace {
 
 void updateTimeContext() {
-  auto &clock = PRTClock::instance();
-  timeContext.hour = clock.getHour();
-  timeContext.minute = clock.getMinute();
-  timeContext.second = clock.getSecond();
-  timeContext.year = static_cast<uint16_t>(2000 + clock.getYear());
-  timeContext.month = clock.getMonth();
-  timeContext.day = clock.getDay();
-  timeContext.dayOfWeek = clock.getDoW();
-  timeContext.dayOfYear = clock.getDoY();
-  timeContext.sunriseHour = clock.getSunriseHour();
-  timeContext.sunriseMinute = clock.getSunriseMinute();
-  timeContext.sunsetHour = clock.getSunsetHour();
-  timeContext.sunsetMinute = clock.getSunsetMinute();
-  timeContext.moonPhase = clock.getMoonPhaseValue();
-  timeContext.synced = clock.isTimeFetched();
+  timeContext.hour = prtClock.getHour();
+  timeContext.minute = prtClock.getMinute();
+  timeContext.second = prtClock.getSecond();
+  timeContext.year = static_cast<uint16_t>(2000 + prtClock.getYear());
+  timeContext.month = prtClock.getMonth();
+  timeContext.day = prtClock.getDay();
+  timeContext.dayOfWeek = prtClock.getDoW();
+  timeContext.dayOfYear = prtClock.getDoY();
+  timeContext.sunriseHour = prtClock.getSunriseHour();
+  timeContext.sunriseMinute = prtClock.getSunriseMinute();
+  timeContext.sunsetHour = prtClock.getSunsetHour();
+  timeContext.sunsetMinute = prtClock.getSunsetMinute();
+  timeContext.moonPhase = prtClock.getMoonPhaseValue();
+  timeContext.synced = prtClock.isTimeFetched();
 
   if (weatherValid) {
     timeContext.hasWeather = true;

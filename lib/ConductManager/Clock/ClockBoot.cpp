@@ -17,8 +17,8 @@
 void ClockBoot::plan() {
     if (RTC_PRESENT) {
         ClockPolicy::begin();
-        auto &clock = PRTClock::instance();
-        (void)ClockPolicy::seedClockFromRTC(clock);
+
+        (void)ClockPolicy::seedClockFromRTC(prtClock);
     } else {
         PL("[ClockBoot] RTC absent per HWconfig");
     }

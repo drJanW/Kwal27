@@ -55,9 +55,7 @@ void BootMaster::cb_bootstrapThunk() {
 }
 
 void BootMaster::cb_bootstrap() {
-    auto &clock = PRTClock::instance();
-
-    if (PRTClock::instance().isTimeFetched()) {
+    if (prtClock.isTimeFetched()) {
         cancelFallbackTimer();
         fallback.resetFlags();
 
@@ -67,11 +65,11 @@ void BootMaster::cb_bootstrap() {
             if (ConductManager::intentStartClockTick(false)) {
                 if (!wasRunning) {
                     PF("[Conduct] Clock tick started with NTP (%02u:%02u:%02u)\n",
-                       clock.getHour(), clock.getMinute(), clock.getSecond());
+                       prtClock.getHour(), prtClock.getMinute(), prtClock.getSecond());
                     NotifyConduct::report(NotifyIntent::NTP_OK);
                 } else if (wasFallback) {
                     PF("[Conduct] Clock tick promoted to NTP (%02u:%02u:%02u)\n",
-                       clock.getHour(), clock.getMinute(), clock.getSecond());
+                       prtClock.getHour(), prtClock.getMinute(), prtClock.getSecond());
                     NotifyConduct::report(NotifyIntent::NTP_OK);
                 }
             } else {
@@ -105,12 +103,10 @@ void BootMaster::cancelFallbackTimer() {
 }
 
 void BootMaster::fallbackTimeout() {
-    if (PRTClock::instance().isTimeFetched()) {
+    if (prtClock.isTimeFetched()) {
         fallback.resetFlags();
         return;
     }
-
-    auto &clock = PRTClock::instance();
 
     if (!fallback.seedAttempted) {
         fallback.seedAttempted = true;
@@ -120,10 +116,10 @@ void BootMaster::fallbackTimeout() {
             PL("[Conduct] Seeded clock from RTC snapshot");
         } else {
             // Ultimate fallback: 20 april 04:00 (from Globals)
-            clock.setTime(Globals::fallbackHour, 0, 0);
-            clock.setDay(Globals::fallbackDay);
-            clock.setMonth(Globals::fallbackMonth);
-            clock.setYear(Globals::fallbackYear - 2000);  // PRTClock uses 2-digit year
+            prtClock.setTime(Globals::fallbackHour, 0, 0);
+            prtClock.setDay(Globals::fallbackDay);
+            prtClock.setMonth(Globals::fallbackMonth);
+            prtClock.setYear(Globals::fallbackYear - 2000);  // PRTClock uses 2-digit year
             fallback.seededFromCache = false;
             fallback.seededFromRtc = false;
             PF("[Conduct] No time source - using fallback: %02d/%02d/%04d %02d:00\n",

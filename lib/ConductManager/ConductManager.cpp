@@ -96,7 +96,7 @@ void ConductManager::requestLuxMeasurement() {
 namespace {
 
 void cb_clockUpdate() {
-    PRTClock::instance().update();
+    prtClock.update();
 }
 
 void cb_sayTime() {
@@ -275,7 +275,7 @@ void ConductManager::triggerBootFragment() {
 }
 
 void ConductManager::intentSayTime(TimeStyle style) {
-    const String sentence = PRTClock::instance().buildTimeSentence(style);
+    const String sentence = prtClock.buildTimeSentence(style);
     if (sentence.isEmpty()) {
         CONDUCT_LOG_WARN("[Conduct] intentSayTime: clock sentence empty\n");
         return;
@@ -323,11 +323,11 @@ bool ConductManager::isClockInFallback() {
 }
 
 bool ConductManager::intentSeedClockFromRtc() {
-    return clockConduct.seedClockFromRtc(PRTClock::instance());
+    return clockConduct.seedClockFromRtc(prtClock);
 }
 
 void ConductManager::intentSyncRtcFromClock() {
-    clockConduct.syncRtcFromClock(PRTClock::instance());
+    clockConduct.syncRtcFromClock(prtClock);
 }
 
 void ConductManager::resumeAfterSDBoot() {

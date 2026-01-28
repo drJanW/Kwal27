@@ -29,10 +29,6 @@
 #include <WiFiClientSecure.h>
 #include <sys/time.h>
 
-namespace {
-    PRTClock &clockSvc() { return PRTClock::instance(); }
-}
-
 // --- Config ---
 // HTTPS versions - often fail on ESP32 due to TLS handshake issues (code -1)
 // #define SUN_URL     "https://api.sunrise-sunset.org/json?lat=52.3702&lng=4.8952&formatted=0"
@@ -70,7 +66,7 @@ static void cb_fetchNTP() {
     static bool clientStarted = false;
     static bool wifiWarned = false;
 
-    if (clockSvc().isTimeFetched()) {
+    if (prtClock.isTimeFetched()) {
         return;
     }
 
@@ -130,15 +126,14 @@ static void cb_fetchNTP() {
     struct tm t;
     localtime_r(&local, &t);
 
-    auto &clk = clockSvc();
-    clk.setHour(t.tm_hour);
-    clk.setMinute(t.tm_min);
-    clk.setSecond(t.tm_sec);
-    clk.setYear(t.tm_year + 1900 - 2000);
-    clk.setMonth(t.tm_mon + 1);
-    clk.setDay(t.tm_mday);
-    clk.setDoW(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
-    clk.setDoY(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
+    prtClock.setHour(t.tm_hour);
+    prtClock.setMinute(t.tm_min);
+    prtClock.setSecond(t.tm_sec);
+    prtClock.setYear(t.tm_year + 1900 - 2000);
+    prtClock.setMonth(t.tm_mon + 1);
+    prtClock.setDay(t.tm_mday);
+    prtClock.setDoW(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
+    prtClock.setDoY(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
 
     if (DEBUG_FETCH) {
         PF("[Fetch] Time update: %02d:%02d:%02d (%d-%02d-%02d)\n",
@@ -146,10 +141,10 @@ static void cb_fetchNTP() {
            t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
     }
 
-    clockSvc().setTimeFetched(true);
+    prtClock.setTimeFetched(true);
     NotifyState::setNtpStatus(true);
     timers.cancel(cb_fetchNTP);
-    clk.setMoonPhaseValue();
+    prtClock.setMoonPhaseValue();
     ConductManager::intentSyncRtcFromClock();
 }
 
@@ -182,7 +177,7 @@ static void cb_fetchWeather() {
         }
         return;
     }
-    if (!clockSvc().isTimeFetched()) {
+    if (!prtClock.isTimeFetched()) {
         if (DEBUG_FETCH) {
             PL("[Fetch] No NTP/time, skipping weather");
         }
@@ -253,7 +248,7 @@ static void cb_fetchSunrise() {
         timers.restart(Globals::sunRefreshIntervalMs, 0, cb_fetchSunrise);
         return;
     }
-    if (!clockSvc().isTimeFetched()) {
+    if (!prtClock.isTimeFetched()) {
         if (DEBUG_FETCH) {
             PL("[Fetch] No NTP/time, skipping sun data");
         }
@@ -300,11 +295,10 @@ static void cb_fetchSunrise() {
     localtime_r(&localRise, &ltmRise);
     localtime_r(&localSet, &ltmSet);
 
-    auto &clk = clockSvc();
-    clk.setSunriseHour(ltmRise.tm_hour);
-    clk.setSunriseMinute(ltmRise.tm_min);
-    clk.setSunsetHour(ltmSet.tm_hour);
-    clk.setSunsetMinute(ltmSet.tm_min);
+    prtClock.setSunriseHour(ltmRise.tm_hour);
+    prtClock.setSunriseMinute(ltmRise.tm_min);
+    prtClock.setSunsetHour(ltmSet.tm_hour);
+    prtClock.setSunsetMinute(ltmSet.tm_min);
 
     if (DEBUG_FETCH) {
         PF("[Fetch] Sunrise/Sunset (local): up %02d:%02d, down %02d:%02d\n",
@@ -327,7 +321,7 @@ bool bootFetchManager() {
     timers.cancel(cb_fetchWeather);
     timers.cancel(cb_fetchSunrise);
 
-    clockSvc().setTimeFetched(false);
+    prtClock.setTimeFetched(false);
     bool ntpOk = timers.create(1000, 25, cb_fetchNTP, 1.5f);
     bool weatherOk = timers.create(2000, 24, cb_fetchWeather, 1.5f);
     bool sunOk = timers.create(3000, 0, cb_fetchSunrise);

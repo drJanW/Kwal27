@@ -160,10 +160,9 @@ bool TodayContextLoader::init(fs::FS& sd, const char* rootPath) {
 }
 
 bool TodayContextLoader::resolveDate(uint16_t& year, uint8_t& month, uint8_t& day) const {
-    auto& clock = PRTClock::instance();
-    const uint16_t rawYear = clock.getYear();
-    month = clock.getMonth();
-    day = clock.getDay();
+    const uint16_t rawYear = prtClock.getYear();
+    month = prtClock.getMonth();
+    day = prtClock.getDay();
     if (rawYear == 0 || month == 0 || day == 0) {
         return false;
     }

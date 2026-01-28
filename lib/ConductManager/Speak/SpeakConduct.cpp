@@ -36,7 +36,7 @@ const char* getTtsSentence(SpeakIntent intent) {
         case SpeakIntent::CALENDAR_FAIL:         return "Kalender laden mislukt";
         case SpeakIntent::DISTANCE_CLEARED:     return "Object is verdwenen";
         case SpeakIntent::WELCOME: {
-            uint8_t hour = PRTClock::instance().getHour();
+            uint8_t hour = prtClock.getHour();
             if (hour < 12) return "Goedemorgen";
             if (hour < 18) return "Goedemiddag";
             return "Goedenavond";
@@ -67,7 +67,7 @@ constexpr IntentPhrase phrases[] = {
 
 // Get time-based MP3 for welcome
 Mp3Id getWelcomeMp3() {
-    uint8_t hour = PRTClock::instance().getHour();
+    uint8_t hour = prtClock.getHour();
     if (hour < 12) return MP3_GOEDEMORGEN;
     if (hour < 18) return MP3_GOEDEMIDDAG;
     return MP3_GOEDEAVOND;

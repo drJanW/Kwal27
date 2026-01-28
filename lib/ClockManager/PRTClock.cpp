@@ -42,19 +42,25 @@ static bool provideTimestamp(char* buf, size_t bufSize) {
     return true;
 }
 
-PRTClock& PRTClock::instance() {
-  static PRTClock inst;
-  static bool providerSet = false;
-  if (!providerSet) {
+PRTClock prtClock;
+
+namespace {
+  bool timestampProviderSet = false;
+  void ensureTimestampProvider() {
+    if (!timestampProviderSet) {
       LogBuffer::setTimestampProvider(provideTimestamp);
-      providerSet = true;
+      timestampProviderSet = true;
+    }
   }
-  return inst;
 }
 
 // ===================================================
 // Lifecycle
 // ===================================================
+void PRTClock::begin() {
+  ensureTimestampProvider();
+}
+
 void PRTClock::update() {
   // advance one second
   uint8_t ss = getSecond();
@@ -187,8 +193,7 @@ void    PRTClock::setSunsetMinute(uint8_t v){ setMux(v, &_valSunsetMinute); }
 float PRTClock::getMoonPhaseValue() const { return getMux(&_valMoonPhase); }
 
 static float calcMoon() {
-  auto &clock = PRTClock::instance();
-  int y = clock.getYear(), m = clock.getMonth(), d = clock.getDay();
+  int y = prtClock.getYear(), m = prtClock.getMonth(), d = prtClock.getDay();
   if (m <= 2) { y--; m += 12; }
   const float jd0 = 2451550.1f, cycle = 29.53058867f;
   int A = y / 100, B = 2 - A + (A / 4);

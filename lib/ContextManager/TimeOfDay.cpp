@@ -31,25 +31,22 @@ namespace {
     constexpr int kFallbackSunset  = 19 * 60;   // 19:00
     
     int getCurrentMinutes() {
-        PRTClock& clock = PRTClock::instance();
-        return clock.getHour() * 60 + clock.getMinute();
+        return prtClock.getHour() * 60 + prtClock.getMinute();
     }
     
     int getSunriseMinutes() {
-        PRTClock& clock = PRTClock::instance();
-        int sunrise = clock.getSunriseHour() * 60 + clock.getSunriseMinute();
+        int sunrise = prtClock.getSunriseHour() * 60 + prtClock.getSunriseMinute();
         // If no valid fetch yet (both 0), use fallback
-        if (sunrise == 0 && clock.getSunsetHour() == 0) {
+        if (sunrise == 0 && prtClock.getSunsetHour() == 0) {
             return kFallbackSunrise;
         }
         return sunrise;
     }
     
     int getSunsetMinutes() {
-        PRTClock& clock = PRTClock::instance();
-        int sunset = clock.getSunsetHour() * 60 + clock.getSunsetMinute();
+        int sunset = prtClock.getSunsetHour() * 60 + prtClock.getSunsetMinute();
         // If no valid fetch yet (both 0), use fallback
-        if (sunset == 0 && clock.getSunriseHour() == 0) {
+        if (sunset == 0 && prtClock.getSunriseHour() == 0) {
             return kFallbackSunset;
         }
         return sunset;

@@ -25,8 +25,6 @@ bool fetchCurrentTime();
 
 class PRTClock {
 public:
-  static PRTClock& instance();
-
   PRTClock(const PRTClock&) = delete;
   PRTClock& operator=(const PRTClock&) = delete;
 
@@ -80,6 +78,7 @@ public:
   String buildTimeSentence(TimeStyle style = TimeStyle::NORMAL) const;
   String buildNowSentence(TimeStyle style = TimeStyle::NORMAL) const;
 
-private:
   PRTClock() = default;
 };
+
+extern PRTClock prtClock;

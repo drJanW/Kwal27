@@ -19,16 +19,16 @@
 StatusBoot statusBoot;
 
 void cb_timeDisplay() {
-    auto &clock = PRTClock::instance();
-    bool clockSeeded = clock.isTimeFetched() || clock.getYear() != 0 || clock.getHour() != 0 || clock.getMinute() != 0;
+
+    bool clockSeeded = prtClock.isTimeFetched() || prtClock.getYear() != 0 || prtClock.getHour() != 0 || prtClock.getMinute() != 0;
     if (!clockSeeded) {
         return;  // Silent - no spam
     }
 
     ContextManager::refreshTimeRead();
     const auto &timeCtx = ContextManager::time();
-    const char *source = clock.isTimeFetched() ? "ntp" : "fallback";
-    PF("[Conduct] Time now: %02u:%02u:%02u (%u-%02u-%02u, %s)\n",
+    const char *source = prtClock.isTimeFetched() ? "ntp" : "fallback";
+    PF("[Conduct] Time now: %02u:%02u:%02u (%u-%02u-%02u, %s)\\n",
        timeCtx.hour, timeCtx.minute, timeCtx.second,
        static_cast<unsigned>(timeCtx.year),
        timeCtx.month, timeCtx.day,

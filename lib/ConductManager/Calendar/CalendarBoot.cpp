@@ -78,8 +78,7 @@ void CalendarBoot::plan() {
   }
   loggedSdWait = false;
 
-  auto &clock = PRTClock::instance();
-  if (!clock.hasValidDate()) {
+  if (!prtClock.hasValidDate()) {
     if (!loggedClockWait) {
       PF("[CalendarBoot] Waiting for valid clock\n");
       loggedClockWait = true;
