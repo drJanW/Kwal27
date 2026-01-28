@@ -73,13 +73,13 @@ void AudioShiftStore::begin() {
         return;
     }
 
-    if (!SDManager::instance().fileExists(kAudioShiftPath)) {
+    if (!SDManager::fileExists(kAudioShiftPath)) {
         PF("[AudioShiftStore] %s not found\n", kAudioShiftPath);
         ready_ = true;
         return;
     }
 
-    File file = SDManager::instance().openFileRead(kAudioShiftPath);
+    File file = SDManager::openFileRead(kAudioShiftPath);
     if (!file) {
         ready_ = true;
         return;
@@ -157,7 +157,7 @@ void AudioShiftStore::begin() {
         }
     }
 
-    SDManager::instance().closeFile(file);
+    SDManager::closeFile(file);
     ready_ = true;
 
     PF("[AudioShiftStore] Loaded %d audio shift entries\n", entries_.size());

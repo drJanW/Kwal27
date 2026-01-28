@@ -121,7 +121,6 @@ bool CalendarManager::loadCalendarRow(uint16_t year, uint8_t month, uint8_t day,
 	File file = fs_->open(csvPath.c_str(), FILE_READ);
 	if (!file) {
 		PF("[CalendarManager] Failed to open %s\n", csvPath.c_str());
-		SDManager::setSDbusy(false);
 		return false;
 	}
 
@@ -174,7 +173,6 @@ bool CalendarManager::loadThemeBox(uint8_t id, CalendarThemeBox& out) {
 	File file = fs_->open(csvPath.c_str(), FILE_READ);
 	if (!file) {
 		PF("[CalendarManager] Failed to open %s\n", csvPath.c_str());
-		SDManager::setSDbusy(false);
 		return false;
 	}
 

@@ -159,9 +159,9 @@ void CalendarConduct::cb_loadCalendar() {
       return;
     }
     logFlags.sdBusy = false;
-    SDManager::setSDbusy(true);
+    SDManager::lockSD();
     calendarLoaded = calendarManager.loadToday(year, month, day);
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
   }
 
   if (!calendarLoaded) {

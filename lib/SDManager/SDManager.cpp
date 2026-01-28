@@ -1,19 +1,20 @@
 /**
  * @file SDManager.cpp
  * @brief SD card management implementation with directory scanning and file indexing
- * @version 251231E
- * @date 2025-12-31
+ * @version 260128A
+ * @date 2026-01-28
  *
- * Implements the SDManager class for managing SD card operations on ESP32.
+ * Pure static implementation - no singleton pattern.
  * Provides functionality for:
  * - SD card initialization and status tracking
  * - Directory scanning and listing with callbacks
  * - Building and maintaining file indexes for media directories
  * - Reading/writing index files (.root_dirs, .files_dir)
  * - File path construction and size estimation
- * - Thread-safe busy state management for SD access
+ * - Thread-safe busy state management via reentrant lock counter
  */
 
+#include <Arduino.h>
 #include "SDManager.h"
 #include "SdPathUtils.h"
 #include <cstring>
@@ -22,46 +23,61 @@
 // ESP32's built-in FatFs get_fattime() reads from system time automatically.
 
 namespace {
-
 using SdPathUtils::extractBaseName;
 using SdPathUtils::removeSdPath;
-
 } // namespace
 
-bool SDManager::begin(uint8_t csPin) { return SD.begin(csPin); }
-bool SDManager::begin(uint8_t csPin, SPIClass& spi, uint32_t hz) { return SD.begin(csPin, spi, hz); }
+// === Static member definitions ===
+std::atomic<bool> SDManager::ready_{false};
+std::atomic<uint8_t> SDManager::lockCount_{0};
+uint8_t SDManager::highestDirNum_{0};
 
-SDManager& SDManager::instance() {
-    static SDManager inst;
-    return inst;
+// === Initialization ===
+
+bool SDManager::begin(uint8_t csPin) { 
+    return SD.begin(csPin); 
 }
 
+bool SDManager::begin(uint8_t csPin, SPIClass& spi, uint32_t hz) { 
+    return SD.begin(csPin, spi, hz); 
+}
+
+// === State management ===
+
 bool SDManager::isReady() {
-    return instance().ready_.load(std::memory_order_relaxed);
+    return ready_.load(std::memory_order_relaxed);
 }
 
 void SDManager::setReady(bool ready) {
-    instance().ready_.store(ready, std::memory_order_relaxed);
+    ready_.store(ready, std::memory_order_relaxed);
 }
 
 bool SDManager::isSDbusy() {
-    return instance().sdBusy_.load(std::memory_order_relaxed);
+    return lockCount_.load(std::memory_order_relaxed) > 0;
 }
 
-void SDManager::setSDbusy(bool busy) {
-    auto& inst = instance();
-    inst.sdBusy_.store(busy, std::memory_order_relaxed);
+void SDManager::lockSD() {
+    lockCount_.fetch_add(1, std::memory_order_relaxed);
 }
+
+void SDManager::unlockSD() {
+    uint8_t prev = lockCount_.load(std::memory_order_relaxed);
+    if (prev > 0) {
+        lockCount_.fetch_sub(1, std::memory_order_relaxed);
+    }
+}
+
+// === Index operations ===
 
 void SDManager::rebuildIndex() {
-    setSDbusy(true);
+    lockSD();
     if (SD.exists(ROOT_DIRS)) {
         SD.remove(ROOT_DIRS);
     }
     File root = SD.open(ROOT_DIRS, FILE_WRITE);
     if (!root) {
         PF("[SDManager] Cannot create %s\n", ROOT_DIRS);
-        setSDbusy(false);
+        unlockSD();
         return;
     }
     DirEntry empty = {0, 0};
@@ -141,16 +157,16 @@ void SDManager::rebuildIndex() {
         PF("[SDManager] Wrote version %s\n", SD_INDEX_VERSION);
     }
 
-    setHighestDirNum();
+    updateHighestDirNum();
 
     PF("[SDManager] Index rebuild complete (preserved=%u rebuilt=%u).\n",
        static_cast<unsigned>(preservedDirs),
        static_cast<unsigned>(rebuiltDirs));
-    setSDbusy(false);
+    unlockSD();
 }
 
 void SDManager::scanDirectory(uint8_t dir_num) {
-    // Note: caller must ensure SD busy flag is set
+    // Note: caller should have called lockSD()
     char dirPath[12];
     snprintf(dirPath, sizeof(dirPath), "/%03u", dir_num);
     char filesDirPath[SDPATHLENGTH];
@@ -192,7 +208,7 @@ void SDManager::scanDirectory(uint8_t dir_num) {
 }
 
 void SDManager::rebuildWordsIndex() {
-    // Note: caller must ensure SD busy flag is set
+    // Note: caller should have called lockSD()
     if (SD.exists(WORDS_INDEX_FILE)) {
         SD.remove(WORDS_INDEX_FILE);
     }
@@ -212,9 +228,8 @@ void SDManager::rebuildWordsIndex() {
                 uint32_t sizeBytes = mp3.size();
                 mp3.close();
                 
-                // Empirische formule: duration_ms = (size_bytes * 5826) / 100000
+                // Empirical formula: duration_ms = (size_bytes * 5826) / 100000
                 uint32_t audioMs = (sizeBytes * 5826UL) / 100000UL;
-                
                 if (audioMs > 0xFFFF) {
                     audioMs = 0xFFFF;
                 } else if (audioMs == 0 && sizeBytes > 0) {
@@ -229,162 +244,168 @@ void SDManager::rebuildWordsIndex() {
     PF("[SDManager] Rebuilt %s\n", WORDS_INDEX_FILE);
 }
 
-void SDManager::setHighestDirNum() {
-    // Note: caller must ensure SD busy flag is set
-    highestDirNum = 0;
+void SDManager::updateHighestDirNum() {
+    // Note: caller should have called lockSD()
+    highestDirNum_ = 0;
     uint16_t dirCount = 0;
     uint32_t totalFiles = 0;
     DirEntry e;
     for (int16_t d = SD_MAX_DIRS; d >= 1; --d) {
         if (readDirEntry(d, &e) && e.fileCount > 0) {
-            if (highestDirNum == 0) {
-                highestDirNum = d;  // First hit = highest
+            if (highestDirNum_ == 0) {
+                highestDirNum_ = d;  // First hit = highest
             }
             ++dirCount;
             totalFiles += e.fileCount;
         }
     }
-    PF("[SDManager] Index: %u dirs, %lu files\\n",
+    PF("[SDManager] Index: %u dirs, %lu files\n",
        dirCount, static_cast<unsigned long>(totalFiles));
 }
 
-uint8_t SDManager::getHighestDirNum() const {
-    return highestDirNum;
+uint8_t SDManager::getHighestDirNum() {
+    return highestDirNum_;
 }
 
+// === Entry read/write ===
+
 bool SDManager::readDirEntry(uint8_t dir_num, DirEntry* entry) {
-    setSDbusy(true);
+    lockSD();
     File f = SD.open(ROOT_DIRS, FILE_READ);
     if (!f) {
-        setSDbusy(false);
+        unlockSD();
         return false;
     }
     f.seek((dir_num - 1) * sizeof(DirEntry));
-    bool isOK = f.read((uint8_t*)entry, sizeof(DirEntry)) == sizeof(DirEntry);
+    bool ok = f.read((uint8_t*)entry, sizeof(DirEntry)) == sizeof(DirEntry);
     f.close();
-    setSDbusy(false);
-    return isOK;
+    unlockSD();
+    return ok;
 }
-bool SDManager::writeDirEntry(uint8_t dir_num, const DirEntry* entry){
-    setSDbusy(true);
+
+bool SDManager::writeDirEntry(uint8_t dir_num, const DirEntry* entry) {
+    lockSD();
     File f = SD.open(ROOT_DIRS, "r+");
     if (!f) {
-        setSDbusy(false);
+        unlockSD();
         return false;
     }
     const uint32_t offset = static_cast<uint32_t>(dir_num - 1U) * sizeof(DirEntry);
     if (!f.seek(offset)) {
         f.close();
-        setSDbusy(false);
+        unlockSD();
         return false;
     }
-    bool isOK = f.write(reinterpret_cast<const uint8_t*>(entry), sizeof(DirEntry)) == sizeof(DirEntry);
+    bool ok = f.write(reinterpret_cast<const uint8_t*>(entry), sizeof(DirEntry)) == sizeof(DirEntry);
     f.close();
-    setSDbusy(false);
-    return isOK;
+    unlockSD();
+    return ok;
 }
+
 bool SDManager::readFileEntry(uint8_t dir_num, uint8_t file_num, FileEntry* entry) {
-    if (isSDbusy()) return false;
-    setSDbusy(true);
+    lockSD();
     char p[SDPATHLENGTH];
     snprintf(p, sizeof(p), "/%03u%s", dir_num, FILES_DIR);
     File f = SD.open(p, FILE_READ);
     if (!f) {
-        setSDbusy(false);
+        unlockSD();
         return false;
     }
     f.seek((file_num - 1) * sizeof(FileEntry));
-    bool isOK = f.read((uint8_t*)entry, sizeof(FileEntry)) == sizeof(FileEntry);
+    bool ok = f.read((uint8_t*)entry, sizeof(FileEntry)) == sizeof(FileEntry);
     f.close();
-    setSDbusy(false);
-    return isOK;
+    unlockSD();
+    return ok;
 }
-bool SDManager::writeFileEntry(uint8_t dir_num, uint8_t file_num, const FileEntry* entry){
-    if (isSDbusy()) return false;
-    setSDbusy(true);
-    char p[SDPATHLENGTH]; snprintf(p,sizeof(p),"/%03u%s",dir_num,FILES_DIR);
+
+bool SDManager::writeFileEntry(uint8_t dir_num, uint8_t file_num, const FileEntry* entry) {
+    lockSD();
+    char p[SDPATHLENGTH];
+    snprintf(p, sizeof(p), "/%03u%s", dir_num, FILES_DIR);
     File f = SD.open(p, "r+");
     if (!f) {
-        setSDbusy(false);
+        unlockSD();
         return false;
     }
     const uint32_t offset = static_cast<uint32_t>(file_num - 1U) * sizeof(FileEntry);
     if (!f.seek(offset)) {
         f.close();
-        setSDbusy(false);
+        unlockSD();
         return false;
     }
-    bool isOK = f.write(reinterpret_cast<const uint8_t*>(entry), sizeof(FileEntry)) == sizeof(FileEntry);
+    bool ok = f.write(reinterpret_cast<const uint8_t*>(entry), sizeof(FileEntry)) == sizeof(FileEntry);
     f.close();
-    setSDbusy(false);
-    return isOK;
+    unlockSD();
+    return ok;
 }
 
+// === File operations ===
+
 bool SDManager::fileExists(const char* fullPath) {
-    if (isSDbusy()) return false;
-    setSDbusy(true);
+    lockSD();
     bool exists = SD.exists(fullPath);
-    setSDbusy(false);
+    unlockSD();
     return exists;
 }
 
 bool SDManager::writeTextFile(const char* path, const char* text) {
-    if (isSDbusy()) return false;
-    setSDbusy(true);
+    lockSD();
     File f = SD.open(path, FILE_WRITE);
     if (!f) {
-        setSDbusy(false);
+        unlockSD();
         return false;
     }
     f.print(text);
     f.close();
-    setSDbusy(false);
+    unlockSD();
     return true;
 }
 
 String SDManager::readTextFile(const char* path) {
-    if (isSDbusy()) return "";
-    setSDbusy(true);
+    lockSD();
     File f = SD.open(path, FILE_READ);
     if (!f) {
-        setSDbusy(false);
+        unlockSD();
         return "";
     }
     String s = f.readString();
     f.close();
-    setSDbusy(false);
+    unlockSD();
     return s;
 }
 
 bool SDManager::deleteFile(const char* path) {
-    if (isSDbusy()) return false;
-    setSDbusy(true);
+    lockSD();
     bool result = SD.exists(path) && SD.remove(path);
-    setSDbusy(false);
+    unlockSD();
     return result;
 }
 
+// === Streaming file access ===
+
 File SDManager::openFileRead(const char* path) {
-    if (!path || isSDbusy()) {
+    if (!path) {
         return File();
     }
-    setSDbusy(true);
+    lockSD();
     File f = SD.open(path, FILE_READ);
     if (!f) {
-        setSDbusy(false);
+        unlockSD();
     }
+    // Note: caller must call closeFile() to unlockSD()
     return f;
 }
 
 File SDManager::openFileWrite(const char* path) {
-    if (!path || isSDbusy()) {
+    if (!path) {
         return File();
     }
-    setSDbusy(true);
+    lockSD();
     File f = SD.open(path, FILE_WRITE);
     if (!f) {
-        setSDbusy(false);
+        unlockSD();
     }
+    // Note: caller must call closeFile() to unlockSD()
     return f;
 }
 
@@ -392,8 +413,10 @@ void SDManager::closeFile(File& file) {
     if (file) {
         file.close();
     }
-    setSDbusy(false);
+    unlockSD();
 }
+
+// === Free function ===
 
 const char* getMP3Path(uint8_t dirID, uint8_t fileID) {
     static char path[SDPATHLENGTH];

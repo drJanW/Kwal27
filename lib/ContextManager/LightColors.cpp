@@ -148,16 +148,12 @@ bool LightColorStore::load() {
     colors_.clear();
     activeColorId_ = 0;
 
-    if (SDManager::isSDbusy()) {
-        PF("[LightColorStore] SD busy, cannot load colors\n");
-        return false;
-    }
-    SDManager::setSDbusy(true);
+    SDManager::lockSD();
     const String path = pathFor(kLightColorsFile);
     File file = fs_->open(path.c_str(), FILE_READ);
     if (!file) {
         PF("[LightColorStore] failed to open %s\n", path.c_str());
-        SDManager::setSDbusy(false);
+        SDManager::unlockSD();
         return false;
     }
 
@@ -206,7 +202,7 @@ bool LightColorStore::load() {
     }
 
     file.close();
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
 
     if (colors_.empty()) {
         PF("[LightColorStore] no valid colors loaded from %s\n", path.c_str());

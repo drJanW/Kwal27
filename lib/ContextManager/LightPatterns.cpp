@@ -110,16 +110,12 @@ bool LightPatternStore::load() {
     patterns_.clear();
     activePatternId_ = 0;
 
-    if (SDManager::isSDbusy()) {
-        PF("[LightPatternStore] SD busy, cannot load patterns\n");
-        return false;
-    }
-    SDManager::setSDbusy(true);
+    SDManager::lockSD();
     const String path = pathFor(kLightPatternsFile);
     File file = fs_->open(path.c_str(), FILE_READ);
     if (!file) {
         PF("[LightPatternStore] failed to open %s\n", path.c_str());
-        SDManager::setSDbusy(false);
+        SDManager::unlockSD();
         return false;
     }
 
@@ -179,7 +175,7 @@ bool LightPatternStore::load() {
     }
 
     file.close();
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
 
     if (patterns_.empty()) {
         PF("[LightPatternStore] no valid patterns loaded from %s\n", path.c_str());

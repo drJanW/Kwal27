@@ -83,16 +83,12 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
     return false;
   }
 
-  if (SDManager::isSDbusy()) {
-    PCM_LOG_WARN("[PlayPCM] SD busy, delaying load for %s\n", path);
-    return false;
-  }
-  SDManager::setSDbusy(true);
+  SDManager::lockSD();
 
   File file = SD.open(path, FILE_READ);
   if (!file) {
     PCM_LOG_WARN("[PlayPCM] Failed to open %s\n", path);
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
     return false;
   }
 
@@ -104,7 +100,7 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
       std::memcmp(header + 36, "data", 4) != 0) {
     PCM_LOG_WARN("[PlayPCM] %s has unexpected WAV header\n", path);
     file.close();
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
     return false;
   }
 
@@ -127,7 +123,7 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
                  static_cast<unsigned long>(sampleRate),
                  static_cast<unsigned long>(dataSize));
     file.close();
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
     return false;
   }
 
@@ -135,7 +131,7 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
   if (sampleCount == 0) {
     PCM_LOG_WARN("[PlayPCM] %s contains no samples\n", path);
     file.close();
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
     return false;
   }
 
@@ -143,7 +139,7 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
   if (!buffer) {
     PCM_LOG_ERROR("[PlayPCM] Out of memory loading %s\n", path);
     file.close();
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
     return false;
   }
 
@@ -151,12 +147,12 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
   if (file.read(reinterpret_cast<uint8_t*>(buffer.get()), bytesToRead) != bytesToRead) {
     PCM_LOG_WARN("[PlayPCM] Short read while loading %s\n", path);
     file.close();
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
     return false;
   }
 
   file.close();
-  SDManager::setSDbusy(false);
+  SDManager::unlockSD();
 
   storage = std::move(buffer);
   outClip.samples = storage.get();

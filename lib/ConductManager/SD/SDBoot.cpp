@@ -41,15 +41,13 @@ static bool versionStringsEqual(const String& a, const char* b);
 
 // Check if index rebuild is needed
 static bool needsIndexRebuild() {
-    auto& sdManager = SDManager::instance();
-    
-    if (!sdManager.fileExists(ROOT_DIRS)) {
+    if (!SDManager::fileExists(ROOT_DIRS)) {
         return true;
     }
     
     DirEntry dir;
     for (uint8_t i = 1; i <= SD_MAX_DIRS; i++) {
-        if (sdManager.readDirEntry(i, &dir) && dir.fileCount > 0) {
+        if (SDManager::readDirEntry(i, &dir) && dir.fileCount > 0) {
             return false;  // Valid index exists
         }
     }
@@ -58,13 +56,12 @@ static bool needsIndexRebuild() {
 
 // Timer callback for deferred rebuild
 static void cb_deferredRebuild() {
-    auto& sdManager = SDManager::instance();
     PF("[SDBoot] Rebuilding index with valid timestamps\n");
-    sdManager.rebuildIndex();
-    sdManager.setHighestDirNum();
-    if (!sdManager.fileExists(WORDS_INDEX_FILE)) {
+    SDManager::rebuildIndex();
+    SDManager::updateHighestDirNum();
+    if (!SDManager::fileExists(WORDS_INDEX_FILE)) {
         PF("[SDBoot] Rebuilding %s\n", WORDS_INDEX_FILE);
-        sdManager.rebuildWordsIndex();
+        SDManager::rebuildWordsIndex();
     }
 }
 
@@ -124,19 +121,18 @@ static bool versionStringsEqual(const String& a, const char* b) {
 
 // Initialize SD card and validate index
 static void initSD() {
-    auto& sdManager = SDManager::instance();
-    if (!sdManager.begin(PIN_SD_CS, SPI, SPI_HZ)) {
+    if (!SDManager::begin(PIN_SD_CS, SPI, SPI_HZ)) {
         PF("[SDBoot] SD init failed.\n");
         SDManager::setReady(false);
         return;
     }
     
     // Version check
-    if (sdManager.fileExists(SD_VERSION_FILENAME)) {
-        File v = sdManager.openFileRead(SD_VERSION_FILENAME);
+    if (SDManager::fileExists(SD_VERSION_FILENAME)) {
+        File v = SDManager::openFileRead(SD_VERSION_FILENAME);
         String sdver = v ? v.readString() : "";
         if (v) {
-            sdManager.closeFile(v);
+            SDManager::closeFile(v);
         }
         if (!versionStringsEqual(sdver, SD_INDEX_VERSION)) {
             PF("[SDBoot][ERROR] SD version mismatch.\n");
@@ -162,11 +158,11 @@ static void initSD() {
     } else {
         // Existing valid index - use it
         PF("[SDBoot] Using existing valid index\n");
-        sdManager.setHighestDirNum();
-        if (!sdManager.fileExists(WORDS_INDEX_FILE)) {
+        SDManager::updateHighestDirNum();
+        if (!SDManager::fileExists(WORDS_INDEX_FILE)) {
             // Words index can be rebuilt without timestamp concern
             PF("[SDBoot] Rebuilding %s\n", WORDS_INDEX_FILE);
-            sdManager.rebuildWordsIndex();
+            SDManager::rebuildWordsIndex();
         }
     }
     

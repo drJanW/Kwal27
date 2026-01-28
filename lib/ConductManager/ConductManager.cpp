@@ -232,14 +232,14 @@ void ConductManager::intentPlaySpecificFragment(uint8_t dir, int8_t file) {
     // If file < 0, pick random file from dir
     if (file < 0) {
         DirEntry dirEntry{};
-        if (!SDManager::instance().readDirEntry(dir, &dirEntry) || dirEntry.fileCount == 0) {
+        if (!SDManager::readDirEntry(dir, &dirEntry) || dirEntry.fileCount == 0) {
             CONDUCT_LOG_WARN("[Conduct] intentPlaySpecificFragment: dir %u not found or empty\n", dir);
             return;
         }
         targetFile = random(0, dirEntry.fileCount);
     }
     
-    if (!SDManager::instance().readFileEntry(dir, targetFile, &fileEntry)) {
+    if (!SDManager::readFileEntry(dir, targetFile, &fileEntry)) {
         CONDUCT_LOG_WARN("[Conduct] intentPlaySpecificFragment: file %u/%u not found\n", dir, targetFile);
         return;
     }

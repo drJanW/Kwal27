@@ -117,7 +117,7 @@ bool start(const AudioFragment& fragment) {
 
     auto& state = fade();
 
-    SDManager::setSDbusy(true);  // SD busy while streaming MP3
+    SDManager::lockSD();  // SD busy while streaming MP3
     setAudioBusy(true);
 
     uint32_t maxFade = 1;
@@ -273,7 +273,7 @@ void stopPlayback() {
     setFadeFactor(0.0f);
     applyGain();
 
-    SDManager::setSDbusy(false);  // SD no longer busy
+    SDManager::unlockSD();  // SD no longer busy
     setAudioBusy(false);
     setFragmentPlaying(false);
     setSentencePlaying(false);

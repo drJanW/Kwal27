@@ -41,15 +41,11 @@ bool loadLEDMapFromSD(const char* path) {
         PF("[LEDMap] Invalid path\n");
         return false;
     }
-    if (SDManager::isSDbusy()) {
-        PF("[LEDMap] SD busy, cannot load %s\n", path);
-        return false;
-    }
-    SDManager::setSDbusy(true);
+    SDManager::lockSD();
     File f = SD.open(path);
     if (!f) {
         PF("[LEDMap] %s not found, using fallback layout\n", path);
-        SDManager::setSDbusy(false);
+        SDManager::unlockSD();
         return false;
     }
 
@@ -62,7 +58,7 @@ bool loadLEDMapFromSD(const char* path) {
     }
 
     f.close();
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
     if (loaded != NUM_LEDS) {
         PF("[LEDMap] Loaded %d entries from %s, fallback fills remainder\n", loaded, path);
     } else {

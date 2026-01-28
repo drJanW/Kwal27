@@ -2,29 +2,34 @@
 
 #include "SDManager.h"
 
+/**
+ * @brief RAII guard for SD card locking
+ * 
+ * Automatically calls lockSD() on construction and unlockSD() on destruction.
+ * Since SD locking is reentrant, this always succeeds.
+ */
 class SDBusyGuard {
 public:
-    SDBusyGuard() : ownsLock(!SDManager::isSDbusy()) {
-        if (ownsLock) {
-            SDManager::setSDbusy(true);
-        }
+    SDBusyGuard() {
+        SDManager::lockSD();
     }
 
     ~SDBusyGuard() {
         release();
     }
 
+    // Always returns true (reentrant lock always succeeds)
     bool acquired() const {
-        return ownsLock;
+        return !released_;
     }
 
     void release() {
-        if (ownsLock) {
-            SDManager::setSDbusy(false);
-            ownsLock = false;
+        if (!released_) {
+            SDManager::unlockSD();
+            released_ = true;
         }
     }
 
 private:
-    bool ownsLock = false;
+    bool released_ = false;
 };

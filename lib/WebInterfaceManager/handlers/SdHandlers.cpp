@@ -27,7 +27,7 @@ void handleStatus(AsyncWebServerRequest *request)
 {
     const bool ready = SDManager::isReady();
     const bool busy = SDManager::isSDbusy();
-    const bool hasIndex = ready && SDManager::instance().fileExists("/index.html");
+    const bool hasIndex = ready && SDManager::fileExists("/index.html");
 
     String payload = F("{");
     payload += F("\"ready\":");
@@ -133,7 +133,7 @@ void handleUploadData(AsyncWebServerRequest *request, const String &filename,
         if (final && ctx->file) {
             ctx->file.close();
             if (ctx->sdBusyClaimed) {
-                SDManager::setSDbusy(false);
+                SDManager::unlockSD();
                 ctx->sdBusyClaimed = false;
             }
         }
@@ -143,18 +143,13 @@ void handleUploadData(AsyncWebServerRequest *request, const String &filename,
     if (index == 0) {
         // Always upload to root directory
         ctx->target = "/" + filename;
-        if (SDManager::isSDbusy()) {
-            ctx->failed = true;
-            ctx->error = F("SD busy");
-            return;
-        }
-        SDManager::setSDbusy(true);
+        SDManager::lockSD();
         ctx->sdBusyClaimed = true;
         ctx->file = SD.open(ctx->target.c_str(), FILE_WRITE);
         if (!ctx->file) {
             ctx->failed = true;
             ctx->error = F("Cannot open target file");
-            SDManager::setSDbusy(false);
+            SDManager::unlockSD();
             ctx->sdBusyClaimed = false;
             return;
         }
@@ -166,7 +161,7 @@ void handleUploadData(AsyncWebServerRequest *request, const String &filename,
             ctx->error = F("Write failed");
             ctx->file.close();
             if (ctx->sdBusyClaimed) {
-                SDManager::setSDbusy(false);
+                SDManager::unlockSD();
                 ctx->sdBusyClaimed = false;
             }
         }
@@ -177,7 +172,7 @@ void handleUploadData(AsyncWebServerRequest *request, const String &filename,
             ctx->file.close();
         }
         if (ctx->sdBusyClaimed) {
-            SDManager::setSDbusy(false);
+            SDManager::unlockSD();
             ctx->sdBusyClaimed = false;
         }
     }

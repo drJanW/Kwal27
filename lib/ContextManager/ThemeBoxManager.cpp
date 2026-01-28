@@ -112,16 +112,12 @@ bool ThemeBoxManager::load() {
     boxes_.clear();
     activeThemeBoxId_ = 0;
 
-    if (SDManager::isSDbusy()) {
-        PF("[ThemeBoxManager] SD busy, cannot load theme boxes\n");
-        return false;
-    }
-    SDManager::setSDbusy(true);
+    SDManager::lockSD();
     const String path = pathFor(kThemeBoxesFile);
     File file = fs_->open(path.c_str(), FILE_READ);
     if (!file) {
         PF("[ThemeBoxManager] failed to open %s\n", path.c_str());
-        SDManager::setSDbusy(false);
+        SDManager::unlockSD();
         return false;
     }
 
@@ -186,7 +182,7 @@ bool ThemeBoxManager::load() {
     }
 
     file.close();
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
 
     if (boxes_.empty()) {
         PF("[ThemeBoxManager] no valid theme boxes loaded from %s\n", path.c_str());

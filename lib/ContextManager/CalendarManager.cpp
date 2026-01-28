@@ -118,15 +118,12 @@ bool CalendarManager::load() {
         return false;
     }
 
-    if (SDManager::isSDbusy()) {
-        return false;
-    }
-    SDManager::setSDbusy(true);
+    SDManager::lockSD();
     const String path = pathFor(kCalendarFile);
     File file = fs_->open(path.c_str(), FILE_READ);
     if (!file) {
         PF("[CalendarManager] failed to open %s\n", path.c_str());
-        SDManager::setSDbusy(false);
+        SDManager::unlockSD();
         return false;
     }
 
@@ -135,7 +132,7 @@ bool CalendarManager::load() {
     uint8_t todayDay = 0;
     if (!resolveToday(todayYear, todayMonth, todayDay)) {
         file.close();
-        SDManager::setSDbusy(false);
+        SDManager::unlockSD();
         return false;
     }
 
@@ -197,7 +194,7 @@ bool CalendarManager::load() {
     }
 
     file.close();
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
 
     if (entries_.empty()) {
         PF("[CalendarManager] No special entries for %04u-%02u-%02u\n",

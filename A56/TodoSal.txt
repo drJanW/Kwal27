@@ -1,13 +1,15 @@
 wifimanager.cpp. refactor. does not use timers right. superfluous checking
-//@@ token
-timermanager.cpp - getActiveCount??
 bootmaster.cpp - refactor, clean
 voting.cpp - contains selection of random file?!?
 systemboot en bootmaster overlap?dead code?
 why is status policy a stub? is refactor needed?
 static_cast< is used often. too often? newest c++ still too stupid??
-reconsider the use of TimerManager::instance() - a single,  global timers is less pedantic and safe,too
 style: bool : isOK is a function because of is - isOk(); ok, Ok, OK is a bool , not a nice name
+
+=== DONE 2026-01-27 ===
+✅ TimerManager::instance() eliminated - global `timers` now used everywhere
+✅ Token support added (identity = callback + token)
+✅ Header docs rewritten with STOP box and clear API rules
 
 
 Sleep je favicon.ico (of favicon.png) naar de hoofdmap, waar index.html staat

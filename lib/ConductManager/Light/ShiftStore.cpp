@@ -131,12 +131,12 @@ bool ShiftStore::loadColorShiftsFromSD() {
         return false;
     }
     
-    if (!SDManager::instance().fileExists(kColorShiftPath)) {
+    if (!SDManager::fileExists(kColorShiftPath)) {
         PF("[ShiftStore] %s not found\n", kColorShiftPath);
         return false;
     }
     
-    File file = SDManager::instance().openFileRead(kColorShiftPath);
+    File file = SDManager::openFileRead(kColorShiftPath);
     if (!file) {
         return false;
     }
@@ -207,7 +207,7 @@ bool ShiftStore::loadColorShiftsFromSD() {
         }
     }
     
-    SDManager::instance().closeFile(file);
+    SDManager::closeFile(file);
     if (!headerLoaded) {
         PF("[ShiftStore] Color CSV: header missing or invalid\n");
         colorShifts_.clear();
@@ -222,13 +222,13 @@ bool ShiftStore::loadPatternShiftsFromSD() {
         return false;
     }
     
-    if (!SDManager::instance().fileExists(kPatternShiftPath)) {
+    if (!SDManager::fileExists(kPatternShiftPath)) {
         PF("[ShiftStore] %s not found on SD\n", kPatternShiftPath);
         return false;
     }
     
     PF("[ShiftStore] Loading %s...\n", kPatternShiftPath);
-    File file = SDManager::instance().openFileRead(kPatternShiftPath);
+    File file = SDManager::openFileRead(kPatternShiftPath);
     if (!file) {
         return false;
     }
@@ -298,7 +298,7 @@ bool ShiftStore::loadPatternShiftsFromSD() {
         }
     }
     
-    SDManager::instance().closeFile(file);
+    SDManager::closeFile(file);
     if (!headerLoaded) {
         PF("[ShiftStore] Pattern CSV: header missing or invalid\n");
         patternShifts_.clear();

@@ -376,17 +376,14 @@ bool WebDirector::tryAcquireBusyFlag(Job &job) {
         return true;
     }
 
-    if (SDManager::isSDbusy()) {
-        return false;
-    }
-    SDManager::setSDbusy(true);
+    SDManager::lockSD();
     job.sdBusyClaimed = true;
     return true;
 }
 
 void WebDirector::releaseBusyFlag(Job &job) {
     if (job.sdBusyClaimed) {
-        SDManager::setSDbusy(false);
+        SDManager::unlockSD();
         job.sdBusyClaimed = false;
     }
 }

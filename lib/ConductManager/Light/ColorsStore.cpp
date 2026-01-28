@@ -416,10 +416,10 @@ bool ColorsStore::loadColorsFromSD() {
     if (!SDManager::isReady()) {
         return false;
     }
-    if (!SDManager::instance().fileExists(kColorPath)) {
+    if (!SDManager::fileExists(kColorPath)) {
         return false;
     }
-    File file = SDManager::instance().openFileRead(kColorPath);
+    File file = SDManager::openFileRead(kColorPath);
     if (!file) {
         return false;
     }
@@ -475,7 +475,7 @@ bool ColorsStore::loadColorsFromSD() {
         colors_.push_back(entry);
     }
 
-    SDManager::instance().closeFile(file);
+    SDManager::closeFile(file);
     return !colors_.empty();
 }
 
@@ -483,8 +483,8 @@ bool ColorsStore::saveColorsToSD() const {
     if (!SDManager::isReady()) {
         return false;
     }
-    SDManager::instance().deleteFile(kColorPath);
-    File file = SDManager::instance().openFileWrite(kColorPath);
+    SDManager::deleteFile(kColorPath);
+    File file = SDManager::openFileWrite(kColorPath);
     if (!file) {
         return false;
     }
@@ -511,7 +511,7 @@ bool ColorsStore::saveColorsToSD() const {
         file.println();
     }
 
-    SDManager::instance().closeFile(file);
+    SDManager::closeFile(file);
     return true;
 }
 

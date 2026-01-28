@@ -4,48 +4,67 @@
  * @version 260127A
  * @date 2026-01-27
  *
+ * ╔══════════════════════════════════════════════════════════════════════════════╗
+ * ║  STOP! READ THIS BEFORE USING OR MODIFYING TIMERMANAGER                      ║
+ * ╠══════════════════════════════════════════════════════════════════════════════╣
+ * ║  • NEVER use millis(), delay(), or local timing - ONLY TimerManager          ║
+ * ║  • NEVER call create() if timer already exists - use restart() instead       ║
+ * ║  • NEVER assume timer semantics - READ the contract below                    ║
+ * ║  • Global instance: `timers.method()` - NOT `TimerManager::instance()`       ║
+ * ╚══════════════════════════════════════════════════════════════════════════════╝
+ *
  * ## Core Contract
  *
- * ### Timer Identity
- * - Identity = (callback, token) pair.
- * - Default token = 1 preserves backward compatibility (one callback = one timer).
- * - Use different tokens to run multiple timers with the same callback.
+ * ### Timer Identity = (callback, token) Pair
+ * - Two timers are THE SAME if callback AND token match.
+ * - Default token = 1. Use different tokens for multiple timers per callback.
+ * - create() FAILS if (callback, token) already active. Use restart() to replace.
  *
- * ### Callback Requirements
- * - Must be plain function pointers (`void (*)()`)
- * - No lambdas with captures, no std::function
- * - Use `cb_type` macro for class-static callbacks: `cb_type cb_myCallback() { ... }`
+ * ### Callback Requirements - STRICT
+ * - MUST be plain function pointers: `void (*)()`
+ * - NO lambdas with captures (stateless `[](){}` is OK but discouraged)
+ * - NO std::function, NO member function pointers
+ * - Use `cb_type` macro: `cb_type cb_myCallback() { ... }`
  *
- * ### Repeat Semantics
- * | Value | Behavior |
- * |-------|----------|
- * | 0     | Infinite (periodic, runs until cancelled) |
- * | 1     | One-shot (fires exactly once, then auto-deactivates) |
- * | N>1   | Fires exactly N times total (countdown) |
+ * ### Repeat Semantics - MEMORIZE THIS
+ * | repeat | Meaning                                              |
+ * |--------|------------------------------------------------------|
+ * | 0      | INFINITE - runs forever until cancel() called        |
+ * | 1      | ONE-SHOT - fires once, then slot auto-freed          |
+ * | N>1    | Fires exactly N times total, then slot auto-freed    |
  *
- * ### Cadence Policy
- * Rescheduling uses `nextTime += interval`, not `now + interval`.
- * This preserves stable cadence and avoids drift from loop jitter.
+ * ### Cadence Policy - DO NOT CHANGE
+ * Reschedule uses: `nextTime += interval` (stable cadence)
+ * NOT: `nextTime = now + interval` (would drift with loop jitter)
  *
- * ### Callback Reentrancy
- * Callbacks may cancel, restart, or modify their own timer.
+ * ### Callback Reentrancy - ALLOWED
+ * Callbacks may safely call cancel(), restart(), create() on their own timer.
  * TimerManager detects post-callback mutations and respects them.
  *
- * ## Growing Interval (Retry/Backoff)
- * - Set growthFactor > 1.0 to multiply interval after each fire.
- * - Only applies to finite timers (repeat > 0); infinite timers force growth = 1.0.
- * - Growth is capped at MAX_GROWTH_INTERVAL_MS (defined in Globals.h).
+ * ## Growing Interval (Exponential Backoff)
+ * - growthFactor > 1.0 multiplies interval after each fire.
+ * - Works for ALL timers (finite and infinite).
+ * - Interval capped at MAX_GROWTH_INTERVAL_MS to prevent runaway.
+ *
+ * ## API Quick Reference
+ * | Method              | Use When                                         |
+ * |---------------------|--------------------------------------------------|
+ * | create()            | New timer that doesn't exist yet                 |
+ * | restart()           | Replace/reschedule existing OR create new        |
+ * | cancel()            | Stop timer, free slot                            |
+ * | isActive()          | Check if timer running                           |
+ * | getRepeatCount()    | Get remaining fires (-1 if not found)            |
  *
  * ## Usage Example
  * ```cpp
  * cb_type cb_heartbeat() { digitalWrite(LED, !digitalRead(LED)); }
  *
  * void setup() {
- *     TimerManager::instance().create(500, 0, cb_heartbeat);  // Blink every 500ms
+ *     timers.create(500, 0, cb_heartbeat);  // Blink every 500ms (infinite)
  * }
  *
  * void loop() {
- *     TimerManager::instance().update();  // Must call every iteration
+ *     timers.update();  // MUST call every loop iteration
  * }
  * ```
  */

@@ -47,17 +47,16 @@ bool readCurrentScore(uint8_t dir, uint8_t file, uint8_t& scoreOut) {
     scoreOut = 0;
     return false;
   }
-  SDManager::setSDbusy(true);
+  SDManager::lockSD();
 
-  auto& sdMgr = SDManager::instance();
   FileEntry fe;
-  if (!sdMgr.readFileEntry(dir, file, &fe)) {
+  if (!SDManager::readFileEntry(dir, file, &fe)) {
     scoreOut = 0;
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
     return false;
   }
   scoreOut = fe.score;
-  SDManager::setSDbusy(false);
+  SDManager::unlockSD();
   return true;
 }
 
@@ -68,12 +67,11 @@ uint8_t SDVoting::getRandomFile(uint8_t dir_num) {
     PF("[SDVoting] Busy while selecting file from dir %03u\n", dir_num);
     return 0;
   }
-  SDManager::setSDbusy(true);
+  SDManager::lockSD();
 
-  auto& sdMgr = SDManager::instance();
   DirEntry dir;
-  if (!sdMgr.readDirEntry(dir_num, &dir) || dir.fileCount == 0) {
-    SDManager::setSDbusy(false);
+  if (!SDManager::readDirEntry(dir_num, &dir) || dir.fileCount == 0) {
+    SDManager::unlockSD();
     return 0;
   }
 
@@ -84,7 +82,7 @@ uint8_t SDVoting::getRandomFile(uint8_t dir_num) {
 
   for (uint8_t i = 1; i <= SD_MAX_FILES_PER_SUBDIR; i++) {
     FileEntry fe;
-  if (sdMgr.readFileEntry(dir_num, i, &fe) && fe.score > 0) {
+  if (SDManager::readFileEntry(dir_num, i, &fe) && fe.score > 0) {
       fileNums[count]   = i;
       fileScores[count] = fe.score;
       total += fe.score;
@@ -92,7 +90,7 @@ uint8_t SDVoting::getRandomFile(uint8_t dir_num) {
     }
   }
   if (count == 0) {
-    SDManager::setSDbusy(false);
+    SDManager::unlockSD();
     return 0;
   }
 
@@ -100,11 +98,11 @@ uint8_t SDVoting::getRandomFile(uint8_t dir_num) {
   for (uint8_t i = 0; i < count; i++) {
     acc += fileScores[i];
     if (pick <= acc) {
-      SDManager::setSDbusy(false);
+      SDManager::unlockSD();
       return fileNums[i];
     }
   }
-  SDManager::setSDbusy(false);
+  SDManager::unlockSD();
   return fileNums[0];
 }
 
@@ -112,12 +110,11 @@ uint8_t SDVoting::applyVote(uint8_t dir_num, uint8_t file_num, int8_t delta) {
   // NOTE: Don't check isSDbusy() here - voting should work during playback
   // The SD card can handle interleaved small reads/writes during MP3 streaming
 
-  auto& sdMgr = SDManager::instance();
   FileEntry fe; DirEntry dir;
-  if (!sdMgr.readFileEntry(dir_num, file_num, &fe)) {
+  if (!SDManager::readFileEntry(dir_num, file_num, &fe)) {
     return 0;
   }
-  if (!sdMgr.readDirEntry (dir_num, &dir)) {
+  if (!SDManager::readDirEntry(dir_num, &dir)) {
     return 0;
   }
   if (fe.score == 0) {
@@ -132,8 +129,8 @@ uint8_t SDVoting::applyVote(uint8_t dir_num, uint8_t file_num, int8_t delta) {
   dir.totalScore += (ns - fe.score);
   fe.score = (uint8_t)ns;
 
-  sdMgr.writeFileEntry(dir_num, file_num, &fe);
-  sdMgr.writeDirEntry (dir_num, &dir);
+  SDManager::writeFileEntry(dir_num, file_num, &fe);
+  SDManager::writeDirEntry(dir_num, &dir);
   
   return fe.score;  // Return the new score
 }
@@ -143,16 +140,15 @@ void SDVoting::banFile(uint8_t dir_num, uint8_t file_num) {
     PF("[SDVoting] Busy while banning %03u/%03u\n", dir_num, file_num);
     return;
   }
-  SDManager::setSDbusy(true);
+  SDManager::lockSD();
 
-  auto& sdMgr = SDManager::instance();
   FileEntry fe; DirEntry dir;
-  if (!sdMgr.readFileEntry(dir_num, file_num, &fe)) {
-    SDManager::setSDbusy(false);
+  if (!SDManager::readFileEntry(dir_num, file_num, &fe)) {
+    SDManager::unlockSD();
     return;
   }
-  if (!sdMgr.readDirEntry (dir_num, &dir)) {
-    SDManager::setSDbusy(false);
+  if (!SDManager::readDirEntry(dir_num, &dir)) {
+    SDManager::unlockSD();
     return;
   }
 
@@ -160,10 +156,10 @@ void SDVoting::banFile(uint8_t dir_num, uint8_t file_num) {
     if (dir.totalScore >= fe.score) dir.totalScore -= fe.score;
     if (dir.fileCount  > 0)         dir.fileCount--;
     fe.score = 0;
-    sdMgr.writeFileEntry(dir_num, file_num, &fe);
-    sdMgr.writeDirEntry (dir_num, &dir);
+    SDManager::writeFileEntry(dir_num, file_num, &fe);
+    SDManager::writeDirEntry(dir_num, &dir);
   }
-  SDManager::setSDbusy(false);
+  SDManager::unlockSD();
 }
 
 void SDVoting::deleteIndexedFile(uint8_t dir_num, uint8_t file_num) {
@@ -171,16 +167,15 @@ void SDVoting::deleteIndexedFile(uint8_t dir_num, uint8_t file_num) {
     PF("[SDVoting] Busy while deleting %03u/%03u\n", dir_num, file_num);
     return;
   }
-  SDManager::setSDbusy(true);
+  SDManager::lockSD();
 
-  auto& sdMgr = SDManager::instance();
   FileEntry fe; DirEntry dir;
-  if (!sdMgr.readFileEntry(dir_num, file_num, &fe)) {
-    SDManager::setSDbusy(false);
+  if (!SDManager::readFileEntry(dir_num, file_num, &fe)) {
+    SDManager::unlockSD();
     return;
   }
-  if (!sdMgr.readDirEntry (dir_num, &dir)) {
-    SDManager::setSDbusy(false);
+  if (!SDManager::readDirEntry(dir_num, &dir)) {
+    SDManager::unlockSD();
     return;
   }
 
@@ -190,13 +185,13 @@ void SDVoting::deleteIndexedFile(uint8_t dir_num, uint8_t file_num) {
   }
   fe.score   = 0;
   fe.sizeKb = 0;
-  sdMgr.writeFileEntry(dir_num, file_num, &fe);
-  sdMgr.writeDirEntry (dir_num, &dir);
+  SDManager::writeFileEntry(dir_num, file_num, &fe);
+  SDManager::writeDirEntry(dir_num, &dir);
 
   char path[64];
   snprintf(path, sizeof(path), "/%03u/%03u.mp3", dir_num, file_num);
   SD.remove(path);
-  SDManager::setSDbusy(false);
+  SDManager::unlockSD();
 }
 
 bool SDVoting::getCurrentPlayable(uint8_t& d, uint8_t& f) {

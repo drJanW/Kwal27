@@ -392,10 +392,10 @@ bool PatternStore::loadFromSD() {
     if (!SDManager::isReady()) {
         return false;
     }
-    if (!SDManager::instance().fileExists(kPatternPath)) {
+    if (!SDManager::fileExists(kPatternPath)) {
         return false;
     }
-    File file = SDManager::instance().openFileRead(kPatternPath);
+    File file = SDManager::openFileRead(kPatternPath);
     if (!file) {
         return false;
     }
@@ -467,7 +467,7 @@ bool PatternStore::loadFromSD() {
         patterns_.push_back(entry);
     }
 
-    SDManager::instance().closeFile(file);
+    SDManager::closeFile(file);
     return !patterns_.empty();
 }
 
@@ -475,8 +475,8 @@ bool PatternStore::saveToSD() const {
     if (!SDManager::isReady()) {
         return false;
     }
-    SDManager::instance().deleteFile(kPatternPath);
-    File file = SDManager::instance().openFileWrite(kPatternPath);
+    SDManager::deleteFile(kPatternPath);
+    File file = SDManager::openFileWrite(kPatternPath);
     if (!file) {
         return false;
     }
@@ -523,7 +523,7 @@ bool PatternStore::saveToSD() const {
         file.println();
     }
 
-    SDManager::instance().closeFile(file);
+    SDManager::closeFile(file);
     return true;
 }
 

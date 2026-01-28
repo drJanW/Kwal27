@@ -547,8 +547,6 @@ static void applyOverride(const char* key, char type, const char* value) {
 // ─────────────────────────────────────────────────────────────
 
 void Globals::begin() {
-    SDManager& sd = SDManager::instance();
-    
     // Check SD availability
     if (!SDManager::isReady()) {
         Serial.println("[Globals] SD not available, using defaults");
@@ -556,7 +554,7 @@ void Globals::begin() {
     }
     
     // Check file existence
-    if (!sd.fileExists(CSV_PATH)) {
+    if (!SDManager::fileExists(CSV_PATH)) {
         Serial.println("[Globals] No globals.csv, using defaults");
         return;
     }

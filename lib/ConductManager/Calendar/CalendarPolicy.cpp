@@ -121,11 +121,10 @@ void applyThemeBox(const CalendarThemeBox& box) {
   uint8_t skipped[kMaxThemeDirs];
   size_t filteredCount = 0;
   size_t skippedCount = 0;
-  auto& sd = SDManager::instance();
   for (size_t i = 0; i < count; ++i) {
     DirEntry entry{};
     // Only keep directories that still have indexed fragment files.
-    if (sd.readDirEntry(dirs[i], &entry) && entry.fileCount > 0) {
+    if (SDManager::readDirEntry(dirs[i], &entry) && entry.fileCount > 0) {
       filtered[filteredCount++] = dirs[i];
     } else {
       skipped[skippedCount++] = dirs[i];
