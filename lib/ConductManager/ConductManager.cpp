@@ -205,7 +205,7 @@ void ConductManager::intentArmOTA(uint32_t window_s) {
     CONDUCT_LOG_INFO("[Conduct] intentArmOTA: window=%us\n", static_cast<unsigned>(window_s));
     otaArm(window_s);
     audio.stop();
-    LightManager::instance().showOtaPattern();
+    lightManager.showOtaPattern();
 }
 
 bool ConductManager::intentConfirmOTA() {

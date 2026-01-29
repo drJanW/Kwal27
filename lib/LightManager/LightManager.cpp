@@ -19,6 +19,8 @@
 #include "SensorManager.h"
 #include "TimerManager.h"
 
+LightManager lightManager;
+
 // === Measurement Mode ===
 // When enabled, all LEDs are forced off for sensor measurement
 // ConductManager will coordinate this
@@ -234,12 +236,6 @@ void generateColorGradient(const CRGB &colorA, const CRGB &colorB, CRGB *grad, i
         lerp8by8(colorA.b, colorB.b, blend));
     }
   }
-}
-
-// === LightManager singleton facade ===
-LightManager& LightManager::instance() {
-  static LightManager inst;
-  return inst;
 }
 
 void LightManager::showOtaPattern() {

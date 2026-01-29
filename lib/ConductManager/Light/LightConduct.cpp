@@ -186,7 +186,7 @@ void LightConduct::cb_luxMeasure() {
     if (!SensorManager::isLuxSensorReady()) return;
     
     // Step 1: Enter measurement mode (LEDs off for accurate sensor read)
-    LightManager::instance().setMeasurementMode(true);
+    lightManager.setMeasurementMode(true);
     luxMeasureActive = true;
     // Step 2: Schedule delayed read after LEDs settle
     timers.create(Globals::luxMeasurementDelayMs, 1, LightConduct::cb_luxMeasureRead);
@@ -217,7 +217,7 @@ void LightConduct::cb_luxMeasureRead() {
     
     // Step 5: Apply pattern/color shifts (brightness already done above)
     applyToLights();
-    LightManager::instance().setMeasurementMode(false);
+    lightManager.setMeasurementMode(false);
     WebGuiStatus::pushState();
     
     // B6: Start cooldown, check for pending slider request

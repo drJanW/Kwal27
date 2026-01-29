@@ -21,7 +21,7 @@
 
 class LightManager {
 public:
-  static LightManager& instance();
+  LightManager() = default;
 
   void showOtaPattern();
 
@@ -31,10 +31,11 @@ public:
 
 private:
   bool measurementMode = false;
-  LightManager() = default;
   LightManager(const LightManager&) = delete;
   LightManager& operator=(const LightManager&) = delete;
 };
+
+extern LightManager lightManager;
 
 // ===== ENUMS EN STRUCTS =====
 // enum LightShow {    circleShow};
