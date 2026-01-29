@@ -31,11 +31,6 @@
 /// @brief Global timer manager instance - preferred access method
 TimerManager timers;
 
-/// @brief [DEPRECATED] Returns reference to global `timers` for backward compatibility
-TimerManager& TimerManager::instance() {
-    return ::timers;  // explicit global namespace
-}
-
 /// @brief Constructor - Timer struct defaults handle initialization
 TimerManager::TimerManager() {
     // All Timer fields have in-class defaults (C++11)

@@ -10,7 +10,7 @@
  * ║  • NEVER use millis(), delay(), or local timing - ONLY TimerManager          ║
  * ║  • NEVER call create() if timer already exists - use restart() instead       ║
  * ║  • NEVER assume timer semantics - READ the contract below                    ║
- * ║  • Global instance: `timers.method()` - NOT `TimerManager::instance()`       ║
+ * ║  • Global instance: `timers.method()`                                      ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  *
  * ## Core Contract
@@ -96,13 +96,6 @@ public:
     static const uint8_t MAX_TIMERS = 60;
 
     /**
-     * @brief [DEPRECATED] Singleton accessor - use global `timers` instead.
-     * @deprecated Kept for backward compatibility during migration.
-     *             New code should use: `extern TimerManager timers;`
-     */
-    static TimerManager& instance();
-
-    /**
      * @brief Create a timer.
      *
      * @param interval   Initial interval in milliseconds.
@@ -169,5 +162,5 @@ private:
 };
 
 /// @brief Global timer manager instance - preferred access method
-/// @note Defined in TimerManager.cpp. Use this instead of TimerManager::instance()
+/// @note Defined in TimerManager.cpp. Preferred access method.
 extern TimerManager timers;
