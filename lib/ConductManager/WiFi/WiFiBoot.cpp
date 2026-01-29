@@ -17,6 +17,7 @@
 #include "TimerManager.h"
 #include "ConductManager.h"
 #include "Notify/NotifyConduct.h"
+#include "Notify/NotifyState.h"
 #include <WiFi.h>
 
 namespace {
@@ -50,7 +51,7 @@ namespace {
         static bool lastWiFiState = false;
         static uint32_t lastWaitLogMs = 0;
 
-        bool wifiUp = isWiFiConnected();
+        bool wifiUp = NotifyState::isWifiOk();
         if (wifiUp && !lastWiFiState) {
             PF("[Main] WiFi connected: %s\n", WiFi.localIP().toString().c_str());
             hwStatus |= HW_WIFI;

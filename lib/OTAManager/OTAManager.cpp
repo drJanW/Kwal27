@@ -26,7 +26,8 @@
 // -----------------------------------------------------------------------------
 
 #include "Globals.h"         // gives HWconfig (SSID/PASS/OTA_* settings)
-#include "WiFiManager.h"     // bootWiFiConnect(), isWiFiConnected()
+#include "WiFiManager.h"     // bootWiFiConnect()
+#include "Notify/NotifyState.h"
 #include "TimerManager.h"    // keep WiFi state machine ticking during OTA
 #include "OTAManager.h"
 
@@ -41,11 +42,11 @@ static void runOtaSetup(){
   PL("[OTA] start");
   bootWiFiConnect();
   const uint32_t connectDeadline = millis() + 60UL * 1000UL;
-  while (!isWiFiConnected() && millis() < connectDeadline) {
+  while (!NotifyState::isWifiOk() && millis() < connectDeadline) {
     timers.update();
     delay(10);
   }
-  if (!isWiFiConnected()) {
+  if (!NotifyState::isWifiOk()) {
     PL("[OTA] no WiFi");
     return;
   }

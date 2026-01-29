@@ -1,0 +1,18 @@
+ARCH TODO (status ownership)
+
+1) WiFi status reads: keep using NotifyState (done in code), verify no new wrapper reappears.
+   - Files to watch: lib/WiFiManager/WiFiManager.cpp, lib/WiFiManager/WiFiManager.h, lib/WiFiManager/FetchManager.cpp, lib/OTAManager/OTAManager.cpp, lib/ConductManager/WiFi/WiFiBoot.cpp
+
+2) SensorManager exposes readiness/failure status via manager APIs. Move reads to state layer.
+   - Replace SensorManager::isDistanceSensorReady(), isLuxSensorReady(), isSensor3Ready(), isDistanceSensorInitFailed(), isLuxSensorInitFailed()
+   - Create or reuse a state holder (NotifyState or ContextStatus) and read status there.
+   - Files: lib/SensorManager/SensorManager.h, lib/SensorManager/SensorManager.cpp, call sites to update.
+
+3) SDManager exposes readiness/busy status via manager APIs. Move reads to state layer.
+   - Replace SDManager::isReady() and SDManager::isSDbusy() with state reads.
+   - Ensure SDManager only sets state, never owns reads.
+   - Files: lib/SDManager/SDManager.h, lib/SDManager/SDManager.cpp, call sites to update.
+
+4) Audit other *Manager classes for is* or ready/busy accessors that leak status reads.
+   - Only managers should touch hardware and set status; reads should come from State/Context.
+   - Target files: lib/*Manager/*.h, lib/*Manager/*.cpp

@@ -32,7 +32,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260129C"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260129E"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -157,6 +157,15 @@ struct Globals {
     inline static uint32_t clockBootstrapIntervalMs  = 500UL;     // Clock init retry interval
     inline static uint32_t ntpFallbackTimeoutMs      = SECONDS(15); // NTP timeout before RTC fallback
     inline static uint32_t bootPhaseMs               = 500UL;     // Delay between boot phases
+
+    // ─────────────────────────────────────────────────────────────
+    // WIFI (4 params)
+    // ─────────────────────────────────────────────────────────────
+    inline static uint32_t wifiPollIntervalMs        = 250UL;     // Connection poll interval
+    inline static uint32_t wifiHealthIntervalMs      = 5000UL;    // Connection health interval
+    inline static uint32_t wifiRetryStartMs          = 2000UL;    // Retry start interval
+    inline static int32_t  wifiRetryCount            = -14;       // Retry count (negative = finite retries)
+    inline static float    wifiRetryGrowth           = 1.5f;      // Retry interval multiplier per attempt
 
     // ─────────────────────────────────────────────────────────────
     // NETWORK/FETCH (3 params)

@@ -14,7 +14,6 @@
 #include "FetchManager.h"
 #include "Globals.h"
 #include "TimerManager.h"
-#include "WiFiManager.h"
 #include "PRTClock.h"
 #include "ContextManager.h"
 #include "SDManager.h"
@@ -83,7 +82,7 @@ static void cb_fetchNTP() {
         return;  // Skip this attempt, timer continues
     }
 
-    if (!isWiFiConnected()) {
+    if (!NotifyState::isWifiOk()) {
         if (DEBUG_FETCH && !wifiWarned) {
             PL("[Fetch] No WiFi, waiting before NTP");
             wifiWarned = true;
@@ -166,7 +165,7 @@ static void cb_fetchWeather() {
         return;  // Skip this attempt, timer continues
     }
     
-    if (!isWiFiConnected()) {
+    if (!NotifyState::isWifiOk()) {
         if (DEBUG_FETCH) {
             PL("[Fetch] No WiFi, skipping weather");
         }
@@ -241,7 +240,7 @@ static void cb_fetchSunrise() {
         return;  // Skip this attempt, timer continues
     }
     
-    if (!isWiFiConnected()) {
+    if (!NotifyState::isWifiOk()) {
         if (DEBUG_FETCH) {
             PL("[Fetch] No WiFi, skipping sun data");
         }
@@ -312,7 +311,7 @@ static void cb_fetchSunrise() {
 // Init entry point
 // ===================================================
 bool bootFetchManager() {
-    if (!isWiFiConnected()) {
+    if (!NotifyState::isWifiOk()) {
         if (DEBUG_FETCH) PL("[Fetch] WiFi not ready, fetchers not scheduled");
         return false;
     }
@@ -348,7 +347,7 @@ namespace FetchManager {
 // Low-level HTTP fetch
 // ===================================================
 static bool fetchUrlToString(const char *url, String &output) {
-    if (!isWiFiConnected()) return false;
+    if (!NotifyState::isWifiOk()) return false;
 
     HTTPClient http;
     http.setTimeout(10000);  // 10 second timeout

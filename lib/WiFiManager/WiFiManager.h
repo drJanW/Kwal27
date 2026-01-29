@@ -18,6 +18,5 @@
 
 
 void bootWiFiConnect();     // Begin non-blocking connection
-bool isWiFiConnected();
 
 #endif
