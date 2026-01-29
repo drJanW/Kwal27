@@ -190,7 +190,7 @@ void ConductManager::begin() {
 }
 
 void ConductManager::update() {
-    AudioManager::instance().update();
+    audio.update();
 #if LOG_HEARTBEAT
     static uint32_t lastHeartbeatMs = 0;
     uint32_t now = millis();
@@ -204,7 +204,7 @@ void ConductManager::update() {
 void ConductManager::intentArmOTA(uint32_t window_s) {
     CONDUCT_LOG_INFO("[Conduct] intentArmOTA: window=%us\n", static_cast<unsigned>(window_s));
     otaArm(window_s);
-    AudioManager::instance().stop();
+    audio.stop();
     LightManager::instance().showOtaPattern();
 }
 
@@ -285,7 +285,7 @@ void ConductManager::intentSayTime(TimeStyle style) {
 
 void ConductManager::intentSetAudioLevel(float value) {
     // F9 pattern: webShift can be >1.0, no clamp
-    AudioManager::instance().setVolumeWebShift(value);
+    audio.setVolumeWebShift(value);
     CONDUCT_LOG_INFO("[Conduct] intentSetAudioLevel: webShift=%.2f\n",
                      static_cast<double>(value));
 }

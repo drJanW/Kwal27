@@ -43,7 +43,6 @@ float applyVolumeRules(float requested) {
 }
 
 bool requestFragment(const AudioFragment& frag) {
-    auto& audio = AudioManager::instance();
     if (audio.isPCMClipActive()) {
         audio.stopPCMClip();
     }

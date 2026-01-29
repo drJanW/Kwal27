@@ -90,7 +90,7 @@ static void ctx_tick_cb() {
   // 3) NEXT uitvoeren
   if (nextPending) {
     if (isAudioBusy() || isSentencePlaying()) {
-      AudioManager::instance().stop();
+      audio.stop();
       return; // volgende tick start nieuwe
     }
     AudioFragment frag{};

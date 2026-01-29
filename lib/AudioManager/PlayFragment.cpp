@@ -46,10 +46,6 @@ FadeState& fade() {
     return state;
 }
 
-AudioManager& audio() {
-    return AudioManager::instance();
-}
-
 void initCurve() {
     auto& state = fade();
     if (state.curveReady) return;
@@ -87,7 +83,7 @@ inline float currentGain() {
 }
 
 inline void applyGain() {
-    audio().audioOutput.SetGain(currentGain());
+    audio.audioOutput.SetGain(currentGain());
 }
 
 void resetFadeIndices() {
@@ -146,21 +142,21 @@ bool start(const AudioFragment& fragment) {
     setFadeFactor(0.0f);
     applyGain();
 
-    audio().audioFile = new AudioFileSourceSD(getMP3Path(fragment.dirIndex, fragment.fileIndex));
-    if (!audio().audioFile) {
+    audio.audioFile = new AudioFileSourceSD(getMP3Path(fragment.dirIndex, fragment.fileIndex));
+    if (!audio.audioFile) {
         LOG_ERROR("[Audio] Failed to allocate source for %03u/%03u\n", fragment.dirIndex, fragment.fileIndex);
         stopPlayback();
         return false;
     }
 
-    audio().audioMp3Decoder = new AudioGeneratorMP3();
-    if (!audio().audioMp3Decoder) {
+    audio.audioMp3Decoder = new AudioGeneratorMP3();
+    if (!audio.audioMp3Decoder) {
         LOG_ERROR("[Audio] Failed to allocate MP3 decoder\n");
         stopPlayback();
         return false;
     }
 
-    if (!audio().audioMp3Decoder->begin(audio().audioFile, &audio().audioOutput)) {
+    if (!audio.audioMp3Decoder->begin(audio.audioFile, &audio.audioOutput)) {
         LOG_ERROR("[Audio] Decoder begin failed for %03u/%03u\n", fragment.dirIndex, fragment.fileIndex);
         stopPlayback();
         return false;
@@ -260,14 +256,14 @@ void stopPlayback() {
     timers.cancel(cb_fadeIn);
     timers.cancel(cb_fadeOut);
 
-    if (audio().audioMp3Decoder) {
-        audio().audioMp3Decoder->stop();
-        delete audio().audioMp3Decoder;
-        audio().audioMp3Decoder = nullptr;
+    if (audio.audioMp3Decoder) {
+        audio.audioMp3Decoder->stop();
+        delete audio.audioMp3Decoder;
+        audio.audioMp3Decoder = nullptr;
     }
-    if (audio().audioFile) {
-        delete audio().audioFile;
-        audio().audioFile = nullptr;
+    if (audio.audioFile) {
+        delete audio.audioFile;
+        audio.audioFile = nullptr;
     }
 
     setFadeFactor(0.0f);
@@ -283,7 +279,7 @@ void stopPlayback() {
     fade().fadeOutDelayMs = 0;
     resetFadeIndices();
 
-    audio().updateGain();
+    audio.updateGain();
 }
 
 void cb_fadeIn() {

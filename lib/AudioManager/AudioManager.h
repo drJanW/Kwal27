@@ -40,7 +40,7 @@ protected:
 
 class AudioManager {
 public:
-  static AudioManager& instance();
+  AudioManager();
 
   void begin();
   void stop();
@@ -67,10 +67,10 @@ public:
   AudioGeneratorMP3*     audioMp3Decoder = nullptr;
   HMP3Decoder            helixDecoder = nullptr;
 
-private:
-  AudioManager();
   AudioManager(const AudioManager&) = delete;
   AudioManager& operator=(const AudioManager&) = delete;
+
+private:
 
   void releaseDecoder();
   void releaseSource();
@@ -87,3 +87,5 @@ private:
     uint32_t sampleRate = 0;
   } pcmPlayback_;
 };
+
+extern AudioManager audio;

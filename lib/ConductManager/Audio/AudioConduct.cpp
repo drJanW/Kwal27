@@ -48,11 +48,6 @@ namespace
     std::atomic<const AudioManager::PCMClipDesc *> distanceClipPtr{nullptr};
     uint64_t lastStatusBits = 0;
 
-    AudioManager &audio()
-    {
-        return AudioManager::instance();
-    }
-
     void applyVolumeShift(uint64_t statusBits)
     {
         float effectiveVolume = AudioShiftStore::instance().getEffectiveVolume(statusBits);
@@ -166,7 +161,6 @@ void AudioConduct::startDistanceResponse(bool playImmediately)
 
     auto &tm = timers;  // global TimerManager
 
-    auto &mgr = audio();
     // fragments fade out before distance pings; stop using existing fade behaviour
     if (isFragmentPlaying())
     {

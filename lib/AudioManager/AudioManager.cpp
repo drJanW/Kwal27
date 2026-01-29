@@ -43,10 +43,7 @@ constexpr uint16_t kPCMFrameBatch = 96;
 
 void cb_audioMeter();
 
-AudioManager& AudioManager::instance() {
-	static AudioManager inst;
-	return inst;
-}
+AudioManager audio;
 
 AudioManager::AudioManager()
 	: audioOutput()

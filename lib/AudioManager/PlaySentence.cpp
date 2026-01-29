@@ -60,7 +60,6 @@ uint8_t speakQueueTail = 0;
 // Scratchpad for runtime MP3 arrays (sayTime)
 uint8_t mp3Scratchpad[8];
 
-AudioManager& audio() { return AudioManager::instance(); }
 constexpr uint16_t WORD_FALLBACK_MS = 800;
 
 uint16_t wordDurations[SD_MAX_FILES_PER_SUBDIR] = {0};
@@ -184,14 +183,14 @@ void playNextSpeakItem();
 void cb_ttsReady() {
     PF("[TTS] Completed via timer\n");
     // Cleanup decoder
-    if (audio().audioMp3Decoder) {
-        audio().audioMp3Decoder->stop();
-        delete audio().audioMp3Decoder;
-        audio().audioMp3Decoder = nullptr;
+    if (audio.audioMp3Decoder) {
+        audio.audioMp3Decoder->stop();
+        delete audio.audioMp3Decoder;
+        audio.audioMp3Decoder = nullptr;
     }
-    if (audio().audioFile) {
-        delete audio().audioFile;
-        audio().audioFile = nullptr;
+    if (audio.audioFile) {
+        delete audio.audioFile;
+        audio.audioFile = nullptr;
     }
     setTtsActive(false);
     setSentencePlaying(false);
@@ -254,14 +253,14 @@ bool voicerss_ok(const String& url, String& err) {
 // Internal TTS start (called by playNextSpeakItem)
 void startTTSInternal(const char* text) {
     // Stop any current audio first
-    if (audio().audioMp3Decoder) {
-        audio().audioMp3Decoder->stop();
-        delete audio().audioMp3Decoder;
-        audio().audioMp3Decoder = nullptr;
+    if (audio.audioMp3Decoder) {
+        audio.audioMp3Decoder->stop();
+        delete audio.audioMp3Decoder;
+        audio.audioMp3Decoder = nullptr;
     }
-    if (audio().audioFile) {
-        delete audio().audioFile;
-        audio().audioFile = nullptr;
+    if (audio.audioFile) {
+        delete audio.audioFile;
+        audio.audioFile = nullptr;
     }
 
     setAudioBusy(true);
@@ -270,7 +269,7 @@ void startTTSInternal(const char* text) {
     setWordPlaying(false);
     setCurrentWordId(PlaySentence::END_OF_SENTENCE);
 
-    audio().audioOutput.SetGain(MathUtils::clamp(getVolumeShiftedHi() * 1.8f, 0.0f, 1.0f));
+    audio.audioOutput.SetGain(MathUtils::clamp(getVolumeShiftedHi() * 1.8f, 0.0f, 1.0f));
 
     String url = makeVoiceRSSUrl(text);
     {
@@ -285,9 +284,9 @@ void startTTSInternal(const char* text) {
         }
     }
 
-    audio().audioFile = new AudioFileSourceHTTPStream(url.c_str());
-    audio().audioMp3Decoder = new AudioGeneratorMP3();
-    audio().audioMp3Decoder->begin(audio().audioFile, &audio().audioOutput);
+    audio.audioFile = new AudioFileSourceHTTPStream(url.c_str());
+    audio.audioMp3Decoder = new AudioGeneratorMP3();
+    audio.audioMp3Decoder->begin(audio.audioFile, &audio.audioOutput);
 }
 
 void playNextSpeakItem() {
@@ -369,17 +368,17 @@ void playWord() {
     PF("[PlaySentence] Attempting word %u from %s\n", mp3Id, path);
     
     // Cleanup previous
-    if (audio().audioMp3Decoder) {
-        audio().audioMp3Decoder->stop();
-        delete audio().audioMp3Decoder;
-        audio().audioMp3Decoder = nullptr;
+    if (audio.audioMp3Decoder) {
+        audio.audioMp3Decoder->stop();
+        delete audio.audioMp3Decoder;
+        audio.audioMp3Decoder = nullptr;
     }
-    if (audio().audioFile) {
-        delete audio().audioFile;
-        audio().audioFile = nullptr;
+    if (audio.audioFile) {
+        delete audio.audioFile;
+        audio.audioFile = nullptr;
     }
     
-    audio().audioOutput.SetGain(MathUtils::clamp(getVolumeShiftedHi() * 1.5f, 0.0f, 1.0f));
+    audio.audioOutput.SetGain(MathUtils::clamp(getVolumeShiftedHi() * 1.5f, 0.0f, 1.0f));
     
     auto* sdFile = new AudioFileSourceSD(path);
     if (!sdFile->isOpen()) {
@@ -397,14 +396,14 @@ void playWord() {
         }
         return;
     }
-    audio().audioFile = sdFile;
+    audio.audioFile = sdFile;
     
-    audio().audioMp3Decoder = new AudioGeneratorMP3();
-    if (!audio().audioMp3Decoder->begin(audio().audioFile, &audio().audioOutput)) {
-        delete audio().audioFile;
-        audio().audioFile = nullptr;
-        delete audio().audioMp3Decoder;
-        audio().audioMp3Decoder = nullptr;
+    audio.audioMp3Decoder = new AudioGeneratorMP3();
+    if (!audio.audioMp3Decoder->begin(audio.audioFile, &audio.audioOutput)) {
+        delete audio.audioFile;
+        audio.audioFile = nullptr;
+        delete audio.audioMp3Decoder;
+        audio.audioMp3Decoder = nullptr;
         PF("[PlaySentence] ERROR: Decoder failed for %s - skipping word\n", path);
         // Skip this word and continue with next
         shiftQueue();
@@ -468,14 +467,14 @@ void stop() {
         wordQueue[i] = END_OF_SENTENCE;
     }
     
-    if (audio().audioMp3Decoder) {
-        audio().audioMp3Decoder->stop();
-        delete audio().audioMp3Decoder;
-        audio().audioMp3Decoder = nullptr;
+    if (audio.audioMp3Decoder) {
+        audio.audioMp3Decoder->stop();
+        delete audio.audioMp3Decoder;
+        audio.audioMp3Decoder = nullptr;
     }
-    if (audio().audioFile) {
-        delete audio().audioFile;
-        audio().audioFile = nullptr;
+    if (audio.audioFile) {
+        delete audio.audioFile;
+        audio.audioFile = nullptr;
     }
     setSentencePlaying(false);
     setAudioBusy(false);

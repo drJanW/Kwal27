@@ -60,7 +60,7 @@ bool playInternal(const PCM* clip, float volume) {
   }
 
   const float clamped = MathUtils::clamp01(volume);
-  const bool started = AudioManager::instance().playPCMClip(*clip, clamped);
+  const bool started = audio.playPCMClip(*clip, clamped);
   if (!started) {
     PCM_LOG_WARN("[PlayPCM] playInternal failed (vol=%.2f samples=%lu sr=%lu)\n",
                  static_cast<double>(clamped),
@@ -164,7 +164,7 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
 }
 
 void cb_stopPCMPlayback() {
-  AudioManager::instance().stopPCMClip();
+  audio.stopPCMClip();
 }
 
 void stopAfter(uint32_t durationMs) {

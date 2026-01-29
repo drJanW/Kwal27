@@ -27,7 +27,7 @@ void AudioBoot::plan() {
         return;
     }
 
-    AudioManager::instance().begin();
+    audio.begin();
     hwStatus |= HW_AUDIO;
     
     // Initialize audio shift store
