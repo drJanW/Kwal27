@@ -31,6 +31,8 @@ Conduct Manager is the decision layer: it consumes context plus intent inputs (u
 Each Policy (AudioPolicy, LightPolicy, SDPolicy, etc.) is now a focused ruleset: given a request and the current context, it enforces local constraints (context-driven brightness caps, playback arbitration) before delegating to the subsystem managers.
 Net effect: context collects facts, conduct chooses actions, policies enforce domain-specific guardrails—clean separation that keeps subsystems modular and easier to evolve.
 
+Status ownership rule: managers only write status to NotifyState (or ContextStatus). All status reads must come from NotifyState (or ContextStatus), not Manager APIs.
+
 A TimerManager slot fires and runs its callback (e.g., hourly “say time”, periodic fragment shuffle).
 Each callback raises an intent toward ConductManager (or directly queues a ContextManager refresh), never touching hardware.
 ConductManager combines the intent with the current context snapshot, then consults the relevant policy (audio/light/SD/etc.).

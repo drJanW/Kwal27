@@ -22,6 +22,7 @@
 #include "ContextFlags.h"
 #include "ContextModels.h"
 #include "Notify/NotifyRGB.h"
+#include "Notify/NotifyState.h"
 #include "WebGuiStatus.h"
 #include <FastLED.h>
 
@@ -183,7 +184,7 @@ void LightConduct::cb_shiftTimer() {
 
 void LightConduct::cb_luxMeasure() {
     // Skip if no lux sensor present (preserves boot default brightness)
-    if (!SensorManager::isLuxSensorReady()) return;
+    if (!NotifyState::isLuxSensorOk()) return;
     
     // Step 1: Enter measurement mode (LEDs off for accurate sensor read)
     lightManager.setMeasurementMode(true);

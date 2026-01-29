@@ -6,6 +6,8 @@
  *
  * Stores hardware component status in a single uint64_t with 4-bit fields.
  * Each component uses 4 bits: 0=OK, 1-14=retries remaining, 15=FAILED.
+ * Status ownership: managers only write status here; status reads must come from
+ * NotifyState (or ContextStatus), not Manager APIs.
  * 
  * Status values (SC_Status enum):
  *   OK (0)       - Component working normally

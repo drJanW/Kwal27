@@ -171,27 +171,6 @@ void SensorManager::beginSensor3() {
   PL("[SensorManager] Sensor3 (board) placeholder - no hardware");
 }
 
-// Sensor ready checks
-bool SensorManager::isDistanceSensorReady() {
-  return I2CInitHelper::isReady(SC_DIST);
-}
-
-bool SensorManager::isLuxSensorReady() {
-  return I2CInitHelper::isReady(SC_LUX);
-}
-
-bool SensorManager::isSensor3Ready() {
-  return false;  // Placeholder
-}
-
-bool SensorManager::isDistanceSensorInitFailed() {
-  return I2CInitHelper::isFailed(SC_DIST);
-}
-
-bool SensorManager::isLuxSensorInitFailed() {
-  return I2CInitHelper::isFailed(SC_LUX);
-}
-
 void SensorManager::init(uint32_t ivMs)
 {
   baseIntervalMs = ivMs ? ivMs : Globals::sensorBaseDefaultMs;

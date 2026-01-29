@@ -31,13 +31,6 @@ public:
   static void beginLuxSensor();       // VEML7700 ambient light sensor (no periodic timer)
   static void beginSensor3();         // Placeholder: board temp/voltage sensor
 
-  // Ready checks
-  static bool isDistanceSensorReady();
-  static bool isLuxSensorReady();
-  static bool isSensor3Ready();
-  static bool isDistanceSensorInitFailed();  // True if init failed after max retries
-  static bool isLuxSensorInitFailed();       // True if init failed
-
   static void init(uint32_t ivUpdateMs = 100);
 
   static void update();                 // door TimerSystem aangeroepen

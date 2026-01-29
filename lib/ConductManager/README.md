@@ -72,6 +72,7 @@ Files: `NotifyPolicy.h`, `NotifyRGB.cpp`, `NotifyState.h`, `NotifyState.cpp`
 - ✅ Directors read data (calendar CSV, SD index, sensors) and return structured plans. They never make policy decisions.
 - ✅ Policies accept a plan and spit back either a green-light (with concrete numbers) or “no” with a reason. No side effects besides cached clamp state.
 - ✅ Managers expose explicit APIs for every action; do not reach into singletons or globals directly from conduct/policy code.
+- ✅ Managers write status to NotifyState (or ContextStatus); status reads belong to NotifyState (or ContextStatus), not Manager APIs.
 - ❌ No layer except managers talks to hardware (`FastLED`, `I2S`, `SPI`, raw GPIO).
 - ❌ Policies never schedule timers, mutate manager state directly, or call other policies.
 - ❌ Conductors do not normalise raw sensor readings—that belongs to the relevant input policy/manager.

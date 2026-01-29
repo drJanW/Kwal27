@@ -1,0 +1,39 @@
+SD TODO (status ownership refactor)
+
+Goal: SD status reads come only from NotifyState. SDManager should only write status.
+
+1) Introduce SD busy flag in NotifyState
+   - Add getter/setter: isSdBusy(), setSdBusy(bool)
+   - Store in NotifyState bitfield or separate atomic (choose minimal impact)
+
+2) SDManager: remove read APIs
+   - Remove SDManager::isReady() and SDManager::isSDbusy() from header/impl
+   - Replace internal read usage (if any) with NotifyState (or internal state only)
+
+3) Replace SDManager::isReady() call sites with NotifyState::isSdOk()
+   - Files: lib/Globals/Globals.cpp
+            lib/ConductManager/SD/SDPolicy.cpp
+            lib/ConductManager/SD/SDBoot.cpp
+            lib/ConductManager/Calendar/CalendarBoot.cpp
+            lib/ConductManager/Audio/AudioBoot.cpp
+            lib/ConductManager/Audio/AudioShiftStore.cpp
+            lib/ConductManager/Light/ShiftStore.cpp
+            lib/ConductManager/Light/PatternStore.cpp
+            lib/ConductManager/Light/ColorsStore.cpp
+            lib/ConductManager/Speak/SpeakConduct.cpp
+            lib/AudioManager/PlayPCM.cpp
+            lib/WebInterfaceManager/handlers/SdHandlers.cpp
+
+4) Replace SDManager::isSDbusy() call sites with NotifyState::isSdBusy()
+   - Files: lib/ConductManager/SD/SDPolicy.cpp
+            lib/ConductManager/Calendar/CalendarConduct.cpp
+            lib/ConductManager/Web/WebDirector.cpp
+            lib/SDManager/SDVoting.cpp
+            lib/WebInterfaceManager/handlers/SdHandlers.cpp
+
+5) Ensure SDManager sets NotifyState SD ready/busy
+   - When SD mounts/unmounts → NotifyState::setStatusOK(SC_SD, ...)
+   - When lockSD()/unlockSD() change busy state → NotifyState::setSdBusy(...)
+
+6) Audit for any remaining SD status reads outside NotifyState
+   - grep: SDManager::isReady|isSDbusy

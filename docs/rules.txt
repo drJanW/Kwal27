@@ -130,6 +130,11 @@ A6. Architecture Over Convenience. MANDATORY.
 - "Simpler" is NEVER an argument against architecture compliance
 - Only present rule-compliant options
 
+A7. Status Ownership. MANDATORY.
+- Managers write status to NotifyState (or ContextStatus) only
+- All status reads come from NotifyState (or ContextStatus), not Manager APIs
+
+
 ================================================================
 STYLE
 ================================================================
