@@ -1,5 +1,5 @@
 /**
- * @file NotifyRGB.cpp
+ * @file AlertRGB.cpp
  * @brief RGB LED status flash coordination implementation
  * @version 260104M
  * @date 2026-01-04
@@ -19,8 +19,8 @@
  */
 
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
-#include "NotifyRGB.h"
-#include "NotifyPolicy.h"
+#include "AlertRGB.h"
+#include "AlertPolicy.h"
 #include "LightManager.h"
 #include "Light/LightRun.h"
 #include "TimerManager.h"
@@ -95,32 +95,32 @@ void buildSequence() {
     
     // SD and WiFi always required
     if (isNotOk(STATUS_SD_OK)) {
-        addStep(NotifyPolicy::COLOR_SD, Globals::flashCriticalMs);
+        addStep(AlertPolicy::COLOR_SD, Globals::flashCriticalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }
     if (isNotOk(STATUS_WIFI_OK)) {
-        addStep(NotifyPolicy::COLOR_WIFI, Globals::flashCriticalMs);
+        addStep(AlertPolicy::COLOR_WIFI, Globals::flashCriticalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }
     // Optional hardware: only flash if PRESENT
     if (RTC_PRESENT && isNotOk(STATUS_RTC_OK)) {
-        addStep(NotifyPolicy::COLOR_RTC, Globals::flashNormalMs);
+        addStep(AlertPolicy::COLOR_RTC, Globals::flashNormalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }
     if (isNotOk(STATUS_NTP_OK)) {
-        addStep(NotifyPolicy::COLOR_NTP, Globals::flashNormalMs);
+        addStep(AlertPolicy::COLOR_NTP, Globals::flashNormalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }
     if (DISTANCE_SENSOR_PRESENT && isNotOk(STATUS_DISTANCE_SENSOR_OK)) {
-        addStep(NotifyPolicy::COLOR_DISTANCE_SENSOR, Globals::flashNormalMs);
+        addStep(AlertPolicy::COLOR_DISTANCE_SENSOR, Globals::flashNormalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }
     if (LUX_SENSOR_PRESENT && isNotOk(STATUS_LUX_SENSOR_OK)) {
-        addStep(NotifyPolicy::COLOR_LUX_SENSOR, Globals::flashNormalMs);
+        addStep(AlertPolicy::COLOR_LUX_SENSOR, Globals::flashNormalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }
     if (SENSOR3_PRESENT && isNotOk(STATUS_SENSOR3_OK)) {
-        addStep(NotifyPolicy::COLOR_SENSOR3, Globals::flashNormalMs);
+        addStep(AlertPolicy::COLOR_SENSOR3, Globals::flashNormalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }
 }
@@ -137,7 +137,7 @@ void cb_flash() {
     }
 
     flashing = true;
-    PF("[NotifyRGB] flash burst start bits=0x%llX\n", cachedNotOkBits);
+    PF("[AlertRGB] flash burst start bits=0x%llX\n", cachedNotOkBits);
     
     buildSequence();
     scheduleNextStep();
@@ -145,7 +145,7 @@ void cb_flash() {
 
 } // namespace
 
-namespace NotifyRGB {
+namespace AlertRGB {
 
 void startFlashing() {
     // Flash burst: configurable via globals.csv
@@ -166,4 +166,4 @@ bool isFlashing() {
     return flashing;
 }
 
-} // namespace NotifyRGB
+} // namespace AlertRGB

@@ -19,7 +19,7 @@
 #include "SDManager.h"
 #include "RunManager.h"
 #include "AudioState.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 
 #include <WiFiUdp.h>
 #include <NTPClient.h>
@@ -72,7 +72,7 @@ static void cb_fetchNTP() {
     // Update boot status with remaining retries
     int remaining = timers.getRepeatCount(cb_fetchNTP);
     if (remaining != -1)
-        NotifyState::set(SC_NTP, abs(remaining));
+        AlertState::set(SC_NTP, abs(remaining));
 
     // Check if last retry (abs(remaining) == 1 means final attempt)
     bool lastRetry = (abs(remaining) == 1);
@@ -82,13 +82,13 @@ static void cb_fetchNTP() {
         return;  // Skip this attempt, timer continues
     }
 
-    if (!NotifyState::isWifiOk()) {
+    if (!AlertState::isWifiOk()) {
         if (DEBUG_FETCH && !wifiWarned) {
             PL("[Fetch] No WiFi, waiting before NTP");
             wifiWarned = true;
         }
         if (lastRetry) {
-            NotifyState::setNtpStatus(false);
+            AlertState::setNtpStatus(false);
             PL("[Fetch] NTP gave up after retries (no WiFi)");
         }
         return;
@@ -105,7 +105,7 @@ static void cb_fetchNTP() {
 
     if (!timeClient.update()) {
         if (lastRetry) {
-            NotifyState::setNtpStatus(false);
+            AlertState::setNtpStatus(false);
             PL("[Fetch] NTP gave up after retries");
         } else if (DEBUG_FETCH) {
             PL("[Fetch] NTP update failed, will retry");
@@ -141,7 +141,7 @@ static void cb_fetchNTP() {
     }
 
     prtClock.setTimeFetched(true);
-    NotifyState::setNtpStatus(true);
+    AlertState::setNtpStatus(true);
     timers.cancel(cb_fetchNTP);
     prtClock.setMoonPhaseValue();
     RunManager::requestSyncRtcFromClock();
@@ -155,7 +155,7 @@ static void cb_fetchWeather() {
     // Update boot status with remaining retries
     int remaining = timers.getRepeatCount(cb_fetchWeather);
     if (remaining != -1)
-        NotifyState::set(SC_WEATHER, abs(remaining));
+        AlertState::set(SC_WEATHER, abs(remaining));
 
     // Check if last retry (abs(remaining) == 1 means final attempt)
     bool lastRetry = (abs(remaining) == 1);
@@ -165,13 +165,13 @@ static void cb_fetchWeather() {
         return;  // Skip this attempt, timer continues
     }
     
-    if (!NotifyState::isWifiOk()) {
+    if (!AlertState::isWifiOk()) {
         if (DEBUG_FETCH) {
             PL("[Fetch] No WiFi, skipping weather");
         }
         ContextManager::clearWeather();
         if (lastRetry) {
-            NotifyState::setWeatherStatus(false);
+            AlertState::setWeatherStatus(false);
             PL("[Fetch] Weather gave up after retries (no WiFi)");
         }
         return;
@@ -182,7 +182,7 @@ static void cb_fetchWeather() {
         }
         ContextManager::clearWeather();
         if (lastRetry) {
-            NotifyState::setWeatherStatus(false);
+            AlertState::setWeatherStatus(false);
             PL("[Fetch] Weather gave up after retries (no time)");
         }
         return;
@@ -192,7 +192,7 @@ static void cb_fetchWeather() {
     if (!fetchUrlToString(WEATHER_URL, response)) {
         ContextManager::clearWeather();
         if (lastRetry) {
-            NotifyState::setWeatherStatus(false);
+            AlertState::setWeatherStatus(false);
             PL("[Fetch] Weather gave up after retries");
         } else if (DEBUG_FETCH) {
             PL("[Fetch] Weather fetch failed, will retry");
@@ -219,7 +219,7 @@ static void cb_fetchWeather() {
     float tMin = response.substring(minStart + 1, minEnd).toFloat();
     float tMax = response.substring(maxStart + 1, maxEnd).toFloat();
     ContextManager::updateWeather(tMin, tMax);
-    NotifyState::setWeatherStatus(true);
+    AlertState::setWeatherStatus(true);
 
     if (DEBUG_FETCH) {
         PF("[Fetch] Ext. Temperature: min=%.1f max=%.1f\n", tMin, tMax);
@@ -240,7 +240,7 @@ static void cb_fetchSunrise() {
         return;  // Skip this attempt, timer continues
     }
     
-    if (!NotifyState::isWifiOk()) {
+    if (!AlertState::isWifiOk()) {
         if (DEBUG_FETCH) {
             PL("[Fetch] No WiFi, skipping sun data");
         }
@@ -311,7 +311,7 @@ static void cb_fetchSunrise() {
 // Init entry point
 // ===================================================
 bool bootFetchManager() {
-    if (!NotifyState::isWifiOk()) {
+    if (!AlertState::isWifiOk()) {
         if (DEBUG_FETCH) PL("[Fetch] WiFi not ready, fetchers not scheduled");
         return false;
     }
@@ -347,7 +347,7 @@ namespace FetchManager {
 // Low-level HTTP fetch
 // ===================================================
 static bool fetchUrlToString(const char *url, String &output) {
-    if (!NotifyState::isWifiOk()) return false;
+    if (!AlertState::isWifiOk()) return false;
 
     HTTPClient http;
     http.setTimeout(10000);  // 10 second timeout

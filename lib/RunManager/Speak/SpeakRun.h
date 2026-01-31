@@ -13,7 +13,7 @@
 
 #include <Arduino.h>
 #include <stdint.h>
-#include "Notify/NotifyState.h"  // voor StatusComponent
+#include "Alert/AlertState.h"  // voor StatusComponent
 
 // Speak requests
 enum class SpeakRequest : uint8_t {

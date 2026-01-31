@@ -13,7 +13,7 @@
 #include "Globals.h"
 #include "StatusPolicy.h"
 #include "PRTClock.h"
-#include "Notify/NotifyRun.h"
+#include "Alert/AlertRun.h"
 #include "ContextManager.h"
 
 StatusBoot statusBoot;
@@ -38,5 +38,5 @@ void cb_timeDisplay() {
 void StatusBoot::plan() {
     PL("[Run][Plan] Status boot sequencing");
     StatusPolicy::configure();
-    NotifyRun::plan();
+    AlertRun::plan();
 }

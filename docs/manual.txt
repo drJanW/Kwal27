@@ -1,7 +1,7 @@
 KWAL HANDLEIDING
 ================
 
-RGB NOTIFY KLEUREN (foutmeldingen)
+RGB ALERT KLEUREN (foutmeldingen)
 ----------------------------------
 Bij een hardware storing knippert de Kwal in een specifieke kleur.
 Tussen elke kleur zit een zwarte pauze (1 seconde).

@@ -1,5 +1,5 @@
 /**
- * @file LightRun.cpp
+ * @file LightConduct.cpp
  * @brief LED show state management implementation
  * @version 260102F
  * @date 2026-01-02
@@ -9,7 +9,8 @@
  * and coordinates with ColorsCatalog, PatternCatalog, and ShiftTable.
  */
 
-#include "LightRun.h"
+#if 0
+#include "LightConduct.h"
 
 #include "Globals.h"
 #include "LightPolicy.h"
@@ -79,10 +80,10 @@ void applyLightshowUpdate() {
 }
 
 bool scheduleAnimation(uint32_t intervalMs) {
-    TimerCallback cb = LightRun::cb_animation;
+    TimerCallback cb = LightConduct::cb_animation;
     // Use restart() - called on every pattern change, timer may already exist
     if (!timers.restart(intervalMs, 1, cb)) {
-        PF("[LightRun] Failed to create animation timer (%lu ms)\n",
+        PF("[LightConduct] Failed to create animation timer (%lu ms)\n",
            static_cast<unsigned long>(intervalMs));
         timerActive = false;
         return false;
@@ -94,7 +95,7 @@ bool scheduleAnimation(uint32_t intervalMs) {
 
 void stopAnimation() {
     if (timerActive) {
-        timers.cancel(LightRun::cb_animation);
+        timers.cancel(LightConduct::cb_animation);
         timerActive = false;
     }
     currentIntervalMs = 0;
@@ -103,10 +104,10 @@ void stopAnimation() {
 }
 
 bool scheduleShiftTimer() {
-    TimerCallback cb = LightRun::cb_shiftTimer;
+    TimerCallback cb = LightConduct::cb_shiftTimer;
     // Use restart() - called repeatedly to reschedule shift checks
     if (!timers.restart(Globals::shiftCheckIntervalMs, 1, cb)) {
-        PF("[LightRun] Failed to create shift timer (%lu ms)\n",
+        PF("[LightConduct] Failed to create shift timer (%lu ms)\n",
            static_cast<unsigned long>(Globals::shiftCheckIntervalMs));
         shiftTimerActive = false;
         return false;
@@ -117,7 +118,7 @@ bool scheduleShiftTimer() {
 
 } // namespace
 
-void LightRun::plan() {
+void LightConduct::plan() {
     stopAnimation();
     
     // Load shifts from SD
@@ -134,14 +135,14 @@ void LightRun::plan() {
     scheduleShiftTimer();
     
     // Periodic lux measurement (Light's responsibility)
-    timers.create(Globals::luxMeasurementIntervalMs, 0, LightRun::cb_luxMeasure);
+    timers.create(Globals::luxMeasurementIntervalMs, 0, LightConduct::cb_luxMeasure);
     
     // NOTE: Status flash handled by AlertRGB reminder system (61 min interval)
     
-    PL("[Run][Plan] Light shift system initialized");
+    PL("[Conduct][Plan] Light shift system initialized");
 }
 
-void LightRun::updateDistance(float distanceMm) {
+void LightConduct::updateDistance(float distanceMm) {
     uint32_t intervalMs = 0;
     float intensity = 0.0f;
     uint8_t paletteId = 0;
@@ -164,25 +165,25 @@ void LightRun::updateDistance(float distanceMm) {
     }
 }
 
-void LightRun::cb_animation() {
+void LightConduct::cb_animation() {
     applyLightshowUpdate();
     timerActive = false;
 }
 
-void LightRun::cb_shiftTimer() {
+void LightConduct::cb_shiftTimer() {
     shiftTimerActive = false;
     
     uint64_t statusBits = ContextFlags::getFullContextBits();
     if (statusBits != lastStatusBits) {
         lastStatusBits = statusBits;
         applyToLights();
-        PF("[LightRun] Shifts updated (status=0x%llX)\n", statusBits);
+        PF("[LightConduct] Shifts updated (status=0x%llX)\n", statusBits);
     }
     
     scheduleShiftTimer();
 }
 
-void LightRun::cb_luxMeasure() {
+void LightConduct::cb_luxMeasure() {
     // Skip if no lux sensor present (preserves boot default brightness)
     if (!AlertState::isLuxSensorOk()) return;
     
@@ -190,10 +191,10 @@ void LightRun::cb_luxMeasure() {
     lightManager.setMeasurementEnabled(true);
     luxMeasureActive = true;
     // Step 2: Schedule delayed read after LEDs settle
-    timers.create(Globals::luxMeasurementDelayMs, 1, LightRun::cb_luxMeasureRead);
+    timers.create(Globals::luxMeasurementDelayMs, 1, LightConduct::cb_luxMeasureRead);
 }
 
-void LightRun::cb_luxMeasureRead() {
+void LightConduct::cb_luxMeasureRead() {
     if (!luxMeasureActive) return;  // Guard: measurement was cancelled
     luxMeasureActive = false;
     
@@ -214,7 +215,7 @@ void LightRun::cb_luxMeasureRead() {
     uint8_t shiftedHi = LightPolicy::calcShiftedHi(lux, calendarShift, getWebShift());
     setBrightnessShiftedHi(shiftedHi);
     
-    PF("[LightRun] Lux=%.1f calShift=%d webShift=%.2f → shiftedHi=%u\n", lux, calendarShift, getWebShift(), shiftedHi);
+    PF("[LightConduct] Lux=%.1f calShift=%d webShift=%.2f → shiftedHi=%u\n", lux, calendarShift, getWebShift(), shiftedHi);
     
     // Step 5: Apply pattern/color shifts (brightness already done above)
     applyToLights();
@@ -223,34 +224,34 @@ void LightRun::cb_luxMeasureRead() {
     
     // B6: Start cooldown, check for pending slider request
     luxInCooldown = true;
-    timers.create(100, 1, LightRun::cb_cooldownExpired);
+    timers.create(100, 1, LightConduct::cb_cooldownExpired);
     if (luxRequestPending) {
-        timers.create(100, 1, LightRun::cb_tryLuxMeasure);
+        timers.create(100, 1, LightConduct::cb_tryLuxMeasure);
     }
 }
 
-void LightRun::cb_cooldownExpired() {
+void LightConduct::cb_cooldownExpired() {
     luxInCooldown = false;
 }
 
 // B6: Slider-triggered lux measurement with debounce + 100ms cooldown
-void LightRun::requestLuxMeasurement() {
+void LightConduct::requestLuxMeasurement() {
     luxRequestPending = true;
     cb_tryLuxMeasure();
 }
 
-// F9: Route webShift through Run to LightManager
-void LightRun::setWebBrightnessModifier(float multiplier) {
+// F9: Route webShift through Conduct to LightManager
+void LightConduct::setWebBrightnessModifier(float multiplier) {
     setWebShift(multiplier);
 }
 
-void LightRun::cb_tryLuxMeasure() {
+void LightConduct::cb_tryLuxMeasure() {
     if (luxMeasureActive) return;   // Already measuring
     if (!luxRequestPending) return; // No pending request
     
     if (luxInCooldown) {
         // In cooldown - schedule retry after full cooldown period
-        timers.create(100, 1, LightRun::cb_tryLuxMeasure);
+        timers.create(100, 1, LightConduct::cb_tryLuxMeasure);
         return;
     }
     
@@ -258,17 +259,17 @@ void LightRun::cb_tryLuxMeasure() {
     cb_luxMeasure();  // Start measurement
 }
 
-LightSource LightRun::getPatternSource() {
+LightSource LightConduct::getPatternSource() {
     return patternSource;
 }
 
-LightSource LightRun::getColorSource() {
+LightSource LightConduct::getColorSource() {
     return colorSource;
 }
 
-bool LightRun::patternRead(String &payload, String &activePatternId) {
+bool LightConduct::patternRead(String &payload, String &activePatternId) {
     PatternCatalog &store = getPatternStore();
-    // Pass source from Run layer to store for JSON building
+    // Pass source from Conduct layer to store for JSON building
     payload = store.buildJson(sourceToString(patternSource));
     if (payload.isEmpty()) {
         return false;
@@ -277,9 +278,9 @@ bool LightRun::patternRead(String &payload, String &activePatternId) {
     return true;
 }
 
-bool LightRun::colorRead(String &payload, String &activeColorId) {
+bool LightConduct::colorRead(String &payload, String &activeColorId) {
     ColorsCatalog &store = getColorsStore();
-    // Pass source from Run layer to store for JSON building
+    // Pass source from Conduct layer to store for JSON building
     payload = store.buildColorsJson(sourceToString(colorSource));
     if (payload.isEmpty()) {
         return false;
@@ -288,7 +289,7 @@ bool LightRun::colorRead(String &payload, String &activeColorId) {
     return true;
 }
 
-bool LightRun::selectPattern(const String &id, String &errorMessage) {
+bool LightConduct::selectPattern(const String &id, String &errorMessage) {
     PatternCatalog &store = getPatternStore();
     if (!store.select(id, errorMessage)) {
         return false;
@@ -299,7 +300,7 @@ bool LightRun::selectPattern(const String &id, String &errorMessage) {
     return true;
 }
 
-bool LightRun::selectNextPattern(String &errorMessage) {
+bool LightConduct::selectNextPattern(String &errorMessage) {
     PatternCatalog &store = getPatternStore();
     if (!store.selectNext(errorMessage)) {
         return false;
@@ -310,7 +311,7 @@ bool LightRun::selectNextPattern(String &errorMessage) {
     return true;
 }
 
-bool LightRun::selectPrevPattern(String &errorMessage) {
+bool LightConduct::selectPrevPattern(String &errorMessage) {
     PatternCatalog &store = getPatternStore();
     if (!store.selectPrev(errorMessage)) {
         return false;
@@ -321,7 +322,7 @@ bool LightRun::selectPrevPattern(String &errorMessage) {
     return true;
 }
 
-bool LightRun::updatePattern(JsonVariantConst body, String &affectedId, String &errorMessage) {
+bool LightConduct::updatePattern(JsonVariantConst body, String &affectedId, String &errorMessage) {
     PatternCatalog &store = getPatternStore();
     if (!store.update(body, affectedId, errorMessage)) {
         return false;
@@ -331,7 +332,7 @@ bool LightRun::updatePattern(JsonVariantConst body, String &affectedId, String &
     return true;
 }
 
-bool LightRun::deletePattern(JsonVariantConst body, String &affectedId, String &errorMessage) {
+bool LightConduct::deletePattern(JsonVariantConst body, String &affectedId, String &errorMessage) {
     PatternCatalog &store = getPatternStore();
     if (!store.remove(body, affectedId, errorMessage)) {
         return false;
@@ -344,7 +345,7 @@ bool LightRun::deletePattern(JsonVariantConst body, String &affectedId, String &
     return true;
 }
 
-bool LightRun::selectColor(const String &id, String &errorMessage) {
+bool LightConduct::selectColor(const String &id, String &errorMessage) {
     if (!getColorsStore().selectColor(id, errorMessage)) {
         return false;
     }
@@ -354,7 +355,7 @@ bool LightRun::selectColor(const String &id, String &errorMessage) {
     return true;
 }
 
-bool LightRun::selectNextColor(String &errorMessage) {
+bool LightConduct::selectNextColor(String &errorMessage) {
     if (!getColorsStore().selectNextColor(errorMessage)) {
         return false;
     }
@@ -364,7 +365,7 @@ bool LightRun::selectNextColor(String &errorMessage) {
     return true;
 }
 
-bool LightRun::selectPrevColor(String &errorMessage) {
+bool LightConduct::selectPrevColor(String &errorMessage) {
     if (!getColorsStore().selectPrevColor(errorMessage)) {
         return false;
     }
@@ -374,7 +375,7 @@ bool LightRun::selectPrevColor(String &errorMessage) {
     return true;
 }
 
-bool LightRun::updateColor(JsonVariantConst body, String &affectedId, String &errorMessage) {
+bool LightConduct::updateColor(JsonVariantConst body, String &affectedId, String &errorMessage) {
     if (!getColorsStore().updateColor(body, affectedId, errorMessage)) {
         return false;
     }
@@ -383,7 +384,7 @@ bool LightRun::updateColor(JsonVariantConst body, String &affectedId, String &er
     return true;
 }
 
-bool LightRun::deleteColorSet(JsonVariantConst body, String &affectedId, String &errorMessage) {
+bool LightConduct::deleteColorSet(JsonVariantConst body, String &affectedId, String &errorMessage) {
     if (!getColorsStore().deleteColorSet(body, affectedId, errorMessage)) {
         return false;
     }
@@ -395,14 +396,14 @@ bool LightRun::deleteColorSet(JsonVariantConst body, String &affectedId, String 
     return true;
 }
 
-bool LightRun::previewPattern(JsonVariantConst body, String &errorMessage) {
+bool LightConduct::previewPattern(JsonVariantConst body, String &errorMessage) {
     PatternCatalog& patternStore = getPatternStore();
     ColorsCatalog& colorStore = getColorsStore();
 
     JsonObjectConst obj = body.as<JsonObjectConst>();
     if (obj.isNull()) {
         errorMessage = F("invalid payload");
-        PF("[LightRun] previewPattern reject: body not object\n");
+        PF("[LightConduct] previewPattern reject: body not object\n");
         return false;
     }
 
@@ -424,7 +425,7 @@ bool LightRun::previewPattern(JsonVariantConst body, String &errorMessage) {
         if (errorMessage.isEmpty()) {
             errorMessage = F("pattern params missing or invalid");
         }
-        PF("[LightRun] previewPattern reject: %s\n", errorMessage.c_str());
+        PF("[LightConduct] previewPattern reject: %s\n", errorMessage.c_str());
         return false;
     }
 
@@ -449,51 +450,51 @@ bool LightRun::previewPattern(JsonVariantConst body, String &errorMessage) {
         params.RGB2 = activeParams.RGB2;
     }
 
-    PF("[LightRun] previewPattern applied\n");
+    PF("[LightConduct] previewPattern applied\n");
     PlayLightShow(params);
     return true;
 }
 
-bool LightRun::previewColor(JsonVariantConst body, String &errorMessage) {
+bool LightConduct::previewColor(JsonVariantConst body, String &errorMessage) {
     return getColorsStore().previewColors(body, errorMessage);
 }
 
 // --- Calendar-driven selection requests ---
 
-void LightRun::applyPattern(uint8_t patternId) {
+void LightConduct::applyPattern(uint8_t patternId) {
     PatternCatalog& store = getPatternStore();
     String errorMessage;
     if (patternId == 0) {
         // Calendar has no pattern - keep current pattern, don't clear
         // This preserves boot random or user-selected pattern
-        PF("[LightRun] Calendar: no pattern, keeping current\n");
+        PF("[LightConduct] Calendar: no pattern, keeping current\n");
     } else {
         // Calendar specifies pattern, select it
         if (store.select(String(patternId), errorMessage)) {
             patternSource = LightSource::CALENDAR;
-            PF("[LightRun] Calendar: pattern %u selected\n", static_cast<unsigned>(patternId));
+            PF("[LightConduct] Calendar: pattern %u selected\n", static_cast<unsigned>(patternId));
         } else {
-            PF("[LightRun] Calendar: pattern %u failed: %s\n", 
+            PF("[LightConduct] Calendar: pattern %u failed: %s\n", 
                static_cast<unsigned>(patternId), errorMessage.c_str());
         }
     }
     applyToLights();
 }
 
-void LightRun::applyColor(uint8_t colorId) {
+void LightConduct::applyColor(uint8_t colorId) {
     ColorsCatalog& store = getColorsStore();
     String errorMessage;
     if (colorId == 0) {
         // Calendar has no color - keep current (boot random or previous selection)
         colorSource = LightSource::CONTEXT;
-        PF("[LightRun] Calendar: no color, keeping current\n");
+        PF("[LightConduct] Calendar: no color, keeping current\n");
     } else {
         // Calendar specifies color, select it
         if (store.selectColor(String(colorId), errorMessage)) {
             colorSource = LightSource::CALENDAR;
-            PF("[LightRun] Calendar: color %u selected\n", static_cast<unsigned>(colorId));
+            PF("[LightConduct] Calendar: color %u selected\n", static_cast<unsigned>(colorId));
         } else {
-            PF("[LightRun] Calendar: color %u failed: %s\n",
+            PF("[LightConduct] Calendar: color %u failed: %s\n",
                static_cast<unsigned>(colorId), errorMessage.c_str());
         }
     }
@@ -502,7 +503,7 @@ void LightRun::applyColor(uint8_t colorId) {
 
 // --- TodayContext request methods ---
 
-bool LightRun::describePatternById(uint8_t id, LightPattern& out) {
+bool LightConduct::describePatternById(uint8_t id, LightPattern& out) {
     if (id == 0) {
         return false;
     }
@@ -533,7 +534,7 @@ bool LightRun::describePatternById(uint8_t id, LightPattern& out) {
     return true;
 }
 
-bool LightRun::describeActivePattern(LightPattern& out) {
+bool LightConduct::describeActivePattern(LightPattern& out) {
     PatternCatalog& store = getPatternStore();
     String activeId = store.activeId();
     // If no explicit selection, use fallback to first pattern (matches getActiveParams behavior)
@@ -551,7 +552,7 @@ bool LightRun::describeActivePattern(LightPattern& out) {
     return describePatternById(numericId, out);
 }
 
-bool LightRun::describeColorById(uint8_t id, LightColor& out) {
+bool LightConduct::describeColorById(uint8_t id, LightColor& out) {
     if (id == 0) {
         return false;
     }
@@ -573,7 +574,7 @@ bool LightRun::describeColorById(uint8_t id, LightColor& out) {
     return true;
 }
 
-bool LightRun::describeActiveColor(LightColor& out) {
+bool LightConduct::describeActiveColor(LightColor& out) {
     ColorsCatalog& store = getColorsStore();
     String activeId = store.getActiveColorId();
     // If no explicit selection, use fallback to first color (matches getActiveColors behavior)
@@ -609,12 +610,12 @@ CRGB shiftColorHSV(const CRGB& rgb, int hueShift, int satShift, int valShift) {
 }
 } // namespace
 
-void LightRun::applyToLights() {
+void LightConduct::applyToLights() {
     // Get RAW pattern params from PatternCatalog (no shifts applied)
     PatternCatalog& patternStore = getPatternStore();
     LightShowParams params = patternStore.getActiveParams();
 
-    // Apply pattern shifts here in Run layer (not in Store)
+    // Apply pattern shifts here in Conduct layer (not in Store)
 #ifndef DISABLE_SHIFTS
     {
         uint64_t statusBits = ContextFlags::getFullContextBits();
@@ -644,7 +645,7 @@ void LightRun::applyToLights() {
     CRGB colorA, colorB;
     colorsStore.getActiveColors(colorA, colorB);
 
-    // Apply color shifts here in Run layer (not in Store) - identical to pattern shifts
+    // Apply color shifts here in Conduct layer (not in Store) - identical to pattern shifts
 #ifndef DISABLE_SHIFTS
     {
         uint64_t statusBits = ContextFlags::getFullContextBits();
@@ -684,7 +685,7 @@ void LightRun::applyToLights() {
     // Log and apply
     String patternId = patternStore.activeId();
     String colorId = colorsStore.getActiveColorId();
-    PF("[LightRun] Apply pattern=%s color=%s rgb1=%02X%02X%02X rgb2=%02X%02X%02X\n",
+    PF("[LightConduct] Apply pattern=%s color=%s rgb1=%02X%02X%02X rgb2=%02X%02X%02X\n",
        patternId.isEmpty() ? "<default>" : patternId.c_str(),
        colorId.isEmpty() ? "<default>" : colorId.c_str(),
        params.RGB1.r, params.RGB1.g, params.RGB1.b,
@@ -693,6 +694,8 @@ void LightRun::applyToLights() {
     PlayLightShow(params);
 }
 
-void LightRun::reapplyCurrentShow() {
+void LightConduct::reapplyCurrentShow() {
     applyToLights();
 }
+
+#endif

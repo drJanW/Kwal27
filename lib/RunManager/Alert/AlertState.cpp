@@ -1,5 +1,5 @@
 /**
- * @file NotifyState.cpp
+ * @file AlertState.cpp
  * @brief Hardware status state storage implementation
  * @version 251231E
  * @date 2025-12-31
@@ -13,9 +13,9 @@
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
 #include <atomic>
-#include "NotifyState.h"
-#include "NotifyPolicy.h"
-#include "NotifyRGB.h"
+#include "AlertState.h"
+#include "AlertPolicy.h"
+#include "AlertRGB.h"
 #include "Speak/SpeakRun.h"
 #include "Globals.h"
 #include "HWConfig.h"
@@ -46,7 +46,7 @@ inline uint64_t updateField(uint64_t val, uint8_t idx, uint8_t field) {
 
 } // namespace
 
-namespace NotifyState {
+namespace AlertState {
 
 // ===== NEW API (v4) =====
 
@@ -153,7 +153,7 @@ void setDistanceSensorStatus(bool status) {
     PF("[*State] DistanceSensor: %s\n", status ? "OK" : "NOTOK");
     if (!status) {
         SpeakRun::speak(SpeakRequest::DISTANCE_SENSOR_FAIL);
-        if (!bootPhase) NotifyRGB::startFlashing();
+        if (!bootPhase) AlertRGB::startFlashing();
     }
 }
 
@@ -163,7 +163,7 @@ void setLuxSensorStatus(bool status) {
     PF("[*State] LuxSensor: %s\n", status ? "OK" : "NOTOK");
     if (!status) {
         SpeakRun::speak(SpeakRequest::LUX_SENSOR_FAIL);
-        if (!bootPhase) NotifyRGB::startFlashing();
+        if (!bootPhase) AlertRGB::startFlashing();
     }
 }
 
@@ -173,7 +173,7 @@ void setSensor3Status(bool status) {
     PF("[*State] Sensor3: %s\n", status ? "OK" : "NOTOK");
     if (!status) {
         SpeakRun::speak(SpeakRequest::SENSOR3_FAIL);
-        if (!bootPhase) NotifyRGB::startFlashing();
+        if (!bootPhase) AlertRGB::startFlashing();
     }
 }
 
@@ -211,7 +211,7 @@ void startRuntime() {
     // Start flashing if any hardware NotOK during boot
     if (!isStatusOK(SC_SD) || !isStatusOK(SC_WIFI) || !isStatusOK(SC_RTC) || !isStatusOK(SC_NTP) ||
         !isStatusOK(SC_DIST) || !isStatusOK(SC_LUX) || !isStatusOK(SC_SENSOR3)) {
-        NotifyRGB::startFlashing();
+        AlertRGB::startFlashing();
     }
 }
 
@@ -308,4 +308,4 @@ uint16_t getAbsentBits() {
     return bits;
 }
 
-} // namespace NotifyState
+} // namespace AlertState

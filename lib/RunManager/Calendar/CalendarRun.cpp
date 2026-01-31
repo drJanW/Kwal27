@@ -20,7 +20,7 @@
 #include "SDManager.h"
 #include "TodayContext.h"
 #include "Light/LightRun.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 
 namespace {
 
@@ -149,7 +149,7 @@ void CalendarRun::cb_loadCalendar() {
 
   bool calendarLoaded = false;
   {
-    if (NotifyState::isSdBusy()) {
+    if (AlertState::isSdBusy()) {
       if (!logFlags.sdBusy) {
         PF("[CalendarRun] SD busy, retrying\n");
         logFlags.sdBusy = true;
@@ -169,7 +169,7 @@ void CalendarRun::cb_loadCalendar() {
     LightRun::applyPattern(0);
     LightRun::applyColor(0);
     clearTodayContextRead();
-    NotifyState::setCalendarStatus(true);  // OK - geen bijzondere dag
+    AlertState::setCalendarStatus(true);  // OK - geen bijzondere dag
     RunManager::triggerBootFragment();  // Theme box set, play first fragment
     PL("[CalendarRun] No calendar data for today");
     timers.restart(Globals::calendarRefreshIntervalMs, 0, CalendarRun::cb_loadCalendar);
@@ -220,7 +220,7 @@ void CalendarRun::cb_loadCalendar() {
   LightRun::applyColor(calData.day.colorId);
 
   refreshTodayContextRead();
-  NotifyState::setCalendarStatus(true);
+  AlertState::setCalendarStatus(true);
   RunManager::triggerBootFragment();  // Theme box set, play first fragment
   PL("[CalendarRun] Calendar loaded");
   timers.restart(Globals::calendarRefreshIntervalMs, 0, CalendarRun::cb_loadCalendar);

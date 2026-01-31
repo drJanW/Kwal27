@@ -14,7 +14,7 @@
 #include "CsvUtils.h"
 #include "SDManager.h"
 #include "Globals.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 #include <algorithm>
 
 namespace {
@@ -127,7 +127,7 @@ bool ShiftTable::parsePatternParam(const String& s, uint8_t& out) {
 }
 
 bool ShiftTable::loadColorShiftsFromSD() {
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         PF("[ShiftTable] SD not ready for color shifts\n");
         return false;
     }
@@ -218,7 +218,7 @@ bool ShiftTable::loadColorShiftsFromSD() {
 }
 
 bool ShiftTable::loadPatternShiftsFromSD() {
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         PF("[ShiftTable] SD not ready for pattern shifts\n");
         return false;
     }

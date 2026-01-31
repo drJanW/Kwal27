@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v0109B - Built 2026-01-09 14:12
+ * Kwal WebGUI v20260131E - Built 2026-01-31 19:41
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '0109B';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '20260131E';  // Injected by build.ps1
 
 
 // === js/state.js ===
@@ -1231,8 +1231,8 @@ Kwal.status = (function() {
 Kwal.health = (function() {
   'use strict';
 
-  // Health bit definitions (must match NotifyState::getHealthBits())
-  // KRITIEK: Volgorde MOET matchen met enum StatusComponent in NotifyState.h!
+  // Health bit definitions (must match AlertState::getHealthBits())
+  // KRITIEK: Volgorde MOET matchen met enum StatusComponent in AlertState.h!
   var FLAGS = [
     { bit: 0, name: 'SD',       icon: '💾' },
     { bit: 1, name: 'WiFi',     icon: '📶' },
@@ -1247,7 +1247,7 @@ Kwal.health = (function() {
     { bit: 10, name: 'TTS',     icon: '🗣️' }
   ];
 
-  // Status values for 4-bit fields (must match NotifyState.h)
+  // Status values for 4-bit fields (must match AlertState.h)
   var STATUS_OK = 0;
   var STATUS_NOTOK = 15;
 

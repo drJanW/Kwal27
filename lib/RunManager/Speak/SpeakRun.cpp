@@ -14,7 +14,7 @@
 #include "SpeakWords.h"
 #include "PlaySentence.h"
 #include "Audio/AudioPolicy.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 #include "WiFiManager.h"
 #include "PRTClock.h"
 #include "SDManager.h"
@@ -92,7 +92,7 @@ void SpeakRun::speak(SpeakRequest request) {
     if (request == SpeakRequest::SAY_TIME) return;
 
     // TTS primary - requires WiFi
-    if (NotifyState::canPlayTTS()) {
+    if (AlertState::canPlayTTS()) {
         const char* sentence = getTtsSentence(request);
         if (sentence) {
             PF("[SpeakRun] TTS: %s\n", sentence);
@@ -102,7 +102,7 @@ void SpeakRun::speak(SpeakRequest request) {
     }
 
     // MP3 fallback - alleen SD nodig
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         PF("[SpeakRun] Cannot play MP3 (no SD)\n");
         return;
     }

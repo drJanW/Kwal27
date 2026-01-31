@@ -70,7 +70,7 @@ luxMeasurementDelayMs;u;200;LED blackout time before lux read
 #heartbeatDefaultMs;u;500;flash rate before first distance reading
 
 # ═══════════════════════════════════════════════════════════════════
-# NOTIFY (6 params)
+# ALERT (6 params)
 # ═════════════════════════════════════════════════════════════════
 # Flash burst: immediate repeating flashes when error detected
 #flashBurstIntervalMs;u;50000;interval between flash bursts (ms)

@@ -15,17 +15,17 @@
 #include "TimerManager.h"
 #include "PRTClock.h"
 #include "RunManager.h"
-#include "Notify/NotifyRun.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertRun.h"
+#include "Alert/AlertState.h"
 
 BootMaster bootMaster;
 
 namespace {
 
 void cb_endOfBoot() {
-    if (!NotifyState::isBootPhase()) return;  // already ended
+    if (!AlertState::isBootPhase()) return;  // already ended
     PL("[Boot] Timeout - forcing START_RUNTIME");
-    NotifyRun::report(NotifyRequest::START_RUNTIME);
+    AlertRun::report(AlertRequest::START_RUNTIME);
 }
 
 } // namespace
@@ -44,7 +44,7 @@ bool BootMaster::begin() {
 }
 
 void BootMaster::restartBootTimer() {
-    if (!NotifyState::isBootPhase()) return;  // already ended
+    if (!AlertState::isBootPhase()) return;  // already ended
     timers.cancel(cb_endOfBoot);
     timers.create(Globals::bootPhaseMs, 1, cb_endOfBoot);
     PF("[Boot] Timer restarted with bootPhaseMs=%u\n", Globals::bootPhaseMs);
@@ -66,11 +66,11 @@ void BootMaster::cb_bootstrap() {
                 if (!wasRunning) {
                     PF("[Run] Clock tick started with NTP (%02u:%02u:%02u)\n",
                        prtClock.getHour(), prtClock.getMinute(), prtClock.getSecond());
-                    NotifyRun::report(NotifyRequest::NTP_OK);
+                    AlertRun::report(AlertRequest::NTP_OK);
                 } else if (wasFallback) {
                     PF("[Run] Clock tick promoted to NTP (%02u:%02u:%02u)\n",
                        prtClock.getHour(), prtClock.getMinute(), prtClock.getSecond());
-                    NotifyRun::report(NotifyRequest::NTP_OK);
+                    AlertRun::report(AlertRequest::NTP_OK);
                 }
             } else {
                 PL("[Run] Failed to start clock tick with NTP");

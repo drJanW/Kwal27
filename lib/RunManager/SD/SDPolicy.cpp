@@ -14,7 +14,7 @@
 #include "Globals.h"        // for PF/PL macros if needed
 #include "AudioState.h"     // isAudioBusy, isSentencePlaying
 #include "Audio/AudioDirector.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 
 namespace SDPolicy {
 
@@ -41,8 +41,8 @@ bool lastBusy = false;
 }
 
 void showStatus(bool forceLog) {
-    const bool ready = NotifyState::isSdOk();
-    const bool busy = NotifyState::isSdBusy();
+    const bool ready = AlertState::isSdOk();
+    const bool busy = AlertState::isSdBusy();
 
     if (!forceLog && stateInitialized && ready == lastReady && busy == lastBusy) {
         return;

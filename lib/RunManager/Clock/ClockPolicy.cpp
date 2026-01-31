@@ -15,8 +15,8 @@
 #include "Globals.h"
 #include "I2CInitHelper.h"
 #include "PRTClock.h"
-#include "Notify/NotifyRun.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertRun.h"
+#include "Alert/AlertState.h"
 #include "TimerManager.h"
 
 #include <Wire.h>
@@ -63,7 +63,7 @@ void begin() {
         "RTC", SC_RTC,
         probeRtc,
         10, 1000, 1.5f,
-        NotifyRequest::RTC_OK, NotifyRequest::RTC_FAIL
+        AlertRequest::RTC_OK, AlertRequest::RTC_FAIL
     }, cb_rtcInit);
 }
 

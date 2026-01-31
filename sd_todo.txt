@@ -1,15 +1,15 @@
 SD TODO (status ownership refactor)
 
-Goal: SD status reads come only from NotifyState. SDManager should only write status.
+Goal: SD status reads come only from AlertState. SDManager should only write status.
 
-1) DONE: Introduced SD busy flag in NotifyState
+1) DONE: Introduced SD busy flag in AlertState
    - Added isSdBusy(), setSdBusy(bool)
    - Stored as separate atomic
 
 2) DONE: SDManager read APIs removed
    - Removed isReady() and isSDbusy()
 
-3) DONE: Replaced SDManager::isReady() call sites with NotifyState::isSdOk()
+3) DONE: Replaced SDManager::isReady() call sites with AlertState::isSdOk()
    - Files: lib/Globals/Globals.cpp
             lib/ConductManager/SD/SDPolicy.cpp
             lib/ConductManager/SD/SDBoot.cpp
@@ -23,13 +23,13 @@ Goal: SD status reads come only from NotifyState. SDManager should only write st
             lib/AudioManager/PlayPCM.cpp
             lib/WebInterfaceManager/handlers/SdHandlers.cpp
 
-4) DONE: Replaced SDManager::isSDbusy() call sites with NotifyState::isSdBusy()
+4) DONE: Replaced SDManager::isSDbusy() call sites with AlertState::isSdBusy()
    - Files: lib/ConductManager/SD/SDPolicy.cpp
             lib/ConductManager/Calendar/CalendarRun.cpp
             lib/ConductManager/Web/WebDirector.cpp
             lib/SDManager/SDVoting.cpp
             lib/WebInterfaceManager/handlers/SdHandlers.cpp
 
-5) DONE: SDManager now sets NotifyState SD ready/busy
+5) DONE: SDManager now sets AlertState SD ready/busy
 
-6) DONE: No remaining SD status reads outside NotifyState
+6) DONE: No remaining SD status reads outside AlertState

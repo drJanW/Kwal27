@@ -13,7 +13,7 @@
 #include "WiFiManager.h"
 #include <WiFi.h>
 #include "TimerManager.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 #include "HWconfig.h"
 #include "Globals.h"
 
@@ -37,20 +37,20 @@ static void configureStationMode() {
 // 1) If WiFi reports connected AND a valid local IP is present, this is the
 //    first stable connection after the retry loop. We then:
 //    - clear the one-shot "starting" log guard
-//    - mark WiFi OK in NotifyState
+//    - mark WiFi OK in AlertState
 //    - stop retry + status timers
 //    - start the slower connection check timer
 //
 // 2) If WiFi is not connected but we previously marked it OK, this is a
 //    transition to disconnected. We then:
-//    - set NotifyState back to "not OK" with the initial retry count
+//    - set AlertState back to "not OK" with the initial retry count
 //    - emit a single loss log (no timers are started here)
 static void cb_checkWiFiStatus() {
     if (WiFi.status() == WL_CONNECTED && WiFi.localIP() != INADDR_NONE) {
-        if (!NotifyState::isWifiOk()) {
+        if (!AlertState::isWifiOk()) {
             // First confirmed connection after retry loop
             loggedStart = false;
-            NotifyState::setStatusOK(SC_WIFI);
+            AlertState::setStatusOK(SC_WIFI);
             PF("[WiFi] Connected. IP: %s\n", WiFi.localIP().toString().c_str());
             timers.cancel(cb_retryConnect);
             timers.cancel(cb_checkWiFiStatus);
@@ -58,11 +58,11 @@ static void cb_checkWiFiStatus() {
         }
         return;
     }
-    if (NotifyState::isWifiOk()) {
-        // NotifyState carries the public WiFi status for UI and /api/health,
+    if (AlertState::isWifiOk()) {
+        // AlertState carries the public WiFi status for UI and /api/health,
         // so we flip it back to "not OK" on a confirmed disconnect.
         // Transition to disconnected state
-        NotifyState::set(SC_WIFI, static_cast<uint8_t>(abs(Globals::wifiRetryCount)));
+        AlertState::set(SC_WIFI, static_cast<uint8_t>(abs(Globals::wifiRetryCount)));
         PL("[WiFi] Lost connection");
     }
 }
@@ -72,11 +72,11 @@ static void cb_retryConnect() {
     if (WiFi.status() == WL_CONNECTED && WiFi.localIP() != INADDR_NONE) return;
 
     int remaining = timers.getRepeatCount(cb_retryConnect);
-    if (remaining != -1) NotifyState::set(SC_WIFI, abs(remaining));
+    if (remaining != -1) AlertState::set(SC_WIFI, abs(remaining));
 
     if (!timers.isActive(cb_retryConnect)) {
         PL("[WiFi] Max retries reached — giving up");
-        NotifyState::setStatusOK(SC_WIFI, false);
+        AlertState::setStatusOK(SC_WIFI, false);
         timers.cancel(cb_checkWiFiStatus);
         return;
     }
@@ -92,7 +92,7 @@ static void cb_checkWiFiConnection() {
 
     PL("[WiFi] Connection check failed — restarting connection");
     timers.cancel(cb_checkWiFiConnection);
-    NotifyState::set(SC_WIFI, static_cast<uint8_t>(abs(Globals::wifiRetryCount)));
+    AlertState::set(SC_WIFI, static_cast<uint8_t>(abs(Globals::wifiRetryCount)));
     bootWiFiConnect();
 }
 

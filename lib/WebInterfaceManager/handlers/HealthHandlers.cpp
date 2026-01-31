@@ -6,14 +6,14 @@
  *
  * Implements HTTP handlers for the /api/health endpoint.
  * Returns system health information including firmware version,
- * health status bits from NotifyState, and active timer count.
+ * health status bits from AlertState, and active timer count.
  * Also provides /api/restart for remote device restart.
  */
 
 #include <Arduino.h>
 #include "HealthHandlers.h"
 #include "Globals.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 #include "TimerManager.h"
 #include <ESP.h>
 
@@ -23,9 +23,9 @@ void handleHealth(AsyncWebServerRequest *request) {
     // Build JSON response
     String json = "{";
     json += "\"firmware\":\"" + String(FIRMWARE_VERSION) + "\",";
-    json += "\"health\":" + String(NotifyState::getHealthBits()) + ",";
-    json += "\"boot\":" + String(NotifyState::getBootStatus()) + ",";
-    json += "\"absent\":" + String(NotifyState::getAbsentBits()) + ",";
+    json += "\"health\":" + String(AlertState::getHealthBits()) + ",";
+    json += "\"boot\":" + String(AlertState::getBootStatus()) + ",";
+    json += "\"absent\":" + String(AlertState::getAbsentBits()) + ",";
     json += "\"timers\":" + String(timers.getActiveCount()) + ",";
     json += "\"maxTimers\":" + String(TimerManager::MAX_TIMERS);
     json += "}";

@@ -16,8 +16,8 @@
 #include "FetchManager.h"
 #include "TimerManager.h"
 #include "RunManager.h"
-#include "Notify/NotifyRun.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertRun.h"
+#include "Alert/AlertState.h"
 #include <WiFi.h>
 
 namespace {
@@ -38,7 +38,7 @@ namespace {
                 PL("[Main] Bootstrapping (NTP) ready");
             }
             // SD passed (we're post-SDBoot), WiFi up, clock running
-            NotifyRun::report(NotifyRequest::START_RUNTIME);
+            AlertRun::report(AlertRequest::START_RUNTIME);
         }
 
         timers.cancel(cb_moduleInit);
@@ -51,15 +51,15 @@ namespace {
         static bool lastWiFiState = false;
         static uint32_t lastWaitLogMs = 0;
 
-        bool wifiUp = NotifyState::isWifiOk();
+        bool wifiUp = AlertState::isWifiOk();
         if (wifiUp && !lastWiFiState) {
             PF("[Main] WiFi connected: %s\n", WiFi.localIP().toString().c_str());
             hwStatus |= HW_WIFI;
-            NotifyRun::report(NotifyRequest::WIFI_OK);
+            AlertRun::report(AlertRequest::WIFI_OK);
         } else if (!wifiUp && lastWiFiState) {
             PL("[Main] WiFi lost, retrying");
             hwStatus &= ~HW_WIFI;
-            NotifyRun::report(NotifyRequest::WIFI_FAIL);
+            AlertRun::report(AlertRequest::WIFI_FAIL);
         }
 
         if (!wifiUp) {

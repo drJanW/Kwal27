@@ -1,11 +1,11 @@
 ARCH TODO (status ownership)
 
-1) WiFi status reads: keep using NotifyState (done in code), verify no new wrapper reappears.
+1) WiFi status reads: keep using AlertState (done in code), verify no new wrapper reappears.
    - Files to watch: lib/WiFiManager/WiFiManager.cpp, lib/WiFiManager/WiFiManager.h, lib/WiFiManager/FetchManager.cpp, lib/OTAManager/OTAManager.cpp, lib/ConductManager/WiFi/WiFiBoot.cpp
 
-2) DONE: SensorManager readiness/failure reads moved to NotifyState.
+2) DONE: SensorManager readiness/failure reads moved to AlertState.
    - Removed SensorManager::isDistanceSensorReady(), isLuxSensorReady(), isSensor3Ready(), isDistanceSensorInitFailed(), isLuxSensorInitFailed()
-   - Call sites updated to NotifyState::isLuxSensorOk()
+   - Call sites updated to AlertState::isLuxSensorOk()
    - Files: lib/SensorManager/SensorManager.h, lib/SensorManager/SensorManager.cpp, lib/ConductManager/Light/LightRun.cpp
 
 3) SDManager exposes readiness/busy status via manager APIs. Move reads to state layer.

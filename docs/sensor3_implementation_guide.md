@@ -34,8 +34,8 @@ Sinds v260104 gebruikt het systeem `*_PRESENT` defines in `HWconfig.h`:
 | `Globals.h/cpp` | `sensor3DummyTemp` | Configureerbaar via CSV |
 | `globals.csv` | `#sensor3DummyTemp;f;25.0` | Uitgecommentarieerd |
 | `SensorsBoot.cpp` | Guard: skip init if `!SENSOR3_PRESENT` | **NEW**: Geen init poging |
-| `NotifyRGB.cpp` | Guard: skip flash if `!SENSOR3_PRESENT` | **NEW**: Geen flash |
-| `NotifyState.cpp` | `isPresent(SC_SENSOR3)` | **NEW**: Returns false |
+| `AlertRGB.cpp` | Guard: skip flash if `!SENSOR3_PRESENT` | **NEW**: Geen flash |
+| `AlertState.cpp` | `isPresent(SC_SENSOR3)` | **NEW**: Returns false |
 | `health.js` | WebGUI shows `—` for absent | **NEW**: v0104A |
 | `SpeakRun.cpp` | TTS "Sensor drie ontbreekt" | Klaar (niet getriggerd als absent) |
 
@@ -70,20 +70,20 @@ namespace {
         
         int remaining = TimerManager::instance().getRepeatCount(cb_sensor3Init);
         if (remaining != -1)
-            NotifyState::set(COMP_SENSOR3, abs(remaining));
+            AlertState::set(COMP_SENSOR3, abs(remaining));
         
         if (sensor3.begin()) {
             sensor3Ready = true;
             TimerManager::instance().cancel(cb_sensor3Init);
             PL("[SensorManager] Sensor3 (TMP117) ready");
-            NotifyState::setOk(COMP_SENSOR3, true);
-            NotifyRun::report(NotifyRequest::SENSOR3_OK);
+            AlertState::setOk(COMP_SENSOR3, true);
+            AlertRun::report(AlertRequest::SENSOR3_OK);
             return;
         }
         
         if (abs(remaining) == 1) {
             sensor3InitFailed = true;
-            NotifyRun::report(NotifyRequest::SENSOR3_FAIL);
+            AlertRun::report(AlertRequest::SENSOR3_FAIL);
             PL("[SensorManager] Sensor3 gave up after retries");
         }
     }
@@ -108,7 +108,7 @@ float SensorManager::getSensor3Value() {
 }
 ```
 
-### 5. NotifyState.cpp reset() aanpassen
+### 5. AlertState.cpp reset() aanpassen
 
 Verwijder deze regel (sensor3 start nu als "nog niet geïnitialiseerd"):
 ```cpp
@@ -119,7 +119,7 @@ setOk(COMP_SENSOR3, false);  // DELETE: was placeholder
 
 `SpeakRun::speakFailures()` bevat al:
 ```cpp
-if (!NotifyState::isOk(COMP_SENSOR3)) speak(SpeakRequest::SENSOR3_FAIL);
+if (!AlertState::isOk(COMP_SENSOR3)) speak(SpeakRequest::SENSOR3_FAIL);
 ```
 
 Dit werkt automatisch zodra sensor3 faalt.
@@ -136,7 +136,7 @@ sensor3DummyTemp;f;25.0;fallback temp when sensor3 absent
 1. **I2C adres conflict check** - scan bus eerst
 2. **Retry count** - volg patroon: `-10` voor 10 retries met growing interval
 3. **TTS tekst** - "Sensor drie ontbreekt" al klaar, of wijzig in SpeakRun.cpp
-4. **Flash kleur** - `NotifyPolicy::COLOR_SENSOR3` al gedefinieerd
+4. **Flash kleur** - `AlertPolicy::COLOR_SENSOR3` al gedefinieerd
 
 ## Architectuur patroon
 
@@ -147,9 +147,9 @@ SensorsBoot::configure()
   └── SensorManager::beginSensor3()
         └── TimerManager::create(..., cb_sensor3Init)
               └── cb_sensor3Init() [growing interval retries]
-                    ├── Success: NotifyRun::report(SENSOR3_OK)
-                    └── Fail: NotifyRun::report(SENSOR3_FAIL)
-                                └── NotifyState::setSensor3Status(false)
+                    ├── Success: AlertRun::report(SENSOR3_OK)
+                    └── Fail: AlertRun::report(SENSOR3_FAIL)
+                                └── AlertState::setSensor3Status(false)
                                       └── speakFailure() + RGB flash
 ```
 
@@ -163,7 +163,7 @@ void SensorManager::beginSensor3() {
         "Sensor3", COMP_SENSOR3,
         []() { return sensor3.begin(); },
         -10, 1000,
-        NotifyRequest::SENSOR3_OK, NotifyRequest::SENSOR3_FAIL
+        AlertRequest::SENSOR3_OK, AlertRequest::SENSOR3_FAIL
     });
 }
 ```

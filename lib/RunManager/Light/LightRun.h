@@ -66,7 +66,7 @@ public:
     // Apply combined pattern+color to lights (call after any pattern/color change)
     static void applyToLights();
     
-    // Reapply current pattern/color (used by NotifyRGB to restore after notification)
+    // Reapply current pattern/color (used by AlertRGB to restore after alert)
     static void reapplyCurrentShow();
 
     static bool selectPattern(const String &id, String &errorMessage);

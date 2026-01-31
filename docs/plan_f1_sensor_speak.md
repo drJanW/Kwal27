@@ -14,8 +14,8 @@
 
 ```
 SensorManager.cpp
-  ├── cb_distanceSensorInit()     // retry logic, NotifyState calls
-  ├── cb_luxSensorInit()          // retry logic, NotifyState calls  
+  ├── cb_distanceSensorInit()     // retry logic, AlertState calls
+  ├── cb_luxSensorInit()          // retry logic, AlertState calls  
   └── cb_readDistance/Lux()       // periodic reads
 
 SensorsBoot.cpp
@@ -61,7 +61,7 @@ SensorsPolicy.cpp
 
 ### Aanpak
 
-1. **TTS primair** - wacht tot `NotifyState::isOk(COMP_TTS)`, dan `AudioPolicy::requestSentence()`
+1. **TTS primair** - wacht tot `AlertState::isOk(COMP_TTS)`, dan `AudioPolicy::requestSentence()`
 2. **MP3 fallback** - alleen als TTS niet beschikbaar (boot fase)
 
 ### Zinnen (TTS)
@@ -78,7 +78,7 @@ SensorsPolicy.cpp
 ```
 cb_distanceInit() last retry failed
   → SensorsRun::onSensorFail(COMP_DIST)
-    → if (NotifyState::isOk(COMP_TTS))
+    → if (AlertState::isOk(COMP_TTS))
         AudioPolicy::requestSentence("Afstandmeter werkt niet")
       else
         // MP3 fallback of skip
@@ -86,7 +86,7 @@ cb_distanceInit() last retry failed
 cb_readDistance() [TimerManager]
   → distance was < min, now >= min (ping ended)
     → SensorsRun::onDistanceCleared()
-      → if (NotifyState::isOk(COMP_TTS))
+      → if (AlertState::isOk(COMP_TTS))
           AudioPolicy::requestSentence("Object is verdwenen")
 ```
 
@@ -101,7 +101,7 @@ namespace {
         
         int remaining = TimerManager::instance().getRepeatCount(cb_distanceInit);
         if (remaining != -1)
-            NotifyState::set(COMP_DIST, abs(remaining));
+            AlertState::set(COMP_DIST, abs(remaining));
         
         if (SensorManager::beginDistance()) {
             TimerManager::instance().cancel(cb_distanceInit);
@@ -130,14 +130,14 @@ void SensorDirector::armInitTimers() {
 
 ```cpp
 void SensorsRun::onSensorReady(StatusComponent comp) {
-    NotifyState::setOk(comp, true);
+    AlertState::setOk(comp, true);
     
     switch (comp) {
         case COMP_DIST:
-            NotifyRun::report(NotifyRequest::DISTANCE_SENSOR_OK);
+            AlertRun::report(AlertRequest::DISTANCE_SENSOR_OK);
             break;
         case COMP_LUX:
-            NotifyRun::report(NotifyRequest::LUX_SENSOR_OK);
+            AlertRun::report(AlertRequest::LUX_SENSOR_OK);
             break;
         default:
             break;
@@ -145,22 +145,22 @@ void SensorsRun::onSensorReady(StatusComponent comp) {
 }
 
 void SensorsRun::onSensorFail(StatusComponent comp) {
-    NotifyState::setOk(comp, false);
+    AlertState::setOk(comp, false);
     
-    // Report to NotifyRun
+    // Report to AlertRun
     switch (comp) {
         case COMP_DIST:
-            NotifyRun::report(NotifyRequest::DISTANCE_SENSOR_FAIL);
+            AlertRun::report(AlertRequest::DISTANCE_SENSOR_FAIL);
             break;
         case COMP_LUX:
-            NotifyRun::report(NotifyRequest::LUX_SENSOR_FAIL);
+            AlertRun::report(AlertRequest::LUX_SENSOR_FAIL);
             break;
         default:
             break;
     }
     
     // TTS announcement (if ready)
-    if (!NotifyState::isOk(COMP_TTS)) return;
+    if (!AlertState::isOk(COMP_TTS)) return;
     
     switch (comp) {
         case COMP_DIST:
@@ -178,7 +178,7 @@ void SensorsRun::onSensorFail(StatusComponent comp) {
 }
 
 void SensorsRun::onDistanceCleared() {
-    if (!NotifyState::isOk(COMP_TTS)) return;
+    if (!AlertState::isOk(COMP_TTS)) return;
     AudioPolicy::requestSentence("Object is verdwenen");
 }
 ```

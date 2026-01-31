@@ -31,7 +31,7 @@ Run Manager is the decision layer: it consumes context plus request inputs (user
 Each Policy (AudioPolicy, LightPolicy, SDPolicy, etc.) is now a focused ruleset: given a request and the current context, it enforces local constraints (context-driven brightness caps, playback arbitration) before delegating to the subsystem managers.
 Net effect: context collects facts, run chooses actions, policies enforce domain-specific guardrails—clean separation that keeps subsystems modular and easier to evolve.
 
-Status ownership rule: managers only write status to NotifyState (or ContextStatus). All status reads must come from NotifyState (or ContextStatus), not Manager APIs.
+Status ownership rule: managers only write status to AlertState (or ContextStatus). All status reads must come from AlertState (or ContextStatus), not Manager APIs.
 
 A TimerManager slot fires and runs its callback (e.g., hourly “say time”, periodic fragment shuffle).
 Each callback raises a request toward RunManager (or directly queues a ContextManager refresh), never touching hardware.

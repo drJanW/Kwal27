@@ -69,7 +69,7 @@ Runtime flags set during boot. Check with `if (hwStatus & HW_xxx)`.
 **Trigger**: Sensor init fails after retries with growing interval
 
 **Behavior**:
-- RGB notify flash burst (NotifyRGB state machine)
+- RGB alert flash burst (AlertRGB state machine)
 - TTS announcement of failure
 - Sensor returns dummy values
 
@@ -112,16 +112,16 @@ Runtime flags set during boot. Check with `if (hwStatus & HW_xxx)`.
 | Boot fragment trigger | CalendarRun.cpp → RunManager.cpp |
 | Voting score | SDVoting.cpp, WebGuiStatus.cpp |
 
-## NotifyRGB Flash Patterns
+## AlertRGB Flash Patterns
 
-State machine in NotifyRGB.cpp handles flash sequences:
+State machine in AlertRGB.cpp handles flash sequences:
 - Builds sequence from context bits (failures/successes)
 - Single `cb_sequenceStep` callback advances through steps
 - Colors: cyan (OK), magenta (warning), red (error), black (gap)
 
-## NotifyState Reports
+## AlertState Reports
 
-Each failure should report via `NotifyState::set*Status()`:
+Each failure should report via `AlertState::set*Status()`:
 
 - `SD_FAIL` - after retries exhausted
 - `WIFI_FAIL` - on disconnect (transition)

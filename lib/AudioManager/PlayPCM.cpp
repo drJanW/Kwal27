@@ -17,7 +17,7 @@
 #include "SDManager.h"
 #include "TimerManager.h"
 #include "MathUtils.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 #include <SD.h>
 #include <cstring>
 #include <new>
@@ -75,7 +75,7 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
   outClip = {};
   storage.reset();
 
-  if (!NotifyState::isSdOk()) {
+  if (!AlertState::isSdOk()) {
     PCM_LOG_WARN("[PlayPCM] SD not ready, skipping %s\n", path);
     return false;
   }

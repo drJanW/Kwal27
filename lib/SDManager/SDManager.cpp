@@ -17,7 +17,7 @@
 #include <Arduino.h>
 #include "SDManager.h"
 #include "SdPathUtils.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 #include <cstring>
 
 // NOTE: File timestamps use system time set by PRTClock via settimeofday().
@@ -47,13 +47,13 @@ bool SDManager::begin(uint8_t csPin, SPIClass& spi, uint32_t hz) {
 
 void SDManager::setReady(bool ready) {
     ready_.store(ready, std::memory_order_relaxed);
-    NotifyState::setStatusOK(SC_SD, ready);
+    AlertState::setStatusOK(SC_SD, ready);
 }
 
 void SDManager::lockSD() {
     uint8_t prev = lockCount_.fetch_add(1, std::memory_order_relaxed);
     if (prev == 0) {
-        NotifyState::setSdBusy(true);
+        AlertState::setSdBusy(true);
     }
 }
 
@@ -62,7 +62,7 @@ void SDManager::unlockSD() {
     if (prev > 0) {
         uint8_t before = lockCount_.fetch_sub(1, std::memory_order_relaxed);
         if (before == 1) {
-            NotifyState::setSdBusy(false);
+            AlertState::setSdBusy(false);
         }
     }
 }

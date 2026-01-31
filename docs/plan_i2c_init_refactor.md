@@ -4,7 +4,7 @@
 
 Elke I2C device (RTC, VL53L1X, VEML7700, Sensor3, toekomstige Sensor4-6) heeft identieke init logica:
 - Timer met growing interval
-- Retry count naar NotifyState
+- Retry count naar AlertState
 - Try device.begin()
 - Succes/fail reporting
 
@@ -26,8 +26,8 @@ struct I2CInitConfig {
     I2CProbeFunc probe;         // []() { return rtc.begin(); }
     int maxRetries;             // 15
     uint32_t startDelayMs;      // 1000
-    NotifyRequest okRequest;      // NotifyRequest::RTC_OK
-    NotifyRequest failRequest;    // NotifyRequest::RTC_FAIL
+    AlertRequest okRequest;      // AlertRequest::RTC_OK
+    AlertRequest failRequest;    // AlertRequest::RTC_FAIL
 };
 
 namespace I2CInitHelper {
@@ -46,7 +46,7 @@ void begin() {
         "RTC", SC_RTC,
         []() { return rtc.begin(); },
         10, 1000, 1.5f,
-        NotifyRequest::RTC_OK, NotifyRequest::RTC_FAIL
+        AlertRequest::RTC_OK, AlertRequest::RTC_FAIL
     });
 }
 
@@ -56,7 +56,7 @@ void beginDistanceSensor() {
         "Distance", SC_DIST,
         []() { return VL53L1X_begin(); },
         15, 1000, 1.5f,
-        NotifyRequest::DISTANCE_SENSOR_OK, NotifyRequest::DISTANCE_SENSOR_FAIL
+        AlertRequest::DISTANCE_SENSOR_OK, AlertRequest::DISTANCE_SENSOR_FAIL
     });
 }
 
@@ -66,7 +66,7 @@ void beginSensor3() {
         "Sensor3", SC_SENSOR3,
         []() { return sensor3.begin(); },
         10, 1000, 1.75f,
-        NotifyRequest::SENSOR3_OK, NotifyRequest::SENSOR3_FAIL
+        AlertRequest::SENSOR3_OK, AlertRequest::SENSOR3_FAIL
     });
 }
 ```
@@ -75,7 +75,7 @@ void beginSensor3() {
 
 Voor toekomstige sensors moeten toegevoegd worden:
 
-1. **NotifyState.h** - enum StatusComponent uitbreiden:
+1. **AlertState.h** - enum StatusComponent uitbreiden:
    ```cpp
    SC_SENSOR4,
    SC_SENSOR5,
@@ -83,7 +83,7 @@ Voor toekomstige sensors moeten toegevoegd worden:
    SC_COUNT  // blijft laatste
    ```
 
-2. **NotifyRequest** - OK/FAIL requests toevoegen
+2. **AlertRequest** - OK/FAIL requests toevoegen
 
 3. **health.js** - FLAGS array synchroon houden
 

@@ -131,8 +131,8 @@ A6. Architecture Over Convenience. MANDATORY.
 - Only present rule-compliant options
 
 A7. Status Ownership. MANDATORY.
-- Managers write status to NotifyState (or ContextStatus) only
-- All status reads come from NotifyState (or ContextStatus), not Manager APIs
+- Managers write status to AlertState (or ContextStatus) only
+- All status reads come from AlertState (or ContextStatus), not Manager APIs
 
 
 ================================================================
@@ -220,7 +220,7 @@ N4. Accountability. MANDATORY.
 
 N5. Use Existing Solutions. MANDATORY.
 - BEFORE any code change: search repo for existing solution
-- Check: Does gating with status64 / NotifyState already handle this?
+- Check: Does gating with status64 / AlertState already handle this?
 - Check: Is there a can*() or is*() or set*() or get*() function for this problem?
 - If tempted to add flag/guard/wrapper → STOP, search first
 - Re-inventing wheels = violation

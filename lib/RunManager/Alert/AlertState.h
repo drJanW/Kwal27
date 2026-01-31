@@ -1,5 +1,5 @@
 /**
- * @file NotifyState.h
+ * @file AlertState.h
  * @brief Hardware status state storage
  * @version 260104M
  * @date 2026-01-04
@@ -7,7 +7,7 @@
  * Stores hardware component status in a single uint64_t with 4-bit fields.
  * Each component uses 4 bits: 0=OK, 1-14=retries remaining, 15=FAILED.
  * Status ownership: managers only write status here; status reads must come from
- * NotifyState (or ContextStatus), not Manager APIs.
+ * AlertState (or ContextStatus), not Manager APIs.
  * 
  * Status values (SC_Status enum):
  *   OK (0)       - Component working normally
@@ -57,7 +57,7 @@ enum class SC_Status : uint8_t {
 constexpr uint8_t STATUS_OK = 0;
 constexpr uint8_t STATUS_NOTOK = 15;  // 0xF
 
-namespace NotifyState {
+namespace AlertState {
     // ===== NEW API (v4) =====
     uint8_t get(StatusComponent c);
     void set(StatusComponent c, uint8_t value);
@@ -72,7 +72,7 @@ namespace NotifyState {
     uint64_t getBootStatus();
     
     // ===== LEGACY API (backward compatible) =====
-    // Status setters - alleen aangeroepen door NotifyRun::report()
+    // Status setters - alleen aangeroepen door AlertRun::report()
     void setSdStatus(bool status);
     void setWifiStatus(bool status);
     void setRtcStatus(bool status);

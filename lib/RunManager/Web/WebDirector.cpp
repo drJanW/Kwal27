@@ -16,7 +16,7 @@
 #include "SDManager.h"
 #include "Light/LightRun.h"
 #include "SdPathUtils.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 
 #include <ArduinoJson.h>
 #include <SD.h>
@@ -825,7 +825,7 @@ void WebDirector::finalizeJob(Job &job) {
             job.payloadBuffer += F("\",\"parent\":\"");
             appendJsonEscaped(job.payloadBuffer, job.parentPath.c_str());
             job.payloadBuffer += F("\",\"ready\":true,\"busy\":");
-            job.payloadBuffer += NotifyState::isSdBusy() ? F("true") : F("false");
+            job.payloadBuffer += AlertState::isSdBusy() ? F("true") : F("false");
             job.payloadBuffer += F(",\"entryCount\":");
             job.payloadBuffer += String(job.entryCount);
             job.payloadBuffer += F(",\"truncated\":");

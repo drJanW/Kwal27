@@ -5,15 +5,15 @@
  * @date 2026-01-01
  *
  * Provides unified initialization logic for I2C devices (RTC, sensors).
- * Each device gets retries with growing interval and NotifyState updates.
+ * Each device gets retries with growing interval and AlertState updates.
  * Replaces duplicate init code in ClockPolicy and SensorManager.
  */
 
 #pragma once
 
 #include <stdint.h>
-#include "Notify/NotifyState.h"
-#include "Notify/NotifyRun.h"
+#include "Alert/AlertState.h"
+#include "Alert/AlertRun.h"
 
 // Callback type: returns true if device.begin() succeeded
 using I2CProbeFunc = bool(*)();
@@ -28,8 +28,8 @@ struct I2CInitConfig {
     uint8_t maxRetries;         // 10, 14, 13 (positive count)
     uint32_t startDelayMs;      // 1000
     float growth;               // 1.5f (interval multiplier per retry)
-    NotifyRequest okRequest;      // NotifyRequest::RTC_OK
-    NotifyRequest failRequest;    // NotifyRequest::RTC_FAIL
+    AlertRequest okRequest;      // AlertRequest::RTC_OK
+    AlertRequest failRequest;    // AlertRequest::RTC_FAIL
 };
 
 namespace I2CInitHelper {

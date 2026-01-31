@@ -33,8 +33,8 @@
 #endif
 
 #include <Adafruit_VEML7700.h>
-#include "Notify/NotifyRun.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertRun.h"
+#include "Alert/AlertState.h"
 
 namespace {
   constexpr uint8_t Q_MASK = 0x0F;          // queue size 16
@@ -141,11 +141,11 @@ void SensorManager::beginDistanceSensor() {
       "Distance", SC_DIST,
       probeDistanceSensor,
       14, Globals::distanceSensorInitDelayMs, Globals::distanceSensorInitGrowth,
-      NotifyRequest::DISTANCE_SENSOR_OK, NotifyRequest::DISTANCE_SENSOR_FAIL
+      AlertRequest::DISTANCE_SENSOR_OK, AlertRequest::DISTANCE_SENSOR_FAIL
   }, cb_distanceInit);
 #else
-  NotifyState::setStatusOK(SC_DIST, false);
-  NotifyRun::report(NotifyRequest::DISTANCE_SENSOR_FAIL);
+  AlertState::setStatusOK(SC_DIST, false);
+  AlertRun::report(AlertRequest::DISTANCE_SENSOR_FAIL);
   PL("[SensorManager] DistanceSensor (VL53L1X) disabled");
 #endif
 }
@@ -157,7 +157,7 @@ void SensorManager::beginLuxSensor() {
       "Lux", SC_LUX,
       probeLuxSensor,
       13, Globals::luxSensorInitDelayMs, Globals::luxSensorInitGrowth,
-      NotifyRequest::LUX_SENSOR_OK, NotifyRequest::LUX_SENSOR_FAIL
+      AlertRequest::LUX_SENSOR_OK, AlertRequest::LUX_SENSOR_FAIL
   }, cb_luxInit);
 }
 

@@ -15,7 +15,7 @@
 #include "ContextStatus.h"
 #include "TimeOfDay.h"
 #include "ContextManager.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 #include "Globals.h"
 #include "HWconfig.h"
 
@@ -148,14 +148,14 @@ uint64_t getTimeOfDayBits() {
 uint64_t getHardwareFailBits() {
     uint64_t bits = 0;
     // SD and WiFi always required
-    if (!NotifyState::isSdOk())             bits |= (1ULL << STATUS_SD_OK);
-    if (!NotifyState::isWifiOk())           bits |= (1ULL << STATUS_WIFI_OK);
+    if (!AlertState::isSdOk())             bits |= (1ULL << STATUS_SD_OK);
+    if (!AlertState::isWifiOk())           bits |= (1ULL << STATUS_WIFI_OK);
     // Optional hardware: only count as fail if PRESENT
-    if (RTC_PRESENT && !NotifyState::isRtcOk())                       bits |= (1ULL << STATUS_RTC_OK);
-    if (!NotifyState::isNtpOk())                                      bits |= (1ULL << STATUS_NTP_OK);
-    if (DISTANCE_SENSOR_PRESENT && !NotifyState::isDistanceSensorOk()) bits |= (1ULL << STATUS_DISTANCE_SENSOR_OK);
-    if (LUX_SENSOR_PRESENT && !NotifyState::isLuxSensorOk())           bits |= (1ULL << STATUS_LUX_SENSOR_OK);
-    if (SENSOR3_PRESENT && !NotifyState::isSensor3Ok())                bits |= (1ULL << STATUS_SENSOR3_OK);
+    if (RTC_PRESENT && !AlertState::isRtcOk())                       bits |= (1ULL << STATUS_RTC_OK);
+    if (!AlertState::isNtpOk())                                      bits |= (1ULL << STATUS_NTP_OK);
+    if (DISTANCE_SENSOR_PRESENT && !AlertState::isDistanceSensorOk()) bits |= (1ULL << STATUS_DISTANCE_SENSOR_OK);
+    if (LUX_SENSOR_PRESENT && !AlertState::isLuxSensorOk())           bits |= (1ULL << STATUS_LUX_SENSOR_OK);
+    if (SENSOR3_PRESENT && !AlertState::isSensor3Ok())                bits |= (1ULL << STATUS_SENSOR3_OK);
     return bits;
 }
 

@@ -6,8 +6,8 @@
 Kwal.health = (function() {
   'use strict';
 
-  // Health bit definitions (must match NotifyState::getHealthBits())
-  // KRITIEK: Volgorde MOET matchen met enum StatusComponent in NotifyState.h!
+  // Health bit definitions (must match AlertState::getHealthBits())
+  // KRITIEK: Volgorde MOET matchen met enum StatusComponent in AlertState.h!
   var FLAGS = [
     { bit: 0, name: 'SD',       icon: '💾' },
     { bit: 1, name: 'WiFi',     icon: '📶' },
@@ -22,7 +22,7 @@ Kwal.health = (function() {
     { bit: 10, name: 'TTS',     icon: '🗣️' }
   ];
 
-  // Status values for 4-bit fields (must match NotifyState.h)
+  // Status values for 4-bit fields (must match AlertState.h)
   var STATUS_OK = 0;
   var STATUS_NOTOK = 15;
 

@@ -1,19 +1,19 @@
 /**
- * @file NotifyRequest.h
- * @brief Hardware notification request enumeration
+ * @file AlertRequest.h
+ * @brief Hardware alert request enumeration
  * @version 251231G
  * @date 2025-12-31
  *
- * Defines the NotifyRequest enum for all hardware status notifications.
+ * Defines the AlertRequest enum for all hardware status alerts.
  * Each component has an OK/FAIL pair for reporting initialization results.
- * Used by modules to report status to the notification coordinator.
+ * Used by modules to report status to the alert coordinator.
  */
 
 #pragma once
 
 #include <stdint.h>
 
-enum class NotifyRequest : uint8_t {
+enum class AlertRequest : uint8_t {
     // Component status (OK/FAIL pairs)
     SD_OK,
     SD_FAIL,

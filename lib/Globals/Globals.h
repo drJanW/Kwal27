@@ -32,7 +32,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260131D"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260131E"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -138,7 +138,7 @@ struct Globals {
     inline static uint16_t heartbeatDefaultMs      = 500U;        // Default heartbeat rate
 
     // ─────────────────────────────────────────────────────────────
-    // NOTIFY (7 params)
+    // ALERT (7 params)
     // ─────────────────────────────────────────────────────────────
     // One burst = black(1s) + color(1-2s) + black(1s) ≈ 3-4s total
     // Flash burst: immediate flashes when error detected

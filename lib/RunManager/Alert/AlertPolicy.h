@@ -1,12 +1,12 @@
 /**
- * @file NotifyPolicy.h
- * @brief Hardware failure notification business logic
+ * @file AlertPolicy.h
+ * @brief Hardware failure alert business logic
  * @version 251231I
  * @date 2025-12-31
  *
- * Contains business logic and configuration for failure notifications. Defines
+ * Contains business logic and configuration for failure alerts. Defines
  * RGB colors for each component failure type, blink timing constants, and
- * notification priority rules.
+ * alert priority rules.
  */
 
 #pragma once
@@ -14,7 +14,7 @@
 #include <stdint.h>
 #include <FastLED.h>
 
-namespace NotifyPolicy {
+namespace AlertPolicy {
     void configure();
     
     // RGB cycle timing - critical failures get longer flash

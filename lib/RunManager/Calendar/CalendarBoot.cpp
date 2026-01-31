@@ -16,7 +16,7 @@
 #include "Globals.h"
 #include "TimerManager.h"
 #include "PRTClock.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 #include <SD.h>
 
 bool InitTodayContext(fs::FS& sd, const char* rootPath = "/");
@@ -41,11 +41,11 @@ void cb_retry() {
   // Update boot status with remaining retries
   int remaining = timers.getRepeatCount(cb_retry);
   if (remaining != -1)
-    NotifyState::set(SC_CALENDAR, abs(remaining));
+    AlertState::set(SC_CALENDAR, abs(remaining));
 
   // Check if timer exhausted
   if (!timers.isActive(cb_retry)) {
-    NotifyState::setStatusOK(SC_CALENDAR, false);
+    AlertState::setStatusOK(SC_CALENDAR, false);
     PF("[CalendarBoot] Gave up after 14 retries\n");
     return;
   }
@@ -68,7 +68,7 @@ void cancelRetry() {
 } // namespace
 
 void CalendarBoot::plan() {
-  if (!NotifyState::isSdOk()) {
+  if (!AlertState::isSdOk()) {
     if (!loggedSdWait) {
       PF("[CalendarBoot] SD not ready, retrying\n");
       loggedSdWait = true;
@@ -111,6 +111,6 @@ void CalendarBoot::plan() {
   loggedContextFail = false;
 
   PF("[CalendarBoot] Today context initialised\n");
-  NotifyState::setStatusOK(SC_CALENDAR);
+  AlertState::setStatusOK(SC_CALENDAR);
   cancelRetry();
 }

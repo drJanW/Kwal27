@@ -31,7 +31,7 @@ Every subsystem that lives under `lib/RunManager/**` follows the same stack so w
 
 ## Error Notification Behavior
 
-When hardware fails (SD card, sensors, etc.), the system uses `NotifyPolicy` and `NotifyRGB` to provide visual feedback.
+When hardware fails (SD card, sensors, etc.), the system uses `AlertPolicy` and `AlertRGB` to provide visual feedback.
 
 ### Hardware Presence Architecture (v260104+)
 
@@ -46,7 +46,7 @@ One burst = black(1s) + color(1-2s) + black(1s) ≈ 3-4s per failing component.
 
 1. **Boot flash**: 2× bursts immediately when error detected
 2. **Reminder flashes**: After boot burst, single flash at growing intervals (2, 20, 200, 2000... min)
-3. **Component colors**: Each hardware type has a unique color (defined in `NotifyPolicy.h`)
+3. **Component colors**: Each hardware type has a unique color (defined in `AlertPolicy.h`)
 
 ### Status Values (`SC_Status`)
 
@@ -58,7 +58,7 @@ One burst = black(1s) + color(1-2s) + black(1s) ≈ 3-4s per failing component.
 | `FAILED` | Gave up | ❌ |
 | `ABSENT` | Hardware not present | — |
 
-Files: `NotifyPolicy.h`, `NotifyRGB.cpp`, `NotifyState.h`, `NotifyState.cpp`
+Files: `AlertPolicy.h`, `AlertRGB.cpp`, `AlertState.h`, `AlertState.cpp`
 
 ## Logging + Telemetry Rules
 
@@ -72,7 +72,7 @@ Files: `NotifyPolicy.h`, `NotifyRGB.cpp`, `NotifyState.h`, `NotifyState.cpp`
 - ✅ Directors read data (calendar CSV, SD index, sensors) and return structured plans. They never make policy decisions.
 - ✅ Policies accept a plan and spit back either a green-light (with concrete numbers) or “no” with a reason. No side effects besides cached clamp state.
 - ✅ Managers expose explicit APIs for every action; do not reach into singletons or globals directly from run/policy code.
-- ✅ Managers write status to NotifyState (or ContextStatus); status reads belong to NotifyState (or ContextStatus), not Manager APIs.
+- ✅ Managers write status to AlertState (or ContextStatus); status reads belong to AlertState (or ContextStatus), not Manager APIs.
 - ❌ No layer except managers talks to hardware (`FastLED`, `I2S`, `SPI`, raw GPIO).
 - ❌ Policies never schedule timers, mutate manager state directly, or call other policies.
 - ❌ Runners do not normalise raw sensor readings—that belongs to the relevant input policy/manager.

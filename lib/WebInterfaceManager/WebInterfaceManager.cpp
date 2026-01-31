@@ -19,7 +19,7 @@
 #include "SDManager.h"
 #include "RunManager.h"
 #include "SDVoting.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 #include "Light/LightRun.h"
 
 // Handler modules
@@ -58,7 +58,7 @@ namespace {
 
 void handleRoot(AsyncWebServerRequest *request)
 {
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         request->send(503, "text/plain", "OUT OF ORDER - SD card failure");
         return;
     }

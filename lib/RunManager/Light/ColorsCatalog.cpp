@@ -18,7 +18,7 @@
 #include "CsvUtils.h"
 #include "LightManager.h"
 #include "PatternCatalog.h"  // For previewColors only
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 
 namespace {
 constexpr const char* kColorPath = "/light_colors.csv";
@@ -58,7 +58,7 @@ void ColorsCatalog::begin() {
         return;
     }
     // Don't init if SD isn't ready - we'll be called again later
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         return;
     }
     colors_.clear();
@@ -414,7 +414,7 @@ bool ColorsCatalog::previewColors(JsonVariantConst body, String& errorMessage)
 }
 
 bool ColorsCatalog::loadColorsFromSD() {
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         return false;
     }
     if (!SDManager::fileExists(kColorPath)) {
@@ -481,7 +481,7 @@ bool ColorsCatalog::loadColorsFromSD() {
 }
 
 bool ColorsCatalog::saveColorsToSD() const {
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         return false;
     }
     SDManager::deleteFile(kColorPath);

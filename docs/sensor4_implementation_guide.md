@@ -34,46 +34,46 @@ PARSE_FLOAT("sensor4DummyTemp", sensor4DummyTemp)
 #sensor4DummyTemp;f;25.0;fallback when sensor4 absent
 ```
 
-### 4. NotifyRequest.h
+### 4. AlertRequest.h
 
 ```cpp
 SENSOR4_OK,
 SENSOR4_FAIL,
 ```
 
-### 5. NotifyState.h / NotifyState.cpp
+### 5. AlertState.h / AlertState.cpp
 
 ```cpp
-// NotifyState.h - in Component enum
+// AlertState.h - in Component enum
 COMP_SENSOR4 = 7,  // bit 7 (na COMP_SENSOR3 = 6)
 
-// NotifyState.cpp
+// AlertState.cpp
 void setSensor4Status(bool isOK);
 bool isSensor4Ok();
 
 // Implementatie identiek aan setSensor3Status
 ```
 
-### 6. NotifyRun.cpp
+### 6. AlertRun.cpp
 
 ```cpp
-case NotifyRequest::SENSOR4_OK:
-    NotifyState::setSensor4Status(true);
+case AlertRequest::SENSOR4_OK:
+    AlertState::setSensor4Status(true);
     break;
-case NotifyRequest::SENSOR4_FAIL:
-    NotifyState::setSensor4Status(false);
+case AlertRequest::SENSOR4_FAIL:
+    AlertState::setSensor4Status(false);
     break;
 ```
 
-### 7. NotifyRGB.cpp (optioneel)
+### 7. AlertRGB.cpp (optioneel)
 
 ```cpp
-// Nieuwe kleur definiëren in NotifyPolicy.h
+// Nieuwe kleur definiëren in AlertPolicy.h
 static constexpr CRGB COLOR_SENSOR4 = CRGB::Cyan;  // kies kleur
 
-// In NotifyRGB.cpp flash functie
+// In AlertRGB.cpp flash functie
 #if SENSOR4_FLASH_ENABLED
-if (!NotifyState::isSensor4Ok()) flashColor(COLOR_SENSOR4);
+if (!AlertState::isSensor4Ok()) flashColor(COLOR_SENSOR4);
 #endif
 ```
 
@@ -95,7 +95,7 @@ case SpeakRequest::SENSOR4_FAIL:
     return {MP3_SENSOR, 4, MP3_END};
 
 // In speakFailures()
-if (!NotifyState::isSensor4Ok()) speak(SpeakRequest::SENSOR4_FAIL);
+if (!AlertState::isSensor4Ok()) speak(SpeakRequest::SENSOR4_FAIL);
 ```
 
 ### 10. SensorManager.cpp
@@ -129,11 +129,11 @@ SensorManager::beginSensor4();
 
 - [ ] HWconfig.h defines
 - [ ] Globals variabele + CSV
-- [ ] NotifyRequest enum (OK + FAIL)
+- [ ] AlertRequest enum (OK + FAIL)
 - [ ] COMP_SENSOR4 in Component enum
-- [ ] NotifyState set/is functies
-- [ ] NotifyRun case handlers
-- [ ] NotifyRGB flash kleur (optioneel)
+- [ ] AlertState set/is functies
+- [ ] AlertRun case handlers
+- [ ] AlertRGB flash kleur (optioneel)
 - [ ] SpeakRequest enum
 - [ ] SpeakRun TTS + MP3 + speakFailures
 - [ ] SensorManager init + read

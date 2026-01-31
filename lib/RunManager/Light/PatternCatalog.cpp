@@ -16,7 +16,7 @@
 
 #include "CsvUtils.h"
 #include "SDManager.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 
 namespace {
 constexpr const char* kPatternPath = "/light_patterns.csv";
@@ -50,7 +50,7 @@ void PatternCatalog::begin() {
         return;
     }
     // Don't init if SD isn't ready - we'll be called again later
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         return;
     }
     patterns_.clear();
@@ -390,7 +390,7 @@ String PatternCatalog::getLabelForId(const String& id) const {
 }
 
 bool PatternCatalog::loadFromSD() {
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         return false;
     }
     if (!SDManager::fileExists(kPatternPath)) {
@@ -473,7 +473,7 @@ bool PatternCatalog::loadFromSD() {
 }
 
 bool PatternCatalog::saveToSD() const {
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         return false;
     }
     SDManager::deleteFile(kPatternPath);

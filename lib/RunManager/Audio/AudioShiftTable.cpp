@@ -14,7 +14,7 @@
 #include "SDManager.h"
 #include "ContextStatus.h"
 #include "Globals.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 #include <algorithm>
 
 namespace {
@@ -68,7 +68,7 @@ void AudioShiftTable::begin() {
         return;
     }
 
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         PF("[AudioShiftTable] SD not ready\n");
         ready_ = true;  // Mark ready anyway, will have no shifts
         return;

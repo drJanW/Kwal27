@@ -9,7 +9,7 @@
  * system. Part of the Boot→Plan→Policy→Run pattern.
  * 
  * Index rebuild is deferred until valid time (RTC/NTP) is available,
- * triggered via onTimeAvailable() from NotifyRun.
+ * triggered via onTimeAvailable() from AlertRun.
  */
 
 #pragma once
@@ -18,7 +18,7 @@ class SDBoot {
 public:
     bool plan();
     
-    /// Called by NotifyRun when RTC_OK or NTP_OK is reported.
+    /// Called by AlertRun when RTC_OK or NTP_OK is reported.
     /// Triggers deferred index rebuild if pending.
     static void onTimeAvailable();
     

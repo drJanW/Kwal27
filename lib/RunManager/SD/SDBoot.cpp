@@ -6,10 +6,10 @@
  *
  * Implements SD boot sequence with retry logic: attempts to mount SD card,
  * verifies version.txt matches firmware, shows pink/turquoise failure pattern
- * if SD mount fails, and reports status via NotifyRun.
+ * if SD mount fails, and reports status via AlertRun.
  * 
  * Index rebuild is deferred until valid time (RTC/NTP) available via
- * onTimeAvailable() callback from NotifyRun - no polling needed.
+ * onTimeAvailable() callback from AlertRun - no polling needed.
  */
 
 #include <Arduino.h>
@@ -19,8 +19,8 @@
 #include "SDPolicy.h"
 #include "TimerManager.h"
 #include "RunManager.h"
-#include "Notify/NotifyRun.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertRun.h"
+#include "Alert/AlertState.h"
 #include "BootMaster.h"
 #include <FastLED.h>
 
@@ -181,11 +181,11 @@ bool SDBoot::plan() {
     }
 
     // Success path
-    if (NotifyState::isSdOk()) {
+    if (AlertState::isSdOk()) {
         timers.cancel(cb_retryBoot);
         loggedStart = false;
         SDPolicy::showStatus();
-        NotifyRun::report(NotifyRequest::SD_OK);
+        AlertRun::report(AlertRequest::SD_OK);
         return true;
     }
 
@@ -199,11 +199,11 @@ bool SDBoot::plan() {
     initSD();
 
     // Check again after init attempt
-    if (NotifyState::isSdOk()) {
+    if (AlertState::isSdOk()) {
         timers.cancel(cb_retryBoot);
         loggedStart = false;
         SDPolicy::showStatus();
-        NotifyRun::report(NotifyRequest::SD_OK);
+        AlertRun::report(AlertRequest::SD_OK);
         return true;
     }
 
@@ -215,7 +215,7 @@ bool SDBoot::plan() {
     // Update retry status for WebGUI
     int32_t remaining = timers.getRepeatCount(cb_retryBoot);
     if (remaining > 0) {
-        NotifyState::set(SC_SD, static_cast<uint8_t>(remaining));
+        AlertState::set(SC_SD, static_cast<uint8_t>(remaining));
     }
 
     // Still waiting for retries?
@@ -227,7 +227,7 @@ bool SDBoot::plan() {
     PL("[Run][Plan] SD boot failed after retries");
     loggedStart = false;
     SDPolicy::showStatus(true);
-    NotifyRun::report(NotifyRequest::SD_FAIL);
+    AlertRun::report(AlertRequest::SD_FAIL);
     startSdFailPattern();  // Pink/turquoise ambient preset
     return true;
 }

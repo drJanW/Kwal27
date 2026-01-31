@@ -73,14 +73,14 @@ void tryInit(StatusComponent comp) {
     // Get remaining retries
     int16_t remaining = timers.getRepeatCount(dev.cb);
     if (remaining != -1) {
-        NotifyState::set(dev.cfg.comp, static_cast<uint8_t>(remaining));
+        AlertState::set(dev.cfg.comp, static_cast<uint8_t>(remaining));
     }
     
     // Try probe
     if (dev.cfg.probe()) {
         dev.ready = true;
         timers.cancel(dev.cb);
-        NotifyRun::report(dev.cfg.okRequest);  // report() does setOk()
+        AlertRun::report(dev.cfg.okRequest);  // report() does setOk()
         PF("[I2CInit] %s ready\n", dev.cfg.name);
         return;
     }
@@ -88,7 +88,7 @@ void tryInit(StatusComponent comp) {
     // Check if last retry
     if (remaining == 1) {
         dev.failed = true;
-        NotifyRun::report(dev.cfg.failRequest);  // report() does setOk()
+        AlertRun::report(dev.cfg.failRequest);  // report() does setOk()
         PF("[I2CInit] %s failed after %d retries\n", dev.cfg.name, dev.cfg.maxRetries);
     }
 }

@@ -14,7 +14,7 @@
 #include "Arduino.h"
 #include "Globals.h"
 #include "SDManager.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 #include <esp_system.h>
 
 // Hardware status register (graceful degradation)
@@ -397,7 +397,7 @@ static void applyOverride(const char* key, char type, const char* value) {
         }
     }
     // ═══════════════════════════════════════════════════════════
-    // NOTIFY
+    // ALERT
     // ═══════════════════════════════════════════════════════════
     else if (strcmp(key, "flashBurstIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
@@ -549,7 +549,7 @@ static void applyOverride(const char* key, char type, const char* value) {
 
 void Globals::begin() {
     // Check SD availability
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         Serial.println("[Globals] SD not available, using defaults");
         return;
     }

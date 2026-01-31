@@ -16,12 +16,12 @@
 #include "PlayPCM.h"
 #include "AudioRun.h"
 #include "AudioShiftTable.h"
-#include "Notify/NotifyState.h"
+#include "Alert/AlertState.h"
 #include "Speak/SpeakRun.h"
 #include "PlaySentence.h"
 
 void AudioBoot::plan() {
-    if (!NotifyState::isSdOk()) {
+    if (!AlertState::isSdOk()) {
         PL("[Run][Plan] Audio boot deferred: SD not ready");
         return;
     }
@@ -39,7 +39,7 @@ void AudioBoot::plan() {
         PL("[Run][Plan] Distance ping clip unavailable");
     }
 
-    NotifyState::setAudioStatus(true);
+    AlertState::setAudioStatus(true);
     PlaySentence::speakNext();  // Kickstart queue if items waiting
     PL("[Run][Plan] Audio manager initialized");
 }
