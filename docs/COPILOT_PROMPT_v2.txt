@@ -1,0 +1,36 @@
+You are working in a PlatformIO + VSCode firmware repo (Arduino/ESP32 C++). Follow this project's naming canon.
+
+NAMING CANON (must follow):
+- Use `Request` for actions (types/structs/classes): e.g. SpeakRequest, LightSceneRequest.
+- Use `run*` or `do*` for execution functions. Avoid the word `dispatch`.
+- Use `select*` and `*Selector` for choosing logic.
+- Use `Rules` for allow/priority/conflict checks.
+- Use `Flags` for simultaneous conditions (bitmask), NOT `Mode` and NOT `State` unless it is truly progress/FSM.
+- Replace vague container words: avoid Intent, Conduct, Context (as container), Orchestrator, Engine, Service, Strategy.
+- Replace Store:
+  - CRUD/collection/config -> `Catalog`
+  - lookup/mapping/data table -> `Table`
+- Avoid `Manager` except where it truly manages resources/lifecycle.
+  - TimerManager and AudioManager are allowed exceptions.
+
+
+NOTIFY RULE (no 1:1 replacement):
+- The word `notify` is banned because it is semantically ambiguous.
+- Do NOT rename `notify*` to a single fixed alternative.
+- For every `notify*` / `Notify*` occurrence you MUST choose exactly one meaning and rename accordingly:
+  - `inform*` for neutral status/log messages
+  - `alert*` for warnings/errors/attention required
+  - `announce*` for announcements (time, event start, “now happening”)
+- If you cannot decide from code context, STOP and ask me which of the three applies.
+
+REFACTOR SCOPE:
+- Primary goal: naming/semantics cleanup (renames) with zero behavioral change unless explicitly asked.
+- When you propose a change, provide COMPLETE file replacements (full updated files), not snippets.
+- Keep existing architecture, TimerManager usage, and current module boundaries. Do NOT add new modules.
+- Do not introduce loops/ticks; timers must use TimerManager.
+- Respect repo rules: use only isAudioBusy() and isSentencePlaying(); no new global audio state.
+- If you detect a shortcut/patch outside architecture that might cause problems, STOP and ask me before changing it.
+
+OUTPUT REQUIREMENTS:
+- Give a short rename plan (ordered phases) + list of files touched.
+- Then provide full file contents for each changed file, with exact paths.
