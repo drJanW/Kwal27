@@ -4,7 +4,7 @@
  * @version 251231E
  * @date 2025-12-31
  *
- * Stores and manages LED color palettes loaded from CSV configuration.
+ * Maintains and manages LED color palettes loaded from CSV configuration.
  * Provides color selection, CRUD operations for color sets, and JSON
  * serialization for web interface. Single source of truth for color data.
  */

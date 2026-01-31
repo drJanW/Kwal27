@@ -4,7 +4,7 @@
  * @version 251231E
  * @date 2025-12-31
  *
- * Stores and manages LED animation patterns loaded from CSV configuration.
+ * Maintains and manages LED animation patterns loaded from CSV configuration.
  * Provides pattern selection, CRUD operations, and JSON serialization for
  * web interface. Single source of truth for pattern definitions.
  */

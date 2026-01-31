@@ -126,7 +126,7 @@ String PatternCatalog::buildJson(const char* source) const {
 
 bool PatternCatalog::select(const String& id, String& errorMessage) {
     if (!ready_) {
-        errorMessage = F("store not ready");
+        errorMessage = F("catalog not ready");
         return false;
     }
     if (id.isEmpty()) {
@@ -146,7 +146,7 @@ bool PatternCatalog::select(const String& id, String& errorMessage) {
 
 bool PatternCatalog::selectNext(String& errorMessage) {
     if (!ready_) {
-        errorMessage = F("store not ready");
+        errorMessage = F("catalog not ready");
         return false;
     }
     if (patterns_.empty()) {
@@ -170,7 +170,7 @@ bool PatternCatalog::selectNext(String& errorMessage) {
 
 bool PatternCatalog::selectPrev(String& errorMessage) {
     if (!ready_) {
-        errorMessage = F("store not ready");
+        errorMessage = F("catalog not ready");
         return false;
     }
     if (patterns_.empty()) {
@@ -194,7 +194,7 @@ bool PatternCatalog::selectPrev(String& errorMessage) {
 
 bool PatternCatalog::update(JsonVariantConst body, String& affectedId, String& errorMessage) {
     if (!ready_) {
-        errorMessage = F("store not ready");
+        errorMessage = F("catalog not ready");
         return false;
     }
     JsonObjectConst obj = body.as<JsonObjectConst>();
@@ -289,7 +289,7 @@ bool PatternCatalog::update(JsonVariantConst body, String& affectedId, String& e
 
 bool PatternCatalog::remove(JsonVariantConst body, String& affectedId, String& errorMessage) {
     if (!ready_) {
-        errorMessage = F("store not ready");
+        errorMessage = F("catalog not ready");
         return false;
     }
     JsonObjectConst obj = body.as<JsonObjectConst>();

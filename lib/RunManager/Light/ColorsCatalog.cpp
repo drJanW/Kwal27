@@ -169,8 +169,8 @@ void ColorsCatalog::getActiveColors(CRGB& colorA, CRGB& colorB) const {
 
 bool ColorsCatalog::selectColor(const String& id, String& errorMessage) {
     if (!ready_) {
-        errorMessage = F("store not ready");
-        PF("[ColorsCatalog] selectColor rejected: store not ready\n");
+        errorMessage = F("catalog not ready");
+        PF("[ColorsCatalog] selectColor rejected: catalog not ready\n");
         return false;
     }
     if (id.isEmpty()) {
@@ -191,7 +191,7 @@ bool ColorsCatalog::selectColor(const String& id, String& errorMessage) {
 
 bool ColorsCatalog::selectNextColor(String& errorMessage) {
     if (!ready_) {
-        errorMessage = F("store not ready");
+        errorMessage = F("catalog not ready");
         return false;
     }
     if (colors_.empty()) {
@@ -215,7 +215,7 @@ bool ColorsCatalog::selectNextColor(String& errorMessage) {
 
 bool ColorsCatalog::selectPrevColor(String& errorMessage) {
     if (!ready_) {
-        errorMessage = F("store not ready");
+        errorMessage = F("catalog not ready");
         return false;
     }
     if (colors_.empty()) {

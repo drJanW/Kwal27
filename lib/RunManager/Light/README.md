@@ -2,7 +2,7 @@
 
 > Version: 251218A | Updated: 2025-12-17
 
-Manages LED patterns and colors for the RGB ring display via `PatternStore` and `ColorsStore`.
+Manages LED patterns and colors for the RGB ring display via `PatternCatalog` and `ColorsCatalog`.
 
 ## Architecture
 
@@ -22,14 +22,14 @@ Manages LED patterns and colors for the RGB ring display via `PatternStore` and 
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        LightRun                                          │
 │  - Source tracking (CONTEXT / MANUAL / CALENDAR)                        │
-│  - Routes requests to stores                                             │
+│  - Routes requests to catalogs                                           │
 │  - Applies shifts from calendar                                         │
 └─────────────────────────┬───────────────────────────────────────────────┘
                           │
           ┌───────────────┴───────────────┐
           ▼                               ▼
 ┌──────────────────────┐       ┌──────────────────────┐
-│    PatternStore      │       │     ColorsStore      │
+│   PatternCatalog     │       │    ColorsCatalog     │
 │  - patterns_ vector  │       │  - colors_ vector    │
 │  - buildJson()       │       │  - buildColorsJson() │
 │  - loadFromSD()      │       │  - loadFromSD()      │
@@ -45,24 +45,24 @@ Manages LED patterns and colors for the RGB ring display via `PatternStore` and 
 
 ## Data Flow: Patterns laden naar WebGUI dropdown
 
-1. **Boot**: `PatternStore::begin()` → `loadFromSD()` → **random selection**
+1. **Boot**: `PatternCatalog::begin()` → `loadFromSD()` → **random selection**
    - Leest `/light_patterns.csv` regel voor regel (streaming, niet hele file in geheugen)
    - Parset elke regel naar `PatternEntry` struct
    - Pusht naar `patterns_` vector (~100 bytes per entry)
    - **Selecteert random pattern uit geladen CSV** (sinds Dec 2025)
-   - `ColorsStore::begin()` doet hetzelfde: random color bij boot
+   - `ColorsCatalog::begin()` doet hetzelfde: random color bij boot
 
 2. **WebGUI request**: `GET /api/patterns`
    - `WebInterfaceManager::handlePatternsList()` 
    - → `LightRun::patternRead()` 
-   - → `PatternStore::buildJson()`
+   - → `PatternCatalog::buildJson()`
 
 3. **JSON bouwen**: `buildJson()` streamt direct naar String
    - Geen ArduinoJson DynamicJsonDocument (was 24-48KB buffer probleem!)
    - Output: ~250 bytes per pattern
    - Capaciteit: 100+ patterns zonder geheugenproblemen
 
-4. **Browser**: JavaScript `processPatternStore()`
+4. **Browser**: JavaScript `processPatternCatalog()`
    - Parset JSON response
    - Vult `state.pattern.items` array
    - `updatePatternControls()` bouwt `<select>` dropdown
@@ -73,9 +73,9 @@ Manages LED patterns and colors for the RGB ring display via `PatternStore` and 
 |------|---------|
 | `LightRun.cpp/h` | Request routing, source tracking |
 | `LightPolicy.cpp/h` | Brightness/shift rules |
-| `PatternStore.cpp/h` | Pattern CRUD, JSON streaming |
-| `ColorsStore.cpp/h` | Color CRUD, JSON streaming |
-| `ShiftStore.cpp/h` | Pattern/color shift percentages |
+| `PatternCatalog.cpp/h` | Pattern CRUD, JSON streaming |
+| `ColorsCatalog.cpp/h` | Color CRUD, JSON streaming |
+| `ShiftTable.cpp/h` | Pattern/color shift percentages |
 | `LightBoot.cpp/h` | Initialization |
 
 ## CSV Format
@@ -116,7 +116,7 @@ is skipped entirely - no multiplier calculations, no LED updates.
 2. If changed → `applyToLights()` recalculates all shifts and updates LEDs
 3. If unchanged → reschedule timer, skip all computation
 
-**Shift data**: Loaded from `/patternShifts.csv` and `/colorsShifts.csv` via `ShiftStore`.
+**Shift data**: Loaded from `/patternShifts.csv` and `/colorsShifts.csv` via `ShiftTable`.
 
 ## Limits
 

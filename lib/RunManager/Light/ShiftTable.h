@@ -4,7 +4,7 @@
  * @version 251231E
  * @date 2025-12-31
  *
- * Stores and manages color/pattern parameter shifts loaded from CSV files.
+ * Maintains and manages color/pattern parameter shifts loaded from CSV files.
  * Shifts modify brightness, speed, and other parameters based on time-of-day
  * context status. Provides computed multipliers for current context.
  */

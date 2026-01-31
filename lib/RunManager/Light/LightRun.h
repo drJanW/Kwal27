@@ -6,7 +6,7 @@
  *
  * Manages LED show state and coordination. Handles pattern/color selection,
  * distance-responsive animation timing, lux-based brightness adjustment, and
- * shift application based on context. Coordinates with stores and policy.
+ * shift application based on context. Coordinates with catalogs and policy.
  */
 
 #pragma once

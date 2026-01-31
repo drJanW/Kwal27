@@ -46,7 +46,7 @@ LightSource colorSource = LightSource::CONTEXT;
 // Shift change tracking - only reapply when context changes
 uint64_t lastStatusBits = 0;
 
-ShiftTable& shiftStore = ShiftTable::instance();
+ShiftTable& shiftTable = ShiftTable::instance();
 
 const char* sourceToString(LightSource src) {
     switch (src) {
@@ -56,20 +56,20 @@ const char* sourceToString(LightSource src) {
     }
 }
 
-ColorsCatalog &getColorsStore() {
-    ColorsCatalog &store = ColorsCatalog::instance();
-    if (!store.isReady()) {
-        store.begin();
+ColorsCatalog &getColorsCatalog() {
+    ColorsCatalog &catalog = ColorsCatalog::instance();
+    if (!catalog.isReady()) {
+        catalog.begin();
     }
-    return store;
+    return catalog;
 }
 
-PatternCatalog &getPatternStore() {
-    PatternCatalog &store = PatternCatalog::instance();
-    if (!store.isReady()) {
-        store.begin();
+PatternCatalog &getPatternCatalog() {
+    PatternCatalog &catalog = PatternCatalog::instance();
+    if (!catalog.isReady()) {
+        catalog.begin();
     }
-    return store;
+    return catalog;
 }
 
 void applyLightshowUpdate() {
@@ -121,12 +121,12 @@ void LightRun::plan() {
     stopAnimation();
     
     // Load shifts from SD
-    shiftStore.begin();
+    shiftTable.begin();
 
-    // Preload pattern/color stores while SD is still uncontended.
+    // Preload pattern/color catalogs while SD is still uncontended.
     // This avoids lazy SD reads inside web request handlers during audio playback.
-    getPatternStore();
-    getColorsStore();
+    getPatternCatalog();
+    getColorsCatalog();
     
     // Apply immediately and start periodic check timer
     lastStatusBits = ContextFlags::getFullContextBits();
@@ -205,7 +205,7 @@ void LightRun::cb_luxMeasureRead() {
 #ifndef DISABLE_SHIFTS
     uint64_t statusBits = ContextFlags::getFullContextBits();
     float colorMults[COLOR_PARAM_COUNT];
-    shiftStore.computeColorMultipliers(statusBits, colorMults);
+    shiftTable.computeColorMultipliers(statusBits, colorMults);
     int8_t calendarShift = static_cast<int8_t>((colorMults[GLOBAL_BRIGHTNESS] - 1.0f) * 100.0f);
 #else
     int8_t calendarShift = 0;
@@ -267,30 +267,30 @@ LightSource LightRun::getColorSource() {
 }
 
 bool LightRun::patternRead(String &payload, String &activePatternId) {
-    PatternCatalog &store = getPatternStore();
-    // Pass source from Run layer to store for JSON building
-    payload = store.buildJson(sourceToString(patternSource));
+    PatternCatalog &catalog = getPatternCatalog();
+    // Pass source from Run layer to catalog for JSON building
+    payload = catalog.buildJson(sourceToString(patternSource));
     if (payload.isEmpty()) {
         return false;
     }
-    activePatternId = store.activeId();
+    activePatternId = catalog.activeId();
     return true;
 }
 
 bool LightRun::colorRead(String &payload, String &activeColorId) {
-    ColorsCatalog &store = getColorsStore();
-    // Pass source from Run layer to store for JSON building
-    payload = store.buildColorsJson(sourceToString(colorSource));
+    ColorsCatalog &catalog = getColorsCatalog();
+    // Pass source from Run layer to catalog for JSON building
+    payload = catalog.buildColorsJson(sourceToString(colorSource));
     if (payload.isEmpty()) {
         return false;
     }
-    activeColorId = store.getActiveColorId();
+    activeColorId = catalog.getActiveColorId();
     return true;
 }
 
 bool LightRun::selectPattern(const String &id, String &errorMessage) {
-    PatternCatalog &store = getPatternStore();
-    if (!store.select(id, errorMessage)) {
+    PatternCatalog &catalog = getPatternCatalog();
+    if (!catalog.select(id, errorMessage)) {
         return false;
     }
     // Web UI selection = manual source (empty id clears to context)
@@ -300,8 +300,8 @@ bool LightRun::selectPattern(const String &id, String &errorMessage) {
 }
 
 bool LightRun::selectNextPattern(String &errorMessage) {
-    PatternCatalog &store = getPatternStore();
-    if (!store.selectNext(errorMessage)) {
+    PatternCatalog &catalog = getPatternCatalog();
+    if (!catalog.selectNext(errorMessage)) {
         return false;
     }
     patternSource = LightSource::MANUAL;
@@ -311,8 +311,8 @@ bool LightRun::selectNextPattern(String &errorMessage) {
 }
 
 bool LightRun::selectPrevPattern(String &errorMessage) {
-    PatternCatalog &store = getPatternStore();
-    if (!store.selectPrev(errorMessage)) {
+    PatternCatalog &catalog = getPatternCatalog();
+    if (!catalog.selectPrev(errorMessage)) {
         return false;
     }
     patternSource = LightSource::MANUAL;
@@ -322,8 +322,8 @@ bool LightRun::selectPrevPattern(String &errorMessage) {
 }
 
 bool LightRun::updatePattern(JsonVariantConst body, String &affectedId, String &errorMessage) {
-    PatternCatalog &store = getPatternStore();
-    if (!store.update(body, affectedId, errorMessage)) {
+    PatternCatalog &catalog = getPatternCatalog();
+    if (!catalog.update(body, affectedId, errorMessage)) {
         return false;
     }
     // Update doesn't change source
@@ -332,12 +332,12 @@ bool LightRun::updatePattern(JsonVariantConst body, String &affectedId, String &
 }
 
 bool LightRun::deletePattern(JsonVariantConst body, String &affectedId, String &errorMessage) {
-    PatternCatalog &store = getPatternStore();
-    if (!store.remove(body, affectedId, errorMessage)) {
+    PatternCatalog &catalog = getPatternCatalog();
+    if (!catalog.remove(body, affectedId, errorMessage)) {
         return false;
     }
     // Delete may clear active, revert to context
-    if (store.activeId().isEmpty()) {
+    if (catalog.activeId().isEmpty()) {
         patternSource = LightSource::CONTEXT;
     }
     applyToLights();
@@ -345,7 +345,7 @@ bool LightRun::deletePattern(JsonVariantConst body, String &affectedId, String &
 }
 
 bool LightRun::selectColor(const String &id, String &errorMessage) {
-    if (!getColorsStore().selectColor(id, errorMessage)) {
+    if (!getColorsCatalog().selectColor(id, errorMessage)) {
         return false;
     }
     // Web UI selection = manual source (empty id clears to context)
@@ -355,7 +355,7 @@ bool LightRun::selectColor(const String &id, String &errorMessage) {
 }
 
 bool LightRun::selectNextColor(String &errorMessage) {
-    if (!getColorsStore().selectNextColor(errorMessage)) {
+    if (!getColorsCatalog().selectNextColor(errorMessage)) {
         return false;
     }
     colorSource = LightSource::MANUAL;
@@ -365,7 +365,7 @@ bool LightRun::selectNextColor(String &errorMessage) {
 }
 
 bool LightRun::selectPrevColor(String &errorMessage) {
-    if (!getColorsStore().selectPrevColor(errorMessage)) {
+    if (!getColorsCatalog().selectPrevColor(errorMessage)) {
         return false;
     }
     colorSource = LightSource::MANUAL;
@@ -375,7 +375,7 @@ bool LightRun::selectPrevColor(String &errorMessage) {
 }
 
 bool LightRun::updateColor(JsonVariantConst body, String &affectedId, String &errorMessage) {
-    if (!getColorsStore().updateColor(body, affectedId, errorMessage)) {
+    if (!getColorsCatalog().updateColor(body, affectedId, errorMessage)) {
         return false;
     }
     // Update doesn't change source
@@ -384,11 +384,11 @@ bool LightRun::updateColor(JsonVariantConst body, String &affectedId, String &er
 }
 
 bool LightRun::deleteColorSet(JsonVariantConst body, String &affectedId, String &errorMessage) {
-    if (!getColorsStore().deleteColorSet(body, affectedId, errorMessage)) {
+    if (!getColorsCatalog().deleteColorSet(body, affectedId, errorMessage)) {
         return false;
     }
     // Delete may clear active, revert to context
-    if (getColorsStore().getActiveColorId().isEmpty()) {
+    if (getColorsCatalog().getActiveColorId().isEmpty()) {
         colorSource = LightSource::CONTEXT;
     }
     applyToLights();
@@ -396,8 +396,8 @@ bool LightRun::deleteColorSet(JsonVariantConst body, String &affectedId, String 
 }
 
 bool LightRun::previewPattern(JsonVariantConst body, String &errorMessage) {
-    PatternCatalog& patternStore = getPatternStore();
-    ColorsCatalog& colorStore = getColorsStore();
+    PatternCatalog& patternCatalog = getPatternCatalog();
+    ColorsCatalog& colorCatalog = getColorsCatalog();
 
     JsonObjectConst obj = body.as<JsonObjectConst>();
     if (obj.isNull()) {
@@ -420,7 +420,7 @@ bool LightRun::previewPattern(JsonVariantConst body, String &errorMessage) {
         paramsVariant = obj["params"];
     }
 
-    if (paramsVariant.isNull() || !patternStore.parseParams(paramsVariant, params, errorMessage)) {
+    if (paramsVariant.isNull() || !patternCatalog.parseParams(paramsVariant, params, errorMessage)) {
         if (errorMessage.isEmpty()) {
             errorMessage = F("pattern params missing or invalid");
         }
@@ -438,13 +438,13 @@ bool LightRun::previewPattern(JsonVariantConst body, String &errorMessage) {
             params.RGB2 = colorB;
         } else {
             // Color parsing failed, use current active colors
-            LightShowParams activeParams = patternStore.getActiveParams();
+            LightShowParams activeParams = patternCatalog.getActiveParams();
             params.RGB1 = activeParams.RGB1;
             params.RGB2 = activeParams.RGB2;
         }
     } else {
         // No color in body, use current active colors
-        LightShowParams activeParams = patternStore.getActiveParams();
+        LightShowParams activeParams = patternCatalog.getActiveParams();
         params.RGB1 = activeParams.RGB1;
         params.RGB2 = activeParams.RGB2;
     }
@@ -455,13 +455,13 @@ bool LightRun::previewPattern(JsonVariantConst body, String &errorMessage) {
 }
 
 bool LightRun::previewColor(JsonVariantConst body, String &errorMessage) {
-    return getColorsStore().previewColors(body, errorMessage);
+    return getColorsCatalog().previewColors(body, errorMessage);
 }
 
 // --- Calendar-driven selection requests ---
 
 void LightRun::applyPattern(uint8_t patternId) {
-    PatternCatalog& store = getPatternStore();
+    PatternCatalog& catalog = getPatternCatalog();
     String errorMessage;
     if (patternId == 0) {
         // Calendar has no pattern - keep current pattern, don't clear
@@ -469,7 +469,7 @@ void LightRun::applyPattern(uint8_t patternId) {
         PF("[LightRun] Calendar: no pattern, keeping current\n");
     } else {
         // Calendar specifies pattern, select it
-        if (store.select(String(patternId), errorMessage)) {
+        if (catalog.select(String(patternId), errorMessage)) {
             patternSource = LightSource::CALENDAR;
             PF("[LightRun] Calendar: pattern %u selected\n", static_cast<unsigned>(patternId));
         } else {
@@ -481,7 +481,7 @@ void LightRun::applyPattern(uint8_t patternId) {
 }
 
 void LightRun::applyColor(uint8_t colorId) {
-    ColorsCatalog& store = getColorsStore();
+    ColorsCatalog& catalog = getColorsCatalog();
     String errorMessage;
     if (colorId == 0) {
         // Calendar has no color - keep current (boot random or previous selection)
@@ -489,7 +489,7 @@ void LightRun::applyColor(uint8_t colorId) {
         PF("[LightRun] Calendar: no color, keeping current\n");
     } else {
         // Calendar specifies color, select it
-        if (store.selectColor(String(colorId), errorMessage)) {
+        if (catalog.selectColor(String(colorId), errorMessage)) {
             colorSource = LightSource::CALENDAR;
             PF("[LightRun] Calendar: color %u selected\n", static_cast<unsigned>(colorId));
         } else {
@@ -506,15 +506,15 @@ bool LightRun::describePatternById(uint8_t id, LightPattern& out) {
     if (id == 0) {
         return false;
     }
-    PatternCatalog& store = getPatternStore();
+    PatternCatalog& catalog = getPatternCatalog();
     String idStr = String(id);
     LightShowParams params;
-    if (!store.getParamsForId(idStr, params)) {
+    if (!catalog.getParamsForId(idStr, params)) {
         return false;
     }
     out.valid = true;
     out.id = id;
-    String label = store.getLabelForId(idStr);
+    String label = catalog.getLabelForId(idStr);
     out.label = label.isEmpty() ? idStr : label;  // Use actual label, fallback to ID if empty
     out.color_cycle_sec = static_cast<float>(params.colorCycleSec);
     out.bright_cycle_sec = static_cast<float>(params.brightCycleSec);
@@ -534,11 +534,11 @@ bool LightRun::describePatternById(uint8_t id, LightPattern& out) {
 }
 
 bool LightRun::describeActivePattern(LightPattern& out) {
-    PatternCatalog& store = getPatternStore();
-    String activeId = store.activeId();
+    PatternCatalog& catalog = getPatternCatalog();
+    String activeId = catalog.activeId();
     // If no explicit selection, use fallback to first pattern (matches getActiveParams behavior)
     if (activeId.isEmpty()) {
-        activeId = store.firstPatternId();
+        activeId = catalog.firstPatternId();
     }
     if (activeId.isEmpty()) {
         return false;
@@ -555,10 +555,10 @@ bool LightRun::describeColorById(uint8_t id, LightColor& out) {
     if (id == 0) {
         return false;
     }
-    ColorsCatalog& store = getColorsStore();
+    ColorsCatalog& catalog = getColorsCatalog();
     String label;
     CRGB colorA, colorB;
-    if (!store.getColorById(String(id), label, colorA, colorB)) {
+    if (!catalog.getColorById(String(id), label, colorA, colorB)) {
         return false;
     }
     out.valid = true;
@@ -574,11 +574,11 @@ bool LightRun::describeColorById(uint8_t id, LightColor& out) {
 }
 
 bool LightRun::describeActiveColor(LightColor& out) {
-    ColorsCatalog& store = getColorsStore();
-    String activeId = store.getActiveColorId();
+    ColorsCatalog& catalog = getColorsCatalog();
+    String activeId = catalog.getActiveColorId();
     // If no explicit selection, use fallback to first color (matches getActiveColors behavior)
     if (activeId.isEmpty()) {
-        activeId = store.firstColorId();
+        activeId = catalog.firstColorId();
     }
     if (activeId.isEmpty()) {
         return false;
@@ -611,15 +611,15 @@ CRGB shiftColorHSV(const CRGB& rgb, int hueShift, int satShift, int valShift) {
 
 void LightRun::applyToLights() {
     // Get RAW pattern params from PatternCatalog (no shifts applied)
-    PatternCatalog& patternStore = getPatternStore();
-    LightShowParams params = patternStore.getActiveParams();
+    PatternCatalog& patternCatalog = getPatternCatalog();
+    LightShowParams params = patternCatalog.getActiveParams();
 
-    // Apply pattern shifts here in Run layer (not in Store)
+    // Apply pattern shifts here in Run layer (not in Catalog)
 #ifndef DISABLE_SHIFTS
     {
         uint64_t statusBits = ContextFlags::getFullContextBits();
         float patMults[PAT_PARAM_COUNT];
-        shiftStore.computePatternMultipliers(statusBits, patMults);
+        shiftTable.computePatternMultipliers(statusBits, patMults);
         
         // Apply multipliers to each parameter (clamp to reasonable ranges)
         params.colorCycleSec  = static_cast<uint8_t>(constrain(params.colorCycleSec * patMults[PAT_COLOR_CYCLE], 1, 255));
@@ -640,16 +640,16 @@ void LightRun::applyToLights() {
 #endif
 
     // Get colors from ColorsCatalog (RAW, no shifts)
-    ColorsCatalog& colorsStore = getColorsStore();
+    ColorsCatalog& colorsCatalog = getColorsCatalog();
     CRGB colorA, colorB;
-    colorsStore.getActiveColors(colorA, colorB);
+    colorsCatalog.getActiveColors(colorA, colorB);
 
-    // Apply color shifts here in Run layer (not in Store) - identical to pattern shifts
+    // Apply color shifts here in Run layer (not in Catalog) - identical to pattern shifts
 #ifndef DISABLE_SHIFTS
     {
         uint64_t statusBits = ContextFlags::getFullContextBits();
         float colorMults[COLOR_PARAM_COUNT];
-        shiftStore.computeColorMultipliers(statusBits, colorMults);
+        shiftTable.computeColorMultipliers(statusBits, colorMults);
         
         // Convert multipliers to HSV shift values and apply (H/S only, no V)
         auto multToShift = [](float mult, float scale) -> int {
@@ -682,8 +682,8 @@ void LightRun::applyToLights() {
     params.RGB2 = colorB;
 
     // Log and apply
-    String patternId = patternStore.activeId();
-    String colorId = colorsStore.getActiveColorId();
+    String patternId = patternCatalog.activeId();
+    String colorId = colorsCatalog.getActiveColorId();
     PF("[LightRun] Apply pattern=%s color=%s rgb1=%02X%02X%02X rgb2=%02X%02X%02X\n",
        patternId.isEmpty() ? "<default>" : patternId.c_str(),
        colorId.isEmpty() ? "<default>" : colorId.c_str(),
