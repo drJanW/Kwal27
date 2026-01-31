@@ -2,22 +2,22 @@
 
 > Version: 251218A | Updated: 2025-12-17
 
-Every subsystem that lives under `lib/ConductManager/**` follows the same stack so we can iterate on behaviour without touching boot code, timers, or hardware drivers. The stack is strict—skip a layer and you get bugs that are impossible to reason about later.
+Every subsystem that lives under `lib/RunManager/**` follows the same stack so we can iterate on behaviour without touching boot code, timers, or hardware drivers. The stack is strict—skip a layer and you get bugs that are impossible to reason about later.
 
 ## Layer Contract
 
 | Layer | Responsibility | Typical Files |
 | --- | --- | --- |
 | **Boot** | Register timers, seed caches, hand off any pointers that run/policy will need later. Boot files run exactly once during system bring-up. | `AudioBoot.*`, `LightBoot.*`, `BootMaster.*` |
-| **Run** | Orchestrate intents. They own timer callbacks, subscribe to manager signals, and decide which director to invoke. Run code may _sequence_ work but must not invent behaviour. | `*Run.*`, `RunManager.*` |
+| **Run** | Orchestrate requests. They own timer callbacks, subscribe to manager signals, and decide which director to invoke. Run code may _sequence_ work but must not invent behaviour. | `*Run.*`, `RunManager.*` |
 | **Director** | Translate context + storage into actionable requests. Directors query managers (state, SD indices, calendar rows) and shape the payload that policies evaluate. They never touch hardware APIs directly. | `*Director.*` |
 | **Policy** | Enforce rules for a single domain (audio, light, OTA, etc.). Policies approve/deny requests, clamp levels, pick intervals, and expose helpers such as “distance playback volume”. They cannot schedule timers or manipulate global singletons. | `*Policy.*` |
 | **Manager** | Own hardware drivers and runtime state. Managers expose query/update APIs and keep the state machines honest. | `AudioManager.*`, `LightManager.*`, `SDManager.*`, ... |
 | **Hardware** | Actual drivers (I²S, FastLED, SPI, GPIO). Only managers touch these.
 
-## Intent Flow
+## Request Flow
 
-1. An input source (web, timers, calendar, sensors) raises an intent via `RunManager::intent*` or a subsystem-specific entry point.
+1. An input source (web, timers, calendar, sensors) raises a request via `RunManager::request*` or a subsystem-specific entry point.
 2. The owning **Run** module validates prerequisites (boot complete, timer slots free) and invokes the matching **Director**.
 3. The **Director** builds a request composed of current context (calendar themes, distance cache, OTA arm window, etc.).
 4. The **Policy** evaluates that request, returning either approval plus concrete parameters or a rejection reason.

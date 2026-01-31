@@ -18,13 +18,13 @@ namespace OtaHandlers {
 
 void handleArm(AsyncWebServerRequest *request)
 {
-    RunManager::intentArmOTA(300);
+    RunManager::requestArmOTA(300);
     request->send(200, "text/plain", "OK");
 }
 
 void handleConfirm(AsyncWebServerRequest *request)
 {
-    if (RunManager::intentConfirmOTA()) {
+    if (RunManager::requestConfirmOTA()) {
         AsyncWebServerResponse *response = request->beginResponse(
             200, "text/plain", "Reboot binnen 15s - druk Enter in ota.bat");
         response->addHeader("Connection", "close");
@@ -36,8 +36,8 @@ void handleConfirm(AsyncWebServerRequest *request)
 
 void handleStart(AsyncWebServerRequest *request)
 {
-    RunManager::intentArmOTA(300);
-    if (RunManager::intentConfirmOTA()) {
+    RunManager::requestArmOTA(300);
+    if (RunManager::requestConfirmOTA()) {
         AsyncWebServerResponse *response = request->beginResponse(
             200, "text/plain", "Reboot binnen 15s - druk Enter in ota.bat");
         response->addHeader("Connection", "close");

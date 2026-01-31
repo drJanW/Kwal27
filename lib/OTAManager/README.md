@@ -7,7 +7,7 @@ The OTA manager now runs a **single-button ArduinoOTA push** flow. The ESP32 exp
 
 ### Core Flow
 1. Web UI posts to `/ota/start`.
-2. `RunManager::intentArmOTA()` opens a five-minute window; `intentConfirmOTA()` schedules a reboot via `TimerManager` (15 s delay).
+2. `RunManager::requestArmOTA()` opens a five-minute window; `requestConfirmOTA()` schedules a reboot via `TimerManager` (15 s delay).
 3. During the delay the board keeps Wi-Fi alive (`TimerManager::update()` inside the OTA loop) and then reboots.
 4. After the reboot `otaBootHandler()` enables ArduinoOTA, logs `[OTA] listening on ArduinoOTA`, and waits up to five minutes for espota to connect.
 5. `ota.bat` (or `pio run -e esp32_v3_ota -t nobuild -t upload`) pushes the firmware using `--auth=KwalOTA_3732`.

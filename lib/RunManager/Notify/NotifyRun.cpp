@@ -4,7 +4,7 @@
  * @version 251231E
  * @date 2025-12-31
  *
- * Implements notification routing: maps NotifyIntent values to NotifyState
+ * Implements notification routing: maps NotifyRequest values to NotifyState
  * updates, triggers RGB failure flash sequences, and coordinates with
  * ContextFlags for hardware failure bit tracking.
  */
@@ -23,25 +23,25 @@
 
 namespace {
 
-const char* intentName(NotifyIntent intent) {
-    switch (intent) {
-        case NotifyIntent::SD_OK:        return "SD_OK";
-        case NotifyIntent::SD_FAIL:      return "SD_FAIL";
-        case NotifyIntent::WIFI_OK:      return "WIFI_OK";
-        case NotifyIntent::WIFI_FAIL:    return "WIFI_FAIL";
-        case NotifyIntent::RTC_OK:       return "RTC_OK";
-        case NotifyIntent::RTC_FAIL:     return "RTC_FAIL";
-        case NotifyIntent::NTP_OK:       return "NTP_OK";
-        case NotifyIntent::NTP_FAIL:     return "NTP_FAIL";
-        case NotifyIntent::DISTANCE_SENSOR_OK:   return "DISTANCE_SENSOR_OK";
-        case NotifyIntent::DISTANCE_SENSOR_FAIL: return "DISTANCE_SENSOR_FAIL";
-        case NotifyIntent::LUX_SENSOR_OK:   return "LUX_SENSOR_OK";
-        case NotifyIntent::LUX_SENSOR_FAIL: return "LUX_SENSOR_FAIL";
-        case NotifyIntent::SENSOR3_OK:   return "SENSOR3_OK";
-        case NotifyIntent::SENSOR3_FAIL: return "SENSOR3_FAIL";
-        case NotifyIntent::TTS_OK:       return "TTS_OK";
-        case NotifyIntent::TTS_FAIL:     return "TTS_FAIL";
-        case NotifyIntent::START_RUNTIME:return "START_RUNTIME";
+const char* requestName(NotifyRequest request) {
+    switch (request) {
+        case NotifyRequest::SD_OK:        return "SD_OK";
+        case NotifyRequest::SD_FAIL:      return "SD_FAIL";
+        case NotifyRequest::WIFI_OK:      return "WIFI_OK";
+        case NotifyRequest::WIFI_FAIL:    return "WIFI_FAIL";
+        case NotifyRequest::RTC_OK:       return "RTC_OK";
+        case NotifyRequest::RTC_FAIL:     return "RTC_FAIL";
+        case NotifyRequest::NTP_OK:       return "NTP_OK";
+        case NotifyRequest::NTP_FAIL:     return "NTP_FAIL";
+        case NotifyRequest::DISTANCE_SENSOR_OK:   return "DISTANCE_SENSOR_OK";
+        case NotifyRequest::DISTANCE_SENSOR_FAIL: return "DISTANCE_SENSOR_FAIL";
+        case NotifyRequest::LUX_SENSOR_OK:   return "LUX_SENSOR_OK";
+        case NotifyRequest::LUX_SENSOR_FAIL: return "LUX_SENSOR_FAIL";
+        case NotifyRequest::SENSOR3_OK:   return "SENSOR3_OK";
+        case NotifyRequest::SENSOR3_FAIL: return "SENSOR3_FAIL";
+        case NotifyRequest::TTS_OK:       return "TTS_OK";
+        case NotifyRequest::TTS_FAIL:     return "TTS_FAIL";
+        case NotifyRequest::START_RUNTIME:return "START_RUNTIME";
         default:                         return "UNKNOWN";;
     }
 }
@@ -54,12 +54,12 @@ void cb_statusReminder() {
     NotifyRGB::startFlashing();
     
     // Queue only truly FAILED components - not ones still retrying
-    if (NotifyState::getStatus(SC_SD) == SC_Status::FAILED)      SpeakRun::speak(SpeakIntent::SD_FAIL);
-    if (NotifyState::getStatus(SC_WIFI) == SC_Status::FAILED)    SpeakRun::speak(SpeakIntent::WIFI_FAIL);
-    if (NotifyState::getStatus(SC_RTC) == SC_Status::FAILED)     SpeakRun::speak(SpeakIntent::RTC_FAIL);
-    if (NotifyState::getStatus(SC_DIST) == SC_Status::FAILED)    SpeakRun::speak(SpeakIntent::DISTANCE_SENSOR_FAIL);
-    if (NotifyState::getStatus(SC_LUX) == SC_Status::FAILED)     SpeakRun::speak(SpeakIntent::LUX_SENSOR_FAIL);
-    if (NotifyState::getStatus(SC_SENSOR3) == SC_Status::FAILED) SpeakRun::speak(SpeakIntent::SENSOR3_FAIL);
+        if (NotifyState::getStatus(SC_SD) == SC_Status::FAILED)      SpeakRun::speak(SpeakRequest::SD_FAIL);
+        if (NotifyState::getStatus(SC_WIFI) == SC_Status::FAILED)    SpeakRun::speak(SpeakRequest::WIFI_FAIL);
+        if (NotifyState::getStatus(SC_RTC) == SC_Status::FAILED)     SpeakRun::speak(SpeakRequest::RTC_FAIL);
+        if (NotifyState::getStatus(SC_DIST) == SC_Status::FAILED)    SpeakRun::speak(SpeakRequest::DISTANCE_SENSOR_FAIL);
+        if (NotifyState::getStatus(SC_LUX) == SC_Status::FAILED)     SpeakRun::speak(SpeakRequest::LUX_SENSOR_FAIL);
+        if (NotifyState::getStatus(SC_SENSOR3) == SC_Status::FAILED) SpeakRun::speak(SpeakRequest::SENSOR3_FAIL);
 }
 
 void cb_healthStatus() {
@@ -107,44 +107,44 @@ void NotifyRun::plan() {
     timers.create(Globals::healthStatusIntervalMs, 0, cb_healthStatus);
 }
 
-void NotifyRun::report(NotifyIntent intent) {
-    PF("[*Run] %s\n", intentName(intent));
+void NotifyRun::report(NotifyRequest request) {
+    PF("[*Run] %s\n", requestName(request));
     
-    switch (intent) {
-        case NotifyIntent::SD_OK:       NotifyState::setSdStatus(true); break;
-        case NotifyIntent::SD_FAIL:     NotifyState::setSdStatus(false); break;
-        case NotifyIntent::WIFI_OK:
+    switch (request) {
+        case NotifyRequest::SD_OK:       NotifyState::setSdStatus(true); break;
+        case NotifyRequest::SD_FAIL:     NotifyState::setSdStatus(false); break;
+        case NotifyRequest::WIFI_OK:
             NotifyState::setWifiStatus(true);
             // WELCOME waits for clock (NTP_OK or RTC_OK)
             break;
-        case NotifyIntent::WIFI_FAIL:   NotifyState::setWifiStatus(false); break;
-        case NotifyIntent::RTC_OK:
+        case NotifyRequest::WIFI_FAIL:   NotifyState::setWifiStatus(false); break;
+        case NotifyRequest::RTC_OK:
             NotifyState::setRtcStatus(true);
             SDBoot::onTimeAvailable();  // Trigger deferred index rebuild
             // Stage 2: Clock ready → queue welcome (if TTS ready)
             if (NotifyState::canPlayTTS()) {
-                SpeakRun::speak(SpeakIntent::WELCOME);
+                SpeakRun::speak(SpeakRequest::WELCOME);
             }
             break;
-        case NotifyIntent::RTC_FAIL:    NotifyState::setRtcStatus(false); break;
-        case NotifyIntent::NTP_OK:
+        case NotifyRequest::RTC_FAIL:    NotifyState::setRtcStatus(false); break;
+        case NotifyRequest::NTP_OK:
             NotifyState::setNtpStatus(true);
             SDBoot::onTimeAvailable();  // Trigger deferred index rebuild
             // Stage 2: Clock ready → queue welcome (if TTS ready)
             if (NotifyState::canPlayTTS()) {
-                SpeakRun::speak(SpeakIntent::WELCOME);
+                SpeakRun::speak(SpeakRequest::WELCOME);
             }
             break;
-        case NotifyIntent::NTP_FAIL:    NotifyState::setNtpStatus(false); break;
-        case NotifyIntent::DISTANCE_SENSOR_OK:  NotifyState::setDistanceSensorStatus(true); break;
-        case NotifyIntent::DISTANCE_SENSOR_FAIL:NotifyState::setDistanceSensorStatus(false); break;
-        case NotifyIntent::LUX_SENSOR_OK:  NotifyState::setLuxSensorStatus(true); break;
-        case NotifyIntent::LUX_SENSOR_FAIL:NotifyState::setLuxSensorStatus(false); break;
-        case NotifyIntent::SENSOR3_OK:  NotifyState::setSensor3Status(true); break;
-        case NotifyIntent::SENSOR3_FAIL:NotifyState::setSensor3Status(false); break;
-        case NotifyIntent::TTS_OK:      NotifyState::setTtsStatus(true); break;
-        case NotifyIntent::TTS_FAIL:    NotifyState::setTtsStatus(false); break;
-        case NotifyIntent::START_RUNTIME: 
+        case NotifyRequest::NTP_FAIL:    NotifyState::setNtpStatus(false); break;
+        case NotifyRequest::DISTANCE_SENSOR_OK:  NotifyState::setDistanceSensorStatus(true); break;
+        case NotifyRequest::DISTANCE_SENSOR_FAIL:NotifyState::setDistanceSensorStatus(false); break;
+        case NotifyRequest::LUX_SENSOR_OK:  NotifyState::setLuxSensorStatus(true); break;
+        case NotifyRequest::LUX_SENSOR_FAIL:NotifyState::setLuxSensorStatus(false); break;
+        case NotifyRequest::SENSOR3_OK:  NotifyState::setSensor3Status(true); break;
+        case NotifyRequest::SENSOR3_FAIL:NotifyState::setSensor3Status(false); break;
+        case NotifyRequest::TTS_OK:      NotifyState::setTtsStatus(true); break;
+        case NotifyRequest::TTS_FAIL:    NotifyState::setTtsStatus(false); break;
+        case NotifyRequest::START_RUNTIME: 
             NotifyState::startRuntime();
             // Start reminder timer for failure status flash (exponential backoff)
             timers.create(Globals::reminderIntervalMs, 0, cb_statusReminder, Globals::reminderIntervalGrowth);

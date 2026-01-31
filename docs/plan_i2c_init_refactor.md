@@ -26,8 +26,8 @@ struct I2CInitConfig {
     I2CProbeFunc probe;         // []() { return rtc.begin(); }
     int maxRetries;             // 15
     uint32_t startDelayMs;      // 1000
-    NotifyIntent okIntent;      // NotifyIntent::RTC_OK
-    NotifyIntent failIntent;    // NotifyIntent::RTC_FAIL
+    NotifyRequest okRequest;      // NotifyRequest::RTC_OK
+    NotifyRequest failRequest;    // NotifyRequest::RTC_FAIL
 };
 
 namespace I2CInitHelper {
@@ -46,7 +46,7 @@ void begin() {
         "RTC", SC_RTC,
         []() { return rtc.begin(); },
         10, 1000, 1.5f,
-        NotifyIntent::RTC_OK, NotifyIntent::RTC_FAIL
+        NotifyRequest::RTC_OK, NotifyRequest::RTC_FAIL
     });
 }
 
@@ -56,7 +56,7 @@ void beginDistanceSensor() {
         "Distance", SC_DIST,
         []() { return VL53L1X_begin(); },
         15, 1000, 1.5f,
-        NotifyIntent::DISTANCE_SENSOR_OK, NotifyIntent::DISTANCE_SENSOR_FAIL
+        NotifyRequest::DISTANCE_SENSOR_OK, NotifyRequest::DISTANCE_SENSOR_FAIL
     });
 }
 
@@ -66,7 +66,7 @@ void beginSensor3() {
         "Sensor3", SC_SENSOR3,
         []() { return sensor3.begin(); },
         10, 1000, 1.75f,
-        NotifyIntent::SENSOR3_OK, NotifyIntent::SENSOR3_FAIL
+        NotifyRequest::SENSOR3_OK, NotifyRequest::SENSOR3_FAIL
     });
 }
 ```
@@ -83,7 +83,7 @@ Voor toekomstige sensors moeten toegevoegd worden:
    SC_COUNT  // blijft laatste
    ```
 
-2. **NotifyIntent** - OK/FAIL intents toevoegen
+2. **NotifyRequest** - OK/FAIL requests toevoegen
 
 3. **health.js** - FLAGS array synchroon houden
 

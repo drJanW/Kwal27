@@ -80,7 +80,7 @@ void tryInit(StatusComponent comp) {
     if (dev.cfg.probe()) {
         dev.ready = true;
         timers.cancel(dev.cb);
-        NotifyRun::report(dev.cfg.okIntent);  // report() does setOk()
+        NotifyRun::report(dev.cfg.okRequest);  // report() does setOk()
         PF("[I2CInit] %s ready\n", dev.cfg.name);
         return;
     }
@@ -88,7 +88,7 @@ void tryInit(StatusComponent comp) {
     // Check if last retry
     if (remaining == 1) {
         dev.failed = true;
-        NotifyRun::report(dev.cfg.failIntent);  // report() does setOk()
+        NotifyRun::report(dev.cfg.failRequest);  // report() does setOk()
         PF("[I2CInit] %s failed after %d retries\n", dev.cfg.name, dev.cfg.maxRetries);
     }
 }

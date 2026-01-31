@@ -14,12 +14,12 @@ Serve a lightweight UI from the SD card so operators can monitor and steer the i
 
 ## REST Endpoints
 - `GET /` → streams `index.html` from SD (returns 503 if SD not ready).
-- `GET /setBrightness?value=X` and `GET /getBrightness` – route to `RunManager` intents for light control.
+- `GET /setBrightness?value=X` and `GET /getBrightness` – route to `RunManager` requests for light control.
 - `GET /setWebAudioLevel` and `GET /getWebAudioLevel` – adjust web-facing audio gain.
 - `POST /ota/start` – arms + confirms OTA window (replaces the old `/ota/arm` + `/ota/confirm` combo).
 - `GET /api/sd/status`, `POST /api/sd/upload`, `POST /api/sd/delete` – SD maintenance.
 
-Handlers live in `WebInterfaceManager.cpp`; each maps directly to a `RunManager` intent or SDManager method. Logging uses `PF` macros guarded by `WEBIF_LOG_LEVEL`.
+Handlers live in `WebInterfaceManager.cpp`; each maps directly to a `RunManager` request or SDManager method. Logging uses `PF` macros guarded by `WEBIF_LOG_LEVEL`.
 
 ## SSE Reconnect Behavior
 

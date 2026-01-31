@@ -71,7 +71,7 @@ void handleGetLevel(AsyncWebServerRequest *request)
 
 void handleNext(AsyncWebServerRequest *request)
 {
-    RunManager::intentWebAudioNext(Globals::webAudioNextFadeMs);
+    RunManager::requestWebAudioNext(Globals::webAudioNextFadeMs);
     request->send(200, "text/plain", "OK");
     WEBIF_LOG("[Web] Audio next triggered (fade %u ms)\n", Globals::webAudioNextFadeMs);
 }
@@ -103,7 +103,7 @@ void handlePlay(AsyncWebServerRequest *request)
     if (request->hasParam("file")) {
         file = request->getParam("file")->value().toInt();
     }
-    RunManager::intentPlaySpecificFragment(dir, file);
+    RunManager::requestPlaySpecificFragment(dir, file);
     request->send(200, "text/plain", "OK");
     WEBIF_LOG("[Web] Play %u/%d triggered\n", dir, file);
 }

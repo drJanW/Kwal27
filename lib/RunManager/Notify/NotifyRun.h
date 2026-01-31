@@ -11,13 +11,13 @@
 
 #pragma once
 
-#include "NotifyIntent.h"
+#include "NotifyRequest.h"
 #include "NotifyState.h"  // voor StatusComponent
 
 class NotifyRun {
 public:
     static void plan();
-    static void report(NotifyIntent intent);
+    static void report(NotifyRequest request);
     
     // Reageer op status: bij LAST_TRY → set FAILED + speak
     static void speakOnFail(StatusComponent c);

@@ -77,13 +77,13 @@ namespace {
             TimerManager::instance().cancel(cb_sensor3Init);
             PL("[SensorManager] Sensor3 (TMP117) ready");
             NotifyState::setOk(COMP_SENSOR3, true);
-            NotifyRun::report(NotifyIntent::SENSOR3_OK);
+            NotifyRun::report(NotifyRequest::SENSOR3_OK);
             return;
         }
         
         if (abs(remaining) == 1) {
             sensor3InitFailed = true;
-            NotifyRun::report(NotifyIntent::SENSOR3_FAIL);
+            NotifyRun::report(NotifyRequest::SENSOR3_FAIL);
             PL("[SensorManager] Sensor3 gave up after retries");
         }
     }
@@ -119,7 +119,7 @@ setOk(COMP_SENSOR3, false);  // DELETE: was placeholder
 
 `SpeakRun::speakFailures()` bevat al:
 ```cpp
-if (!NotifyState::isOk(COMP_SENSOR3)) speak(SpeakIntent::SENSOR3_FAIL);
+if (!NotifyState::isOk(COMP_SENSOR3)) speak(SpeakRequest::SENSOR3_FAIL);
 ```
 
 Dit werkt automatisch zodra sensor3 faalt.
@@ -163,7 +163,7 @@ void SensorManager::beginSensor3() {
         "Sensor3", COMP_SENSOR3,
         []() { return sensor3.begin(); },
         -10, 1000,
-        NotifyIntent::SENSOR3_OK, NotifyIntent::SENSOR3_FAIL
+        NotifyRequest::SENSOR3_OK, NotifyRequest::SENSOR3_FAIL
     });
 }
 ```

@@ -28,8 +28,8 @@ struct I2CInitConfig {
     uint8_t maxRetries;         // 10, 14, 13 (positive count)
     uint32_t startDelayMs;      // 1000
     float growth;               // 1.5f (interval multiplier per retry)
-    NotifyIntent okIntent;      // NotifyIntent::RTC_OK
-    NotifyIntent failIntent;    // NotifyIntent::RTC_FAIL
+    NotifyRequest okRequest;      // NotifyRequest::RTC_OK
+    NotifyRequest failRequest;    // NotifyRequest::RTC_FAIL
 };
 
 namespace I2CInitHelper {

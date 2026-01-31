@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Defines the RunManager class which serves as the main coordination layer.
- * Routes intents from the web interface to appropriate modules, manages
+ * Routes requests from the web interface to appropriate modules, manages
  * system lifecycle, and provides status queries for clock, OTA, and audio state.
  * All module coordination follows the Boot→Plan→Policy→Run pattern.
  */
@@ -28,23 +28,23 @@ public:
     static void begin();
     static void update();
 
-    // Intents (external requests)
-    static void intentPlayFragment();
-    static void intentPlaySpecificFragment(uint8_t dir, int8_t file);  // file=-1 for random from dir
-    static void intentWebAudioNext(uint16_t fadeMs);
+    // Requests (external inputs)
+    static void requestPlayFragment();
+    static void requestPlaySpecificFragment(uint8_t dir, int8_t file);  // file=-1 for random from dir
+    static void requestWebAudioNext(uint16_t fadeMs);
     static void triggerBootFragment();  // Called by CalendarRun after theme box set
-    static void intentSayTime(TimeStyle style = TimeStyle::NORMAL);
-    static void intentSetAudioLevel(float value);
-    static void intentArmOTA(uint32_t window_s);
-    static bool intentConfirmOTA();
-    static void intentShowTimerStatus();
-    static bool intentStartClockTick(bool fallbackMode);
+    static void requestSayTime(TimeStyle style = TimeStyle::NORMAL);
+    static void requestSetAudioLevel(float value);
+    static void requestArmOTA(uint32_t window_s);
+    static bool requestConfirmOTA();
+    static void requestShowTimerStatus();
+    static bool requestStartClockTick(bool fallbackMode);
     static bool isClockRunning();
     static bool isClockInFallback();
-    static bool intentSeedClockFromRtc();
-    static void intentSyncRtcFromClock();
+    static bool requestSeedClockFromRtc();
+    static void requestSyncRtcFromClock();
 
-    // Lux measurement intent (Run-compliant)
+    // Lux measurement request (Run-compliant)
     static void requestLuxMeasurement();
 
 private:

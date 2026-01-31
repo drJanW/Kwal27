@@ -1,10 +1,10 @@
 /**
- * @file NotifyIntent.h
- * @brief Hardware notification intent enumeration
+ * @file NotifyRequest.h
+ * @brief Hardware notification request enumeration
  * @version 251231G
  * @date 2025-12-31
  *
- * Defines the NotifyIntent enum for all hardware status notifications.
+ * Defines the NotifyRequest enum for all hardware status notifications.
  * Each component has an OK/FAIL pair for reporting initialization results.
  * Used by modules to report status to the notification coordinator.
  */
@@ -13,7 +13,7 @@
 
 #include <stdint.h>
 
-enum class NotifyIntent : uint8_t {
+enum class NotifyRequest : uint8_t {
     // Component status (OK/FAIL pairs)
     SD_OK,
     SD_FAIL,

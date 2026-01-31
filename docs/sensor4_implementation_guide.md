@@ -34,7 +34,7 @@ PARSE_FLOAT("sensor4DummyTemp", sensor4DummyTemp)
 #sensor4DummyTemp;f;25.0;fallback when sensor4 absent
 ```
 
-### 4. NotifyIntent.h
+### 4. NotifyRequest.h
 
 ```cpp
 SENSOR4_OK,
@@ -57,10 +57,10 @@ bool isSensor4Ok();
 ### 6. NotifyRun.cpp
 
 ```cpp
-case NotifyIntent::SENSOR4_OK:
+case NotifyRequest::SENSOR4_OK:
     NotifyState::setSensor4Status(true);
     break;
-case NotifyIntent::SENSOR4_FAIL:
+case NotifyRequest::SENSOR4_FAIL:
     NotifyState::setSensor4Status(false);
     break;
 ```
@@ -77,7 +77,7 @@ if (!NotifyState::isSensor4Ok()) flashColor(COLOR_SENSOR4);
 #endif
 ```
 
-### 8. SpeakIntent.h
+### 8. SpeakRequest.h
 
 ```cpp
 SENSOR4_FAIL,
@@ -87,15 +87,15 @@ SENSOR4_FAIL,
 
 ```cpp
 // In getTtsSentence()
-case SpeakIntent::SENSOR4_FAIL:
+case SpeakRequest::SENSOR4_FAIL:
     return "Sensor vier ontbreekt.";
 
 // In getMp3Words()
-case SpeakIntent::SENSOR4_FAIL:
+case SpeakRequest::SENSOR4_FAIL:
     return {MP3_SENSOR, 4, MP3_END};
 
 // In speakFailures()
-if (!NotifyState::isSensor4Ok()) speak(SpeakIntent::SENSOR4_FAIL);
+if (!NotifyState::isSensor4Ok()) speak(SpeakRequest::SENSOR4_FAIL);
 ```
 
 ### 10. SensorManager.cpp
@@ -129,12 +129,12 @@ SensorManager::beginSensor4();
 
 - [ ] HWconfig.h defines
 - [ ] Globals variabele + CSV
-- [ ] NotifyIntent enum (OK + FAIL)
+- [ ] NotifyRequest enum (OK + FAIL)
 - [ ] COMP_SENSOR4 in Component enum
 - [ ] NotifyState set/is functies
 - [ ] NotifyRun case handlers
 - [ ] NotifyRGB flash kleur (optioneel)
-- [ ] SpeakIntent enum
+- [ ] SpeakRequest enum
 - [ ] SpeakRun TTS + MP3 + speakFailures
 - [ ] SensorManager init + read
 - [ ] SensorsBoot aanroep

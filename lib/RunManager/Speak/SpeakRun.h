@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Runs TTS speech coordination and sentence playback. Provides speak interface
- * for various intents (failures, time announcements), coordinates with
+ * for various requests (failures, time announcements), coordinates with
  * PlaySentence for word-based audio output.
  */
 
@@ -15,8 +15,8 @@
 #include <stdint.h>
 #include "Notify/NotifyState.h"  // voor StatusComponent
 
-// Speak intents
-enum class SpeakIntent : uint8_t {
+// Speak requests
+enum class SpeakRequest : uint8_t {
     // Component failures (for boot notification)
     SD_FAIL,
     WIFI_FAIL,
@@ -41,9 +41,9 @@ enum class SpeakIntent : uint8_t {
 class SpeakRun {
 public:
     void plan();
-    static void speak(SpeakIntent intent);
+    static void speak(SpeakRequest request);
     
-    // Speak FAIL voor component (lookup table SC_* → SpeakIntent::*_FAIL)
+    // Speak FAIL voor component (lookup table SC_* → SpeakRequest::*_FAIL)
     static void speakFail(StatusComponent c);
     
     // Zeg de huidige tijd als zin: "het is X uur Y"

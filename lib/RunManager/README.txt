@@ -5,7 +5,7 @@ Version: 251218A | Updated: 2025-12-17
 
 INPUT SOURCES
 -------------
-- Web interface routes (HTTP intents)
+- Web interface routes (HTTP requests)
 - TimerManager callbacks
 - Calendar/context refresh
 - Sensors (distance, lux, temp, voltage)
@@ -18,7 +18,7 @@ Input → Boot → Run → Director → Policy → Manager → Hardware
 
 FLOW OF CONTROL
 ----------------
-1. Input source generates an intent
+1. Input source generates a request
   (e.g. "play fragment", "say time", "silence for 2h", "arm OTA")
 
 2. **Boot layer** (BootMaster, *Boot.cpp)
@@ -26,7 +26,7 @@ FLOW OF CONTROL
    - Logs readiness using `PL("[Run][Plan] ...")`.
 
 3. **Run layer** (RunManager, AudioRun, LightRun, ...)
-   - Receives intents, owns timer lifecycles, invokes directors, retries on failure.
+   - Receives requests, owns timer lifecycles, invokes directors, retries on failure.
    - Only this layer calls `TimerManager::restart()` or `TimerManager::cancel()`.
 
 4. **Director layer** (*Director.cpp)
@@ -50,7 +50,7 @@ LAYER PLAYBOOK
 
 EXAMPLE CHAINS
 --------------
-- **Web silence control**: Web intent → WebRun → WebDirector (parse duration + context) → WebPolicy (approve clamp) → AudioRun applies via AudioPolicy/AudioManager.
+- **Web silence control**: Web request → WebRun → WebDirector (parse duration + context) → WebPolicy (approve clamp) → AudioRun applies via AudioPolicy/AudioManager.
 - **Calendar default lights**: Calendar tick → CalendarRun (no show) → LightDirector builds deterministic `LightShowParams` → LightPolicy approves → LightRun arms timers and calls LightManager.
 - **Distance PCM**: SensorsRun caches measurements → AudioRun schedules timer → AudioDirector picks clip → AudioPolicy approves volume/interval → AudioManager plays PCM.
 

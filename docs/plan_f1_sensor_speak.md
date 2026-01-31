@@ -49,7 +49,7 @@ SensorDirector.cpp
 SensorsRun.cpp
   ├── onDistanceReading(mm)       // called by periodic timer
   ├── onLuxReading(lux)           // called by periodic timer
-  └── triggerSpeak(SpeakIntent)   // route to SpeakRun
+  └── triggerSpeak(SpeakRequest)   // route to SpeakRun
 
 SensorsPolicy.cpp
   ├── shouldSpeak(event)          // throttle logic
@@ -134,10 +134,10 @@ void SensorsRun::onSensorReady(StatusComponent comp) {
     
     switch (comp) {
         case COMP_DIST:
-            NotifyRun::report(NotifyIntent::DISTANCE_SENSOR_OK);
+            NotifyRun::report(NotifyRequest::DISTANCE_SENSOR_OK);
             break;
         case COMP_LUX:
-            NotifyRun::report(NotifyIntent::LUX_SENSOR_OK);
+            NotifyRun::report(NotifyRequest::LUX_SENSOR_OK);
             break;
         default:
             break;
@@ -150,10 +150,10 @@ void SensorsRun::onSensorFail(StatusComponent comp) {
     // Report to NotifyRun
     switch (comp) {
         case COMP_DIST:
-            NotifyRun::report(NotifyIntent::DISTANCE_SENSOR_FAIL);
+            NotifyRun::report(NotifyRequest::DISTANCE_SENSOR_FAIL);
             break;
         case COMP_LUX:
-            NotifyRun::report(NotifyIntent::LUX_SENSOR_FAIL);
+            NotifyRun::report(NotifyRequest::LUX_SENSOR_FAIL);
             break;
         default:
             break;
@@ -233,7 +233,7 @@ bool SensorsPolicy::canSpeakDistanceCleared() {
 ## Risico's
 
 - SensorManager refactor raakt veel code
-- Speak MP3 files moeten bestaan voor nieuwe intents
+- Speak MP3 files moeten bestaan voor nieuwe requests
 
 ---
 

@@ -7,8 +7,8 @@ we do not lose it across sessions.
 
 | Symbol       | Time  | Notes                         |
 |--------------|-------|-------------------------------|
-| `startday`   | 07:00 | Earliest daytime intent start |
-| `endday`     | 18:00 | Latest daytime intent end     |
+| `startday`   | 07:00 | Earliest daytime request start |
+| `endday`     | 18:00 | Latest daytime request end     |
 | `endevening` | 23:00 | Hard cutoff for evening band  |
 
 `startmorning = max(sunrise, startday)`  and

@@ -4,7 +4,7 @@
  * @version 251231E
  * @date 2025-12-31
  *
- * Implements speech routing: maps SpeakIntent values to word sequences
+ * Implements speech routing: maps SpeakRequest values to word sequences
  * (component names for failures, numbers for time), and queues them via
  * PlaySentence for sequential MP3 playback.
  */
@@ -23,19 +23,19 @@
 namespace {
 
 // TTS zinnen (primair)
-const char* getTtsSentence(SpeakIntent intent) {
-    switch (intent) {
-        case SpeakIntent::SD_FAIL:              return "Geheugenkaart werkt niet";
-        case SpeakIntent::WIFI_FAIL:            return "WiFi werkt niet";
-        case SpeakIntent::RTC_FAIL:             return "Klok werkt niet";
-        case SpeakIntent::NTP_FAIL:             return "Tijd ophalen mislukt";
-        case SpeakIntent::DISTANCE_SENSOR_FAIL: return "Afstandmeter werkt niet";
-        case SpeakIntent::LUX_SENSOR_FAIL:      return "Lichtmeting werkt niet";
-        case SpeakIntent::SENSOR3_FAIL:         return "Sensor drie ontbreekt";
-        case SpeakIntent::WEATHER_FAIL:          return "Weer ophalen mislukt";
-        case SpeakIntent::CALENDAR_FAIL:         return "Kalender laden mislukt";
-        case SpeakIntent::DISTANCE_CLEARED:     return "Object is verdwenen";
-        case SpeakIntent::WELCOME: {
+const char* getTtsSentence(SpeakRequest request) {
+    switch (request) {
+        case SpeakRequest::SD_FAIL:              return "Geheugenkaart werkt niet";
+        case SpeakRequest::WIFI_FAIL:            return "WiFi werkt niet";
+        case SpeakRequest::RTC_FAIL:             return "Klok werkt niet";
+        case SpeakRequest::NTP_FAIL:             return "Tijd ophalen mislukt";
+        case SpeakRequest::DISTANCE_SENSOR_FAIL: return "Afstandmeter werkt niet";
+        case SpeakRequest::LUX_SENSOR_FAIL:      return "Lichtmeting werkt niet";
+        case SpeakRequest::SENSOR3_FAIL:         return "Sensor drie ontbreekt";
+        case SpeakRequest::WEATHER_FAIL:          return "Weer ophalen mislukt";
+        case SpeakRequest::CALENDAR_FAIL:         return "Kalender laden mislukt";
+        case SpeakRequest::DISTANCE_CLEARED:     return "Object is verdwenen";
+        case SpeakRequest::WELCOME: {
             uint8_t hour = prtClock.getHour();
             if (hour < 12) return "Goedemorgen";
             if (hour < 18) return "Goedemiddag";
@@ -45,23 +45,23 @@ const char* getTtsSentence(SpeakIntent intent) {
     }
 }
 
-// MP3 fallback: intent → max 2 woorden
-struct IntentPhrase {
-    SpeakIntent intent;
+// MP3 fallback: request → max 2 woorden
+struct RequestPhrase {
+    SpeakRequest request;
     uint8_t words[3];  // max 2 woorden + terminator
 };
 
-constexpr IntentPhrase phrases[] = {
-    { SpeakIntent::SD_FAIL,      { MP3_SD,       MP3_END, 0 } },       // "geheugenkaart"
-    { SpeakIntent::WIFI_FAIL,    { MP3_WIFI,     MP3_END, 0 } },       // "wifi"
-    { SpeakIntent::RTC_FAIL,     { MP3_TIME,     MP3_FOUT, MP3_END } },// "tijd fout"
-    { SpeakIntent::NTP_FAIL,     { MP3_TIME,     MP3_END, 0 } },       // "tijd"
-    { SpeakIntent::DISTANCE_SENSOR_FAIL, { MP3_DISTANCE, MP3_FOUT, MP3_END } }, // "afstand fout"
-    { SpeakIntent::LUX_SENSOR_FAIL, { MP3_LIGHT, MP3_FOUT, MP3_END } },        // "licht fout"
-    { SpeakIntent::SENSOR3_FAIL, { MP3_SENSOR,   3, MP3_END } },       // "sensor drie"
-    { SpeakIntent::WEATHER_FAIL, { MP3_TEMPERATUUR, MP3_FOUT, MP3_END } },     // "temperatuur fout"
-    { SpeakIntent::CALENDAR_FAIL, { MP3_CALENDAR, MP3_FOUT, MP3_END } },       // "kalender fout"
-    { SpeakIntent::DISTANCE_CLEARED, { MP3_GEEN, MP3_DISTANCE, MP3_END } },    // "geen afstand"
+constexpr RequestPhrase phrases[] = {
+    { SpeakRequest::SD_FAIL,      { MP3_SD,       MP3_END, 0 } },       // "geheugenkaart"
+    { SpeakRequest::WIFI_FAIL,    { MP3_WIFI,     MP3_END, 0 } },       // "wifi"
+    { SpeakRequest::RTC_FAIL,     { MP3_TIME,     MP3_FOUT, MP3_END } },// "tijd fout"
+    { SpeakRequest::NTP_FAIL,     { MP3_TIME,     MP3_END, 0 } },       // "tijd"
+    { SpeakRequest::DISTANCE_SENSOR_FAIL, { MP3_DISTANCE, MP3_FOUT, MP3_END } }, // "afstand fout"
+    { SpeakRequest::LUX_SENSOR_FAIL, { MP3_LIGHT, MP3_FOUT, MP3_END } },        // "licht fout"
+    { SpeakRequest::SENSOR3_FAIL, { MP3_SENSOR,   3, MP3_END } },       // "sensor drie"
+    { SpeakRequest::WEATHER_FAIL, { MP3_TEMPERATUUR, MP3_FOUT, MP3_END } },     // "temperatuur fout"
+    { SpeakRequest::CALENDAR_FAIL, { MP3_CALENDAR, MP3_FOUT, MP3_END } },       // "kalender fout"
+    { SpeakRequest::DISTANCE_CLEARED, { MP3_GEEN, MP3_DISTANCE, MP3_END } },    // "geen afstand"
     // WELCOME: MP3 fallback uses goedemorgen (MP3 selection done in getWelcomeMp3)
 };
 
@@ -73,9 +73,9 @@ Mp3Id getWelcomeMp3() {
     return MP3_GOEDEAVOND;
 }
 
-const IntentPhrase* findPhrase(SpeakIntent intent) {
+const RequestPhrase* findPhrase(SpeakRequest request) {
     for (const auto& p : phrases) {
-        if (p.intent == intent) return &p;
+        if (p.request == request) return &p;
     }
     return nullptr;
 }
@@ -86,14 +86,14 @@ void SpeakRun::plan() {
     // No timers to arm yet
 }
 
-void SpeakRun::speak(SpeakIntent intent) {
-    PF("[SpeakRun] speak intent %d\n", static_cast<int>(intent));
+void SpeakRun::speak(SpeakRequest request) {
+    PF("[SpeakRun] speak request %d\n", static_cast<int>(request));
 
-    if (intent == SpeakIntent::SAY_TIME) return;
+    if (request == SpeakRequest::SAY_TIME) return;
 
     // TTS primary - requires WiFi
     if (NotifyState::canPlayTTS()) {
-        const char* sentence = getTtsSentence(intent);
+        const char* sentence = getTtsSentence(request);
         if (sentence) {
             PF("[SpeakRun] TTS: %s\n", sentence);
             PlaySentence::addTTS(sentence);
@@ -107,7 +107,7 @@ void SpeakRun::speak(SpeakIntent intent) {
         return;
     }
 
-    if (intent == SpeakIntent::WELCOME) {
+    if (request == SpeakRequest::WELCOME) {
         // WELCOME uses time-based MP3
         uint8_t words[2] = { static_cast<uint8_t>(getWelcomeMp3()), MP3_END };
         PF("[SpeakRun] MP3 fallback: welcome\n");
@@ -115,9 +115,9 @@ void SpeakRun::speak(SpeakIntent intent) {
         return;
     }
     
-    const auto* phrase = findPhrase(intent);
+    const auto* phrase = findPhrase(request);
     if (!phrase) {
-        PF("[SpeakRun] No phrase for intent %d\n", static_cast<int>(intent));
+        PF("[SpeakRun] No phrase for request %d\n", static_cast<int>(request));
         return;
     }
 
@@ -145,17 +145,17 @@ void SpeakRun::sayTime(uint8_t hour, uint8_t minute) {
 }
 
 void SpeakRun::speakFail(StatusComponent c) {
-    // Lookup table: SC_* → SpeakIntent::*_FAIL
+    // Lookup table: SC_* → SpeakRequest::*_FAIL
     switch (c) {
-        case SC_SD:       speak(SpeakIntent::SD_FAIL); break;
-        case SC_WIFI:     speak(SpeakIntent::WIFI_FAIL); break;
-        case SC_RTC:      speak(SpeakIntent::RTC_FAIL); break;
-        case SC_NTP:      speak(SpeakIntent::NTP_FAIL); break;
-        case SC_DIST:     speak(SpeakIntent::DISTANCE_SENSOR_FAIL); break;
-        case SC_LUX:      speak(SpeakIntent::LUX_SENSOR_FAIL); break;
-        case SC_SENSOR3:  speak(SpeakIntent::SENSOR3_FAIL); break;
-        case SC_WEATHER:  speak(SpeakIntent::WEATHER_FAIL); break;
-        case SC_CALENDAR: speak(SpeakIntent::CALENDAR_FAIL); break;
-        default: break;  // SC_AUDIO, SC_TTS hebben geen FAIL intent
+        case SC_SD:       speak(SpeakRequest::SD_FAIL); break;
+        case SC_WIFI:     speak(SpeakRequest::WIFI_FAIL); break;
+        case SC_RTC:      speak(SpeakRequest::RTC_FAIL); break;
+        case SC_NTP:      speak(SpeakRequest::NTP_FAIL); break;
+        case SC_DIST:     speak(SpeakRequest::DISTANCE_SENSOR_FAIL); break;
+        case SC_LUX:      speak(SpeakRequest::LUX_SENSOR_FAIL); break;
+        case SC_SENSOR3:  speak(SpeakRequest::SENSOR3_FAIL); break;
+        case SC_WEATHER:  speak(SpeakRequest::WEATHER_FAIL); break;
+        case SC_CALENDAR: speak(SpeakRequest::CALENDAR_FAIL); break;
+        default: break;  // SC_AUDIO, SC_TTS hebben geen FAIL request
     }
 }

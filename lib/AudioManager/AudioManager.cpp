@@ -18,7 +18,7 @@
 #include "TimerManager.h"
 #include "MathUtils.h"
 #include "Notify/NotifyRun.h"
-#include "Notify/NotifyIntent.h"
+#include "Notify/NotifyRequest.h"
 
 #ifndef LOG_AUDIO_VERBOSE
 #define LOG_AUDIO_VERBOSE 0
@@ -129,7 +129,7 @@ void AudioManager::finalizePlayback()
 	setTtsActive(false);
 	
 	if (wasTts) {
-		NotifyRun::report(NotifyIntent::TTS_OK);
+		NotifyRun::report(NotifyRequest::TTS_OK);
 	}
 }
 

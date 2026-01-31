@@ -25,7 +25,7 @@ namespace {
 void cb_endOfBoot() {
     if (!NotifyState::isBootPhase()) return;  // already ended
     PL("[Boot] Timeout - forcing START_RUNTIME");
-    NotifyRun::report(NotifyIntent::START_RUNTIME);
+    NotifyRun::report(NotifyRequest::START_RUNTIME);
 }
 
 } // namespace
@@ -62,15 +62,15 @@ void BootMaster::cb_bootstrap() {
         bool wasRunning = RunManager::isClockRunning();
         bool wasFallback = RunManager::isClockInFallback();
             if (!wasRunning || wasFallback) {
-            if (RunManager::intentStartClockTick(false)) {
+            if (RunManager::requestStartClockTick(false)) {
                 if (!wasRunning) {
                     PF("[Run] Clock tick started with NTP (%02u:%02u:%02u)\n",
                        prtClock.getHour(), prtClock.getMinute(), prtClock.getSecond());
-                    NotifyRun::report(NotifyIntent::NTP_OK);
+                    NotifyRun::report(NotifyRequest::NTP_OK);
                 } else if (wasFallback) {
                     PF("[Run] Clock tick promoted to NTP (%02u:%02u:%02u)\n",
                        prtClock.getHour(), prtClock.getMinute(), prtClock.getSecond());
-                    NotifyRun::report(NotifyIntent::NTP_OK);
+                    NotifyRun::report(NotifyRequest::NTP_OK);
                 }
             } else {
                 PL("[Run] Failed to start clock tick with NTP");
@@ -110,7 +110,7 @@ void BootMaster::fallbackTimeout() {
 
     if (!fallback.seedAttempted) {
         fallback.seedAttempted = true;
-        if (RunManager::intentSeedClockFromRtc()) {
+        if (RunManager::requestSeedClockFromRtc()) {
             fallback.seededFromRtc = true;
             fallback.seededFromCache = false;
             PL("[Run] Seeded clock from RTC snapshot");
@@ -128,7 +128,7 @@ void BootMaster::fallbackTimeout() {
     }
 
     bool wasFallback = RunManager::isClockInFallback();
-    if (RunManager::intentStartClockTick(true)) {
+    if (RunManager::requestStartClockTick(true)) {
         fallback.stateAnnounced = false;
         if (!wasFallback) {
             if (fallback.seededFromRtc) {

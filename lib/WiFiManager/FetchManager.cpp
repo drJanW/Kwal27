@@ -144,7 +144,7 @@ static void cb_fetchNTP() {
     NotifyState::setNtpStatus(true);
     timers.cancel(cb_fetchNTP);
     prtClock.setMoonPhaseValue();
-    RunManager::intentSyncRtcFromClock();
+    RunManager::requestSyncRtcFromClock();
 }
 
 // ===================================================

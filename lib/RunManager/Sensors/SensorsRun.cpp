@@ -74,7 +74,7 @@ void cb_processSensorEvents() {
             timers.cancel(AudioRun::cb_playPCM);
             // Object moved away - speak "geen afstand" if cooldown allows
             if (SensorsPolicy::canSpeakDistanceCleared()) {
-                SpeakRun::speak(SpeakIntent::DISTANCE_CLEARED);
+                SpeakRun::speak(SpeakRequest::DISTANCE_CLEARED);
             }
         }
 

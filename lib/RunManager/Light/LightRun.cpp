@@ -458,7 +458,7 @@ bool LightRun::previewColor(JsonVariantConst body, String &errorMessage) {
     return getColorsStore().previewColors(body, errorMessage);
 }
 
-// --- Calendar-driven selection intents ---
+// --- Calendar-driven selection requests ---
 
 void LightRun::applyPattern(uint8_t patternId) {
     PatternCatalog& store = getPatternStore();
@@ -500,7 +500,7 @@ void LightRun::applyColor(uint8_t colorId) {
     applyToLights();
 }
 
-// --- TodayContext intent methods ---
+// --- TodayContext request methods ---
 
 bool LightRun::describePatternById(uint8_t id, LightPattern& out) {
     if (id == 0) {

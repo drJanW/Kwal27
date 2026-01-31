@@ -30,7 +30,7 @@ b12. Replace linear lux formula with Stevens' power law
 === Future ===
 F1. Sensor + Speak architecture completion
     - Verplaats sensor orchestratie van SensorManager naar SensorDirector
-    - Koppel sensor events aan SpeakIntent (DISTANCE_TOO_CLOSE, LUX_LOW, etc)
+    - Koppel sensor events aan SpeakRequest (DISTANCE_TOO_CLOSE, LUX_LOW, etc)
     - Beide modules volledig Boot→Run→Policy→Director patroon
     - Zie: docs/plan_f1_sensor_speak.md
 

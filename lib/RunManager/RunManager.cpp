@@ -6,7 +6,7 @@
  * 
  * The RunManager is the main coordinator that:
  * - Initializes all modules via BootMaster at startup
- * - Routes intents from WebGUI to appropriate modules
+ * - Routes requests from WebGUI to appropriate modules
  * - Manages lux measurement cycles (LED blackout for sensor reading)
  * - Handles audio fragment playback requests
  * - Coordinates OTA update window
@@ -102,30 +102,30 @@ void cb_clockUpdate() {
 void cb_sayTime() {
     // 75% INFORMAL, 25% split between FORMAL and NORMAL
     TimeStyle style = (random(0, 4) < 3) ? TimeStyle::INFORMAL : static_cast<TimeStyle>(random(0, 2));
-    RunManager::intentSayTime(style);
+    RunManager::requestSayTime(style);
     // Schedule next with fresh random interval - unpredictable time announcements
     timers.restart(random(Globals::minSaytimeIntervalMs, Globals::maxSaytimeIntervalMs + 1), 1, cb_sayTime);
 }
 
 void cb_playFragment() {
-    RunManager::intentPlayFragment();
+    RunManager::requestPlayFragment();
     // Schedule next with fresh random interval - the creature breathes
     timers.restart(random(Globals::minAudioIntervalMs, Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
 }
 
 void cb_bootFragment() {
     // Prerequisites guaranteed by stage 2 entry - no polling needed
-    RunManager::intentPlayFragment();
+    RunManager::requestPlayFragment();
 }
 
 void cb_showTimerStatus() {
-    RunManager::intentShowTimerStatus();
+    RunManager::requestShowTimerStatus();
 }
 
 static uint16_t webAudioNextFadeMs = 957U;  // local cache for callback
 
 void cb_playNextFragment() {
-    RunManager::intentPlayFragment();
+    RunManager::requestPlayFragment();
 }
 
 void cb_webAudioStopThenNext() {
@@ -201,31 +201,31 @@ void RunManager::update() {
 #endif
 }
 
-void RunManager::intentArmOTA(uint32_t window_s) {
-    RUN_LOG_INFO("[Run] intentArmOTA: window=%us\n", static_cast<unsigned>(window_s));
+void RunManager::requestArmOTA(uint32_t window_s) {
+    RUN_LOG_INFO("[Run] requestArmOTA: window=%us\n", static_cast<unsigned>(window_s));
     otaArm(window_s);
     audio.stop();
     lightManager.showOtaPattern();
 }
 
-bool RunManager::intentConfirmOTA() {
-    RUN_LOG_INFO("[Run] intentConfirmOTA\n");
+bool RunManager::requestConfirmOTA() {
+    RUN_LOG_INFO("[Run] requestConfirmOTA\n");
     return otaConfirmAndReboot();
 }
 
-void RunManager::intentPlayFragment() {
+void RunManager::requestPlayFragment() {
     AudioFragment fragment{};
     if (!AudioDirector::selectRandomFragment(fragment)) {
-        RUN_LOG_WARN("[Run] intentPlayFragment: no fragment available\n");
+        RUN_LOG_WARN("[Run] requestPlayFragment: no fragment available\n");
         return;
     }
 
     if (!AudioPolicy::requestFragment(fragment)) {
-        RUN_LOG_WARN("[Run] intentPlayFragment: playback rejected\n");
+        RUN_LOG_WARN("[Run] requestPlayFragment: playback rejected\n");
     }
 }
 
-void RunManager::intentPlaySpecificFragment(uint8_t dir, int8_t file) {
+void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file) {
     FileEntry fileEntry{};
     uint8_t targetFile = static_cast<uint8_t>(file);
     
@@ -233,20 +233,20 @@ void RunManager::intentPlaySpecificFragment(uint8_t dir, int8_t file) {
     if (file < 0) {
         DirEntry dirEntry{};
         if (!SDManager::readDirEntry(dir, &dirEntry) || dirEntry.fileCount == 0) {
-            RUN_LOG_WARN("[Run] intentPlaySpecificFragment: dir %u not found or empty\n", dir);
+            RUN_LOG_WARN("[Run] requestPlaySpecificFragment: dir %u not found or empty\n", dir);
             return;
         }
         targetFile = random(0, dirEntry.fileCount);
     }
     
     if (!SDManager::readFileEntry(dir, targetFile, &fileEntry)) {
-        RUN_LOG_WARN("[Run] intentPlaySpecificFragment: file %u/%u not found\n", dir, targetFile);
+        RUN_LOG_WARN("[Run] requestPlaySpecificFragment: file %u/%u not found\n", dir, targetFile);
         return;
     }
     
     const uint32_t rawDuration = static_cast<uint32_t>(fileEntry.sizeKb) * 1024UL / 24UL;  // BYTES_PER_MS approx
     if (rawDuration <= 200U) {
-        RUN_LOG_WARN("[Run] intentPlaySpecificFragment: file too short\n");
+        RUN_LOG_WARN("[Run] requestPlaySpecificFragment: file too short\n");
         return;
     }
     
@@ -259,7 +259,7 @@ void RunManager::intentPlaySpecificFragment(uint8_t dir, int8_t file) {
     fragment.fadeMs     = 500U;  // Default fade
     
     if (!AudioPolicy::requestFragment(fragment)) {
-        RUN_LOG_WARN("[Run] intentPlaySpecificFragment: playback rejected\n");
+        RUN_LOG_WARN("[Run] requestPlaySpecificFragment: playback rejected\n");
     }
 }
 
@@ -274,27 +274,27 @@ void RunManager::triggerBootFragment() {
     timers.create(500, 1, cb_bootFragment);
 }
 
-void RunManager::intentSayTime(TimeStyle style) {
+void RunManager::requestSayTime(TimeStyle style) {
     const String sentence = prtClock.buildTimeSentence(style);
     if (sentence.isEmpty()) {
-        RUN_LOG_WARN("[Run] intentSayTime: clock sentence empty\n");
+        RUN_LOG_WARN("[Run] requestSayTime: clock sentence empty\n");
         return;
     }
     AudioPolicy::requestSentence(sentence);
 }
 
-void RunManager::intentSetAudioLevel(float value) {
+void RunManager::requestSetAudioLevel(float value) {
     // F9 pattern: webShift can be >1.0, no clamp
     audio.setVolumeWebShift(value);
-    RUN_LOG_INFO("[Run] intentSetAudioLevel: webShift=%.2f\n",
+    RUN_LOG_INFO("[Run] requestSetAudioLevel: webShift=%.2f\n",
                      static_cast<double>(value));
 }
 
-void RunManager::intentShowTimerStatus() {
+void RunManager::requestShowTimerStatus() {
     timers.showAvailableTimers(true);
 }
 
-bool RunManager::intentStartClockTick(bool fallbackMode) {
+bool RunManager::requestStartClockTick(bool fallbackMode) {
     if (clockRunning && clockInFallback == fallbackMode) {
         return true;
     }
@@ -322,11 +322,11 @@ bool RunManager::isClockInFallback() {
     return clockInFallback;
 }
 
-bool RunManager::intentSeedClockFromRtc() {
+bool RunManager::requestSeedClockFromRtc() {
     return clockRun.seedClockFromRtc(prtClock);
 }
 
-void RunManager::intentSyncRtcFromClock() {
+void RunManager::requestSyncRtcFromClock() {
     clockRun.syncRtcFromClock(prtClock);
 }
 
@@ -360,7 +360,7 @@ void RunManager::resumeAfterSDBoot() {
     // Stage 2 triggered per-component when OK reported (WIFI_OK, AUDIO_OK, etc.)
 }
 
-void RunManager::intentWebAudioNext(uint16_t fadeMs) {
+void RunManager::requestWebAudioNext(uint16_t fadeMs) {
     webAudioNextFadeMs = fadeMs;
     timers.cancel(cb_webAudioStopThenNext);
     timers.create(1, 1, cb_webAudioStopThenNext);

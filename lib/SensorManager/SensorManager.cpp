@@ -141,11 +141,11 @@ void SensorManager::beginDistanceSensor() {
       "Distance", SC_DIST,
       probeDistanceSensor,
       14, Globals::distanceSensorInitDelayMs, Globals::distanceSensorInitGrowth,
-      NotifyIntent::DISTANCE_SENSOR_OK, NotifyIntent::DISTANCE_SENSOR_FAIL
+      NotifyRequest::DISTANCE_SENSOR_OK, NotifyRequest::DISTANCE_SENSOR_FAIL
   }, cb_distanceInit);
 #else
   NotifyState::setStatusOK(SC_DIST, false);
-  NotifyRun::report(NotifyIntent::DISTANCE_SENSOR_FAIL);
+  NotifyRun::report(NotifyRequest::DISTANCE_SENSOR_FAIL);
   PL("[SensorManager] DistanceSensor (VL53L1X) disabled");
 #endif
 }
@@ -157,7 +157,7 @@ void SensorManager::beginLuxSensor() {
       "Lux", SC_LUX,
       probeLuxSensor,
       13, Globals::luxSensorInitDelayMs, Globals::luxSensorInitGrowth,
-      NotifyIntent::LUX_SENSOR_OK, NotifyIntent::LUX_SENSOR_FAIL
+      NotifyRequest::LUX_SENSOR_OK, NotifyRequest::LUX_SENSOR_FAIL
   }, cb_luxInit);
 }
 

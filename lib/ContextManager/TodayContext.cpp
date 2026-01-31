@@ -17,7 +17,7 @@
 #include "PRTClock.h"
 #include "SdPathUtils.h"
 
-// Forward declarations for LightRun intent methods (Rule 1.5)
+// Forward declarations for LightRun request methods (Rule 1.5)
 class LightRun {
 public:
     static bool describePatternById(uint8_t id, LightPattern& out);
@@ -231,7 +231,7 @@ bool TodayContextLoader::loadToday(TodayContext& ctx) {
         return false;
     }
 
-    // Lookup pattern via LightRun intent (Rule 1.5)
+    // Lookup pattern via LightRun request (Rule 1.5)
     LightPattern pattern;
     bool hasPattern = false;
     if (hasCalendarEntry && entry.patternId != 0) {
@@ -260,7 +260,7 @@ bool TodayContextLoader::loadToday(TodayContext& ctx) {
         return false;
     }
 
-    // Lookup color via LightRun intent (Rule 1.5)
+    // Lookup color via LightRun request (Rule 1.5)
     LightColor color;
     bool hasColor = false;
     if (hasCalendarEntry && entry.colorId != 0) {

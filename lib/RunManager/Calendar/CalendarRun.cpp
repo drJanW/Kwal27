@@ -215,7 +215,7 @@ void CalendarRun::cb_loadCalendar() {
     CalendarPolicy::applyThemeBox(CalendarThemeBox{});
   }
 
-  // Apply calendar-driven pattern/color via LightRun intents
+  // Apply calendar-driven pattern/color via LightRun requests
   LightRun::applyPattern(calData.day.patternId);
   LightRun::applyColor(calData.day.colorId);
 

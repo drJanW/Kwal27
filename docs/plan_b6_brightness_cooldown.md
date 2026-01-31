@@ -5,7 +5,7 @@
 
 ## Probleem
 
-Na fix 251227E (verwijderen intentSetBrightness):
+Na fix 251227E (verwijderen requestSetBrightness):
 - Slider zet alleen `webBrightness` (correct)
 - MAAR `baseBrightness` wordt niet herberekend met nieuwe webFactor
 - Resultaat: slider heeft minder effect dan verwacht

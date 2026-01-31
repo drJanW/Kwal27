@@ -22,7 +22,7 @@ Manages LED patterns and colors for the RGB ring display via `PatternStore` and 
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        LightRun                                          │
 │  - Source tracking (CONTEXT / MANUAL / CALENDAR)                        │
-│  - Routes intents to stores                                             │
+│  - Routes requests to stores                                             │
 │  - Applies shifts from calendar                                         │
 └─────────────────────────┬───────────────────────────────────────────────┘
                           │
@@ -71,7 +71,7 @@ Manages LED patterns and colors for the RGB ring display via `PatternStore` and 
 
 | File | Purpose |
 |------|---------|
-| `LightRun.cpp/h` | Intent routing, source tracking |
+| `LightRun.cpp/h` | Request routing, source tracking |
 | `LightPolicy.cpp/h` | Brightness/shift rules |
 | `PatternStore.cpp/h` | Pattern CRUD, JSON streaming |
 | `ColorsStore.cpp/h` | Color CRUD, JSON streaming |

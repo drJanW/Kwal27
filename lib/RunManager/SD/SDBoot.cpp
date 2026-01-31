@@ -185,7 +185,7 @@ bool SDBoot::plan() {
         timers.cancel(cb_retryBoot);
         loggedStart = false;
         SDPolicy::showStatus();
-        NotifyRun::report(NotifyIntent::SD_OK);
+        NotifyRun::report(NotifyRequest::SD_OK);
         return true;
     }
 
@@ -203,7 +203,7 @@ bool SDBoot::plan() {
         timers.cancel(cb_retryBoot);
         loggedStart = false;
         SDPolicy::showStatus();
-        NotifyRun::report(NotifyIntent::SD_OK);
+        NotifyRun::report(NotifyRequest::SD_OK);
         return true;
     }
 
@@ -227,7 +227,7 @@ bool SDBoot::plan() {
     PL("[Run][Plan] SD boot failed after retries");
     loggedStart = false;
     SDPolicy::showStatus(true);
-    NotifyRun::report(NotifyIntent::SD_FAIL);
+    NotifyRun::report(NotifyRequest::SD_FAIL);
     startSdFailPattern();  // Pink/turquoise ambient preset
     return true;
 }

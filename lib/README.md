@@ -27,19 +27,19 @@ Web Interface
 •	Voting buttons voor audio content
 
 Context Manager becomes the runtime brain: gathers state from the environment, normalizes it, and surfaces “what’s happening now” to the rest of the system; timer-driven updates and sensor snapshots all feed into that shared context.
-Run Manager is the decision layer: it consumes context plus intent inputs (user/web/etc.), applies high-level rules, and emits intents toward subsystems (audio, light, OTA) without touching hardware details itself.
+Run Manager is the decision layer: it consumes context plus request inputs (user/web/etc.), applies high-level rules, and emits requests toward subsystems (audio, light, OTA) without touching hardware details itself.
 Each Policy (AudioPolicy, LightPolicy, SDPolicy, etc.) is now a focused ruleset: given a request and the current context, it enforces local constraints (context-driven brightness caps, playback arbitration) before delegating to the subsystem managers.
 Net effect: context collects facts, run chooses actions, policies enforce domain-specific guardrails—clean separation that keeps subsystems modular and easier to evolve.
 
 Status ownership rule: managers only write status to NotifyState (or ContextStatus). All status reads must come from NotifyState (or ContextStatus), not Manager APIs.
 
 A TimerManager slot fires and runs its callback (e.g., hourly “say time”, periodic fragment shuffle).
-Each callback raises an intent toward RunManager (or directly queues a ContextManager refresh), never touching hardware.
-RunManager combines the intent with the current context snapshot, then consults the relevant policy (audio/light/SD/etc.).
+Each callback raises a request toward RunManager (or directly queues a ContextManager refresh), never touching hardware.
+RunManager combines the request with the current context snapshot, then consults the relevant policy (audio/light/SD/etc.).
 The policy enforces its domain rules—resource availability, safety thresholds—and either rejects or forwards the request.
 Approved requests go to the subsystem manager (AudioManager, LightManager, …), which executes the action; rejections are logged or deferred.
 
- producers → Context → Run → policies → intents → consumers (audio/light/serial)
+ producers → Context → Run → policies → requests → consumers (audio/light/serial)
 
  layered manager-based architecture:
 

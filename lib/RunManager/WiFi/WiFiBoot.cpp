@@ -38,7 +38,7 @@ namespace {
                 PL("[Main] Bootstrapping (NTP) ready");
             }
             // SD passed (we're post-SDBoot), WiFi up, clock running
-            NotifyRun::report(NotifyIntent::START_RUNTIME);
+            NotifyRun::report(NotifyRequest::START_RUNTIME);
         }
 
         timers.cancel(cb_moduleInit);
@@ -55,11 +55,11 @@ namespace {
         if (wifiUp && !lastWiFiState) {
             PF("[Main] WiFi connected: %s\n", WiFi.localIP().toString().c_str());
             hwStatus |= HW_WIFI;
-            NotifyRun::report(NotifyIntent::WIFI_OK);
+            NotifyRun::report(NotifyRequest::WIFI_OK);
         } else if (!wifiUp && lastWiFiState) {
             PL("[Main] WiFi lost, retrying");
             hwStatus &= ~HW_WIFI;
-            NotifyRun::report(NotifyIntent::WIFI_FAIL);
+            NotifyRun::report(NotifyRequest::WIFI_FAIL);
         }
 
         if (!wifiUp) {

@@ -14,7 +14,7 @@ Managers (hardware APIs)       Directors (context→requests)
 ```
 
 - **Boot**: One-time initialization, register timers, seed caches
-- **Run**: Owns timer callbacks (`cb_*` prefix), sequences work, raises intents
+- **Run**: Owns timer callbacks (`cb_*` prefix), sequences work, raises requests
 - **Policy**: Domain rules, approve/deny requests - NO side effects, NO timers
 - **Director**: Build requests from context - NO policy decisions
 - **Manager**: Hardware drivers (FastLED, I2S, SPI) - ONLY managers touch hardware

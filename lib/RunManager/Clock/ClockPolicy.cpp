@@ -63,7 +63,7 @@ void begin() {
         "RTC", SC_RTC,
         probeRtc,
         10, 1000, 1.5f,
-        NotifyIntent::RTC_OK, NotifyIntent::RTC_FAIL
+        NotifyRequest::RTC_OK, NotifyRequest::RTC_FAIL
     }, cb_rtcInit);
 }
 

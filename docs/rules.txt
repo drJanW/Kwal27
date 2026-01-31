@@ -104,7 +104,7 @@ A1. Run/Policy/Timer workflow. MANDATORY.
 - Follow Boot → Plan → Policy → Run direction exactly
 - Passthrough wrappers (e.g. ClockRun::hasRtc() → ClockPolicy::isRtcAvailable()) 
   are allowed for architectural consistency
-- Route cross-module interactions through Run intents or manager APIs
+- Route cross-module interactions through Run requests or manager APIs
 - Do NOT access Policy/Boot directly from peer modules
 
 A2. TimerManager exclusively. MANDATORY.

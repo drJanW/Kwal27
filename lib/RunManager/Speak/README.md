@@ -4,7 +4,7 @@
 
 ## Purpose
 The Speak module is the Run layer for status and error audio feedback.
-It routes speak intents to `PlaySentence` in AudioManager via modular word combinations.
+It routes speak requests to `PlaySentence` in AudioManager via modular word combinations.
 
 ## MP3 Word IDs
 MP3 files are stored in `/000/` on the SD card. File naming: `000.mp3` through `100.mp3`.
@@ -84,7 +84,7 @@ Max files per directory: `SD_MAX_FILES_PER_SUBDIR = 101`
 
 ## Architecture
 ```
-SpeakRun::speak(intent) → PlaySentence::start(words[])
+SpeakRun::speak(request) → PlaySentence::start(words[])
 SpeakRun::sayTime(h,m) → PlaySentence::start([HET_IS, h, UUR, m])
 ```
 
@@ -95,13 +95,13 @@ Defines `Mp3Id` enum with all MP3 file IDs. Modulair systeem: subjects + states 
 
 ### SpeakRun
 - `plan()`: No timers to arm yet
-- `speak(SpeakIntent)`: Routes intent to PlaySentence with word combination
+- `speak(SpeakRequest)`: Routes request to PlaySentence with word combination
 - `speakFail(StatusComponent)`: Speaks failure for a component (lookup table)
 - `sayTime(hour, minute)`: Says current time as sentence
 
-### SpeakIntent enum
+### SpeakRequest enum
 ```cpp
-enum class SpeakIntent : uint8_t {
+enum class SpeakRequest : uint8_t {
     // Component failures (for boot notification)
     SD_FAIL,
     WIFI_FAIL,
@@ -145,8 +145,8 @@ Plus WORD_EXTRA_FACTOR and WORD_INTERVAL_MS between words.
 #include "SpeakRun.h"
 
 // Speak a component failure:
-SpeakRun::speak(SpeakIntent::WIFI_FAIL);      // "wifi mislukt"
-SpeakRun::speak(SpeakIntent::RTC_FAIL);       // "tijd fout"
+SpeakRun::speak(SpeakRequest::WIFI_FAIL);      // "wifi mislukt"
+SpeakRun::speak(SpeakRequest::RTC_FAIL);       // "tijd fout"
 
 // Speak failure via StatusComponent:
 SpeakRun::speakFail(SC_WIFI);                 // "wifi mislukt"
@@ -155,5 +155,5 @@ SpeakRun::speakFail(SC_WIFI);                 // "wifi mislukt"
 SpeakRun::sayTime(14, 30);                    // "het is veertien uur dertig"
 
 // Welcome greeting (based on hour):
-SpeakRun::speak(SpeakIntent::WELCOME);        // "goedemiddag"
+SpeakRun::speak(SpeakRequest::WELCOME);        // "goedemiddag"
 ```

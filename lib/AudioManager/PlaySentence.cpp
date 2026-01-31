@@ -27,7 +27,7 @@
 #include "TimerManager.h"
 #include "SDSettings.h"
 #include "Notify/NotifyRun.h"
-#include "Notify/NotifyIntent.h"
+#include "Notify/NotifyRequest.h"
 #include <SD.h>
 
 extern const char* getMP3Path(uint8_t dirIdx, uint8_t fileIdx);
@@ -195,7 +195,7 @@ void cb_ttsReady() {
     setTtsActive(false);
     setSentencePlaying(false);
     setAudioBusy(false);
-    NotifyRun::report(NotifyIntent::TTS_OK);
+    NotifyRun::report(NotifyRequest::TTS_OK);
     // Continue with next item in queue
     playNextSpeakItem();
 }
@@ -279,7 +279,7 @@ void startTTSInternal(const char* text) {
             setAudioBusy(false);
             setSentencePlaying(false);
             setTtsActive(false);
-            NotifyRun::report(NotifyIntent::TTS_FAIL);
+            NotifyRun::report(NotifyRequest::TTS_FAIL);
             return;
         }
     }
