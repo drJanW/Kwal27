@@ -1,0 +1,33 @@
+Rename TODO (naming canon cleanup)
+
+Phase 0 — Inventory
+1. List candidate names that violate the naming canon.
+2. Group by domain (audio, light, sensor, web, boot).
+3. Note whether each item is type/struct, function, or variable.
+
+Phase 1 — Plan
+1. Map each name to its canonical replacement.
+2. Check for collisions (existing names, overloads, macros).
+3. Decide ordering to minimize conflicts (types before functions, headers before .cpp).
+
+Phase 2 — Rename types
+1. Update type names (Request, Flags, Rules, Selector, Catalog, Table).
+2. Update forward declarations and includes.
+3. Update all references.
+
+Phase 3 — Rename functions
+1. Convert execution functions to run* / do*.
+2. Convert selection logic to select*.
+3. Remove banned words (dispatch, intent, conduct, context as container).
+
+Phase 4 — Rename variables
+1. Replace vague container words with concrete nouns.
+2. Remove “mode” unless it truly is progress/FSM.
+
+Phase 5 — Build and validate
+1. Compile and check for missing references.
+2. Verify no behavioral changes.
+
+Phase 6 — Cleanup
+1. Remove stale comments or documentation references.
+2. Update docs if they cite old names.

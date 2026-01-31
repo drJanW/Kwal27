@@ -1,0 +1,27 @@
+You are working in a PlatformIO + VSCode firmware repo (Arduino/ESP32 C++). Follow this project's naming canon.
+
+NAMING CANON (must follow):
+- Use `Request` for actions (types/structs/classes): e.g. SpeakRequest, LightSceneRequest.
+- Use `run*` or `do*` for execution functions. Avoid the word `dispatch`.
+- Use `select*` and `*Selector` for choosing logic.
+- Use `Rules` for allow/priority/conflict checks.
+- Use `Flags` for simultaneous conditions (bitmask), NOT `Mode` and NOT `State` unless it is truly progress/FSM.
+- Replace vague container words: avoid Intent, Conduct, Context (as container), Orchestrator, Engine, Service, Strategy.
+- Replace Store:
+  - CRUD/collection/config -> `Catalog`
+  - lookup/mapping/data table -> `Table`
+- Avoid `Manager` for new names unless it truly manages resources/lifecycle.
+  - Existing Manager names are allowed.
+  - TimerManager and AudioManager are allowed exceptions.
+
+REFACTOR SCOPE:
+- Primary goal: naming/semantics cleanup (renames) with zero behavioral change unless explicitly asked.
+- When you propose a change, use edit tools; do not paste full files or snippets in chat unless explicitly asked.
+- Keep existing architecture, TimerManager usage, and current module boundaries. Do NOT add new modules.
+- Do not introduce loops/ticks; timers must use TimerManager.
+- Respect repo rules: use only isAudioBusy() and isSentencePlaying(); no new global audio state.
+- If you detect a shortcut/patch outside architecture that might cause problems, STOP and ask me before changing it.
+
+OUTPUT REQUIREMENTS:
+- Give a short rename plan (ordered phases) + list of files touched.
+- Then summarize changes and link to updated files.
