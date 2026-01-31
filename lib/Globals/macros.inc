@@ -23,7 +23,7 @@
 #endif
 
 // ─────────────────────────────────────────────────────────────
-// Boot spam toggle - verbose [Conduct][Plan] messages during boot
+// Boot spam toggle - verbose [Run][Plan] messages during boot
 // Set to 0 to reduce boot output while keeping errors/warnings
 // ─────────────────────────────────────────────────────────────
 #ifndef LOG_BOOT_SPAM

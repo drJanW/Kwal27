@@ -13,7 +13,7 @@
 
 #include <stdint.h>
 #include "Notify/NotifyState.h"
-#include "Notify/NotifyConduct.h"
+#include "Notify/NotifyRun.h"
 
 // Callback type: returns true if device.begin() succeeded
 using I2CProbeFunc = bool(*)();

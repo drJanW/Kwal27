@@ -37,7 +37,7 @@ Sinds v260104 gebruikt het systeem `*_PRESENT` defines in `HWconfig.h`:
 | `NotifyRGB.cpp` | Guard: skip flash if `!SENSOR3_PRESENT` | **NEW**: Geen flash |
 | `NotifyState.cpp` | `isPresent(SC_SENSOR3)` | **NEW**: Returns false |
 | `health.js` | WebGUI shows `—` for absent | **NEW**: v0104A |
-| `SpeakConduct.cpp` | TTS "Sensor drie ontbreekt" | Klaar (niet getriggerd als absent) |
+| `SpeakRun.cpp` | TTS "Sensor drie ontbreekt" | Klaar (niet getriggerd als absent) |
 
 ## Implementatie stappenplan (wanneer hardware beschikbaar)
 
@@ -77,13 +77,13 @@ namespace {
             TimerManager::instance().cancel(cb_sensor3Init);
             PL("[SensorManager] Sensor3 (TMP117) ready");
             NotifyState::setOk(COMP_SENSOR3, true);
-            NotifyConduct::report(NotifyIntent::SENSOR3_OK);
+            NotifyRun::report(NotifyIntent::SENSOR3_OK);
             return;
         }
         
         if (abs(remaining) == 1) {
             sensor3InitFailed = true;
-            NotifyConduct::report(NotifyIntent::SENSOR3_FAIL);
+            NotifyRun::report(NotifyIntent::SENSOR3_FAIL);
             PL("[SensorManager] Sensor3 gave up after retries");
         }
     }
@@ -117,7 +117,7 @@ setOk(COMP_SENSOR3, false);  // DELETE: was placeholder
 
 ### 6. speakFailures() check
 
-`SpeakConduct::speakFailures()` bevat al:
+`SpeakRun::speakFailures()` bevat al:
 ```cpp
 if (!NotifyState::isOk(COMP_SENSOR3)) speak(SpeakIntent::SENSOR3_FAIL);
 ```
@@ -135,7 +135,7 @@ sensor3DummyTemp;f;25.0;fallback temp when sensor3 absent
 
 1. **I2C adres conflict check** - scan bus eerst
 2. **Retry count** - volg patroon: `-10` voor 10 retries met growing interval
-3. **TTS tekst** - "Sensor drie ontbreekt" al klaar, of wijzig in SpeakConduct.cpp
+3. **TTS tekst** - "Sensor drie ontbreekt" al klaar, of wijzig in SpeakRun.cpp
 4. **Flash kleur** - `NotifyPolicy::COLOR_SENSOR3` al gedefinieerd
 
 ## Architectuur patroon
@@ -147,8 +147,8 @@ SensorsBoot::configure()
   └── SensorManager::beginSensor3()
         └── TimerManager::create(..., cb_sensor3Init)
               └── cb_sensor3Init() [growing interval retries]
-                    ├── Success: NotifyConduct::report(SENSOR3_OK)
-                    └── Fail: NotifyConduct::report(SENSOR3_FAIL)
+                    ├── Success: NotifyRun::report(SENSOR3_OK)
+                    └── Fail: NotifyRun::report(SENSOR3_FAIL)
                                 └── NotifyState::setSensor3Status(false)
                                       └── speakFailure() + RGB flash
 ```

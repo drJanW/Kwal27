@@ -7,15 +7,15 @@
  * Implements HTTP handlers for the /api/patterns/* endpoints.
  * Provides routes to list available light patterns, navigate to
  * next/previous patterns, and manage active pattern selection.
- * Integrates with LightConduct and PatternStore for pattern control.
+ * Integrates with LightRun and PatternCatalog for pattern control.
  */
 
 #include "PatternsHandlers.h"
 #include "../WebGuiStatus.h"
 #include "../WebUtils.h"
 #include "Globals.h"
-#include "Light/LightConduct.h"
-#include "Light/PatternStore.h"
+#include "Light/LightRun.h"
+#include "Light/PatternCatalog.h"
 #include <ArduinoJson.h>
 #include <AsyncJson.h>
 
@@ -28,7 +28,7 @@ void handleList(AsyncWebServerRequest *request)
 {
     String payload;
     String activeId;
-    if (!LightConduct::patternRead(payload, activeId)) {
+    if (!LightRun::patternRead(payload, activeId)) {
         sendError(request, 500, F("Pattern export failed"));
         return;
     }
@@ -43,10 +43,10 @@ void handleList(AsyncWebServerRequest *request)
 void handleNext(AsyncWebServerRequest *request)
 {
     String error;
-    if (LightConduct::selectNextPattern(error)) {
+    if (LightRun::selectNextPattern(error)) {
         WebGuiStatus::pushState();
         String payload = F("{\"active_pattern\":\"");
-        payload += PatternStore::instance().activeId();
+        payload += PatternCatalog::instance().activeId();
         payload += F("\"}");
         sendJson(request, payload);
     } else {
@@ -57,10 +57,10 @@ void handleNext(AsyncWebServerRequest *request)
 void handlePrev(AsyncWebServerRequest *request)
 {
     String error;
-    if (LightConduct::selectPrevPattern(error)) {
+    if (LightRun::selectPrevPattern(error)) {
         WebGuiStatus::pushState();
         String payload = F("{\"active_pattern\":\"");
-        payload += PatternStore::instance().activeId();
+        payload += PatternCatalog::instance().activeId();
         payload += F("\"}");
         sendJson(request, payload);
     } else {
@@ -90,16 +90,16 @@ void attachRoutes(AsyncWebServer &server, AsyncEventSource &events)
                 id = request->getParam("id")->value();
             }
         }
-        PF("[LightConduct] HTTP pattern/select id='%s' content-type='%s'\n",
+          PF("[LightRun] HTTP pattern/select id='%s' content-type='%s'\n",
            id.c_str(), request->contentType().c_str());
-        if (!LightConduct::selectPattern(id, error)) {
+          if (!LightRun::selectPattern(id, error)) {
             sendError(request, 400, error.isEmpty() ? F("invalid payload") : error);
             return;
         }
         WebGuiStatus::pushState();
         String payload;
         String activeId;
-        if (!LightConduct::patternRead(payload, activeId)) {
+        if (!LightRun::patternRead(payload, activeId)) {
             sendError(request, 500, F("pattern export failed"));
             return;
         }
@@ -118,13 +118,13 @@ void attachRoutes(AsyncWebServer &server, AsyncEventSource &events)
         }
         String affected;
         String error;
-        if (!LightConduct::deletePattern(obj, affected, error)) {
+        if (!LightRun::deletePattern(obj, affected, error)) {
             sendError(request, 400, error.isEmpty() ? F("invalid payload") : error);
             return;
         }
         String payload;
         String activeId;
-        if (!LightConduct::patternRead(payload, activeId)) {
+        if (!LightRun::patternRead(payload, activeId)) {
             sendError(request, 500, F("pattern export failed"));
             return;
         }
@@ -142,7 +142,7 @@ void attachRoutes(AsyncWebServer &server, AsyncEventSource &events)
         PF("[WebIF] /api/patterns/preview hit\n");
         String error;
         JsonVariantConst body = json;
-        if (!LightConduct::previewPattern(body, error)) {
+        if (!LightRun::previewPattern(body, error)) {
             sendError(request, 400, error);
             return;
         }
@@ -159,17 +159,17 @@ void attachRoutes(AsyncWebServer &server, AsyncEventSource &events)
             sendError(request, 400, F("invalid payload"));
             return;
         }
-        PF("[PatternStore] HTTP pattern/update content-type='%s' length=%d\n",
+        PF("[PatternCatalog] HTTP pattern/update content-type='%s' length=%d\n",
            request->contentType().c_str(), static_cast<int>(request->contentLength()));
         String affected;
         String errorMessage;
-        if (!LightConduct::updatePattern(obj, affected, errorMessage)) {
+        if (!LightRun::updatePattern(obj, affected, errorMessage)) {
             sendError(request, 400, errorMessage.length() ? errorMessage : F("update failed"));
             return;
         }
         String payload;
         String activeId;
-        if (!LightConduct::patternRead(payload, activeId)) {
+        if (!LightRun::patternRead(payload, activeId)) {
             sendError(request, 500, F("pattern export failed"));
             return;
         }

@@ -13,7 +13,7 @@
  * - OTA firmware updates
  *
  * Architecture:
- * - ConductManager: Central orchestrator using Boot→Plan→Policy→Conduct pattern
+ * - RunManager: Central orchestrator using Boot→Plan→Policy→Run pattern
  * - TimerManager: Non-blocking timer system (no millis() or delay())
  * - Managers: AudioManager, LightManager, SensorManager, SDManager, etc.
  *
@@ -29,7 +29,7 @@
 #include <Arduino.h>
 
 #include "TimerManager.h"
-#include "ConductManager.h"
+#include "RunManager.h"
 #include "System/SystemBoot.h"
 #include "Globals.h"
 
@@ -53,11 +53,11 @@ void setup()
 
 /**
  * @brief Arduino main loop - runs continuously
- * Updates the timer system and conduct manager each iteration.
+ * Updates the timer system and run manager each iteration.
  * All timing is handled by TimerManager callbacks, not by delays.
  */
 void loop()
 {
     timers.update();
-    ConductManager::update();
+    RunManager::update();
 }

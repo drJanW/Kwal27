@@ -45,14 +45,14 @@ PROPOSED FIX
 cb_luxMeasureRead():
   if (!SensorManager::isLuxSensorReady()) {
       // No sensor = no action = boot default preserved
-      LightManager::instance().setMeasurementMode(false);
+      lightManager.setMeasurementEnabled(false);
       return;
   }
   // ... rest of existing code only runs with valid sensor
 
 FILES TO CHANGE
 ---------------
-1. LightConduct.cpp - Add early return in cb_luxMeasureRead()
+1. LightRun.cpp - Add early return in cb_luxMeasureRead()
 2. SensorManager.cpp - Revert ambientLuxVal init to 0.0f (sentinel not needed)
 3. LightPolicy.cpp - Remove sentinel check (not needed)
 4. WebGuiStatus.cpp - Remove sentinel check (not needed)

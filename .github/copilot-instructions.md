@@ -3,10 +3,10 @@
 ## Project Overview
 ESP32 ambient art installation (jellyfish sculpture) with LED lights, audio playback, web interface, and sensor integration. PlatformIO project using Arduino framework with ESP32-S3, 16MB flash.
 
-## Architecture: Boot → Plan → Policy → Conduct → Manager
+## Architecture: Boot → Plan → Policy → Run → Manager
 
 ```
-TimerManager (central timing) → ConductManager (orchestration)
+TimerManager (central timing) → RunManager (orchestration)
     ↓                              ↓
 Boot layers (one-time init)    Policy layers (rules/constraints)
     ↓                              ↓
@@ -14,12 +14,16 @@ Managers (hardware APIs)       Directors (context→requests)
 ```
 
 - **Boot**: One-time initialization, register timers, seed caches
-- **Conduct**: Owns timer callbacks (`cb_*` prefix), sequences work, raises intents
+- **Run**: Owns timer callbacks (`cb_*` prefix), sequences work, raises intents
 - **Policy**: Domain rules, approve/deny requests - NO side effects, NO timers
 - **Director**: Build requests from context - NO policy decisions
 - **Manager**: Hardware drivers (FastLED, I2S, SPI) - ONLY managers touch hardware
 
 ## Critical Rules
+
+### Terminology Discipline
+- Never introduce new terms as synonyms. If a term exists, reuse it.
+- New terms must mean new concepts and require explicit approval.
 
 ### Timing
 - **ONLY use TimerManager** - never `millis()`, `delay()`, or local timing
@@ -65,7 +69,7 @@ Every `.cpp` file: `#include <Arduino.h>` as FIRST include
 
 | Path | Purpose |
 |------|---------|
-| `lib/ConductManager/` | Boot/Conduct/Policy/Director layers per subsystem |
+| `lib/ConductManager/` | Boot/Run/Policy/Director layers per subsystem |
 | `lib/TimerManager/` | Central non-blocking timer system (60 slots) |
 | `lib/Globals/` | Shared config, `Globals.h`, `HWconfig.h`, `macros.inc` |
 | `sdroot/` | SD card content: web assets, CSV configs |

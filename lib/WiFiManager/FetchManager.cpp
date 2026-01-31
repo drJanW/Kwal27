@@ -17,7 +17,7 @@
 #include "PRTClock.h"
 #include "ContextManager.h"
 #include "SDManager.h"
-#include "ConductManager.h"
+#include "RunManager.h"
 #include "AudioState.h"
 #include "Notify/NotifyState.h"
 
@@ -144,7 +144,7 @@ static void cb_fetchNTP() {
     NotifyState::setNtpStatus(true);
     timers.cancel(cb_fetchNTP);
     prtClock.setMoonPhaseValue();
-    ConductManager::intentSyncRtcFromClock();
+    RunManager::intentSyncRtcFromClock();
 }
 
 // ===================================================

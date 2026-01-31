@@ -10,8 +10,8 @@
 
 #include "WebGuiStatus.h"
 #include "Globals.h"
-#include "Light/PatternStore.h"
-#include "Light/ColorsStore.h"
+#include "Light/PatternCatalog.h"
+#include "Light/ColorsCatalog.h"
 #include "Light/LightPolicy.h"
 #include "LightManager.h"
 #include "AudioState.h"
@@ -114,16 +114,16 @@ void pushState() {
     uint8_t score = fragmentScore_.load(std::memory_order_relaxed);
     
     // Get pattern/color from stores (use effective ID with fallback to first)
-    String patternId = PatternStore::instance().activeId();
+    String patternId = PatternCatalog::instance().activeId();
     if (patternId.isEmpty()) {
-        patternId = PatternStore::instance().firstPatternId();
+        patternId = PatternCatalog::instance().firstPatternId();
     }
-    String colorId = ColorsStore::instance().getActiveColorId();
+    String colorId = ColorsCatalog::instance().getActiveColorId();
     if (colorId.isEmpty()) {
-        colorId = ColorsStore::instance().firstColorId();
+        colorId = ColorsCatalog::instance().firstColorId();
     }
-    String patternLabel = PatternStore::instance().getLabelForId(patternId);
-    String colorLabel = ColorsStore::instance().getLabelForId(colorId);
+    String patternLabel = PatternCatalog::instance().getLabelForId(patternId);
+    String colorLabel = ColorsCatalog::instance().getLabelForId(colorId);
     
     // Build JSON manually for efficiency (avoid ArduinoJson allocation)
     String json;
@@ -169,7 +169,7 @@ void pushState() {
 void pushPatterns() {
     if (!eventsPtr_) return;
     
-    String json = PatternStore::instance().buildJson("manual");
+    String json = PatternCatalog::instance().buildJson("manual");
     eventsPtr_->send(json.c_str(), "patterns", millis());
     WEBIF_LOG("[SSE] patterns pushed (%u bytes)\n", json.length());
 }
@@ -177,7 +177,7 @@ void pushPatterns() {
 void pushColors() {
     if (!eventsPtr_) return;
     
-    String json = ColorsStore::instance().buildColorsJson("manual");
+    String json = ColorsCatalog::instance().buildColorsJson("manual");
     eventsPtr_->send(json.c_str(), "colors", millis());
     WEBIF_LOG("[SSE] colors pushed (%u bytes)\n", json.length());
 }

@@ -26,7 +26,7 @@
 #include "MathUtils.h"
 #include "TimerManager.h"
 #include "SDSettings.h"
-#include "Notify/NotifyConduct.h"
+#include "Notify/NotifyRun.h"
 #include "Notify/NotifyIntent.h"
 #include <SD.h>
 
@@ -195,7 +195,7 @@ void cb_ttsReady() {
     setTtsActive(false);
     setSentencePlaying(false);
     setAudioBusy(false);
-    NotifyConduct::report(NotifyIntent::TTS_OK);
+    NotifyRun::report(NotifyIntent::TTS_OK);
     // Continue with next item in queue
     playNextSpeakItem();
 }
@@ -279,7 +279,7 @@ void startTTSInternal(const char* text) {
             setAudioBusy(false);
             setSentencePlaying(false);
             setTtsActive(false);
-            NotifyConduct::report(NotifyIntent::TTS_FAIL);
+            NotifyRun::report(NotifyIntent::TTS_FAIL);
             return;
         }
     }

@@ -15,7 +15,7 @@
  * - audioFloor/Ceiling/Max: limits for slider grey zones
  * - fragment: current playing audio fragment
  *
- * Pattern/color IDs are NOT stored here - read from PatternStore/ColorsStore
+ * Pattern/color IDs are NOT stored here - read from PatternCatalog/ColorsCatalog
  * directly when building SSE JSON.
  */
 

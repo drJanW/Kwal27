@@ -251,7 +251,7 @@ sdroot/webgui-src/
 **Prevention**: ALWAYS run build.ps1 + upload_web.ps1 after ANY change.
 
 ### 3. Missing Includes After Code Move
-**What happened**: Moved SSE setup to SseManager.cpp, forgot `#include "Light/LightConduct.h"`.
+**What happened**: Moved SSE setup to SseManager.cpp, forgot `#include "Light/LightRun.h"`.
 **Why obvious**: The function `setOnLightChange()` is declared in that header.
 **Result**: Compile error: `setOnLightChange` not declared.
 **Prevention**: Check every function call's header requirement when moving code.

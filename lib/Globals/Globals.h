@@ -32,7 +32,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260131A"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260131C"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -120,9 +120,9 @@ struct Globals {
     inline static uint32_t luxMeasurementDelayMs     = 800UL;     // Delay after lux trigger
     inline static uint32_t luxMeasurementIntervalMs  = MINUTES(2); // Lux polling interval
     inline static uint16_t sensorBaseDefaultMs       = 100U;      // Distance sensor base interval
-    inline static uint16_t sensorFastIntervalMs      = 30U;       // Fast mode interval (motion)
-    inline static uint16_t sensorFastDurationMs      = 800U;      // Fast mode duration
-    inline static float    sensorFastDeltaMm         = 80.0f;     // Delta to trigger fast mode
+    inline static uint16_t sensorFastIntervalMs      = 30U;       // Fast interval (motion)
+    inline static uint16_t sensorFastDurationMs      = 800U;      // Fast interval duration
+    inline static float    sensorFastDeltaMm         = 80.0f;     // Delta to trigger fast interval
     inline static uint16_t distanceNewWindowMs       = 1500U;     // Debounce window for readings
     inline static uint16_t distanceSensorDummyMm     = 9999U;     // Fallback if sensor fails
     inline static float    luxSensorDummyLux         = 0.5f;      // Fallback lux if sensor fails

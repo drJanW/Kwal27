@@ -5,7 +5,7 @@ Manages WiFi connection with automatic retry and health monitoring.
 ## Architecture
 
 WiFiManager is a **Manager** layer module - it owns the WiFi hardware driver
-and exposes a simple query API. No Conduct/Policy layers needed.
+and exposes a simple query API. No Run/Policy layers needed.
 
 ## API
 

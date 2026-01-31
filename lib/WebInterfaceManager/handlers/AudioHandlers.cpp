@@ -7,7 +7,7 @@
  * Implements HTTP handlers for the /api/audio/* endpoints.
  * Provides routes to get/set audio volume level, skip to next track,
  * and retrieve current playback information. Integrates with AudioState
- * and ConductManager for audio control operations.
+ * and RunManager for audio control operations.
  */
 
 #include <Arduino.h>
@@ -16,7 +16,7 @@
 #include "../WebUtils.h"
 #include "Globals.h"
 #include "MathUtils.h"
-#include "ConductManager.h"
+#include "RunManager.h"
 #include "AudioState.h"
 
 #ifndef WEBIF_LOG_LEVEL
@@ -71,7 +71,7 @@ void handleGetLevel(AsyncWebServerRequest *request)
 
 void handleNext(AsyncWebServerRequest *request)
 {
-    ConductManager::intentWebAudioNext(Globals::webAudioNextFadeMs);
+    RunManager::intentWebAudioNext(Globals::webAudioNextFadeMs);
     request->send(200, "text/plain", "OK");
     WEBIF_LOG("[Web] Audio next triggered (fade %u ms)\n", Globals::webAudioNextFadeMs);
 }
@@ -103,7 +103,7 @@ void handlePlay(AsyncWebServerRequest *request)
     if (request->hasParam("file")) {
         file = request->getParam("file")->value().toInt();
     }
-    ConductManager::intentPlaySpecificFragment(dir, file);
+    RunManager::intentPlaySpecificFragment(dir, file);
     request->send(200, "text/plain", "OK");
     WEBIF_LOG("[Web] Play %u/%d triggered\n", dir, file);
 }

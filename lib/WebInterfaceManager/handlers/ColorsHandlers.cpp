@@ -7,15 +7,15 @@
  * Implements HTTP handlers for the /api/colors/* endpoints.
  * Provides routes to list available color schemes, navigate to
  * next/previous colors, and manage active color selection.
- * Integrates with LightConduct and ColorsStore for color control.
+ * Integrates with LightRun and ColorsCatalog for color control.
  */
 
 #include "ColorsHandlers.h"
 #include "../WebGuiStatus.h"
 #include "../WebUtils.h"
 #include "Globals.h"
-#include "Light/LightConduct.h"
-#include "Light/ColorsStore.h"
+#include "Light/LightRun.h"
+#include "Light/ColorsCatalog.h"
 #include <ArduinoJson.h>
 #include <AsyncJson.h>
 
@@ -28,7 +28,7 @@ void handleList(AsyncWebServerRequest *request)
 {
     String payload;
     String activeId;
-    if (!LightConduct::colorRead(payload, activeId)) {
+    if (!LightRun::colorRead(payload, activeId)) {
         sendError(request, 500, F("Color export failed"));
         return;
     }
@@ -43,10 +43,10 @@ void handleList(AsyncWebServerRequest *request)
 void handleNext(AsyncWebServerRequest *request)
 {
     String error;
-    if (LightConduct::selectNextColor(error)) {
+    if (LightRun::selectNextColor(error)) {
         WebGuiStatus::pushState();
         String payload = F("{\"active_color\":\"");
-        payload += ColorsStore::instance().getActiveColorId();
+        payload += ColorsCatalog::instance().getActiveColorId();
         payload += F("\"}");
         sendJson(request, payload);
     } else {
@@ -57,10 +57,10 @@ void handleNext(AsyncWebServerRequest *request)
 void handlePrev(AsyncWebServerRequest *request)
 {
     String error;
-    if (LightConduct::selectPrevColor(error)) {
+    if (LightRun::selectPrevColor(error)) {
         WebGuiStatus::pushState();
         String payload = F("{\"active_color\":\"");
-        payload += ColorsStore::instance().getActiveColorId();
+        payload += ColorsCatalog::instance().getActiveColorId();
         payload += F("\"}");
         sendJson(request, payload);
     } else {
@@ -90,16 +90,16 @@ void attachRoutes(AsyncWebServer &server, AsyncEventSource &events)
                 id = request->getParam("id")->value();
             }
         }
-        PF("[LightConduct] HTTP color/select id='%s' content-type='%s'\n",
+          PF("[LightRun] HTTP color/select id='%s' content-type='%s'\n",
            id.c_str(), request->contentType().c_str());
-        if (!LightConduct::selectColor(id, error)) {
+          if (!LightRun::selectColor(id, error)) {
             sendError(request, 400, error.isEmpty() ? F("invalid payload") : error);
             return;
         }
         WebGuiStatus::pushState();
         String payload;
         String activeId;
-        if (!LightConduct::colorRead(payload, activeId)) {
+        if (!LightRun::colorRead(payload, activeId)) {
             sendError(request, 500, F("color export failed"));
             return;
         }
@@ -118,13 +118,13 @@ void attachRoutes(AsyncWebServer &server, AsyncEventSource &events)
         }
         String affected;
         String error;
-        if (!LightConduct::deleteColorSet(obj, affected, error)) {
+        if (!LightRun::deleteColorSet(obj, affected, error)) {
             sendError(request, 400, error.isEmpty() ? F("invalid payload") : error);
             return;
         }
         String payload;
         String activeId;
-        if (!LightConduct::colorRead(payload, activeId)) {
+        if (!LightRun::colorRead(payload, activeId)) {
             sendError(request, 500, F("color export failed"));
             return;
         }
@@ -142,7 +142,7 @@ void attachRoutes(AsyncWebServer &server, AsyncEventSource &events)
         PF("[WebIF] /api/colors/preview hit\n");
         String error;
         JsonVariantConst body = json;
-        if (!LightConduct::previewColor(body, error)) {
+        if (!LightRun::previewColor(body, error)) {
             sendError(request, 400, error.isEmpty() ? F("invalid payload") : error);
             return;
         }
@@ -160,17 +160,17 @@ void attachRoutes(AsyncWebServer &server, AsyncEventSource &events)
             return;
         }
         const String remoteIp = request->client() ? request->client()->remoteIP().toString() : String(F("unknown"));
-        PF("[LightConduct] HTTP colors/update from %s content-type='%s' length=%d\n",
+        PF("[LightRun] HTTP colors/update from %s content-type='%s' length=%d\n",
            remoteIp.c_str(), request->contentType().c_str(), static_cast<int>(request->contentLength()));
         String affected;
         String errorMessage;
-        if (!LightConduct::updateColor(obj, affected, errorMessage)) {
+        if (!LightRun::updateColor(obj, affected, errorMessage)) {
             sendError(request, 400, errorMessage.length() ? errorMessage : F("update failed"));
             return;
         }
         String payload;
         String activeId;
-        if (!LightConduct::colorRead(payload, activeId)) {
+        if (!LightRun::colorRead(payload, activeId)) {
             sendError(request, 500, F("color export failed"));
             return;
         }

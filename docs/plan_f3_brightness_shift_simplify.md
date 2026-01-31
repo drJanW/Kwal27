@@ -70,7 +70,7 @@ if (key == "colorB.value") { out = COLOR_B_VALUE; return true; }
 if (key == "globalBrightness") { out = GLOBAL_BRIGHTNESS; return true; }
 ```
 
-#### 3. LightConduct.cpp - Apply via FastLED
+#### 3. LightRun.cpp - Apply via FastLED
 
 **Before (HSV V shift):**
 ```cpp
@@ -116,7 +116,7 @@ void applyBrightnessShift(float mult) {
      - H/S multipliers for colorA/B
      - globalBrightness multiplier (product of all active shifts)
 
-3. LightConduct::applyToLights():
+3. LightRun::applyToLights():
    - Get base colors from ColorsStore
    - Apply H/S shifts via shiftColorHS() (simplified, no V)
    - Get brightness mult from colorMults[GLOBAL_BRIGHTNESS]
@@ -149,7 +149,7 @@ void applyBrightnessShift(float mult) {
 1. Create new CSV format
 2. Convert existing values: take `colorA.value` as `globalBrightness`
 3. Update parser
-4. Update LightConduct
+4. Update LightRun
 5. Test all context combinations
 
 ## Files to Change
@@ -160,7 +160,7 @@ void applyBrightnessShift(float mult) {
 | `sdroot/colorsShifts.csv` | Same |
 | `lib/ContextManager/ContextStatus.h` | Simplify ColorParam enum |
 | `lib/ConductManager/Light/ShiftStore.cpp` | Update parser |
-| `lib/ConductManager/Light/LightConduct.cpp` | Remove V shift, add brightness shift call |
+| `lib/ConductManager/Light/LightRun.cpp` | Remove V shift, add brightness shift call |
 | `lib/LightManager/LightManager.cpp` | Add applyBrightnessShift() |
 | `lib/LightManager/LightManager.h` | Declare applyBrightnessShift() |
 

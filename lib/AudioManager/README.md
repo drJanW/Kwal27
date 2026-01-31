@@ -139,6 +139,6 @@ Fragment playback uses a **random interval** between 6-18 minutes (configurable 
 - Any clip is distributed as `/?????.wav` and must remain a 44-byte header PCM WAV: RIFF, WAVE, `fmt ` chunk, 16-bit little-endian, mono, 22 050 Hz.
 - No ancillary chunks or metadata are permitted; the file is header + sample payload only.
 - `PlayPCM::loadFromSD()` validates the header, loads the payload into RAM, and returns an `AudioManager::PCMClipDesc` plus the owning `std::unique_ptr`.
-- Conduct code registers the loaded clip through `setDistanceClipPointer()` so the data stays under Conduct ownership.
+- Run code registers the loaded clip through `setDistanceClipPointer()` so the data stays under Run ownership.
 - `AudioManager::playPCMClip()` now consumes that `PCMClipDesc` directly without any intermediate helper classes; all PCM streaming lives inside `AudioManager`.
 - The loader verifies only the invariants above; anything else is considered malformed.

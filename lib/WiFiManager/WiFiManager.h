@@ -8,7 +8,7 @@
  * Provides functions to initiate non-blocking WiFi connection
  * and check connection status. The module handles automatic
  * reconnection with growing interval and supports fallback
- * to Access Point mode when station connection fails.
+ * to Access Point preset when station connection fails.
  */
 
 #ifndef WIFI_MANAGER_H

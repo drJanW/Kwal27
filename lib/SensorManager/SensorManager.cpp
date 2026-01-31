@@ -33,7 +33,7 @@
 #endif
 
 #include <Adafruit_VEML7700.h>
-#include "Notify/NotifyConduct.h"
+#include "Notify/NotifyRun.h"
 #include "Notify/NotifyState.h"
 
 namespace {
@@ -145,7 +145,7 @@ void SensorManager::beginDistanceSensor() {
   }, cb_distanceInit);
 #else
   NotifyState::setStatusOK(SC_DIST, false);
-  NotifyConduct::report(NotifyIntent::DISTANCE_SENSOR_FAIL);
+  NotifyRun::report(NotifyIntent::DISTANCE_SENSOR_FAIL);
   PL("[SensorManager] DistanceSensor (VL53L1X) disabled");
 #endif
 }
@@ -162,7 +162,7 @@ void SensorManager::beginLuxSensor() {
 }
 
 void SensorManager::performLuxMeasurement() {
-  // Called by ConductManager after LEDs are off and delay elapsed
+  // Called by RunManager after LEDs are off and delay elapsed
   cb_luxSensorRead();
 }
 

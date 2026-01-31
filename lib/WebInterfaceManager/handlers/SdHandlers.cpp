@@ -14,6 +14,7 @@
 #include "../WebUtils.h"
 #include "Globals.h"
 #include "SDManager.h"
+#include "Notify/NotifyState.h"
 #include <SD.h>
 #include <memory>
 
@@ -25,8 +26,8 @@ namespace SdHandlers {
 
 void handleStatus(AsyncWebServerRequest *request)
 {
-    const bool ready = SDManager::isReady();
-    const bool busy = SDManager::isSDbusy();
+    const bool ready = NotifyState::isSdOk();
+    const bool busy = NotifyState::isSdBusy();
     const bool hasIndex = ready && SDManager::fileExists("/index.html");
 
     String payload = F("{");
@@ -43,7 +44,7 @@ void handleStatus(AsyncWebServerRequest *request)
 
 void handleFileDownload(AsyncWebServerRequest *request)
 {
-    if (!SDManager::isReady()) {
+    if (!NotifyState::isSdOk()) {
         sendError(request, 503, F("SD not ready"));
         return;
     }

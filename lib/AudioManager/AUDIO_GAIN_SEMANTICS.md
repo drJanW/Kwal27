@@ -33,7 +33,7 @@ Where:
 
 | Name | Getter/Setter | Meaning |
 |------|---------------|---------|
-| `g_baseGain` | `getBaseGain()` / `setBaseGain()` | Current ceiling after shift application. Initialized from `Globals::baseGain`, updated by `AudioConduct::applyVolumeShift()`. |
+| `g_baseGain` | `getBaseGain()` / `setBaseGain()` | Current ceiling after shift application. Initialized from `Globals::baseGain`, updated by `AudioRun::applyVolumeShift()`. |
 | `g_webAudioLevel` | `getWebAudioLevel()` / `setWebAudioLevel()` | User's modifier from web slider. 0.0 = muted, 1.0 = full (up to baseGain). |
 
 ## Shift Application Flow
@@ -42,13 +42,13 @@ Where:
 AudioShiftStore::getEffectiveVolume(statusBits)
     → returns 0.0-1.0+ (can exceed 1.0 for boost)
     
-AudioConduct::applyVolumeShift(statusBits)
+AudioRun::applyVolumeShift(statusBits)
     → scaledVolume = effectiveVolume × Globals::maxAudioVolume
     → clamp to [0, Globals::maxAudioVolume]
     → setBaseGain(scaledVolume)
 ```
 
-Log: `[AudioConduct] Volume shift: 0.50 (eff=1.02, status=0x...)`
+Log: `[AudioRun] Volume shift: 0.50 (eff=1.02, status=0x...)`
 - `0.50` = scaledVolume stored in baseGain
 - `1.02` = raw effectiveVolume from shift (>1.0 means boost)
 

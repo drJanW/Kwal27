@@ -25,12 +25,12 @@ public:
 
   void showOtaPattern();
 
-  // Measurement mode API
-  void setMeasurementMode(bool enable);
-  bool isMeasurementMode() const;
+  // Measurement enable API
+  void setMeasurementEnabled(bool enable);
+  bool isMeasurementEnabled() const;
 
 private:
-  bool measurementMode = false;
+  bool measurementEnabled = false;
   LightManager(const LightManager&) = delete;
   LightManager& operator=(const LightManager&) = delete;
 };

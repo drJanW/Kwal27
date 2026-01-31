@@ -6,14 +6,15 @@
  *
  * Implementation of the LightManager class for controlling addressable LED strips
  * using the FastLED library. Handles brightness adjustment, color management,
- * measurement mode for sensor calibration, and visual feedback patterns.
+ * measurement enable for sensor calibration, and visual feedback patterns.
  * Provides centralized LED hardware control with support for various display modes.
  */
 
+#include <Arduino.h>
 #include "Globals.h"
 #include "LightManager.h"
 #include <FastLED.h>
-#include <math.h>
+//#include <math.h>
 #include "AudioState.h"
 #include "MathUtils.h"
 #include "SensorManager.h"
@@ -21,11 +22,11 @@
 
 LightManager lightManager;
 
-// === Measurement Mode ===
+// === Measurement Enable ===
 // When enabled, all LEDs are forced off for sensor measurement
-// ConductManager will coordinate this
-void LightManager::setMeasurementMode(bool enable) {
-  measurementMode = enable;
+// RunManager will coordinate this
+void LightManager::setMeasurementEnabled(bool enable) {
+  measurementEnabled = enable;
   if (enable) {
     // Turn off all LEDs for measurement
     fill_solid(leds, NUM_LEDS, CRGB::Black);
@@ -38,15 +39,21 @@ void LightManager::setMeasurementMode(bool enable) {
   }
 }
 
-bool LightManager::isMeasurementMode() const {
-  return measurementMode;
+bool LightManager::isMeasurementEnabled() const {
+  return measurementEnabled;
 }
 
 namespace {
 
-float   webShift = 1.0f;              // User brightness multiplier (can be >1.0)
-uint8_t brightnessUnshiftedHi = 100;  // Hi boundary before shifts (from boot or lux)
-uint8_t brightnessShiftedHi = 100;    // Hi boundary after shifts
+// Brightness terms used below:
+// - Globals::minBrightness/maxBrightness: hardware clamp (never fully off)
+// - Globals::brightnessLo/brightnessHi: operational range for slider mapping
+// - brightnessUnshiftedHi: base hi boundary before shifts
+// - brightnessShiftedHi:   hi boundary after shifts + webShift
+// - webShift:              user brightness multiplier (can be > 1.0)
+float   webShift = 1.0f;
+uint8_t brightnessUnshiftedHi = 100;
+uint8_t brightnessShiftedHi = 100;
 
 } // namespace
 
@@ -86,7 +93,7 @@ void setBrightnessUnshiftedHi(uint8_t value) {
 // === LED buffer ===
 CRGB leds[NUM_LEDS];
 
-// === State & Animatie voor CircleShow ===
+// === State & Animation for CircleShow ===
 static LightShowParams showParams;
 static CRGB colorGradient[GRADIENT_SIZE];
 
@@ -217,7 +224,7 @@ void applyBrightness() {
   FastLED.setBrightness(brightness);
 }
 
-// === RGB/HULP ===
+// === RGB/Helpers ===
 void generateColorGradient(const CRGB &colorA, const CRGB &colorB, CRGB *grad, int n) {
   for (int i = 0; i < n; ++i) {
     float t = (float)i / (float)(n - 1);

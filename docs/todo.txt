@@ -31,7 +31,7 @@ b12. Replace linear lux formula with Stevens' power law
 F1. Sensor + Speak architecture completion
     - Verplaats sensor orchestratie van SensorManager naar SensorDirector
     - Koppel sensor events aan SpeakIntent (DISTANCE_TOO_CLOSE, LUX_LOW, etc)
-    - Beide modules volledig Boot→Conduct→Policy→Director patroon
+    - Beide modules volledig Boot→Run→Policy→Director patroon
     - Zie: docs/plan_f1_sensor_speak.md
 
 F2. HTTP upload endpoint voor SD card
@@ -63,7 +63,7 @@ H1. Refactor codebase according to glossary terminology rules
 
 H2. Refactor applyFinalBrightness() in LightManager.cpp
     - Rename to applyBrightness() (glossary: no "final")
-    - Audio mixing violates A1: direct AudioState access without Conduct
+    - Audio mixing violates A1: direct AudioState access without Run
     - Bad names: raw, n, adj → audioLevel, normalized, audioModifier
     - Redundant: webModifier copied to brightnessModifier for no reason
     - mapRange clamps modifier 0-1, blocks F9 override above hiPct

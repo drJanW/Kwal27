@@ -54,7 +54,7 @@ bool isSensor4Ok();
 // Implementatie identiek aan setSensor3Status
 ```
 
-### 6. NotifyConduct.cpp
+### 6. NotifyRun.cpp
 
 ```cpp
 case NotifyIntent::SENSOR4_OK:
@@ -83,7 +83,7 @@ if (!NotifyState::isSensor4Ok()) flashColor(COLOR_SENSOR4);
 SENSOR4_FAIL,
 ```
 
-### 9. SpeakConduct.cpp
+### 9. SpeakRun.cpp
 
 ```cpp
 // In getTtsSentence()
@@ -132,10 +132,10 @@ SensorManager::beginSensor4();
 - [ ] NotifyIntent enum (OK + FAIL)
 - [ ] COMP_SENSOR4 in Component enum
 - [ ] NotifyState set/is functies
-- [ ] NotifyConduct case handlers
+- [ ] NotifyRun case handlers
 - [ ] NotifyRGB flash kleur (optioneel)
 - [ ] SpeakIntent enum
-- [ ] SpeakConduct TTS + MP3 + speakFailures
+- [ ] SpeakRun TTS + MP3 + speakFailures
 - [ ] SensorManager init + read
 - [ ] SensorsBoot aanroep
 - [ ] WebGUI bit mapping

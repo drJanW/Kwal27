@@ -100,11 +100,11 @@ SHOW with every response
 ARCHITECTURE
 ================================================================
 
-A1. Conduct/Policy/Timer workflow. MANDATORY.
-- Follow Boot → Plan → Policy → Conduct direction exactly
-- Passthrough wrappers (e.g. ClockConduct::hasRtc() → ClockPolicy::isRtcAvailable()) 
+A1. Run/Policy/Timer workflow. MANDATORY.
+- Follow Boot → Plan → Policy → Run direction exactly
+- Passthrough wrappers (e.g. ClockRun::hasRtc() → ClockPolicy::isRtcAvailable()) 
   are allowed for architectural consistency
-- Route cross-module interactions through Conduct intents or manager APIs
+- Route cross-module interactions through Run intents or manager APIs
 - Do NOT access Policy/Boot directly from peer modules
 
 A2. TimerManager exclusively. MANDATORY.
@@ -158,7 +158,7 @@ S2. Terminology. MANDATORY.
 - schedule → create
 
 S3. Verbs. MANDATORY.
-- boot → Conduct boot planners only
+- boot → Run boot planners only
 - plan → TimerManager scheduling only
 - init/initialize → Manager-level resource bring-up only
 - begin → Library-style constructors only
@@ -173,6 +173,7 @@ S5. Naming Consistency. MANDATORY.
 - Use repo style for functions: verbNoun (calcUnshiftedHi, applyBrightnessRules)
 - No poetry, no external style imports — THIS REPO's patterns only
 - When in doubt, grep existing code for patterns before naming
+- Never introduce new terms as synonyms. New terms must mean new concepts and require approval.
 
 ================================================================
 VERSION

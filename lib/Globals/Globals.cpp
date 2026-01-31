@@ -14,6 +14,7 @@
 #include "Arduino.h"
 #include "Globals.h"
 #include "SDManager.h"
+#include "Notify/NotifyState.h"
 #include <esp_system.h>
 
 // Hardware status register (graceful degradation)
@@ -548,7 +549,7 @@ static void applyOverride(const char* key, char type, const char* value) {
 
 void Globals::begin() {
     // Check SD availability
-    if (!SDManager::isReady()) {
+    if (!NotifyState::isSdOk()) {
         Serial.println("[Globals] SD not available, using defaults");
         return;
     }

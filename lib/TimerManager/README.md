@@ -54,16 +54,16 @@ timers.restart(1000, 1, cb_sequenceStep);  // Always succeeds
 
 ### Parameters
 
-- `intervalMs`: interval period in milliseconds (initial interval for growing mode)
-- `repeat`: execution count with three modes:
+- `intervalMs`: interval period in milliseconds (initial interval for growing interval)
+- `repeat`: execution count with three repeat types:
   - `0` = infinite repeats at fixed interval
   - `>0` = exactly N repeats at fixed interval
   - `<0` = |N| repeats with **growing interval** (interval grows 1.5× each time, max 30s)
 - `cb`: pointer to a function with signature `void callback();`
 
-### Repeat Mode Summary
+### Repeat Summary
 
-| repeat | Mode | Interval | Use Case |
+| repeat | Type | Interval | Use Case |
 |--------|------|----------|----------|
 | `0` | Infinite | Fixed | Heartbeat, polling |
 | `1` | One-shot | Fixed | Delayed action |

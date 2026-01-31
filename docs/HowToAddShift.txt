@@ -20,7 +20,7 @@ File: lib/ContextManager20251111/ContextFlags.cpp
 - The helper should check the required data source (PRTClock, ContextManager,
   SensorManager, etc.) and set the corresponding bit using
   `bits |= (1ULL << STATUS_XXX);` when the condition is true.
-- Make sure the helper is included in `getFullContextBits()` so LightConduct
+- Make sure the helper is included in `getFullContextBits()` so LightRun
   can see the new bit.
 
 3. Update parser support
@@ -54,7 +54,7 @@ Files: sdroot/colorsShifts.csv, sdroot/patternShifts.csv
 ---------------------
 - Run `pio run -e esp32_v3` to compile.
 - Monitor serial logs to confirm the new status bit appears in the
-  `[LightConduct] Applied ... (status=0x...)` dumps when the condition is met.
+  `[LightRun] Applied ... (status=0x...)` dumps when the condition is met.
 - Confirm LEDs behave as expected; adjust CSV percentages if needed.
 
 6. Document behavior (optional but recommended)

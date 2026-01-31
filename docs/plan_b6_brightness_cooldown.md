@@ -66,15 +66,15 @@ Resultaat: max 1 meting per 60s, altijd met meest recente webFactor.
 
 | # | File | Wijziging |
 |---|------|-----------|
-| 1 | `lib/ConductManager/Light/LightConduct.h` | Add `luxCooldownActive`, `luxMeasurePending` state |
-| 2 | `lib/ConductManager/Light/LightConduct.cpp` | Add `cb_luxCooldownExpired`, `requestLuxWithCooldown()` |
-| 3 | `lib/ConductManager/ConductManager.cpp` | `requestLuxMeasurement()` → use cooldown variant |
+| 1 | `lib/ConductManager/Light/LightRun.h` | Add `luxCooldownActive`, `luxMeasurePending` state |
+| 2 | `lib/ConductManager/Light/LightRun.cpp` | Add `cb_luxCooldownExpired`, `requestLuxWithCooldown()` |
+| 3 | `lib/ConductManager/RunManager.cpp` | `requestLuxMeasurement()` → use cooldown variant |
 | 4 | `lib/WebInterfaceManager/WebInterfaceManager.cpp` | Slider change calls `requestLuxMeasurement()` |
 | 5 | `lib/Globals/Globals.h` | Version bump |
 
 ## Detail per File
 
-### 1. LightConduct.h
+### 1. LightRun.h
 
 ```cpp
 // Add to class:
@@ -84,14 +84,14 @@ static void cb_luxCooldownExpired();
 static void requestLuxWithCooldown();  // Public API for slider
 ```
 
-### 2. LightConduct.cpp
+### 2. LightRun.cpp
 
 ```cpp
 // Module state
-bool LightConduct::luxCooldownActive = false;
-bool LightConduct::luxMeasurePending = false;
+bool LightRun::luxCooldownActive = false;
+bool LightRun::luxMeasurePending = false;
 
-void LightConduct::requestLuxWithCooldown() {
+void LightRun::requestLuxWithCooldown() {
     if (!luxCooldownActive) {
         cb_luxMeasure();  // Trigger immediate measurement
         luxCooldownActive = true;
@@ -101,7 +101,7 @@ void LightConduct::requestLuxWithCooldown() {
     }
 }
 
-void LightConduct::cb_luxCooldownExpired() {
+void LightRun::cb_luxCooldownExpired() {
     if (luxMeasurePending) {
         luxMeasurePending = false;
         cb_luxMeasure();  // Measurement with latest webFactor
@@ -113,11 +113,11 @@ void LightConduct::cb_luxCooldownExpired() {
 }
 ```
 
-### 3. ConductManager.cpp (regel ~75)
+### 3. RunManager.cpp (regel ~75)
 
 ```cpp
-void ConductManager::requestLuxMeasurement() {
-    LightConduct::requestLuxWithCooldown();  // Use cooldown variant
+void RunManager::requestLuxMeasurement() {
+  LightRun::requestLuxWithCooldown();  // Use cooldown variant
 }
 ```
 
@@ -128,7 +128,7 @@ void handleSetBrightness(AsyncWebServerRequest *request)
 {
     // ... existing code ...
     setWebBrightness(webFactor);
-    ConductManager::requestLuxMeasurement();  // Trigger herberekening (met cooldown)
+    RunManager::requestLuxMeasurement();  // Trigger herberekening (met cooldown)
     WebGuiStatus::setBrightness(static_cast<uint8_t>(val));
     // ...
 }
@@ -144,7 +144,7 @@ void handleSetBrightness(AsyncWebServerRequest *request)
 
 | Rule | Status |
 |------|--------|
-| 1.1 Conduct/Policy flow | ✅ Via LightConduct |
+| 1.1 Run/Policy flow | ✅ Via LightRun |
 | 1.2 TimerManager only | ✅ Geen millis() |
 | 1.3 cb_ prefix | ✅ cb_luxCooldownExpired |
 | 7.3 No new helpers | ✅ Extends existing pattern |

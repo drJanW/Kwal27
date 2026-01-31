@@ -49,7 +49,7 @@
 
 // ======================= Communication Settings =======================
 #define SERIAL_BAUD       115200
-#define I2C_CLOCK_HZ      400000   // 400kHz Fast Mode
+#define I2C_CLOCK_HZ      400000   // 400kHz Fast clock
 #define HALT_BLINK_MS     150      // haltBlink() flash interval
 
 // ======================= Debug & Test Flags =======================

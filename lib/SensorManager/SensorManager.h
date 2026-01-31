@@ -42,7 +42,7 @@ public:
   static void setAmbientLux(float value);
   static float ambientLux();
 
-  // ConductManager triggers a single lux measurement
+  // RunManager triggers a single lux measurement
   static void performLuxMeasurement();
 
 private:

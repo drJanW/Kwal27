@@ -6,8 +6,8 @@
  *
  * Header file for the BH1750 digital ambient light sensor driver.
  * The BH1750 measures illuminance (light intensity) in lux via I2C interface.
- * Supports multiple measurement modes: continuous high-resolution (1 lx),
- * high-resolution mode 2 (0.5 lx), and low-resolution (4 lx) modes.
+ * Supports multiple measurement presets: continuous high-resolution (1 lx),
+ * high-resolution preset 2 (0.5 lx), and low-resolution (4 lx) presets.
  * Used to detect ambient lighting conditions for adaptive system behavior.
  */
 
@@ -16,7 +16,7 @@
 #include <Wire.h>
 
 // Minimal BH1750 driver (no INT).
-// Modes: use Continuous High-Res by default (0x10).
+// Presets: use Continuous High-Res by default (0x10).
 // Lux = raw / 1.2 according to datasheet.
 
 class BH1750 {
@@ -35,31 +35,31 @@ public:
         CONT_LOW_RES   = 0x13  // 4 lx, ~16ms
     };
 
-    BH1750() : _w(nullptr), _addr(ADDR_LOW), _mode(CONT_HIGH_RES), _ok(false) {}
+    BH1750() : _w(nullptr), _addr(ADDR_LOW), _preset(CONT_HIGH_RES), _ok(false) {}
 
-    bool begin(TwoWire& w, uint8_t addr = ADDR_LOW, uint8_t mode = CONT_HIGH_RES) {
+    bool begin(TwoWire& w, uint8_t addr = ADDR_LOW, uint8_t preset = CONT_HIGH_RES) {
         _w = &w;
         _addr = addr;
-        _mode = mode;
+        _preset = preset;
         // Try power on
         if (!writeByte(POWER_ON)) return _ok = false;
         delay(1);
         // Reset is only valid when powered on
         writeByte(RESET);
         delay(1);
-        // Set measurement mode
-        _ok = writeByte(_mode);
+        // Set measurement preset
+        _ok = writeByte(_preset);
         return _ok;
     }
 
-    bool reconfigure(uint8_t mode) {
-        _mode = mode;
+    bool reconfigure(uint8_t preset) {
+        _preset = preset;
         if (!_w) return false;
         if (!writeByte(POWER_ON)) return false;
         delay(1);
         writeByte(RESET);
         delay(1);
-        return writeByte(_mode);
+        return writeByte(_preset);
     }
 
     bool isReady() const { return _ok; }
@@ -69,7 +69,7 @@ public:
         if (!_w) return false;
         // Request two bytes
         _w->beginTransmission(_addr);
-        // no command needed in continuous mode
+        // no command needed in continuous preset
         int rc = _w->endTransmission();
         if (rc != 0) return false;
 
@@ -102,6 +102,6 @@ private:
 
     TwoWire* _w;
     uint8_t  _addr;
-    uint8_t  _mode;
+    uint8_t  _preset;
     bool     _ok;
 };

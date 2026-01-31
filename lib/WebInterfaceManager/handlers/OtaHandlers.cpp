@@ -7,24 +7,24 @@
  * Implements HTTP handlers for the /ota/* endpoints.
  * Provides a two-step OTA update process: arm (prepare for update)
  * and confirm (trigger reboot for update). Also supports a combined
- * start endpoint. Integrates with ConductManager for OTA state control.
+ * start endpoint. Integrates with RunManager for OTA state control.
  */
 
 #include "OtaHandlers.h"
 #include "Globals.h"
-#include "ConductManager.h"
+#include "RunManager.h"
 
 namespace OtaHandlers {
 
 void handleArm(AsyncWebServerRequest *request)
 {
-    ConductManager::intentArmOTA(300);
+    RunManager::intentArmOTA(300);
     request->send(200, "text/plain", "OK");
 }
 
 void handleConfirm(AsyncWebServerRequest *request)
 {
-    if (ConductManager::intentConfirmOTA()) {
+    if (RunManager::intentConfirmOTA()) {
         AsyncWebServerResponse *response = request->beginResponse(
             200, "text/plain", "Reboot binnen 15s - druk Enter in ota.bat");
         response->addHeader("Connection", "close");
@@ -36,8 +36,8 @@ void handleConfirm(AsyncWebServerRequest *request)
 
 void handleStart(AsyncWebServerRequest *request)
 {
-    ConductManager::intentArmOTA(300);
-    if (ConductManager::intentConfirmOTA()) {
+    RunManager::intentArmOTA(300);
+    if (RunManager::intentConfirmOTA()) {
         AsyncWebServerResponse *response = request->beginResponse(
             200, "text/plain", "Reboot binnen 15s - druk Enter in ota.bat");
         response->addHeader("Connection", "close");

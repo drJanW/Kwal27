@@ -133,7 +133,7 @@ User wil slider op 50%:
 1. `LightManager.cpp` - webShift variable, getWebShift(), setWebShift(), getSliderPct(), applyBrightness()
 2. `LightManager.h` - function declarations
 3. `LightPolicy.cpp` - calcShiftedHi(lux, calShift, webShift)
-4. `LightConduct.cpp` - pass getWebShift() to calcShiftedHi
+4. `LightRun.cpp` - pass getWebShift() to calcShiftedHi
 5. `WebInterfaceManager.cpp` - handleSetBrightness met volledige flow
 6. `WebGuiStatus.cpp` - sliderPct naar SSE
 7. `brightness.js` - slider UI
@@ -146,7 +146,7 @@ User wil slider op 50%:
 - [x] Rename applyFinalBrightness → applyBrightness
 - [x] LightManager.cpp/h - webShift, getSliderPct()
 - [x] LightPolicy.cpp - calcShiftedHi met webShift parameter
-- [x] LightConduct.cpp - pass webShift
+- [x] LightRun.cpp - pass webShift
 - [ ] WebInterfaceManager.cpp - CORRECTE handleSetBrightness
 - [x] WebGuiStatus.cpp - sliderPct
 - [x] brightness.js

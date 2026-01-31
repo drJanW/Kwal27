@@ -83,10 +83,10 @@ Runtime flags set during boot. Check with `if (hwStatus & HW_xxx)`.
 
 ## Boot Fragment Timing
 
-**Trigger**: CalendarConduct sets theme box
+**Trigger**: CalendarRun sets theme box
 
 **Behavior**:
-- `ConductManager::triggerBootFragment()` called after theme box ready
+- `RunManager::triggerBootFragment()` called after theme box ready
 - One-shot flag prevents duplicate triggers
 - 500ms delay before `cb_bootFragment`
 - Retry if audio busy (TTS speaking sensor failures)
@@ -109,7 +109,7 @@ Runtime flags set during boot. Check with `if (hwStatus & HW_xxx)`.
 | Sunrise calculation | FetchManager.cpp |
 | Sensor dummy returns | SensorManager.cpp |
 | "OUT OF ORDER" response | WebInterfaceManager.cpp |
-| Boot fragment trigger | CalendarConduct.cpp → ConductManager.cpp |
+| Boot fragment trigger | CalendarRun.cpp → RunManager.cpp |
 | Voting score | SDVoting.cpp, WebGuiStatus.cpp |
 
 ## NotifyRGB Flash Patterns

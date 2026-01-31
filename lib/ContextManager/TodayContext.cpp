@@ -17,8 +17,8 @@
 #include "PRTClock.h"
 #include "SdPathUtils.h"
 
-// Forward declarations for LightConduct intent methods (Rule 1.5)
-class LightConduct {
+// Forward declarations for LightRun intent methods (Rule 1.5)
+class LightRun {
 public:
     static bool describePatternById(uint8_t id, LightPattern& out);
     static bool describeActivePattern(LightPattern& out);
@@ -231,15 +231,15 @@ bool TodayContextLoader::loadToday(TodayContext& ctx) {
         return false;
     }
 
-    // Lookup pattern via LightConduct intent (Rule 1.5)
+    // Lookup pattern via LightRun intent (Rule 1.5)
     LightPattern pattern;
     bool hasPattern = false;
     if (hasCalendarEntry && entry.patternId != 0) {
-        hasPattern = LightConduct::describePatternById(entry.patternId, pattern);
+        hasPattern = LightRun::describePatternById(entry.patternId, pattern);
     }
     if (!hasPattern) {
         LightPattern fallbackPattern;
-        if (LightConduct::describeActivePattern(fallbackPattern)) {
+        if (LightRun::describeActivePattern(fallbackPattern)) {
             if (entry.patternId != 0 && g_logLimiter.logPatternFallback(year, month, day)) {
                 PF("[TodayContext] Pattern %u missing, falling back to %u for %04u-%02u-%02u\n",
                    static_cast<unsigned>(entry.patternId),
@@ -260,15 +260,15 @@ bool TodayContextLoader::loadToday(TodayContext& ctx) {
         return false;
     }
 
-    // Lookup color via LightConduct intent (Rule 1.5)
+    // Lookup color via LightRun intent (Rule 1.5)
     LightColor color;
     bool hasColor = false;
     if (hasCalendarEntry && entry.colorId != 0) {
-        hasColor = LightConduct::describeColorById(entry.colorId, color);
+        hasColor = LightRun::describeColorById(entry.colorId, color);
     }
     if (!hasColor) {
         LightColor fallbackColor;
-        if (LightConduct::describeActiveColor(fallbackColor)) {
+        if (LightRun::describeActiveColor(fallbackColor)) {
             if (entry.colorId != 0 && g_logLimiter.logColorFallback(year, month, day)) {
                 PF("[TodayContext] Color %u missing, falling back to %u for %04u-%02u-%02u\n",
                    static_cast<unsigned>(entry.colorId),

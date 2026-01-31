@@ -17,10 +17,10 @@
 #include "MathUtils.h"
 #include "LightManager.h"
 #include "SDManager.h"
-#include "ConductManager.h"
+#include "RunManager.h"
 #include "SDVoting.h"
 #include "Notify/NotifyState.h"
-#include "Light/LightConduct.h"
+#include "Light/LightRun.h"
 
 // Handler modules
 #include "handlers/PatternsHandlers.h"
@@ -28,7 +28,7 @@
 #include "handlers/AudioHandlers.h"
 #include "handlers/SdHandlers.h"
 #include "handlers/OtaHandlers.h"
-#include "handlers/ContextHandlers.h"
+#include "handlers/TodayHandlers.h"
 #include "handlers/HealthHandlers.h"
 #include "handlers/LogHandlers.h"
 #include "handlers/SseManager.h"
@@ -85,7 +85,7 @@ void handleSetBrightness(AsyncWebServerRequest *request)
     
     // 2. Get calendar shift (simplified: use 0 if shifts disabled)
 #ifndef DISABLE_SHIFTS
-    int8_t calendarShift = 0;  // TODO: get from shiftStore when needed
+    int8_t calendarShift = 0;  // TODO: get from shiftTable when needed
 #else
     int8_t calendarShift = 0;
 #endif
@@ -134,7 +134,7 @@ void beginWebInterface()
     ColorsHandlers::attachRoutes(server, events);
     SdHandlers::attachRoutes(server);
     OtaHandlers::attachRoutes(server);
-    ContextHandlers::attachRoutes(server);
+    TodayHandlers::attachRoutes(server);
     HealthHandlers::attachRoutes(server);
     LogHandlers::attachRoutes(server);
 

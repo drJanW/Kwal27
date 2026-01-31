@@ -55,7 +55,7 @@ One flash burst = `black(1s) + color(1-2s) + black(1s)` ≈ 3-4s per failing com
 
 - Default build uses `LOG_LEVEL_INFO`. Override per build via PlatformIO flag, e.g. `-DLOG_LEVEL=LOG_LEVEL_WARN` for quieter output or `LOG_LEVEL_DEBUG` for full tracing.
 - Heartbeat dots are guarded by `LOG_HEARTBEAT`; enable with `-DLOG_HEARTBEAT=1` when you want a periodic serial heartbeat, otherwise leave at `0` to avoid clutter.
-- Module-level verbosity toggles such as `LOG_CONDUCT_VERBOSE`, `LOG_TIMER_VERBOSE`, `LOG_AUDIO_VERBOSE`, etc. gate the chattier traces. Define them as `1` (either in `platformio.ini` or a local header) when diagnosing that subsystem.
+- Module-level verbosity toggles such as `LOG_RUN_VERBOSE`, `LOG_TIMER_VERBOSE`, `LOG_AUDIO_VERBOSE`, etc. gate the chattier traces. Define them as `1` (either in `platformio.ini` or a local header) when diagnosing that subsystem.
 - Use `PL()/PP()/PF()` helpers for INFO-level lines; `LOG_ERROR/LOG_WARN/LOG_INFO/LOG_DEBUG` remain available for formatted output.
 
 When the serial monitor shows nothing except ESP-IDF boot ROM text, confirm the firmware was built with at least `LOG_LEVEL_INFO` so the `[Main] Version …` banner is visible.

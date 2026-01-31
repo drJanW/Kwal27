@@ -98,7 +98,7 @@ Test alles na toevoegen
 Dit skelet voorkomt spaghetti en houdt alles schaalbaar en onderhoudbaar.
 
 Ambient lux coordination
-- ConductManager: `requestLuxMeasurement()` turns LEDs off, waits ~120 ms, triggers `SensorManager::performLuxMeasurement()`, then calls `updateBaseBrightness()` before restoring LEDs.
+- RunManager: `requestLuxMeasurement()` turns LEDs off, waits ~120 ms, triggers `SensorManager::performLuxMeasurement()`, then calls `updateBaseBrightness()` before restoring LEDs.
 - LightManager: `updateBaseBrightness()` uses an exponential mapper: b = b_min + (b_max - b_min) * (1 - exp(-beta * lux)); defaults b_min=20, b_max=220, beta=0.01, lux clamped to 800.
 - Logging: When `LOCAL_LOG_LEVEL >= LOG_LEVEL_INFO`, each recalculation prints `[Lux->Brightness] lux=... base=... (beta=...)`.
 - Tuning: raise beta for more low-light sensitivity; adjust b_min/b_max for floor/cap; raise L_MAX if your sensor reports higher lux.

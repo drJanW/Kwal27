@@ -54,9 +54,7 @@ public:
     static bool begin(uint8_t csPin, SPIClass& spi, uint32_t hz);
 
     // === State management ===
-    static bool isReady();
     static void setReady(bool ready);
-    static bool isSDbusy();      // Returns true if lockCount > 0
     static void lockSD();        // Increment lock counter (reentrant)
     static void unlockSD();      // Decrement lock counter
 

@@ -6,9 +6,9 @@
 ## Probleem
 
 1. Sensor orchestratie zit in `SensorManager.cpp` (Manager layer)
-2. Zou in `SensorDirector` moeten (Conduct layer) per architectuur
+2. Zou in `SensorDirector` moeten (Run layer) per architectuur
 3. Speak module is niet gekoppeld aan sensor events
-4. SensorsConduct/Policy/Director zijn grotendeels stubs
+4. SensorsRun/Policy/Director zijn grotendeels stubs
 
 ## Huidige Structuur
 
@@ -21,7 +21,7 @@ SensorManager.cpp
 SensorsBoot.cpp
   └── plan() → arms init timers   // OK
 
-SensorsConduct.cpp
+SensorsRun.cpp
   └── stub                        // LEEG
 
 SensorsPolicy.cpp
@@ -46,10 +46,10 @@ SensorDirector.cpp
   ├── cb_luxInit()                // calls SensorManager::beginLux()
   └── cb_sensor3Init()            // calls SensorManager::beginSensor3()
 
-SensorsConduct.cpp
+SensorsRun.cpp
   ├── onDistanceReading(mm)       // called by periodic timer
   ├── onLuxReading(lux)           // called by periodic timer
-  └── triggerSpeak(SpeakIntent)   // route to SpeakConduct
+  └── triggerSpeak(SpeakIntent)   // route to SpeakRun
 
 SensorsPolicy.cpp
   ├── shouldSpeak(event)          // throttle logic
@@ -77,7 +77,7 @@ SensorsPolicy.cpp
 
 ```
 cb_distanceInit() last retry failed
-  → SensorsConduct::onSensorFail(COMP_DIST)
+  → SensorsRun::onSensorFail(COMP_DIST)
     → if (NotifyState::isOk(COMP_TTS))
         AudioPolicy::requestSentence("Afstandmeter werkt niet")
       else
@@ -85,7 +85,7 @@ cb_distanceInit() last retry failed
 
 cb_readDistance() [TimerManager]
   → distance was < min, now >= min (ping ended)
-    → SensorsConduct::onDistanceCleared()
+    → SensorsRun::onDistanceCleared()
       → if (NotifyState::isOk(COMP_TTS))
           AudioPolicy::requestSentence("Object is verdwenen")
 ```
@@ -105,12 +105,12 @@ namespace {
         
         if (SensorManager::beginDistance()) {
             TimerManager::instance().cancel(cb_distanceInit);
-            SensorsConduct::onSensorReady(COMP_DIST);  // Via eigen Conduct
+            SensorsRun::onSensorReady(COMP_DIST);  // Via eigen Run
             return;
         }
         
         if (abs(remaining) == 1) {
-            SensorsConduct::onSensorFail(COMP_DIST);  // Via eigen Conduct
+            SensorsRun::onSensorFail(COMP_DIST);  // Via eigen Run
         }
     }
     
@@ -126,34 +126,34 @@ void SensorDirector::armInitTimers() {
 }
 ```
 
-### SensorsConduct.cpp
+### SensorsRun.cpp
 
 ```cpp
-void SensorsConduct::onSensorReady(StatusComponent comp) {
+void SensorsRun::onSensorReady(StatusComponent comp) {
     NotifyState::setOk(comp, true);
     
     switch (comp) {
         case COMP_DIST:
-            NotifyConduct::report(NotifyIntent::DISTANCE_SENSOR_OK);
+            NotifyRun::report(NotifyIntent::DISTANCE_SENSOR_OK);
             break;
         case COMP_LUX:
-            NotifyConduct::report(NotifyIntent::LUX_SENSOR_OK);
+            NotifyRun::report(NotifyIntent::LUX_SENSOR_OK);
             break;
         default:
             break;
     }
 }
 
-void SensorsConduct::onSensorFail(StatusComponent comp) {
+void SensorsRun::onSensorFail(StatusComponent comp) {
     NotifyState::setOk(comp, false);
     
-    // Report to NotifyConduct
+    // Report to NotifyRun
     switch (comp) {
         case COMP_DIST:
-            NotifyConduct::report(NotifyIntent::DISTANCE_SENSOR_FAIL);
+            NotifyRun::report(NotifyIntent::DISTANCE_SENSOR_FAIL);
             break;
         case COMP_LUX:
-            NotifyConduct::report(NotifyIntent::LUX_SENSOR_FAIL);
+            NotifyRun::report(NotifyIntent::LUX_SENSOR_FAIL);
             break;
         default:
             break;
@@ -177,7 +177,7 @@ void SensorsConduct::onSensorFail(StatusComponent comp) {
     }
 }
 
-void SensorsConduct::onDistanceCleared() {
+void SensorsRun::onDistanceCleared() {
     if (!NotifyState::isOk(COMP_TTS)) return;
     AudioPolicy::requestSentence("Object is verdwenen");
 }
@@ -210,8 +210,8 @@ bool SensorsPolicy::canSpeakDistanceCleared() {
 | 2 | `lib/SensorManager/SensorManager.h` | Add beginDistance(), beginLux(), isXxxReady() |
 | 3 | `lib/ConductManager/Sensors/SensorDirector.cpp` | Init timers + callbacks |
 | 4 | `lib/ConductManager/Sensors/SensorDirector.h` | armInitTimers() |
-| 5 | `lib/ConductManager/Sensors/SensorsConduct.cpp` | onDistanceReading, onLuxReading |
-| 6 | `lib/ConductManager/Sensors/SensorsConduct.h` | public methods |
+| 5 | `lib/ConductManager/Sensors/SensorsRun.cpp` | onDistanceReading, onLuxReading |
+| 6 | `lib/ConductManager/Sensors/SensorsRun.h` | public methods |
 | 7 | `lib/ConductManager/Sensors/SensorsPolicy.cpp` | canSpeakDistanceCleared, cooldown |
 | 8 | `lib/ConductManager/Sensors/SensorsPolicy.h` | public methods |
 | 9 | `lib/ConductManager/Sensors/SensorsBoot.cpp` | call SensorDirector::armInitTimers() |
