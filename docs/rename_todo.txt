@@ -3,13 +3,13 @@ Rename TODO (naming canon cleanup)
 Navigation (workstreams):
 A. Conduct → Run (DONE)
 B. Intent → Request (DONE)
+H. Notify → Inform/Alert/Announce (DONE: Alert)
+I. Store → Catalog (CRUD) / Table (lookup) (IN PROGRESS: Light done)
 C. Manager → Core/Controller/Selector/Rules/etc. (non-exempt)
 D. Context-as-container → Flags/Today/etc.
 E. Mode → Preset/Profile (unless true FSM/progress)
 F. Handle/Handler → verbNoun
 G. Dispatch/Process/Orchestrator/Engine/Service/Strategy → specific verb/noun
-H. Notify → Inform/Alert/Announce (manual per meaning)
-I. Store → Catalog (CRUD) / Table (lookup)
 
 Scope (all first-class, not optional):
 - Conduct → Run

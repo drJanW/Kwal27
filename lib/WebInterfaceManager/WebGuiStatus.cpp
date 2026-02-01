@@ -113,7 +113,7 @@ void pushState() {
     uint8_t file = fragmentFile_.load(std::memory_order_relaxed);
     uint8_t score = fragmentScore_.load(std::memory_order_relaxed);
     
-    // Get pattern/color from stores (use effective ID with fallback to first)
+    // Get pattern/color from catalogs (use effective ID with fallback to first)
     String patternId = PatternCatalog::instance().activeId();
     if (patternId.isEmpty()) {
         patternId = PatternCatalog::instance().firstPatternId();

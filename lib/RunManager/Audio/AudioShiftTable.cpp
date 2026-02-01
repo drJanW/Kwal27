@@ -149,7 +149,7 @@ void AudioShiftTable::begin() {
             entry.themeBoxAdd = static_cast<uint8_t>(columns[colThemeBoxAdd].toInt());
         }
 
-        // Only store if there's any shift or themeBoxAdd
+        // Only keep if there's any shift or themeBoxAdd
         bool hasShift = (entry.shifts[AUDIO_VOLUME] != 0.0f) ||
                         (entry.shifts[AUDIO_FADE_MS] != 0.0f) ||
                         (entry.themeBoxAdd != 0);

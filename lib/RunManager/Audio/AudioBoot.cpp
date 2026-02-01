@@ -29,7 +29,7 @@ void AudioBoot::plan() {
     audio.begin();
     hwStatus |= HW_AUDIO;
     
-    // Initialize audio shift store
+    // Initialize audio shift table
     AudioShiftTable::instance().begin();
 
     if (auto* clip = PlayPCM::loadFromSD("/ping.wav")) {

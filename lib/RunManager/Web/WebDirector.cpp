@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Implements async web request handling: SD directory listing with JSON
- * chunking, file deletion, pattern/color store operations, and job-based
+ * chunking, file deletion, pattern/color catalog operations, and job-based
  * request queuing with TimerManager-driven tick processing.
  */
 

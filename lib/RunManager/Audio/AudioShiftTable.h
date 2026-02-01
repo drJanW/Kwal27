@@ -4,7 +4,7 @@
  * @version 251231E
  * @date 2025-12-31
  *
- * Stores and manages audio parameter shifts loaded from CSV configuration.
+ * Maintains and manages audio parameter shifts loaded from CSV configuration.
  * Shifts modify volume and fade timing based on context flags (time of day,
  * calendar events). Provides computed shift values for current context status.
  */
