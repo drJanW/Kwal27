@@ -54,7 +54,7 @@ Kies I2C sensor, bijv:
 #define SENSOR3_PRESENT true   // Activeer hardware (was false)
 ```
 
-### 3. SensorManager.cpp aanpassen
+### 3. SensorController.cpp aanpassen
 
 Vervang placeholder door echte init:
 
@@ -75,7 +75,7 @@ namespace {
         if (sensor3.begin()) {
             sensor3Ready = true;
             TimerManager::instance().cancel(cb_sensor3Init);
-            PL("[SensorManager] Sensor3 (TMP117) ready");
+            PL("[SensorController] Sensor3 (TMP117) ready");
             AlertState::setOk(COMP_SENSOR3, true);
             AlertRun::report(AlertRequest::SENSOR3_OK);
             return;
@@ -84,25 +84,25 @@ namespace {
         if (abs(remaining) == 1) {
             sensor3InitFailed = true;
             AlertRun::report(AlertRequest::SENSOR3_FAIL);
-            PL("[SensorManager] Sensor3 gave up after retries");
+            PL("[SensorController] Sensor3 gave up after retries");
         }
     }
 }
 
-void SensorManager::beginSensor3() {
+void SensorController::beginSensor3() {
     TimerManager::instance().create(1000, 10, cb_sensor3Init, 1.5f);  // 10 exp retries
-    PL("[SensorManager] Sensor3 init, max 10 retries with growing interval");
+    PL("[SensorController] Sensor3 init, max 10 retries with growing interval");
 }
 ```
 
 ### 4. Read functie toevoegen
 
 ```cpp
-// SensorManager.h
+// SensorController.h
 static float getSensor3Value();
 
-// SensorManager.cpp
-float SensorManager::getSensor3Value() {
+// SensorController.cpp
+float SensorController::getSensor3Value() {
     if (!sensor3Ready) return Globals::sensor3DummyTemp;
     return sensor3.readTemperature();
 }
@@ -144,7 +144,7 @@ Volg exact hetzelfde patroon als VL53L1X en VEML7700:
 
 ```
 SensorsBoot::configure()
-  └── SensorManager::beginSensor3()
+    └── SensorController::beginSensor3()
         └── TimerManager::create(..., cb_sensor3Init)
               └── cb_sensor3Init() [growing interval retries]
                     ├── Success: AlertRun::report(SENSOR3_OK)
@@ -158,7 +158,7 @@ SensorsBoot::configure()
 Zie `docs/plan_i2c_init_refactor.md` - als die geïmplementeerd is, wordt sensor3 init nog simpeler:
 
 ```cpp
-void SensorManager::beginSensor3() {
+void SensorController::beginSensor3() {
     I2CInitHelper::start({
         "Sensor3", COMP_SENSOR3,
         []() { return sensor3.begin(); },

@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Handles audio subsystem initialization during boot. Configures the audio
- * hardware, initializes the audio manager, and loads audio shift configurations
+ * hardware, initializes AudioManager, and loads audio shift configurations
  * from SD card. Part of the Boot→Plan→Policy→Run pattern.
  */
 

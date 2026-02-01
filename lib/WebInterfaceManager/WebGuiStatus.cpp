@@ -4,7 +4,7 @@
  * @version 260101A
  * @date 2026-01-01
  *
- * SSE pushes current state from source modules (LightManager, AudioState).
+ * SSE pushes current state from source modules (LightController, AudioState).
  * No local caching of brightness/audio - always reads from source.
  */
 
@@ -13,9 +13,9 @@
 #include "Light/PatternCatalog.h"
 #include "Light/ColorsCatalog.h"
 #include "Light/LightPolicy.h"
-#include "LightManager.h"
+#include "LightController.h"
 #include "AudioState.h"
-#include "SensorManager.h"
+#include "SensorController.h"
 #include <ESPAsyncWebServer.h>
 
 #ifndef WEBIF_LOG_LEVEL
@@ -73,7 +73,7 @@ void setFragmentScore(uint8_t score) {
 }
 
 // ============================================================================
-// Getters (for fragment state only - brightness/audio come from LightManager/AudioState)
+// Getters (for fragment state only - brightness/audio come from LightController/AudioState)
 // ============================================================================
 
 uint8_t getFragmentDir() {
@@ -197,7 +197,7 @@ void begin() {
 }
 
 /**
- * @brief Set SSE event source pointer (called from SseManager::setup)
+ * @brief Set SSE event source pointer (called from SseController::setup)
  * @param events Pointer to AsyncEventSource
  */
 void setEventSource(AsyncEventSource* events) {

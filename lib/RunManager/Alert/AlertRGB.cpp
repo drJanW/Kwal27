@@ -21,7 +21,7 @@
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "AlertRGB.h"
 #include "AlertPolicy.h"
-#include "LightManager.h"
+#include "LightController.h"
 #include "Light/LightRun.h"
 #include "TimerManager.h"
 #include "ContextFlags.h"

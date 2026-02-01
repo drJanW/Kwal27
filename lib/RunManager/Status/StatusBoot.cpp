@@ -14,7 +14,7 @@
 #include "StatusPolicy.h"
 #include "PRTClock.h"
 #include "Alert/AlertRun.h"
-#include "ContextManager.h"
+#include "ContextController.h"
 
 StatusBoot statusBoot;
 
@@ -25,8 +25,8 @@ void cb_timeDisplay() {
         return;  // Silent - no spam
     }
 
-    ContextManager::refreshTimeRead();
-    const auto &timeCtx = ContextManager::time();
+    ContextController::refreshTimeRead();
+    const auto &timeCtx = ContextController::time();
     const char *source = prtClock.isTimeFetched() ? "ntp" : "fallback";
     PF("[Run] Time now: %02u:%02u:%02u (%u-%02u-%02u, %s)\\n",
        timeCtx.hour, timeCtx.minute, timeCtx.second,

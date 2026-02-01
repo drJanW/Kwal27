@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Implements OTA boot sequence: configures OTAPolicy. OTA is not required
- * during boot sequence as updates are handled via OTAManager separately.
+ * during boot sequence as updates are handled via OTAController separately.
  */
 
 #include "OTABoot.h"

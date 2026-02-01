@@ -14,7 +14,7 @@
 #include "ContextFlags.h"
 #include "ContextStatus.h"
 #include "TimeOfDay.h"
-#include "ContextManager.h"
+#include "ContextController.h"
 #include "Alert/AlertState.h"
 #include "Globals.h"
 #include "HWconfig.h"
@@ -26,7 +26,7 @@ namespace ContextFlags {
 // ============================================================
 uint64_t getSeasonBits() {
     uint64_t bits = 0;
-    const auto& ctx = ContextManager::time();
+    const auto& ctx = ContextController::time();
     uint8_t month = ctx.month;
     
     // Spring: March (3), April (4), May (5)
@@ -54,7 +54,7 @@ uint64_t getSeasonBits() {
 // ============================================================
 uint64_t getWeekdayBits() {
     uint64_t bits = 0;
-    const auto& ctx = ContextManager::time();
+    const auto& ctx = ContextController::time();
     uint8_t dow = ctx.dayOfWeek;  // 0=Sun, 1=Mon, 2=Tue, ... 6=Sat
     
     // Map dayOfWeek to individual day flags
@@ -82,7 +82,7 @@ uint64_t getWeekdayBits() {
 // ============================================================
 uint64_t getWeatherBits() {
     uint64_t bits = 0;
-    const auto& ctx = ContextManager::time();
+    const auto& ctx = ContextController::time();
     
     if (!ctx.hasWeather) {
         // No weather data yet - return no weather flags
@@ -113,7 +113,7 @@ uint64_t getWeatherBits() {
 // ============================================================
 uint64_t getMoonPhaseBits() {
     uint64_t bits = 0;
-    const auto& ctx = ContextManager::time();
+    const auto& ctx = ContextController::time();
     float phase = ctx.moonPhase;  // 0.0 to 1.0
     
     // Divide lunar cycle into 4 phases:

@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Stub implementation for WiFi policy. WiFi connection rules are handled
- * by WiFiManager FSM directly.
+ * by WiFiController FSM directly.
  */
 
 #include "WiFiPolicy.h"
@@ -14,7 +14,7 @@
 namespace WiFiPolicy {
 
 void configure() {
-    // Policy stub - WiFi managed via WiFiManager FSM
+    // Policy stub - WiFi managed via WiFiController FSM
 }
 
 }

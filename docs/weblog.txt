@@ -113,8 +113,8 @@ WebGUI:
      
      } // namespace LogHandlers
 
-4. WebInterfaceManager integratie
-   File: lib/WebInterfaceManager/WebInterfaceManager.cpp
+4. WebInterfaceController integratie
+  File: lib/WebInterfaceManager/WebInterfaceController.cpp
    
    Toevoegen include:
      #include "handlers/LogHandlers.h"
@@ -221,7 +221,7 @@ WebGUI:
 1. LogBuffer.h aanmaken
 2. macros.inc wijzigen
 3. LogHandlers.h/.cpp aanmaken
-4. WebInterfaceManager.cpp wijzigen
+4. WebInterfaceController.cpp wijzigen
 5. index.html wijzigen
 6. styles.css wijzigen
 7. log.js aanmaken

@@ -16,7 +16,7 @@
 #include <SD.h>
 #include <cstring>
 
-#include "SDManager.h"
+#include "SDController.h"
 
 namespace SdPathUtils {
 

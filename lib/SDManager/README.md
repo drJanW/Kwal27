@@ -1,9 +1,9 @@
-# SDManager - Complete Documentation & Usage Rules
+# SDController - Complete Documentation & Usage Rules
 
 > Version: 251218A | Updated: 2025-12-17
 
 ## Overview
-SDManager biedt een RAM-zuinige, snelle index-laag voor MP3-bestanden op SD-kaart, gericht op embedded systemen (ESP32 e.d.).
+SDController biedt een RAM-zuinige, snelle index-laag voor MP3-bestanden op SD-kaart, gericht op embedded systemen (ESP32 e.d.).
 Uniek: selectie op score, gewogen random picking, geen scan-loops, altijd 100% consistente indexering.
 
 Bestandsstructuur (op SD-kaart)
@@ -87,7 +87,7 @@ Aantal entries: Altijd precies SD_MAX_FILES_PER_SUBDIR (niet afhankelijk van bes
 **Gebruik:** TTS PlaySentence gebruikt deze duraties om de wachttijd te berekenen
 voordat de volgende zin wordt afgespeeld.
 
-API-contract en SDManager-regels
+API-contract en SDController-regels
 Alle index-bestanden zijn binaire files, nooit tekst!
 
 Nooit zelf handmatig wijzigen!
@@ -165,7 +165,7 @@ Edit
 for (int i = 1; i <= 20; i++) {
     uint8_t dir = random(1, SD_MAX_DIRS+1);
     for (int j = 0; j < 2; j++) {
-        uint8_t file = sdManager.getRandomFile(dir);
+        uint8_t file = sdController.getRandomFile(dir);
         if (file) {
             PF("[Test] Dir %03u: random file %03u -> %s\n", dir, file, getMP3Path(dir, file));
         } else {
@@ -187,7 +187,7 @@ Niet updaten van index na wijzigen files:
 Resultaat: inconsistent gedrag, random selectie faalt.
 
 Samenvatting (één zin):
-SDManager = superstrakke, index-gedreven, score-based random selectie,
+SDController = superstrakke, index-gedreven, score-based random selectie,
 met 100% consistente index-bestanden per subdir.
 Nooit handmatig index aanpassen. Altijd via de index-API werken.
 

@@ -1,9 +1,9 @@
-# OTA Manager – Push Workflow
+# OTA Controller – Push Workflow
 
 > Version: 251218A | Updated: 2025-12-17
 
 ## Overview
-The OTA manager now runs a **single-button ArduinoOTA push** flow. The ESP32 exposes the usual ArduinoOTA listener (port `3232`) but only after the web UI asks for it. A short reboot delay gives the operator time to hit Enter in `ota.bat` so the upload can begin.
+The OTA controller now runs a **single-button ArduinoOTA push** flow. The ESP32 exposes the usual ArduinoOTA listener (port `3232`) but only after the web UI asks for it. A short reboot delay gives the operator time to hit Enter in `ota.bat` so the upload can begin.
 
 ### Core Flow
 1. Web UI posts to `/ota/start`.
@@ -18,7 +18,7 @@ The OTA manager now runs a **single-button ArduinoOTA push** flow. The ESP32 exp
 - **5 min OTA window** after the reboot. If no upload arrives in that window the listener times out and the board resumes normal duties.
 
 ## First-Time Setup
-1. Flash the latest firmware over USB so the new OTA manager is present.
+1. Flash the latest firmware over USB so the new OTA controller is present.
 2. Make sure `platformio.ini` has `--auth=KwalOTA_3732` under `upload_flags` for `esp32_v3_ota`.
 3. Load the updated web assets (single Start OTA button) onto the SD card.
 

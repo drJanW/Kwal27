@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Stub implementation for web policy. Web access rules are handled by
- * WebInterfaceManager directly.
+ * WebInterfaceController directly.
  */
 
 #include "WebPolicy.h"
@@ -14,7 +14,7 @@
 namespace WebPolicy {
 
 void configure() {
-    // Policy stub - web access managed via WebInterfaceManager
+    // Policy stub - web access managed via WebInterfaceController
 }
 
 }

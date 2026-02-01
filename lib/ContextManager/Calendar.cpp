@@ -10,9 +10,10 @@
  * and pattern/color ID associations for each calendar day.
  */
 
+#include <Arduino.h>
 #include "Calendar.h"
 #include "Globals.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "SdPathUtils.h"
 
 #include <SD.h>
@@ -50,15 +51,15 @@ bool parseUint8Strict(const String& value, uint8_t& out) {
 
 } // namespace
 
-CalendarManager calendarManager;
+CalendarSelector calendarSelector;
 
-bool CalendarManager::begin(fs::FS& sd, const char* rootPath) {
+bool CalendarSelector::begin(fs::FS& sd, const char* rootPath) {
 	fs_ = &sd;
 
 	const String desiredRoot = (rootPath && *rootPath) ? String(rootPath) : String("/");
 	const String sanitized = sanitizeSdPath(desiredRoot);
 	if (sanitized.isEmpty()) {
-		PF("[CalendarManager] Invalid root '%s', falling back to '/'\n", desiredRoot.c_str());
+		PF("[CalendarSelector] Invalid root '%s', falling back to '/'\n", desiredRoot.c_str());
 		root_ = "/";
 	} else {
 		root_ = sanitized;
@@ -70,7 +71,7 @@ bool CalendarManager::begin(fs::FS& sd, const char* rootPath) {
 	return true;
 }
 
-bool CalendarManager::loadToday(uint16_t year, uint8_t month, uint8_t day) {
+bool CalendarSelector::loadToday(uint16_t year, uint8_t month, uint8_t day) {
 	if (!ready_ || !fs_) {
 		return false;
 	}
@@ -98,29 +99,29 @@ bool CalendarManager::loadToday(uint16_t year, uint8_t month, uint8_t day) {
 	return true;
 }
 
-const CalendarData& CalendarManager::calendarData() const {
+const CalendarData& CalendarSelector::calendarData() const {
 	return data_;
 }
 
-bool CalendarManager::hasCalendarData() const {
+bool CalendarSelector::hasCalendarData() const {
 	return hasData_ && data_.valid;
 }
 
-bool CalendarManager::isReady() const {
+bool CalendarSelector::isReady() const {
 	return ready_ && fs_ != nullptr;
 }
 
-void CalendarManager::clear() {
+void CalendarSelector::clear() {
 	data_ = CalendarData{};
 	hasData_ = false;
 }
 
-bool CalendarManager::loadCalendarRow(uint16_t year, uint8_t month, uint8_t day, CalendarEntry& out) {
+bool CalendarSelector::loadCalendarRow(uint16_t year, uint8_t month, uint8_t day, CalendarEntry& out) {
 	// Note: caller manages SD busy lock
 	const String csvPath = pathFor(kCalendarFile);
 	File file = fs_->open(csvPath.c_str(), FILE_READ);
 	if (!file) {
-		PF("[CalendarManager] Failed to open %s\n", csvPath.c_str());
+		PF("[CalendarSelector] Failed to open %s\n", csvPath.c_str());
 		return false;
 	}
 
@@ -167,12 +168,12 @@ bool CalendarManager::loadCalendarRow(uint16_t year, uint8_t month, uint8_t day,
 	return false;
 }
 
-bool CalendarManager::loadThemeBox(uint8_t id, CalendarThemeBox& out) {
+bool CalendarSelector::loadThemeBox(uint8_t id, CalendarThemeBox& out) {
 	// Note: caller manages SD busy lock
 	const String csvPath = pathFor(kThemeBoxCsv);
 	File file = fs_->open(csvPath.c_str(), FILE_READ);
 	if (!file) {
-		PF("[CalendarManager] Failed to open %s\n", csvPath.c_str());
+		PF("[CalendarSelector] Failed to open %s\n", csvPath.c_str());
 		return false;
 	}
 
@@ -219,11 +220,11 @@ bool CalendarManager::loadThemeBox(uint8_t id, CalendarThemeBox& out) {
 	}
 
 	file.close();
-	PF("[CalendarManager] Theme box %u not found in %s\n", static_cast<unsigned>(id), csvPath.c_str());
+	PF("[CalendarSelector] Theme box %u not found in %s\n", static_cast<unsigned>(id), csvPath.c_str());
 	return false;
 }
 
-String CalendarManager::pathFor(const char* file) const {
+String CalendarSelector::pathFor(const char* file) const {
 	if (!file || !*file) {
 		return String();
 	}

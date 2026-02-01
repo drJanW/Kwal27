@@ -13,7 +13,7 @@
 
 #define LOCAL_LOG_LEVEL LOG_LEVEL_NONE
 #include "Globals.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "AudioPolicy.h"
 #include "AudioShiftTable.h"
 #include "ContextFlags.h"
@@ -62,19 +62,19 @@ bool selectDirectory(DirPick& outDir, const uint8_t* allowList = nullptr, size_t
         for (size_t idx = 0; idx < allowCount; ++idx) {
             const uint8_t dirNum = allowList[idx];
             DirEntry entry{};
-            if (!SDManager::readDirEntry(dirNum, &entry)) {
+            if (!SDController::readDirEntry(dirNum, &entry)) {
                 continue;
             }
             recordEntry(dirNum, entry);
         }
     } else {
-        File rootFile = SDManager::openFileRead(ROOT_DIRS);
+        File rootFile = SDController::openFileRead(ROOT_DIRS);
         if (!rootFile) {
             PF("[AudioDirector] Can't open %s\n", ROOT_DIRS);
             return false;
         }
 
-        const uint8_t highestDir = SDManager::getHighestDirNum();
+        const uint8_t highestDir = SDController::getHighestDirNum();
         for (uint16_t dirNum = 1; dirNum <= highestDir; ++dirNum) {
             if (!isAllowed(static_cast<uint8_t>(dirNum), allowList, allowCount)) {
                 continue;
@@ -91,7 +91,7 @@ bool selectDirectory(DirPick& outDir, const uint8_t* allowList = nullptr, size_t
             }
             recordEntry(static_cast<uint8_t>(dirNum), entry);
         }
-        SDManager::closeFile(rootFile);
+        SDController::closeFile(rootFile);
     }
 
     if (totalScore == 0 || scoredCount == 0) {
@@ -131,7 +131,7 @@ bool selectFile(const DirPick& dirPick, uint8_t& outFile) {
     char filesDirPath[SDPATHLENGTH];
     snprintf(filesDirPath, sizeof(filesDirPath), "/%03u%s", dirPick.id, FILES_DIR);
 
-    File filesIndex = SDManager::openFileRead(filesDirPath);
+    File filesIndex = SDController::openFileRead(filesDirPath);
     if (!filesIndex) {
         PF("[AudioDirector] Can't open %s\n", filesDirPath);
         return false;
@@ -152,7 +152,7 @@ bool selectFile(const DirPick& dirPick, uint8_t& outFile) {
     }
 
     if (totalScore == 0) {
-        SDManager::closeFile(filesIndex);
+        SDController::closeFile(filesIndex);
         PF("[AudioDirector] No weighted files in dir %03u\n", dirPick.id);
         return false;
     }
@@ -176,7 +176,7 @@ bool selectFile(const DirPick& dirPick, uint8_t& outFile) {
         }
         cumulative += static_cast<FileScore>(entry.score);
         if (target <= cumulative) {
-            SDManager::closeFile(filesIndex);
+            SDController::closeFile(filesIndex);
             PF("[AudioDirector] file pick=%03u score=%u cumulative=%lu\n",
                static_cast<unsigned>(fileNum),
                static_cast<unsigned>(entry.score),
@@ -186,7 +186,7 @@ bool selectFile(const DirPick& dirPick, uint8_t& outFile) {
         }
     }
 
-    SDManager::closeFile(filesIndex);
+    SDController::closeFile(filesIndex);
     PF("[AudioDirector] Weighted walk failed in dir %03u\n", dirPick.id);
     return false;
 }
@@ -253,7 +253,7 @@ bool AudioDirector::selectRandomFragment(AudioFragment& outFrag) {
         }
 
         FileEntry fileEntry{};
-        if (!SDManager::readFileEntry(dirPick.id, file, &fileEntry)) {
+        if (!SDController::readFileEntry(dirPick.id, file, &fileEntry)) {
             PF("[AudioDirector] Failed to read file entry %03u/%03u\n", dirPick.id, file);
             continue;
         }

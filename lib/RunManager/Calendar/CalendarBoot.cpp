@@ -88,16 +88,16 @@ void CalendarBoot::plan() {
   }
   loggedClockWait = false;
 
-  if (!calendarManager.isReady()) {
-    if (!calendarManager.begin(SD)) {
+  if (!calendarSelector.isReady()) {
+    if (!calendarSelector.begin(SD)) {
       if (!loggedInitFail) {
-        PF("[CalendarBoot] Calendar manager init failed\n");
+        PF("[CalendarBoot] Calendar selector init failed\n");
         loggedInitFail = true;
       }
       return;
     }
     loggedInitFail = false;
-    PF("[CalendarBoot] Calendar manager initialised\n");
+    PF("[CalendarBoot] Calendar selector initialised\n");
   }
 
   if (!InitTodayContext(SD)) {

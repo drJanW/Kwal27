@@ -20,11 +20,11 @@
  * All timing uses TimerManager callbacks (no millis() or delay()).
  */
 
-#include "LightManager.h"
+#include "LightController.h"
 #include "TimerManager.h"
-#include "SensorManager.h"
+#include "SensorController.h"
 #include "RunManager.h"
-#include "ContextManager.h"
+#include "ContextController.h"
 #include "System/SystemBoot.h"
 #include "Globals.h"
 #include "PRTClock.h"
@@ -66,8 +66,8 @@
 #include "SD/SDPolicy.h"
 #include "Calendar/CalendarBoot.h"
 #include "Calendar/CalendarRun.h"
-#include "FetchManager.h"
-#include "WiFiManager.h"
+#include "FetchController.h"
+#include "WiFiController.h"
 #include "Clock/ClockBoot.h"
 #include "Clock/ClockRun.h"
 #include "Light/LightRun.h"
@@ -172,8 +172,8 @@ void RunManager::begin() {
     bootMaster.begin();
 
     PL("[Stage 1] Core modules...");
-    ContextManager::begin();
-    PL("[Stage 1] Context manager started");
+    ContextController::begin();
+    PL("[Stage 1] Context controller started");
     heartbeatBoot.plan();
     heartbeatRun.plan();
     statusBoot.plan();
@@ -205,7 +205,7 @@ void RunManager::requestArmOTA(uint32_t window_s) {
     RUN_LOG_INFO("[Run] requestArmOTA: window=%us\n", static_cast<unsigned>(window_s));
     otaArm(window_s);
     audio.stop();
-    lightManager.showOtaPattern();
+    lightController.showOtaPattern();
 }
 
 bool RunManager::requestConfirmOTA() {
@@ -232,14 +232,14 @@ void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file) {
     // If file < 0, pick random file from dir
     if (file < 0) {
         DirEntry dirEntry{};
-        if (!SDManager::readDirEntry(dir, &dirEntry) || dirEntry.fileCount == 0) {
+        if (!SDController::readDirEntry(dir, &dirEntry) || dirEntry.fileCount == 0) {
             RUN_LOG_WARN("[Run] requestPlaySpecificFragment: dir %u not found or empty\n", dir);
             return;
         }
         targetFile = random(0, dirEntry.fileCount);
     }
     
-    if (!SDManager::readFileEntry(dir, targetFile, &fileEntry)) {
+    if (!SDController::readFileEntry(dir, targetFile, &fileEntry)) {
         RUN_LOG_WARN("[Run] requestPlaySpecificFragment: file %u/%u not found\n", dir, targetFile);
         return;
     }

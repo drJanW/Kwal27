@@ -1,5 +1,5 @@
 #pragma once
-#include "SensorManager.h"
+#include "SensorController.h"
 #include <I2Cdev.h>
 #include <MPU6050.h>  // From I2Cdevlib
 #include <helper_3dmath.h>

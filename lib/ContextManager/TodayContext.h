@@ -15,8 +15,8 @@
 #include <Arduino.h>
 #include <FS.h>
 
-#include "CalendarManager.h"
-#include "ThemeBoxManager.h"
+#include "CalendarSelector.h"
+#include "ThemeBoxTable.h"
 #include "ContextModels.h"
 
 bool InitTodayContext(fs::FS& sd, const char* rootPath = "/");

@@ -4,7 +4,7 @@ Navigation (workstreams):
 A. Conduct → Run (DONE)
 B. Intent → Request (DONE)
 H. Notify → Inform/Alert/Announce (DONE: Alert)
-I. Store → Catalog (CRUD) / Table (lookup) (IN PROGRESS: Light done)
+I. Store → Catalog (CRUD) / Table (lookup) (DONE)
 C. Manager → Core/Controller/Selector/Rules/etc. (non-exempt)
 D. Context-as-container → Flags/Today/etc.
 E. Mode → Preset/Profile (unless true FSM/progress)

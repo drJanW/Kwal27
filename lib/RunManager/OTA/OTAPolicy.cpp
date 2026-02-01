@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Stub implementation for OTA policy. OTA decisions are currently handled
- * by OTAManager directly.
+ * by OTAController directly.
  */
 
 #include "OTAPolicy.h"
@@ -14,7 +14,7 @@
 namespace OTAPolicy {
 
 void configure() {
-    // Policy stub - OTA managed via OTAManager
+    // Policy stub - OTA managed via OTAController
 }
 
 }

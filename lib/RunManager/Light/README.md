@@ -14,7 +14,7 @@ Manages LED patterns and colors for the RGB ring display via `PatternCatalog` an
                           │ HTTP GET/POST
                           ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                     WebInterfaceManager                                  │
+│                     WebInterfaceController                               │
 │  /api/patterns  /api/colors  /api/patterns/select  etc.                 │
 └─────────────────────────┬───────────────────────────────────────────────┘
                           │ LightRun::patternRead(), colorRead()
@@ -53,7 +53,7 @@ Manages LED patterns and colors for the RGB ring display via `PatternCatalog` an
    - `ColorsCatalog::begin()` doet hetzelfde: random color bij boot
 
 2. **WebGUI request**: `GET /api/patterns`
-   - `WebInterfaceManager::handlePatternsList()` 
+   - `WebInterfaceController::handlePatternsList()` 
    - → `LightRun::patternRead()` 
    - → `PatternCatalog::buildJson()`
 

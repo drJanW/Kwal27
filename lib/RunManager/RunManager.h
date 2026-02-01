@@ -13,9 +13,9 @@
 #pragma once
 #include <Arduino.h>
 #include "AudioManager.h"
-#include "LightManager.h"
-#include "SDManager.h"
-#include "OTAManager.h"
+#include "LightController.h"
+#include "SDController.h"
+#include "OTAController.h"
 #include "TimerManager.h"
 #include "PRTClock.h"
 

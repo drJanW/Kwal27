@@ -9,6 +9,7 @@
  * context updates with the light and audio subsystems.
  */
 
+#include <Arduino.h>
 #include "CalendarRun.h"
 
 #include "CalendarPolicy.h"
@@ -17,7 +18,7 @@
 #include "Globals.h"
 #include "TimerManager.h"
 #include "PRTClock.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "TodayContext.h"
 #include "Light/LightRun.h"
 #include "Alert/AlertState.h"
@@ -33,7 +34,7 @@ bool clockReady() {
 }
 
 struct CalendarRunLogFlags {
-  bool managerNotReady = false;
+  bool controllerNotReady = false;
   bool sdBusy = false;
 };
 
@@ -44,7 +45,7 @@ TodayContext todayContext;
 bool todayContextValid = false;
 
 void resetLogFlags() {
-  logFlags.managerNotReady = false;
+  logFlags.controllerNotReady = false;
   logFlags.sdBusy = false;
 }
 
@@ -94,15 +95,15 @@ void CalendarRun::plan() {
   timers.cancel(CalendarRun::cb_loadCalendar);
   clearSentenceTimer();
 
-  if (!calendarManager.isReady()) {
-    if (!logFlags.managerNotReady) {
-      PF("[CalendarRun] Calendar manager not ready, retrying\n");
-      logFlags.managerNotReady = true;
+  if (!calendarSelector.isReady()) {
+    if (!logFlags.controllerNotReady) {
+      PF("[CalendarRun] Calendar controller not ready, retrying\n");
+      logFlags.controllerNotReady = true;
     }
     timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar);
     return;
   }
-  logFlags.managerNotReady = false;
+  logFlags.controllerNotReady = false;
 
   if (!clockReady()) {
     timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar);
@@ -124,15 +125,15 @@ void CalendarRun::plan() {
 }
 
 void CalendarRun::cb_loadCalendar() {
-  if (!calendarManager.isReady()) {
-    if (!logFlags.managerNotReady) {
-      PF("[CalendarRun] Calendar manager not ready, retrying\n");
-      logFlags.managerNotReady = true;
+  if (!calendarSelector.isReady()) {
+    if (!logFlags.controllerNotReady) {
+      PF("[CalendarRun] Calendar controller not ready, retrying\n");
+      logFlags.controllerNotReady = true;
     }
     timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar);
     return;
   }
-  logFlags.managerNotReady = false;
+  logFlags.controllerNotReady = false;
 
   if (!clockReady()) {
     timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar);
@@ -158,9 +159,9 @@ void CalendarRun::cb_loadCalendar() {
       return;
     }
     logFlags.sdBusy = false;
-    SDManager::lockSD();
-    calendarLoaded = calendarManager.loadToday(year, month, day);
-    SDManager::unlockSD();
+    SDController::lockSD();
+    calendarLoaded = calendarSelector.loadToday(year, month, day);
+    SDController::unlockSD();
   }
 
   if (!calendarLoaded) {
@@ -176,7 +177,7 @@ void CalendarRun::cb_loadCalendar() {
     return;
   }
 
-  const auto& calData = calendarManager.calendarData();
+  const auto& calData = calendarSelector.calendarData();
   CalendarPolicy::Decision decision;
   if (!CalendarPolicy::evaluate(calData, decision)) {
     clearSentenceTimer();

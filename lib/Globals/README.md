@@ -23,7 +23,7 @@ void setYear(uint8_t v) { setMux(v, &_valYear); }
 uint8_t getYear() { return getMux(&_valYear); }
 ```
 
-Most global state accessors follow this pattern and should migrate into dedicated managers over time.
+Most global state accessors follow this pattern and should migrate into dedicated controllers over time.
 
 `HWconfig.h` keeps hardware settings (pins, Wi-Fi credentials, static IP, etc.). `adc_port` is still only used to seed randomness and should be refactored out later.
 

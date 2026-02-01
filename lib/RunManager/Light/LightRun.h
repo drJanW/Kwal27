@@ -42,7 +42,7 @@ public:
     // Slider-triggered lux measurement (B6: debounce + 100ms cooldown)
     static void requestLuxMeasurement();
 
-    // Web brightness modifier (0-1) - routes to LightManager
+    // Web brightness modifier (0-1) - routes to LightController
     static void setWebBrightnessModifier(float modifier);
 
     // Light pattern/color exports routed through run

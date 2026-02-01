@@ -39,7 +39,7 @@ Where:
 ## Shift Application Flow
 
 ```
-AudioShiftStore::getEffectiveVolume(statusBits)
+AudioShiftTable::getEffectiveVolume(statusBits)
     → returns 0.0-1.0+ (can exceed 1.0 for boost)
     
 AudioRun::applyVolumeShift(statusBits)

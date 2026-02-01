@@ -10,7 +10,7 @@
  */
 
 #include "LightBoot.h"
-#include "LightManager.h"
+#include "LightController.h"
 #include "LEDMap.h"
 #include "TimerManager.h"
 #include "Globals.h"
@@ -19,7 +19,7 @@
 
 namespace {
 
-void cb_updateLightManager() { updateLightManager(); }
+void cb_updateLightController() { updateLightController(); }
 
 // Initialize LED hardware and timers
 void initLight() {
@@ -33,7 +33,7 @@ void initLight() {
     }
 
     // LED update timer 50ms (20 FPS)
-    timers.create(50, 0, cb_updateLightManager);
+    timers.create(50, 0, cb_updateLightController);
     timers.create((10 * 1000UL) / 255UL, 0, cb_colorCycle);
     timers.create((10 * 1000UL) / 255UL, 0, cb_brightCycle);
     PF("[LightBoot] init done\n");
@@ -48,5 +48,5 @@ void LightBoot::plan() {
     setBrightnessShiftedHi(100);    // Initially equal
     setWebShift(1.0f);              // F9: neutral multiplier
     WebGuiStatus::pushState();  // Push initial brightness to SSE
-    PL("[LightBoot] Light manager initialized");
+    PL("[LightBoot] Light controller initialized");
 }

@@ -16,7 +16,7 @@
 #include <FastLED.h>
 #include <vector>
 
-#include "LightManager.h"
+#include "LightController.h"
 
 class ColorsCatalog {
 public:

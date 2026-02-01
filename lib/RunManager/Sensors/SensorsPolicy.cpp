@@ -11,7 +11,7 @@
 
 #include "SensorsPolicy.h"
 #include "Globals.h"
-#include "SensorManager.h"
+#include "SensorController.h"
 #include "TimerManager.h"
 
 #include <cmath>
@@ -61,7 +61,7 @@ void configure() {
     previousDistanceMm = 0.0f;
     havePreviousDistance = false;
     distanceClearedCooldownActive = false;
-    SensorManager::setDistanceMillimeters(lastDistanceMm);
+    SensorController::setDistanceMillimeters(lastDistanceMm);
     SP_LOG("[SensorsPolicy] Reset distance filter state\n");
 }
 
@@ -112,7 +112,7 @@ bool normaliseDistance(float rawMm, uint32_t sampleTsMs, float& filteredOut) {
     lastDistanceMm = filtered;
     haveDistance = true;
     distanceIsNew = true;
-    SensorManager::setDistanceMillimeters(filtered);
+    SensorController::setDistanceMillimeters(filtered);
     filteredOut = filtered;
 
     timers.restart(Globals::distanceNewWindowMs, 1, cb_distanceOld);

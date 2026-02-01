@@ -7,7 +7,7 @@
  * This header declares CSV parsing utilities for reading and processing
  * semicolon-delimited CSV files from the SD card. Provides a namespace-based
  * API for line reading, column splitting, and BOM handling. These utilities
- * are used by calendar, color, pattern, and shift managers to load their
+ * are used by calendar, color, pattern, and shift tables to load their
  * configuration data from CSV files.
  */
 

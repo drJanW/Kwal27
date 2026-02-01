@@ -161,6 +161,6 @@ private:
     Timer timers[MAX_TIMERS];
 };
 
-/// @brief Global timer manager instance - preferred access method
+/// @brief Global TimerManager instance - preferred access method
 /// @note Defined in TimerManager.cpp. Preferred access method.
 extern TimerManager timers;

@@ -12,7 +12,7 @@
 #include <Arduino.h>
 #include "ShiftTable.h"
 #include "CsvUtils.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "Globals.h"
 #include "Alert/AlertState.h"
 #include <algorithm>
@@ -132,12 +132,12 @@ bool ShiftTable::loadColorShiftsFromSD() {
         return false;
     }
     
-    if (!SDManager::fileExists(kColorShiftPath)) {
+    if (!SDController::fileExists(kColorShiftPath)) {
         PF("[ShiftTable] %s not found\n", kColorShiftPath);
         return false;
     }
     
-    File file = SDManager::openFileRead(kColorShiftPath);
+    File file = SDController::openFileRead(kColorShiftPath);
     if (!file) {
         return false;
     }
@@ -208,7 +208,7 @@ bool ShiftTable::loadColorShiftsFromSD() {
         }
     }
     
-    SDManager::closeFile(file);
+    SDController::closeFile(file);
     if (!headerLoaded) {
         PF("[ShiftTable] Color CSV: header missing or invalid\n");
         colorShifts_.clear();
@@ -223,13 +223,13 @@ bool ShiftTable::loadPatternShiftsFromSD() {
         return false;
     }
     
-    if (!SDManager::fileExists(kPatternShiftPath)) {
+    if (!SDController::fileExists(kPatternShiftPath)) {
         PF("[ShiftTable] %s not found on SD\n", kPatternShiftPath);
         return false;
     }
     
     PF("[ShiftTable] Loading %s...\n", kPatternShiftPath);
-    File file = SDManager::openFileRead(kPatternShiftPath);
+    File file = SDController::openFileRead(kPatternShiftPath);
     if (!file) {
         return false;
     }
@@ -299,7 +299,7 @@ bool ShiftTable::loadPatternShiftsFromSD() {
         }
     }
     
-    SDManager::closeFile(file);
+    SDController::closeFile(file);
     if (!headerLoaded) {
         PF("[ShiftTable] Pattern CSV: header missing or invalid\n");
         patternShifts_.clear();

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SDManager.h"
+#include "SDController.h"
 
 /**
  * @brief RAII guard for SD card locking
@@ -11,7 +11,7 @@
 class SDBusyGuard {
 public:
     SDBusyGuard() {
-        SDManager::lockSD();
+        SDController::lockSD();
     }
 
     ~SDBusyGuard() {
@@ -25,7 +25,7 @@ public:
 
     void release() {
         if (!released_) {
-            SDManager::unlockSD();
+            SDController::unlockSD();
             released_ = true;
         }
     }

@@ -27,5 +27,5 @@ bool VL53L1X_begin(uint8_t address = VL53L1X_I2C_ADDR,
                    uint16_t timingBudgetMs = 50,   // 20..100+
                    bool longMode = false);          // false=Short, true=Long
 
-// SensorManager leest via deze functie; geeft NAN als geen nieuwe sample.
+// SensorController leest via deze functie; geeft NAN als geen nieuwe sample.
 float readVL53L1X();

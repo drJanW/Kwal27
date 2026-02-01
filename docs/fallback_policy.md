@@ -104,11 +104,11 @@ Runtime flags set during boot. Check with `if (hwStatus & HW_xxx)`.
 
 | Fallback | File |
 |----------|------|
-| SD fail ambient show | LightManager.cpp |
+| SD fail ambient show | LightController.cpp |
 | Fallback date config | Globals.h/cpp (fallbackMonth/Day/Hour) |
-| Sunrise calculation | FetchManager.cpp |
-| Sensor dummy returns | SensorManager.cpp |
-| "OUT OF ORDER" response | WebInterfaceManager.cpp |
+| Sunrise calculation | FetchController.cpp |
+| Sensor dummy returns | SensorController.cpp |
+| "OUT OF ORDER" response | WebInterfaceController.cpp |
 | Boot fragment trigger | CalendarRun.cpp → RunManager.cpp |
 | Voting score | SDVoting.cpp, WebGuiStatus.cpp |
 

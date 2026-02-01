@@ -1,4 +1,4 @@
-# Web Interface Manager
+# Web Interface Controller
 
 > Version: 251218A | Updated: 2025-12-17
 
@@ -7,9 +7,9 @@ Serve a lightweight UI from the SD card so operators can monitor and steer the i
 
 ## Current Features
 1. **Audio panel** – Displays the current fragment, exposes a slider for web volume (`/setWebAudioLevel`, `/getWebAudioLevel`), and shows status text from `AudioManager`.
-2. **Light panel** – Presents brightness control (`/setBrightness`, `/getBrightness`) and summary values from `LightManager`.
+2. **Light panel** – Presents brightness control (`/setBrightness`, `/getBrightness`) and summary values from `LightController`.
 3. **OTA modal** – Single **Start OTA** button posts to `/ota/start`, displays a 15 s countdown, and reminds the operator to press Enter in `ota.bat` once the device reboots into ArduinoOTA mode.
-4. **SD manager modal** – File listing and upload/delete helpers talking to `SDManager` REST endpoints (`/api/sd/*`).
+4. **SD controller modal** – File listing and upload/delete helpers talking to `SDController` REST endpoints (`/api/sd/*`).
 5. **Diagnostics** – `kwal.js` exposes `window.APP_BUILD_INFO` so the UI can verify whether the browser has the latest assets.
 
 ## REST Endpoints
@@ -19,7 +19,7 @@ Serve a lightweight UI from the SD card so operators can monitor and steer the i
 - `POST /ota/start` – arms + confirms OTA window (replaces the old `/ota/arm` + `/ota/confirm` combo).
 - `GET /api/sd/status`, `POST /api/sd/upload`, `POST /api/sd/delete` – SD maintenance.
 
-Handlers live in `WebInterfaceManager.cpp`; each maps directly to a `RunManager` request or SDManager method. Logging uses `PF` macros guarded by `WEBIF_LOG_LEVEL`.
+Handlers live in `WebInterfaceController.cpp`; each maps directly to a `RunManager` request or SDController method. Logging uses `PF` macros guarded by `WEBIF_LOG_LEVEL`.
 
 ## SSE Reconnect Behavior
 

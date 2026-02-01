@@ -28,7 +28,7 @@
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #endif
 
-/// @brief Global timer manager instance - preferred access method
+/// @brief Global TimerManager instance - preferred access method
 TimerManager timers;
 
 /// @brief Constructor - Timer struct defaults handle initialization

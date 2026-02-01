@@ -11,7 +11,7 @@
 
 #include "AudioShiftTable.h"
 #include "CsvUtils.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "ContextStatus.h"
 #include "Globals.h"
 #include "Alert/AlertState.h"
@@ -74,13 +74,13 @@ void AudioShiftTable::begin() {
         return;
     }
 
-    if (!SDManager::fileExists(kAudioShiftPath)) {
+    if (!SDController::fileExists(kAudioShiftPath)) {
         PF("[AudioShiftTable] %s not found\n", kAudioShiftPath);
         ready_ = true;
         return;
     }
 
-    File file = SDManager::openFileRead(kAudioShiftPath);
+    File file = SDController::openFileRead(kAudioShiftPath);
     if (!file) {
         ready_ = true;
         return;
@@ -158,7 +158,7 @@ void AudioShiftTable::begin() {
         }
     }
 
-    SDManager::closeFile(file);
+    SDController::closeFile(file);
     ready_ = true;
 
     PF("[AudioShiftTable] Loaded %d audio shift entries\n", entries_.size());

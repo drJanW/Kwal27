@@ -16,7 +16,7 @@
 #include <FastLED.h>
 #include <vector>
 
-#include "LightManager.h"
+#include "LightController.h"
 // ShiftEnums.h no longer needed - shifts handled in LightRun
 
 class PatternCatalog {

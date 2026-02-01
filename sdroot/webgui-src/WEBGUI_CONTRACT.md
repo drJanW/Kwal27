@@ -114,8 +114,8 @@ Server-Sent Events push real-time updates. The event name and payload format are
 
 | Event Name | C++ Sender | JS Handler | Payload |
 |------------|------------|------------|---------|
-| `fragment` | `SseManager::cb_onFragmentChange` | `Kwal.sse.onFragment` | `{dir, file, score}` |
-| `light` | `SseManager::cb_onLightChange` | `Kwal.sse.onLight` | `{pattern, color}` |
+| `fragment` | `SseController::cb_onFragmentChange` | `Kwal.sse.onFragment` | `{dir, file, score}` |
+| `light` | `SseController::cb_onLightChange` | `Kwal.sse.onLight` | `{pattern, color}` |
 | `colors` | delete handler | `Kwal.sse.onColors` | full colors list |
 | `patterns` | delete handler | `Kwal.sse.onPatterns` | full patterns list |
 
@@ -203,8 +203,8 @@ The JS expects specific element IDs in `index.html`:
 
 ```
 lib/WebInterfaceManager/
-├── WebInterfaceManager.cpp    # Main setup, core routes
-├── WebInterfaceManager.h
+├── WebInterfaceController.cpp    # Main setup, core routes
+├── WebInterfaceController.h
 ├── WebUtils.h                 # Shared: sendJson, sendError, etc.
 ├── WEBGUI_CONTRACT.md         # THIS FILE
 └── handlers/
@@ -214,7 +214,7 @@ lib/WebInterfaceManager/
     ├── SdHandlers.cpp/h       # /api/sd/*
     ├── OtaHandlers.cpp/h      # /ota/*
     ├── ContextHandlers.cpp/h  # /api/context/*
-    └── SseManager.cpp/h       # SSE /api/events
+    └── SseController.cpp/h       # SSE /api/events
 
 sdroot/webgui-src/
 ├── build.ps1                  # Builds kwal.js from js/*.js
@@ -245,19 +245,19 @@ sdroot/webgui-src/
 **Prevention**: grep both codebases BEFORE changing any URL.
 
 ### 2. Refactor Without Rebuild/Upload
-**What happened**: Split WebInterfaceManager.cpp into handler modules. Did not rebuild kwal.js.
+**What happened**: Split WebInterfaceController.cpp into handler modules. Did not rebuild kwal.js.
 **Why obvious**: The JS build is a separate step from firmware build.
 **Result**: Old JS on SD card, version mismatch, confusing behavior.
 **Prevention**: ALWAYS run build.ps1 + upload_web.ps1 after ANY change.
 
 ### 3. Missing Includes After Code Move
-**What happened**: Moved SSE setup to SseManager.cpp, forgot `#include "Light/LightRun.h"`.
+**What happened**: Moved SSE setup to SseController.cpp, forgot `#include "Light/LightRun.h"`.
 **Why obvious**: The function `setOnLightChange()` is declared in that header.
 **Result**: Compile error: `setOnLightChange` not declared.
 **Prevention**: Check every function call's header requirement when moving code.
 
 ### 4. Leftover Temporary Files
-**What happened**: Created `WebInterfaceManager_new.cpp` during refactor, forgot to delete.
+**What happened**: Created `WebInterfaceController_new.cpp` during refactor, forgot to delete.
 **Why obvious**: PlatformIO compiles ALL .cpp files in lib folders.
 **Result**: Duplicate symbol errors or old code being compiled.
 **Prevention**: Delete temp files IMMEDIATELY after successful refactor.

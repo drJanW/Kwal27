@@ -13,7 +13,7 @@
 #include "LightPatternCatalog.h"
 
 #include "Globals.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "SdPathUtils.h"
 
 #include <vector>
@@ -110,12 +110,12 @@ bool LightPatternCatalog::load() {
     patterns_.clear();
     activePatternId_ = 0;
 
-    SDManager::lockSD();
+    SDController::lockSD();
     const String path = pathFor(kLightPatternsFile);
     File file = fs_->open(path.c_str(), FILE_READ);
     if (!file) {
         PF("[LightPatternCatalog] failed to open %s\n", path.c_str());
-        SDManager::unlockSD();
+        SDController::unlockSD();
         return false;
     }
 
@@ -175,7 +175,7 @@ bool LightPatternCatalog::load() {
     }
 
     file.close();
-    SDManager::unlockSD();
+    SDController::unlockSD();
 
     if (patterns_.empty()) {
         PF("[LightPatternCatalog] no valid patterns loaded from %s\n", path.c_str());

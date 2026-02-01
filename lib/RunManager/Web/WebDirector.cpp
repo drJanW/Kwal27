@@ -13,7 +13,7 @@
 
 #include "Globals.h"
 #include "TimerManager.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "Light/LightRun.h"
 #include "SdPathUtils.h"
 #include "Alert/AlertState.h"
@@ -377,14 +377,14 @@ bool WebDirector::tryAcquireBusyFlag(Job &job) {
         return true;
     }
 
-    SDManager::lockSD();
+    SDController::lockSD();
     job.sdBusyClaimed = true;
     return true;
 }
 
 void WebDirector::releaseBusyFlag(Job &job) {
     if (job.sdBusyClaimed) {
-        SDManager::unlockSD();
+        SDController::unlockSD();
         job.sdBusyClaimed = false;
     }
 }

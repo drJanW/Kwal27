@@ -7,13 +7,13 @@
  * Implements HTTP handlers for the /api/sd/* endpoints.
  * Provides routes to check SD card status (ready, busy, hasIndex),
  * download files from SD, and handle file uploads to the SD card.
- * Integrates with SDManager for safe file operations.
+ * Integrates with SDController for safe file operations.
  */
 
 #include "SdHandlers.h"
 #include "../WebUtils.h"
 #include "Globals.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "Alert/AlertState.h"
 #include <SD.h>
 #include <memory>
@@ -28,7 +28,7 @@ void handleStatus(AsyncWebServerRequest *request)
 {
     const bool ready = AlertState::isSdOk();
     const bool busy = AlertState::isSdBusy();
-    const bool hasIndex = ready && SDManager::fileExists("/index.html");
+    const bool hasIndex = ready && SDController::fileExists("/index.html");
 
     String payload = F("{");
     payload += F("\"ready\":");
@@ -134,7 +134,7 @@ void handleUploadData(AsyncWebServerRequest *request, const String &filename,
         if (final && ctx->file) {
             ctx->file.close();
             if (ctx->sdBusyClaimed) {
-                SDManager::unlockSD();
+                SDController::unlockSD();
                 ctx->sdBusyClaimed = false;
             }
         }
@@ -144,13 +144,13 @@ void handleUploadData(AsyncWebServerRequest *request, const String &filename,
     if (index == 0) {
         // Always upload to root directory
         ctx->target = "/" + filename;
-        SDManager::lockSD();
+        SDController::lockSD();
         ctx->sdBusyClaimed = true;
         ctx->file = SD.open(ctx->target.c_str(), FILE_WRITE);
         if (!ctx->file) {
             ctx->failed = true;
             ctx->error = F("Cannot open target file");
-            SDManager::unlockSD();
+            SDController::unlockSD();
             ctx->sdBusyClaimed = false;
             return;
         }
@@ -162,7 +162,7 @@ void handleUploadData(AsyncWebServerRequest *request, const String &filename,
             ctx->error = F("Write failed");
             ctx->file.close();
             if (ctx->sdBusyClaimed) {
-                SDManager::unlockSD();
+                SDController::unlockSD();
                 ctx->sdBusyClaimed = false;
             }
         }
@@ -173,7 +173,7 @@ void handleUploadData(AsyncWebServerRequest *request, const String &filename,
             ctx->file.close();
         }
         if (ctx->sdBusyClaimed) {
-            SDManager::unlockSD();
+            SDController::unlockSD();
             ctx->sdBusyClaimed = false;
         }
     }

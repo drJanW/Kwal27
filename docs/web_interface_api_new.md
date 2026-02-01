@@ -182,7 +182,7 @@ Header: `X-Color: sunset` (active color ID)
 | `/api/sd/upload` | POST | Multipart form | `{"status":"ok","path":"/..."}` |
 | `/api/sd/delete` | POST | `{ "path": "/foo/bar" }` | `{"status":"ok"}` |
 
-CSV upload triggert store reload → SSE patterns/colors indien relevant.
+CSV upload triggert catalog reload → SSE patterns/colors indien relevant.
 
 ---
 
@@ -336,7 +336,7 @@ fetch('/api/patterns/select', {
 | Was | Wordt |
 |-----|-------|
 | Direct response met waarde | `"OK"` + SSE push |
-| Callback naar SseManager | `WebGuiStatus::pushState()` |
+| Callback naar SseController | `WebGuiStatus::pushState()` |
 
 ---
 

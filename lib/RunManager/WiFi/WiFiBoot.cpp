@@ -4,16 +4,16 @@
  * @version 251231G
  * @date 2025-12-31
  *
- * Implements WiFi boot sequence: waits for WiFi connection via WiFiManager,
- * triggers NTP fetch via FetchManager, monitors clock seeding, and reports
+ * Implements WiFi boot sequence: waits for WiFi connection via WiFiController,
+ * triggers NTP fetch via FetchController, monitors clock seeding, and reports
  * START_RUNTIME when all modules are ready.
  */
 
 #include "WiFiBoot.h"
 #include "Globals.h"
-#include "WiFiManager.h"
+#include "WiFiController.h"
 #include "WiFiPolicy.h"
-#include "FetchManager.h"
+#include "FetchController.h"
 #include "TimerManager.h"
 #include "RunManager.h"
 #include "Alert/AlertRun.h"
@@ -77,7 +77,7 @@ namespace {
 
         if (wifiUp) {
             if (!fetchCreated) {
-                if (bootFetchManager()) {
+                if (bootFetchController()) {
                     timers.cancel(cb_wifiBootCheck);
                     fetchCreated = true;
                     PL("[Main] Fetch timers running");

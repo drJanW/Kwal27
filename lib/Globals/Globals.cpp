@@ -13,7 +13,7 @@
 
 #include "Arduino.h"
 #include "Globals.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "Alert/AlertState.h"
 #include <esp_system.h>
 
@@ -555,7 +555,7 @@ void Globals::begin() {
     }
     
     // Check file existence
-    if (!SDManager::fileExists(CSV_PATH)) {
+    if (!SDController::fileExists(CSV_PATH)) {
         Serial.println("[Globals] No globals.csv, using defaults");
         return;
     }

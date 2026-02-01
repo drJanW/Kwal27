@@ -98,7 +98,7 @@ case SpeakRequest::SENSOR4_FAIL:
 if (!AlertState::isSensor4Ok()) speak(SpeakRequest::SENSOR4_FAIL);
 ```
 
-### 10. SensorManager.cpp
+### 10. SensorController.cpp
 
 ```cpp
 // Namespace variabelen
@@ -115,7 +115,7 @@ float getSensor4Value();
 ### 11. SensorsBoot.cpp
 
 ```cpp
-SensorManager::beginSensor4();
+SensorController::beginSensor4();
 ```
 
 ### 12. WebGUI health.js
@@ -136,6 +136,6 @@ SensorManager::beginSensor4();
 - [ ] AlertRGB flash kleur (optioneel)
 - [ ] SpeakRequest enum
 - [ ] SpeakRun TTS + MP3 + speakFailures
-- [ ] SensorManager init + read
+- [ ] SensorController init + read
 - [ ] SensorsBoot aanroep
 - [ ] WebGUI bit mapping

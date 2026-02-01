@@ -1,4 +1,4 @@
-# ContextManager
+# ContextController
 
 > Version: 251218A | Updated: 2025-12-17
 
@@ -7,10 +7,10 @@ The runtime brain of the system: gathers state from the environment, normalizes 
 ## Key Components
 
 - **Calendar**: Calendar CSV parsing and theme lookup
-- **CalendarManager**: Scheduled calendar updates
+- **CalendarSelector**: Scheduled calendar selection
 - **ContextFlags**: System-wide boolean flags
 - **LightColors/LightPatterns**: LED show configuration
-- **ThemeBoxManager**: Theme box audio/visual mapping
+- **ThemeBoxTable**: Theme box audio/visual mapping
 - **TimeOfDay**: Time-based context (dawn, day, dusk, night)
 - **TodayContext**: Daily context snapshot
 

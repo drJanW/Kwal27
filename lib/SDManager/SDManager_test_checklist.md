@@ -1,12 +1,12 @@
-# SDManager Refactor Test Checklist
+# SDController Refactor Test Checklist
 
-**Commit:** 9bd4182 - "SDManager: remove singleton, pure static class, reentrant lockSD/unlockSD"  
+**Commit:** 9bd4182 - "SDController: remove singleton, pure static class, reentrant lockSD/unlockSD"  
 **Date:** 2026-01-28  
 **Files Changed:** 29 (+400/-747 lines)
 
 ## What Changed
 
-1. **Singleton removed** - `SDManager::instance().method()` → `SDManager::method()`
+1. **Singleton removed** - `SDController::instance().method()` → `SDController::method()`
 2. **Busy flag replaced** - `setSDbusy(bool)` → reentrant `lockSD()`/`unlockSD()` with atomic counter
 3. **SDBusyGuard updated** - RAII wrapper now uses lockSD/unlockSD
 
@@ -34,7 +34,7 @@
 - [x] File download works
 
 ### 4. CSV LOADING (check serial during boot)
-- [x] `calendar.csv` loads — CalendarManager ran, ThemeBoxManager loaded 24 boxes
+- [x] `calendar.csv` loads — CalendarSelector ran, ThemeBoxTable loaded 24 boxes
 - [x] `light_patterns.csv` loads — SSE patterns pushed 7956 bytes
 - [x] `light_colors.csv` loads — SSE colors pushed 3441 bytes
 - [x] `theme_boxes.csv` loads — "Loaded 24 theme boxes"

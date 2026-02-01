@@ -4,7 +4,7 @@
  * @version 251231E
  * @date 2025-12-31
  *
- * Implements sensor event processing: reads distance events from SensorManager,
+ * Implements sensor event processing: reads distance events from SensorController,
  * applies normalization via SensorsPolicy, and triggers heartbeat rate changes,
  * audio playback, and light animation updates based on filtered distance.
  */
@@ -12,7 +12,7 @@
 #include "SensorsRun.h"
 
 #include "Globals.h"
-#include "SensorManager.h"
+#include "SensorController.h"
 #include "SensorsPolicy.h"
 #include "TimerManager.h"
 
@@ -32,7 +32,7 @@ bool distancePlaybackEligible = false;
 void cb_processSensorEvents() {
     SensorEvent ev;
 
-    while (SensorManager::readEvent(ev)) {
+    while (SensorController::readEvent(ev)) {
         if (ev.type != SENSOR_EVENT_DISTANCE) {
             continue;
         }

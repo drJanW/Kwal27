@@ -4,8 +4,8 @@
  * @version 251231E
  * @date 2025-12-31
  *
- * Stub implementation for OTA run. OTAManager handles actual OTA logic.
- * managed via OTAManager directly.
+ * Stub implementation for OTA run. OTAController handles actual OTA logic.
+ * managed via OTAController directly.
  */
 
 #include "OTARun.h"

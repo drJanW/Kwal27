@@ -22,7 +22,7 @@
 #include "PlaySentence.h"
 #include "Globals.h"
 #include "AudioState.h"
-#include "WiFiManager.h"
+#include "WiFiController.h"
 #include "MathUtils.h"
 #include "TimerManager.h"
 #include "SDSettings.h"

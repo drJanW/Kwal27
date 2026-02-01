@@ -19,7 +19,7 @@
 #include <atomic>
 #include <math.h>
 #include "PRTClock.h"
-#include "FetchManager.h"
+#include "FetchController.h"
 #include "Globals.h"
 #include "LogBuffer.h"
 
@@ -102,9 +102,9 @@ void PRTClock::update() {
   // once per midnight, trigger re-sync
   static bool synced_today = false;
   if (hh == 0 && mm == 0 && ss > 1 && !synced_today) {
-    // Reset flag - FetchManager::requestNtpResync() will restart timer
+    // Reset flag - FetchController::requestNtpResync() will restart timer
     setTimeFetched(false);
-    FetchManager::requestNtpResync();
+    FetchController::requestNtpResync();
 
     setDoW(getYear(), getMonth(), getDay());
     setDoY(getYear(), getMonth(), getDay());

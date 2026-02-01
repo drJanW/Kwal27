@@ -6,7 +6,7 @@
  *
  * Provides unified initialization logic for I2C devices (RTC, sensors).
  * Each device gets retries with growing interval and AlertState updates.
- * Replaces duplicate init code in ClockPolicy and SensorManager.
+ * Replaces duplicate init code in ClockPolicy and SensorController.
  */
 
 #pragma once

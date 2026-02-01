@@ -3,21 +3,21 @@
 ## Project Overview
 ESP32 ambient art installation (jellyfish sculpture) with LED lights, audio playback, web interface, and sensor integration. PlatformIO project using Arduino framework with ESP32-S3, 16MB flash.
 
-## Architecture: Boot → Plan → Policy → Run → Manager
+## Architecture: Boot → Plan → Policy → Run → Controller
 
 ```
 TimerManager (central timing) → RunManager (orchestration)
     ↓                              ↓
 Boot layers (one-time init)    Policy layers (rules/constraints)
     ↓                              ↓
-Managers (hardware APIs)       Directors (context→requests)
+Controllers (hardware APIs)    Directors (context→requests)
 ```
 
 - **Boot**: One-time initialization, register timers, seed caches
 - **Run**: Owns timer callbacks (`cb_*` prefix), sequences work, raises requests
 - **Policy**: Domain rules, approve/deny requests - NO side effects, NO timers
 - **Director**: Build requests from context - NO policy decisions
-- **Manager**: Hardware drivers (FastLED, I2S, SPI) - ONLY managers touch hardware
+- **Controller**: Hardware drivers (FastLED, I2S, SPI) - ONLY controllers touch hardware
 
 ## Critical Rules
 

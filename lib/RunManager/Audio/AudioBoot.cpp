@@ -41,5 +41,5 @@ void AudioBoot::plan() {
 
     AlertState::setAudioStatus(true);
     PlaySentence::speakNext();  // Kickstart queue if items waiting
-    PL("[Run][Plan] Audio manager initialized");
+    PL("[Run][Plan] AudioManager initialized");
 }

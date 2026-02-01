@@ -1,4 +1,4 @@
-SDMANAGER V2.01
+SDCONTROLLER V2.01
 Index format V3
 All MP3 files: mono, 128 kbps (max)
 headless files only (no ID3 tags)

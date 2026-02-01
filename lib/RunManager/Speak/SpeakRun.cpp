@@ -15,9 +15,9 @@
 #include "PlaySentence.h"
 #include "Audio/AudioPolicy.h"
 #include "Alert/AlertState.h"
-#include "WiFiManager.h"
+#include "WiFiController.h"
 #include "PRTClock.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "Globals.h"
 
 namespace {

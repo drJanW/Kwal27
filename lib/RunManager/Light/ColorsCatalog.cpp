@@ -14,9 +14,9 @@
 #include <algorithm>
 #include <ctype.h>
 
-#include "SDManager.h"
+#include "SDController.h"
 #include "CsvUtils.h"
-#include "LightManager.h"
+#include "LightController.h"
 #include "PatternCatalog.h"  // For previewColors only
 #include "Alert/AlertState.h"
 
@@ -417,10 +417,10 @@ bool ColorsCatalog::loadColorsFromSD() {
     if (!AlertState::isSdOk()) {
         return false;
     }
-    if (!SDManager::fileExists(kColorPath)) {
+    if (!SDController::fileExists(kColorPath)) {
         return false;
     }
-    File file = SDManager::openFileRead(kColorPath);
+    File file = SDController::openFileRead(kColorPath);
     if (!file) {
         return false;
     }
@@ -476,7 +476,7 @@ bool ColorsCatalog::loadColorsFromSD() {
         colors_.push_back(entry);
     }
 
-    SDManager::closeFile(file);
+    SDController::closeFile(file);
     return !colors_.empty();
 }
 
@@ -484,8 +484,8 @@ bool ColorsCatalog::saveColorsToSD() const {
     if (!AlertState::isSdOk()) {
         return false;
     }
-    SDManager::deleteFile(kColorPath);
-    File file = SDManager::openFileWrite(kColorPath);
+    SDController::deleteFile(kColorPath);
+    File file = SDController::openFileWrite(kColorPath);
     if (!file) {
         return false;
     }
@@ -512,7 +512,7 @@ bool ColorsCatalog::saveColorsToSD() const {
         file.println();
     }
 
-    SDManager::closeFile(file);
+    SDController::closeFile(file);
     return true;
 }
 

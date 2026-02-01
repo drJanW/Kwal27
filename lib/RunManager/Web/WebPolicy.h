@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Contains business logic for web interface decisions. Currently a stub -
- * web access is managed via WebInterfaceManager directly.
+ * web access is managed via WebInterfaceController directly.
  */
 
 #pragma once

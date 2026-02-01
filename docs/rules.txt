@@ -104,7 +104,7 @@ A1. Run/Policy/Timer workflow. MANDATORY.
 - Follow Boot → Plan → Policy → Run direction exactly
 - Passthrough wrappers (e.g. ClockRun::hasRtc() → ClockPolicy::isRtcAvailable()) 
   are allowed for architectural consistency
-- Route cross-module interactions through Run requests or manager APIs
+- Route cross-module interactions through Run requests or controller APIs
 - Do NOT access Policy/Boot directly from peer modules
 
 A2. TimerManager exclusively. MANDATORY.
@@ -131,8 +131,8 @@ A6. Architecture Over Convenience. MANDATORY.
 - Only present rule-compliant options
 
 A7. Status Ownership. MANDATORY.
-- Managers write status to AlertState (or ContextStatus) only
-- All status reads come from AlertState (or ContextStatus), not Manager APIs
+- Controllers write status to AlertState (or ContextStatus) only
+- All status reads come from AlertState (or ContextStatus), not controller APIs
 
 
 ================================================================
@@ -160,7 +160,7 @@ S2. Terminology. MANDATORY.
 S3. Verbs. MANDATORY.
 - boot → Run boot planners only
 - plan → TimerManager scheduling only
-- init/initialize → Manager-level resource bring-up only
+- init/initialize → Controller-level resource bring-up only
 - begin → Library-style constructors only
 - start → Timers/long-running services only
 - Use specific verbs (report, speak, update, create, show) not generic (handle, process, do)

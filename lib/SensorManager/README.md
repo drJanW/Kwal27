@@ -1,4 +1,4 @@
-# SensorManager
+# SensorController
 
 > Version: 251218A | Updated: 2025-12-17
 
@@ -20,7 +20,7 @@ Thin orchestrator for uniform sensor drivers. Timer-driven polling. No ISRs in v
 - [License](#license)
 
 ## Overview
-`SensorManager` coordinates multiple sensors that implement a **uniform driver API**. Each sensor owns its I/O and buffers; the manager just calls `init()` once and `update()` on a fixed interval, then forwards events and stable samples to consumers (e.g., `ContextManager`).
+`SensorController` coordinates multiple sensors that implement a **uniform driver API**. Each sensor owns its I/O and buffers; the controller just calls `init()` once and `update()` on a fixed interval, then forwards events and stable samples to consumers (e.g., `ContextController`).
 
 **Assumptions for v1**
 - Signals are ≥ 200 ms, so polling via `TimerSystem` is sufficient.
@@ -29,7 +29,7 @@ Thin orchestrator for uniform sensor drivers. Timer-driven polling. No ISRs in v
 ## Features
 - Uniform driver contract for all sensors
 - Single timer drives the entire sensing pipeline
-- Pull-based model: drivers expose data/events; manager drains them
+- Pull-based model: drivers expose data/events; controller drains them
 - Deterministic ordering with a static registry
 - No dynamic allocation; one global instance per sensor module
 - Internal double buffering per sensor for coherent reads
@@ -43,7 +43,7 @@ Thin orchestrator for uniform sensor drivers. Timer-driven polling. No ISRs in v
          |                          |                           |
          v                          v                           v
                         +---------------------+
-                        |   SensorManager     |
+                        |   SensorController  |
                         |  - registry[]       |
                         |  - timer -> update  |
                         |  - event ring       |
@@ -51,43 +51,43 @@ Thin orchestrator for uniform sensor drivers. Timer-driven polling. No ISRs in v
                         +-----+----------+----+
                               |          |
                               v          v
-                     ContextManager   Other consumers
+                     ContextController   Other consumers
 ```
-Drivers never call back into app logic; the manager **pulls**.
+Drivers never call back into app logic; the controller **pulls**.
 
 ## Installation
 - Arduino-ESP32 5.5.1+ (ESP32‑D0WD‑V3 tested)
-- Copy `SensorManager.{h,cpp}` and sensor drivers into your project `src/`.
+- Copy `SensorController.{h,cpp}` and sensor drivers into your project `src/`.
 - Ensure `TimerSystem` is available and initialized.
 
 ## Configuration
-- Poll period: set via `SensorManager::init(period_ms)`; typical 50–100 ms.
-- Register sensors at compile time in the manager's static registry.
+- Poll period: set via `SensorController::init(period_ms)`; typical 50–100 ms.
+- Register sensors at compile time in the controller's static registry.
 - Optional: per-sensor priority for update ordering.
 
 ## Usage
 ```cpp
 // setup()
-SensorManager::init(100);                 // start at 100 ms poll
+SensorController::init(100);                 // start at 100 ms poll
 // loop()
 timerSystem.update();                     // service timers only
 
 // consume events
 SensorEvent ev;
-while (SensorManager::readEvent(ev)) {
+while (SensorController::readEvent(ev)) {
   // handle event
 }
 
 // consume data
-if (SensorManager::isDataReady(sensorId)) {
+if (SensorController::isDataReady(sensorId)) {
   MySample s;
-  SensorManager::readData(sensorId, &s, sizeof(s));
+  SensorController::readData(sensorId, &s, sizeof(s));
 }
 ```
 
 ## API Reference
 
-### SensorManager
+### SensorController
 - `init(uint32_t period_ms)`  
   Initializes all registered sensors, starts periodic timer.
 - `update()`  
@@ -121,7 +121,7 @@ typedef struct {
 ## Events and Data
 - Each driver maintains an internal double buffer; `readData()` copies from the inactive buffer for coherence.
 - `isDataReady()` is one-shot to prevent duplicate processing.
-- Events are exposed by drivers and drained by SensorManager into a shared ring buffer.
+- Events are exposed by drivers and drained by SensorController into a shared ring buffer.
 
 ## Timing
 - One periodic timer created in `init()` calls `update()` at `period_ms`.
@@ -136,7 +136,7 @@ typedef struct {
 ## Troubleshooting
 - `COMM_ERR`: verify pull-ups, bus speed, and exclusive bus use per sensor.
 - Starvation: lower polling period or reduce work per `update()`.
-- Event loss: increase manager ring size or lower event rate.
+- Event loss: increase controller ring size or lower event rate.
 
 ## Roadmap
 - Optional ISR flags for sub-interval latency sensors
@@ -148,7 +148,7 @@ MIT
 
 
 
-SENSORMANAGER README v1  (plain text friendly)
+SENSORCONTROLLER README v1  (plain text friendly)
 
 PURPOSE:
 Central dispatcher for multiple sensors with one uniform driver API. No ISRs. Polling via TimerSystem. loop() only services timers.
@@ -162,11 +162,11 @@ GOALS:
 
 ARCHITECTURE:
 - Sensor drivers: self-contained; own buffers, FSM, I/O
-- SensorManager: thin orchestrator; fixed sensor registry; iterates in priority order
-- ContextManager: consumes events and optional data snapshots from SensorManager
+- SensorController: thin orchestrator; fixed sensor registry; iterates in priority order
+- ContextController: consumes events and optional data snapshots from SensorController
 
 TIMING:
-- One timer: TimerSystem.setTimer(period, period, 0, SensorManager::update)
+- One timer: TimerSystem.setTimer(period, period, 0, SensorController::update)
 - No delay(); no ad-hoc millis() loops in drivers
 - Signals >= 200 ms -> typical poll 50–100 ms
 
@@ -186,7 +186,7 @@ SENSOR DRIVER API (uniform):
 - hasEvent() -> bool
 - readEvent(SensorEvent& out) -> bool
 
-SENSORMANAGER API:
+SENSORCONTROLLER API:
 - init(uint32_t period_ms)                 // init all sensors in priority order; start periodic timer
 - update()                                 // per sensor: update(); drain events; pull ready data; push to shared queues
 - readEvent(SensorEvent& out) -> bool      // pop from common ring buffer (oldest-drop on overflow)
@@ -201,7 +201,7 @@ REGISTRATION:
 - One global instance per sensor in its own .cpp
 
 CONCURRENCY/OWNERSHIP:
-- I2C/SPI ownership stays inside each sensor; SensorManager only passes refs at init
+- I2C/SPI ownership stays inside each sensor; SensorController only passes refs at init
 - No shared mutable state across sensors; communicate via the uniform API only
 - No ISRs in v1; if needed later, ISR sets a flag and update() consumes it
 
@@ -212,13 +212,13 @@ DATA CONSISTENCY:
 
 EVENTS:
 - Drivers expose events via hasEvent()/readEvent()
-- SensorManager drains into a shared ring buffer
-- ContextManager consumes with readEvent(); optional ack flag if a post-read hook is desired
+- SensorController drains into a shared ring buffer
+- ContextController consumes with readEvent(); optional ack flag if a post-read hook is desired
 
 ERRORS/RECOVERY:
 - Sticky status() bits per sensor
 - Lightweight staged recovery in update() with retry timer (no blocking retries)
-- SensorManager can emit periodic health events by policy
+- SensorController can emit periodic health events by policy
 
 PERFORMANCE TARGETS:
 - Per-sensor update(): <= 0.2–0.5 ms typical
@@ -228,10 +228,10 @@ PERFORMANCE TARGETS:
 EXTENSIBILITY:
 - Implement the uniform API in a new sensor module
 - Add it to the static registry
-- No changes required in SensorManager or ContextManager
+- No changes required in SensorController or ContextController
 
 OUT OF SCOPE (v1):
 - Dynamic sensor discovery
 - ISR-based paths
 - Per-sensor custom event structs
-- Cross-sensor fusion inside SensorManager (belongs in ContextManager)
+- Cross-sensor fusion inside SensorController (belongs in ContextController)

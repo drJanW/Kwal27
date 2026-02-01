@@ -15,7 +15,7 @@
 #include <Arduino.h>
 #include "SDBoot.h"
 #include "Globals.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "SDPolicy.h"
 #include "TimerManager.h"
 #include "RunManager.h"
@@ -41,13 +41,13 @@ static bool versionStringsEqual(const String& a, const char* b);
 
 // Check if index rebuild is needed
 static bool needsIndexRebuild() {
-    if (!SDManager::fileExists(ROOT_DIRS)) {
+    if (!SDController::fileExists(ROOT_DIRS)) {
         return true;
     }
     
     DirEntry dir;
     for (uint8_t i = 1; i <= SD_MAX_DIRS; i++) {
-        if (SDManager::readDirEntry(i, &dir) && dir.fileCount > 0) {
+        if (SDController::readDirEntry(i, &dir) && dir.fileCount > 0) {
             return false;  // Valid index exists
         }
     }
@@ -57,11 +57,11 @@ static bool needsIndexRebuild() {
 // Timer callback for deferred rebuild
 static void cb_deferredRebuild() {
     PF("[SDBoot] Rebuilding index with valid timestamps\n");
-    SDManager::rebuildIndex();
-    SDManager::updateHighestDirNum();
-    if (!SDManager::fileExists(WORDS_INDEX_FILE)) {
+    SDController::rebuildIndex();
+    SDController::updateHighestDirNum();
+    if (!SDController::fileExists(WORDS_INDEX_FILE)) {
         PF("[SDBoot] Rebuilding %s\n", WORDS_INDEX_FILE);
-        SDManager::rebuildWordsIndex();
+        SDController::rebuildWordsIndex();
     }
 }
 
@@ -82,7 +82,7 @@ void startSdFailPattern() {
     if (sdFailPatternActive) return;
     sdFailPatternActive = true;
     
-    // Minimal FastLED init (normally done in LightManager)
+    // Minimal FastLED init (normally done in LightController)
     FastLED.addLeds<LED_TYPE, PIN_RGB, LED_RGB_ORDER>(failLeds, NUM_LEDS);
     FastLED.setBrightness(Globals::maxBrightness / 2);
     
@@ -121,23 +121,23 @@ static bool versionStringsEqual(const String& a, const char* b) {
 
 // Initialize SD card and validate index
 static void initSD() {
-    if (!SDManager::begin(PIN_SD_CS, SPI, SPI_HZ)) {
+    if (!SDController::begin(PIN_SD_CS, SPI, SPI_HZ)) {
         PF("[SDBoot] SD init failed.\n");
-        SDManager::setReady(false);
+        SDController::setReady(false);
         return;
     }
     
     // Version check
-    if (SDManager::fileExists(SD_VERSION_FILENAME)) {
-        File v = SDManager::openFileRead(SD_VERSION_FILENAME);
+    if (SDController::fileExists(SD_VERSION_FILENAME)) {
+        File v = SDController::openFileRead(SD_VERSION_FILENAME);
         String sdver = v ? v.readString() : "";
         if (v) {
-            SDManager::closeFile(v);
+            SDController::closeFile(v);
         }
         if (!versionStringsEqual(sdver, SD_INDEX_VERSION)) {
             PF("[SDBoot][ERROR] SD version mismatch.\n");
             PF("  Card: %s\n  Need: %s\n", sdver.c_str(), SD_INDEX_VERSION);
-            SDManager::setReady(false);
+            SDController::setReady(false);
             return;  // Degraded path - no HALT
         } else {
             PF("[SDBoot] SD version OK.\n");
@@ -147,7 +147,7 @@ static void initSD() {
     }
 
     // SD mounted successfully - mark ready so boot can continue
-    SDManager::setReady(true);
+    SDController::setReady(true);
     hwStatus |= HW_SD;
     
     // Check if rebuild is needed
@@ -158,11 +158,11 @@ static void initSD() {
     } else {
         // Existing valid index - use it
         PF("[SDBoot] Using existing valid index\n");
-        SDManager::updateHighestDirNum();
-        if (!SDManager::fileExists(WORDS_INDEX_FILE)) {
+        SDController::updateHighestDirNum();
+        if (!SDController::fileExists(WORDS_INDEX_FILE)) {
             // Words index can be rebuilt without timestamp concern
             PF("[SDBoot] Rebuilding %s\n", WORDS_INDEX_FILE);
-            SDManager::rebuildWordsIndex();
+            SDController::rebuildWordsIndex();
         }
     }
     

@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Runs WiFi connection coordination. Currently a stub - WiFi
- * state machine is managed via WiFiManager directly.
+ * state machine is managed via WiFiController directly.
  */
 
 #pragma once

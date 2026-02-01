@@ -14,8 +14,8 @@
 
 #include "Globals.h"
 #include "LightPolicy.h"
-#include "LightManager.h"
-#include "SensorManager.h"
+#include "LightController.h"
+#include "SensorController.h"
 #include "TimerManager.h"
 #include "ColorsCatalog.h"
 #include "PatternCatalog.h"
@@ -188,7 +188,7 @@ void LightConduct::cb_luxMeasure() {
     if (!AlertState::isLuxSensorOk()) return;
     
     // Step 1: Enter measurement enable (LEDs off for accurate sensor read)
-    lightManager.setMeasurementEnabled(true);
+    lightController.setMeasurementEnabled(true);
     luxMeasureActive = true;
     // Step 2: Schedule delayed read after LEDs settle
     timers.create(Globals::luxMeasurementDelayMs, 1, LightConduct::cb_luxMeasureRead);
@@ -199,8 +199,8 @@ void LightConduct::cb_luxMeasureRead() {
     luxMeasureActive = false;
     
     // Step 3: Read sensor
-    SensorManager::performLuxMeasurement();
-    float lux = SensorManager::ambientLux();
+    SensorController::performLuxMeasurement();
+    float lux = SensorController::ambientLux();
     
     // Step 4: Get calendar brightness shift and compute shiftedHi in one formula
 #ifndef DISABLE_SHIFTS
@@ -219,7 +219,7 @@ void LightConduct::cb_luxMeasureRead() {
     
     // Step 5: Apply pattern/color shifts (brightness already done above)
     applyToLights();
-    lightManager.setMeasurementEnabled(false);
+    lightController.setMeasurementEnabled(false);
     WebGuiStatus::pushState();
     
     // B6: Start cooldown, check for pending slider request
@@ -240,7 +240,7 @@ void LightConduct::requestLuxMeasurement() {
     cb_tryLuxMeasure();
 }
 
-// F9: Route webShift through Conduct to LightManager
+// F9: Route webShift through Conduct to LightController
 void LightConduct::setWebBrightnessModifier(float multiplier) {
     setWebShift(multiplier);
 }

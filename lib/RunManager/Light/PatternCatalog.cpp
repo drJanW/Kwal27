@@ -15,7 +15,7 @@
 #include <ctype.h>
 
 #include "CsvUtils.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "Alert/AlertState.h"
 
 namespace {
@@ -393,10 +393,10 @@ bool PatternCatalog::loadFromSD() {
     if (!AlertState::isSdOk()) {
         return false;
     }
-    if (!SDManager::fileExists(kPatternPath)) {
+    if (!SDController::fileExists(kPatternPath)) {
         return false;
     }
-    File file = SDManager::openFileRead(kPatternPath);
+    File file = SDController::openFileRead(kPatternPath);
     if (!file) {
         return false;
     }
@@ -468,7 +468,7 @@ bool PatternCatalog::loadFromSD() {
         patterns_.push_back(entry);
     }
 
-    SDManager::closeFile(file);
+    SDController::closeFile(file);
     return !patterns_.empty();
 }
 
@@ -476,8 +476,8 @@ bool PatternCatalog::saveToSD() const {
     if (!AlertState::isSdOk()) {
         return false;
     }
-    SDManager::deleteFile(kPatternPath);
-    File file = SDManager::openFileWrite(kPatternPath);
+    SDController::deleteFile(kPatternPath);
+    File file = SDController::openFileWrite(kPatternPath);
     if (!file) {
         return false;
     }
@@ -524,7 +524,7 @@ bool PatternCatalog::saveToSD() const {
         file.println();
     }
 
-    SDManager::closeFile(file);
+    SDController::closeFile(file);
     return true;
 }
 

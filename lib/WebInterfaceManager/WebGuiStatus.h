@@ -102,13 +102,13 @@ void pushAll();
 
 /**
  * @brief Initialize WebGuiStatus with defaults
- * Called during WebInterfaceManager::begin()
+ * Called during beginWebInterface()
  */
 void begin();
 
 /**
  * @brief Set SSE event source pointer
- * Called from SseManager::setup() to enable SSE push
+ * Called from SseController::setup() to enable SSE push
  * @param events Pointer to AsyncEventSource
  */
 void setEventSource(AsyncEventSource* events);

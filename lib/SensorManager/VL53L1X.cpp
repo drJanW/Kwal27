@@ -35,9 +35,9 @@ static void logI2CProbe(uint8_t address, TwoWire &bus) {
     bus.beginTransmission(address);
     uint8_t err = bus.endTransmission();
     if (err == 0) {
-        VL53_DBG("[SensorManager] I2C address 0x%02X acknowledged\n", address);
+        VL53_DBG("[SensorController] I2C address 0x%02X acknowledged\n", address);
     } else {
-        VL53_DBG("[SensorManager] I2C address 0x%02X no response (err=%u)\n", address, err);
+        VL53_DBG("[SensorController] I2C address 0x%02X no response (err=%u)\n", address, err);
     }
 }
 
@@ -48,7 +48,7 @@ bool VL53L1X_begin(uint8_t address, TwoWire &bus, uint16_t timingBudgetMs, bool 
         logI2CProbe(address, bus);
 
         if (!l1x.checkBootState()) {
-            VL53_DBG("[SensorManager] VL53L1X not ready (boot state false)\n");
+            VL53_DBG("[SensorController] VL53L1X not ready (boot state false)\n");
             return false;
         }
 
@@ -56,12 +56,12 @@ bool VL53L1X_begin(uint8_t address, TwoWire &bus, uint16_t timingBudgetMs, bool 
         if (initStatus != 0)
         {
             uint16_t id = l1x.getSensorID();
-            VL53_DBG("[SensorManager] VL53L1X begin() failed at addr 0x%02X (ID=0x%04X status=%u)\n",
+            VL53_DBG("[SensorController] VL53L1X begin() failed at addr 0x%02X (ID=0x%04X status=%u)\n",
                      address, id, initStatus);
             return false;
         }
         l1x_inited = true;
-        VL53_DBG("[SensorManager] VL53L1X initialized (ID=0x%04X)\n", l1x.getSensorID());
+        VL53_DBG("[SensorController] VL53L1X initialized (ID=0x%04X)\n", l1x.getSensorID());
     }
     l1x_budget = timingBudgetMs ? timingBudgetMs : 50;
     if (longMode)

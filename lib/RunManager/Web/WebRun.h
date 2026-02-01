@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Runs web interface coordination. Currently a stub - web
- * server lifecycle is managed via WebInterfaceManager directly.
+ * server lifecycle is managed via WebInterfaceController directly.
  */
 
 #pragma once

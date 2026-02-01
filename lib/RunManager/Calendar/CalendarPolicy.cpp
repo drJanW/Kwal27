@@ -9,11 +9,12 @@
  * based on calendar data.
  */
 
+#include <Arduino.h>
 #include "CalendarPolicy.h"
 
 #include "Globals.h"
 #include "Audio/AudioPolicy.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "TodayContext.h"
 
 #include <stdio.h>
@@ -124,7 +125,7 @@ void applyThemeBox(const CalendarThemeBox& box) {
   for (size_t i = 0; i < count; ++i) {
     DirEntry entry{};
     // Only keep directories that still have indexed fragment files.
-    if (SDManager::readDirEntry(dirs[i], &entry) && entry.fileCount > 0) {
+    if (SDController::readDirEntry(dirs[i], &entry) && entry.fileCount > 0) {
       filtered[filteredCount++] = dirs[i];
     } else {
       skipped[skippedCount++] = dirs[i];

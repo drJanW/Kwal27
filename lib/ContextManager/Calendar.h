@@ -42,7 +42,7 @@ struct CalendarData {
 	CalendarThemeBox theme;
 };
 
-class CalendarManager {
+class CalendarSelector {
 public:
 	bool begin(fs::FS& sd, const char* rootPath = "/");
 	bool loadToday(uint16_t year, uint8_t month, uint8_t day);
@@ -64,4 +64,4 @@ private:
 	bool hasData_{false};
 };
 
-extern CalendarManager calendarManager;
+extern CalendarSelector calendarSelector;

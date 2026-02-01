@@ -20,8 +20,8 @@
 #include "Globals.h"
 #include "MathUtils.h"
 #include "AudioState.h"
-#include "ContextManager.h"
-#include "SDManager.h"
+#include "ContextController.h"
+#include "SDController.h"
 #include "WebGuiStatus.h"
 #include "Alert/AlertState.h"
 
@@ -48,16 +48,16 @@ bool readCurrentScore(uint8_t dir, uint8_t file, uint8_t& scoreOut) {
     scoreOut = 0;
     return false;
   }
-  SDManager::lockSD();
+  SDController::lockSD();
 
   FileEntry fe;
-  if (!SDManager::readFileEntry(dir, file, &fe)) {
+  if (!SDController::readFileEntry(dir, file, &fe)) {
     scoreOut = 0;
-    SDManager::unlockSD();
+    SDController::unlockSD();
     return false;
   }
   scoreOut = fe.score;
-  SDManager::unlockSD();
+  SDController::unlockSD();
   return true;
 }
 
@@ -68,11 +68,11 @@ uint8_t SDVoting::getRandomFile(uint8_t dir_num) {
     PF("[SDVoting] Busy while selecting file from dir %03u\n", dir_num);
     return 0;
   }
-  SDManager::lockSD();
+  SDController::lockSD();
 
   DirEntry dir;
-  if (!SDManager::readDirEntry(dir_num, &dir) || dir.fileCount == 0) {
-    SDManager::unlockSD();
+  if (!SDController::readDirEntry(dir_num, &dir) || dir.fileCount == 0) {
+    SDController::unlockSD();
     return 0;
   }
 
@@ -83,7 +83,7 @@ uint8_t SDVoting::getRandomFile(uint8_t dir_num) {
 
   for (uint8_t i = 1; i <= SD_MAX_FILES_PER_SUBDIR; i++) {
     FileEntry fe;
-  if (SDManager::readFileEntry(dir_num, i, &fe) && fe.score > 0) {
+  if (SDController::readFileEntry(dir_num, i, &fe) && fe.score > 0) {
       fileNums[count]   = i;
       fileScores[count] = fe.score;
       total += fe.score;
@@ -91,7 +91,7 @@ uint8_t SDVoting::getRandomFile(uint8_t dir_num) {
     }
   }
   if (count == 0) {
-    SDManager::unlockSD();
+    SDController::unlockSD();
     return 0;
   }
 
@@ -99,11 +99,11 @@ uint8_t SDVoting::getRandomFile(uint8_t dir_num) {
   for (uint8_t i = 0; i < count; i++) {
     acc += fileScores[i];
     if (pick <= acc) {
-      SDManager::unlockSD();
+      SDController::unlockSD();
       return fileNums[i];
     }
   }
-  SDManager::unlockSD();
+  SDController::unlockSD();
   return fileNums[0];
 }
 
@@ -112,10 +112,10 @@ uint8_t SDVoting::applyVote(uint8_t dir_num, uint8_t file_num, int8_t delta) {
   // The SD card can handle interleaved small reads/writes during MP3 streaming
 
   FileEntry fe; DirEntry dir;
-  if (!SDManager::readFileEntry(dir_num, file_num, &fe)) {
+  if (!SDController::readFileEntry(dir_num, file_num, &fe)) {
     return 0;
   }
-  if (!SDManager::readDirEntry(dir_num, &dir)) {
+  if (!SDController::readDirEntry(dir_num, &dir)) {
     return 0;
   }
   if (fe.score == 0) {
@@ -130,8 +130,8 @@ uint8_t SDVoting::applyVote(uint8_t dir_num, uint8_t file_num, int8_t delta) {
   dir.totalScore += (ns - fe.score);
   fe.score = (uint8_t)ns;
 
-  SDManager::writeFileEntry(dir_num, file_num, &fe);
-  SDManager::writeDirEntry(dir_num, &dir);
+  SDController::writeFileEntry(dir_num, file_num, &fe);
+  SDController::writeDirEntry(dir_num, &dir);
   
   return fe.score;  // Return the new score
 }
@@ -141,15 +141,15 @@ void SDVoting::banFile(uint8_t dir_num, uint8_t file_num) {
     PF("[SDVoting] Busy while banning %03u/%03u\n", dir_num, file_num);
     return;
   }
-  SDManager::lockSD();
+  SDController::lockSD();
 
   FileEntry fe; DirEntry dir;
-  if (!SDManager::readFileEntry(dir_num, file_num, &fe)) {
-    SDManager::unlockSD();
+  if (!SDController::readFileEntry(dir_num, file_num, &fe)) {
+    SDController::unlockSD();
     return;
   }
-  if (!SDManager::readDirEntry(dir_num, &dir)) {
-    SDManager::unlockSD();
+  if (!SDController::readDirEntry(dir_num, &dir)) {
+    SDController::unlockSD();
     return;
   }
 
@@ -157,10 +157,10 @@ void SDVoting::banFile(uint8_t dir_num, uint8_t file_num) {
     if (dir.totalScore >= fe.score) dir.totalScore -= fe.score;
     if (dir.fileCount  > 0)         dir.fileCount--;
     fe.score = 0;
-    SDManager::writeFileEntry(dir_num, file_num, &fe);
-    SDManager::writeDirEntry(dir_num, &dir);
+    SDController::writeFileEntry(dir_num, file_num, &fe);
+    SDController::writeDirEntry(dir_num, &dir);
   }
-  SDManager::unlockSD();
+  SDController::unlockSD();
 }
 
 void SDVoting::deleteIndexedFile(uint8_t dir_num, uint8_t file_num) {
@@ -168,15 +168,15 @@ void SDVoting::deleteIndexedFile(uint8_t dir_num, uint8_t file_num) {
     PF("[SDVoting] Busy while deleting %03u/%03u\n", dir_num, file_num);
     return;
   }
-  SDManager::lockSD();
+  SDController::lockSD();
 
   FileEntry fe; DirEntry dir;
-  if (!SDManager::readFileEntry(dir_num, file_num, &fe)) {
-    SDManager::unlockSD();
+  if (!SDController::readFileEntry(dir_num, file_num, &fe)) {
+    SDController::unlockSD();
     return;
   }
-  if (!SDManager::readDirEntry(dir_num, &dir)) {
-    SDManager::unlockSD();
+  if (!SDController::readDirEntry(dir_num, &dir)) {
+    SDController::unlockSD();
     return;
   }
 
@@ -186,13 +186,13 @@ void SDVoting::deleteIndexedFile(uint8_t dir_num, uint8_t file_num) {
   }
   fe.score   = 0;
   fe.sizeKb = 0;
-  SDManager::writeFileEntry(dir_num, file_num, &fe);
-  SDManager::writeDirEntry(dir_num, &dir);
+  SDController::writeFileEntry(dir_num, file_num, &fe);
+  SDController::writeDirEntry(dir_num, &dir);
 
   char path[64];
   snprintf(path, sizeof(path), "/%03u/%03u.mp3", dir_num, file_num);
   SD.remove(path);
-  SDManager::unlockSD();
+  SDController::unlockSD();
 }
 
 bool SDVoting::getCurrentPlayable(uint8_t& d, uint8_t& f) {
@@ -233,7 +233,7 @@ void SDVoting::attachVoteRoute(AsyncWebServer& server) {
 
     if (doDel) {
       PF("[WEB] DELETE requested dir=%u file=%u\n", dir, file);
-      ContextManager_post(ContextManager::WebCmd::DeleteFile, dir, file);
+      ContextController_post(ContextController::WebCmd::DeleteFile, dir, file);
       char b1[64]; snprintf(b1, sizeof(b1), "DELETE scheduled dir=%u file=%u", dir, file);
       req->send(200, "text/plain", b1);
       return;
@@ -241,7 +241,7 @@ void SDVoting::attachVoteRoute(AsyncWebServer& server) {
 
     if (doBan) {
       PF("[WEB] BAN requested dir=%u file=%u\n", dir, file);
-      ContextManager_post(ContextManager::WebCmd::BanFile, dir, file);
+      ContextController_post(ContextController::WebCmd::BanFile, dir, file);
       char b2[64]; snprintf(b2, sizeof(b2), "BAN queued dir=%u file=%u", dir, file);
       req->send(200, "text/plain", b2);
       return;
@@ -250,7 +250,7 @@ void SDVoting::attachVoteRoute(AsyncWebServer& server) {
     PF("[WEB] VOTE requested dir=%u file=%u delta=%d\n", dir, file, delta);
     
     if (delta != 0) {
-      // Apply vote directly (bypasses ContextManager queue for immediate response)
+      // Apply vote directly (bypasses ContextController queue for immediate response)
       uint8_t newScore = SDVoting::applyVote(dir, file, delta);
       if (newScore > 0) {
         WebGuiStatus::setFragmentScore(newScore);

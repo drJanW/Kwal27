@@ -1,4 +1,4 @@
-SDManager Implementation Todo
+SDController Implementation Todo
 =============================
 Created: 2026-01-28
 
@@ -23,8 +23,8 @@ FUTURE IMPROVEMENTS
    
    class SDLockGuard {
        public:
-           SDLockGuard() { SDManager::lockSD(); }
-           ~SDLockGuard() { SDManager::unlockSD(); }
+           SDLockGuard() { SDController::lockSD(); }
+           ~SDLockGuard() { SDController::unlockSD(); }
    };
    
    Usage: { SDLockGuard guard; /* SD ops */ } // auto-unlock
@@ -44,7 +44,7 @@ FUTURE IMPROVEMENTS
 
 5. VERSION BUMP
    When integrating: Update FIRMWARE_VERSION in Globals.h
-   Update @version in SDManager.cpp header to current date
+   Update @version in SDController.cpp header to current date
 
 6. THREAD SAFETY REVIEW
    Current: atomic counter protects against concurrent access
@@ -57,7 +57,7 @@ FUTURE IMPROVEMENTS
    Check: Is this defined in SDSettings.h? Verify it exists.
 
 8. REMOVE DEAD CODE
-   Check for unused functions in SDManager that could be pruned
+   Check for unused functions in SDController that could be pruned
 
 NOTES
 -----

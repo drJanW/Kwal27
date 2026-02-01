@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Contains business logic for WiFi connection decisions. Currently a stub -
- * WiFi is managed via WiFiManager FSM directly.
+ * WiFi is managed via WiFiController FSM directly.
  */
 
 #pragma once

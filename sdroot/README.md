@@ -63,7 +63,7 @@ webgui-src/
     ├── pattern.js      # Pattern selection
     ├── modal.js        # Modal dialogs
     ├── ota.js          # OTA update UI
-    ├── sd.js           # SD card file manager
+    ├── sd.js           # SD card file browser
     ├── sse.js          # Server-Sent Events handler
     ├── status.js       # Status display
     ├── health.js       # Health/diagnostics

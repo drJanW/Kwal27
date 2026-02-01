@@ -13,7 +13,7 @@
 #include "LightColorCatalog.h"
 
 #include "Globals.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "SdPathUtils.h"
 
 #include <vector>
@@ -148,12 +148,12 @@ bool LightColorCatalog::load() {
     colors_.clear();
     activeColorId_ = 0;
 
-    SDManager::lockSD();
+    SDController::lockSD();
     const String path = pathFor(kLightColorsFile);
     File file = fs_->open(path.c_str(), FILE_READ);
     if (!file) {
         PF("[LightColorCatalog] failed to open %s\n", path.c_str());
-        SDManager::unlockSD();
+        SDController::unlockSD();
         return false;
     }
 
@@ -202,7 +202,7 @@ bool LightColorCatalog::load() {
     }
 
     file.close();
-    SDManager::unlockSD();
+    SDController::unlockSD();
 
     if (colors_.empty()) {
         PF("[LightColorCatalog] no valid colors loaded from %s\n", path.c_str());

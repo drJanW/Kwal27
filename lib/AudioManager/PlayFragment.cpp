@@ -15,7 +15,7 @@
 #include "AudioState.h"
 #include "AudioManager.h"
 #include "TimerManager.h"
-#include "SDManager.h"
+#include "SDController.h"
 #include "WebGuiStatus.h"
 #include <math.h>
 
@@ -113,7 +113,7 @@ bool start(const AudioFragment& fragment) {
 
     auto& state = fade();
 
-    SDManager::lockSD();  // SD busy while streaming MP3
+    SDController::lockSD();  // SD busy while streaming MP3
     setAudioBusy(true);
 
     uint32_t maxFade = 1;
@@ -269,7 +269,7 @@ void stopPlayback() {
     setFadeFactor(0.0f);
     applyGain();
 
-    SDManager::unlockSD();  // SD no longer busy
+    SDController::unlockSD();  // SD no longer busy
     setAudioBusy(false);
     setFragmentPlaying(false);
     setSentencePlaying(false);

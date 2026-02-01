@@ -16,7 +16,7 @@ This file captures the current understanding of how distance driven PCM playback
 
 ## Timer usage
 - `AudioRun` calls `TimerManager::restart` directly whenever a distance response is started or refreshed. There is a single timer slot for the callback; if the restart fails we log it and abort the attempt.
-- We do not keep side-band timer state; the manager remains the single source of truth.
+- We do not keep side-band timer state; the timer system remains the single source of truth.
 
 ## Policy requirements
 - `AudioPolicy::distancePlaybackInterval` provides both the eligibility decision and the interval. If the policy rejects the reading we park the timer at one million milliseconds and wait for a fresh distance to re-arm it.
@@ -31,7 +31,7 @@ This file captures the current understanding of how distance driven PCM playback
 
 ## Weighted fragment picker
 - `AudioDirector::selectRandomFragment` only considers directories and files whose weights are non-zero in `.root_dirs`/`.files_dir`. Any hole (zero score) results in an early return and an explicit log line.
-- Ensure `SDManager::rebuildIndex()` runs after adjusting scores; with fallbacks removed the director will refuse to play if the index is stale or empty.
+- Ensure `SDController::rebuildIndex()` runs after adjusting scores; with fallbacks removed the director will refuse to play if the index is stale or empty.
 - Expect log noise when the SD data is incomplete—that is intentional so broken scoring does not silently continue.
 
 ## Callback behaviour

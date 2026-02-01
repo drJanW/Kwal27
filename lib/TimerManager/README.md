@@ -198,7 +198,7 @@ Set `SHOW_TIMER_STATUS=1` in `globals.h` to enable periodic timer status logging
 
 - Keep callbacks short—heavy work belongs elsewhere.
 - Avoid blocking delays inside callbacks; they run in the main loop context.
-- Reuse callbacks sparingly: the manager enforces one timer per callback pointer.
+- Reuse callbacks sparingly: TimerManager enforces one timer per callback pointer.
 - Track `bool` flags if you need to know whether `create()` succeeded.
 - Call `update()` as often as possible; typically once each iteration of `loop()`.
 - Use growth parameter for hardware init retries—avoids flooding logs with failures.

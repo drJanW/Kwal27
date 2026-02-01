@@ -11,6 +11,7 @@
  * current date. Central to date-aware behavior throughout the system.
  */
 
+#include <Arduino.h>
 #include "TodayContext.h"
 
 #include "Globals.h"
@@ -109,8 +110,8 @@ public:
 private:
     bool resolveDate(uint16_t& year, uint8_t& month, uint8_t& day) const;
 
-    Context::CalendarManager calendar_;
-    ThemeBoxManager themeBoxes_;
+    Context::CalendarSelector calendar_;
+    ThemeBoxTable themeBoxes_;
     String root_{"/"};
     bool ready_{false};
 };
@@ -136,7 +137,7 @@ bool TodayContextLoader::init(fs::FS& sd, const char* rootPath) {
 
     if (!calendar_.begin(sd, rootCStr)) {
         if (!g_loaderInitLogs.calendarInitFailed) {
-            PF("[TodayContext] CalendarManager init failed\n");
+            PF("[TodayContext] CalendarSelector init failed\n");
             g_loaderInitLogs.calendarInitFailed = true;
         }
         return false;
@@ -144,7 +145,7 @@ bool TodayContextLoader::init(fs::FS& sd, const char* rootPath) {
     g_loaderInitLogs.calendarInitFailed = false;
     if (!themeBoxes_.begin(sd, rootCStr)) {
         if (!g_loaderInitLogs.themeBoxInitFailed) {
-            PF("[TodayContext] ThemeBoxManager init failed\n");
+            PF("[TodayContext] ThemeBoxTable init failed\n");
             g_loaderInitLogs.themeBoxInitFailed = true;
         }
         return false;

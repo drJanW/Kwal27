@@ -15,7 +15,7 @@
 #include "SystemBoot.h"
 #include "Globals.h"
 #include "HWconfig.h"
-#include "OTAManager.h"
+#include "OTAController.h"
 #include "RunManager.h"
 #include <Wire.h>
 

@@ -14,7 +14,7 @@ INPUT SOURCES
 
 STACK SUMMARY
 -------------
-Input → Boot → Run → Director → Policy → Manager → Hardware
+Input → Boot → Run → Director → Policy → Controller → Hardware
 
 FLOW OF CONTROL
 ----------------
@@ -37,7 +37,7 @@ FLOW OF CONTROL
    - Arbitrates requests, clamps values, chooses intervals, exposes helper queries.
    - Returns either APPROVED + params or REJECTED + reason. No side effects.
 
-6. **Manager layer** (AudioManager, LightManager, SDManager, OTAManager, WiFiManager, SensorManager)
+6. **Controller layer** (AudioManager, LightController, SDController, OTAController, WiFiController, SensorController)
    - Owns runtime state machines and is the only code that talks to drivers (FastLED, I2S, SPI, Wi-Fi, etc.).
 
 7. **Hardware drivers**
@@ -45,18 +45,18 @@ FLOW OF CONTROL
 
 LAYER PLAYBOOK
 --------------
-- Boot prepares dependencies → Run sequences work → Director gathers facts → Policy decides → Manager executes.
+- Boot prepares dependencies → Run sequences work → Director gathers facts → Policy decides → Controller executes.
 - Stick to this order for _every_ subsystem. No shortcuts, even for "tiny" features.
 
 EXAMPLE CHAINS
 --------------
 - **Web silence control**: Web request → WebRun → WebDirector (parse duration + context) → WebPolicy (approve clamp) → AudioRun applies via AudioPolicy/AudioManager.
-- **Calendar default lights**: Calendar tick → CalendarRun (no show) → LightDirector builds deterministic `LightShowParams` → LightPolicy approves → LightRun arms timers and calls LightManager.
+- **Calendar default lights**: Calendar tick → CalendarRun (no show) → LightDirector builds deterministic `LightShowParams` → LightPolicy approves → LightRun arms timers and calls LightController.
 - **Distance PCM**: SensorsRun caches measurements → AudioRun schedules timer → AudioDirector picks clip → AudioPolicy approves volume/interval → AudioManager plays PCM.
 
 STATE + LOGGING
 ---------------
-- Managers own all mutable state; run/policy/director query through getters only.
+- Controllers own all mutable state; run/policy/director query through getters only.
 - No globals in `Globals.h` for behaviour flags.
 - Log every boot/run action with `[Run][Plan]` so bring-up order stays auditable.
 - Directors/policies log under their own tags when rejecting or mutating requests.
@@ -67,6 +67,6 @@ SUMMARY
 - Run = WHEN + sequencing
 - Director = WHAT data is available
 - Policy = WHAT is allowed
-- Manager = HOW it executes
+- Controller = HOW it executes
 - Hardware = Physical effect
 ===========================================================

@@ -12,7 +12,7 @@
  */
 
 #include "LEDMap.h"
-#include <SDManager.h>
+#include <SDController.h>
 #include "HWconfig.h"  // voor NUM_LEDS
 #include "Globals.h"
 #include <math.h>
@@ -41,11 +41,11 @@ bool loadLEDMapFromSD(const char* path) {
         PF("[LEDMap] Invalid path\n");
         return false;
     }
-    SDManager::lockSD();
+    SDController::lockSD();
     File f = SD.open(path);
     if (!f) {
         PF("[LEDMap] %s not found, using fallback layout\n", path);
-        SDManager::unlockSD();
+        SDController::unlockSD();
         return false;
     }
 
@@ -58,7 +58,7 @@ bool loadLEDMapFromSD(const char* path) {
     }
 
     f.close();
-    SDManager::unlockSD();
+    SDController::unlockSD();
     if (loaded != NUM_LEDS) {
         PF("[LEDMap] Loaded %d entries from %s, fallback fills remainder\n", loaded, path);
     } else {

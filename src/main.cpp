@@ -15,7 +15,7 @@
  * Architecture:
  * - RunManager: Central orchestrator using Boot→Plan→Policy→Run pattern
  * - TimerManager: Non-blocking timer system (no millis() or delay())
- * - Managers: AudioManager, LightManager, SensorManager, SDManager, etc.
+ * - Controllers: AudioManager, LightController, SensorController, SDController, etc.
  *
  * Boot Stages:
  * - Stage 0: Hardware primitives (Serial, RNG, OTA) - SystemBoot
@@ -53,7 +53,7 @@ void setup()
 
 /**
  * @brief Arduino main loop - runs continuously
- * Updates the timer system and run manager each iteration.
+ * Updates the timer system and RunManager each iteration.
  * All timing is handled by TimerManager callbacks, not by delays.
  */
 void loop()

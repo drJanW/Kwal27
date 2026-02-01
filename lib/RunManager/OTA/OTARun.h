@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Runs OTA update coordination. Currently a stub - actual OTA
- * handling is managed by OTAManager. Future home for OTA orchestration logic.
+ * handling is managed by OTAController. Future home for OTA orchestration logic.
  */
 
 #pragma once

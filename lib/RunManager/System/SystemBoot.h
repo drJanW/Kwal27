@@ -14,7 +14,7 @@
 #define SYSTEMBOOT_H
 
 /**
- * @brief Stage 0: Hardware primitives before any manager
+ * @brief Stage 0: Hardware primitives before any controller
  * Serial, RNG, OTA check. No status64 access yet.
  * @return true if stage 0 complete, false if fatal failure
  */
