@@ -34,7 +34,7 @@ void handleSetBrightness(AsyncWebServerRequest *request) {
     // 2. Get calendar shift
     uint64_t statusBits = ContextFlags::getFullContextBits();
     float colorMults[COLOR_PARAM_COUNT];
-    shiftStore.computeColorMultipliers(statusBits, colorMults);
+    shiftTable.computeColorMultipliers(statusBits, colorMults);
     int8_t calendarShift = static_cast<int8_t>((colorMults[GLOBAL_BRIGHTNESS] - 1.0f) * 100.0f);
     
     // 3. Calculate webShift to achieve sliderPct

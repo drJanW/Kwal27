@@ -25,7 +25,7 @@ File: lib/ContextManager20251111/ContextFlags.cpp
 
 3. Update parser support
 ------------------------
-File: lib/ConductManager20251111/Light/ShiftStore.cpp
+File: lib/ConductManager20251111/Light/ShiftTable.cpp
 - Add a string alias in `parseStatusString()` so the CSV can reference the new
   flag (e.g., `if (s == "isRainy") { out = STATUS_RAINY; return true; }`).
 - Keep naming consistent between CSV and enum (the CSV uses `isCamelCase`).

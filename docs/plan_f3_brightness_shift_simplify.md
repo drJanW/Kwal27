@@ -57,7 +57,7 @@ enum ColorParam : uint8_t {
 };
 ```
 
-#### 2. ShiftStore.cpp - Update parser
+#### 2. ShiftTable.cpp - Update parser
 
 ```cpp
 // REMOVE:
@@ -108,16 +108,16 @@ void applyBrightnessShift(float mult) {
 ```
 1. Boot: Load colorsShifts.csv
    - Parse globalBrightness column
-   - Store in ShiftStore
+    - Store in ShiftTable
 
 2. Context change (time/weather/etc):
    - ContextFlags::getFullContextBits() returns active statuses
-   - ShiftStore::computeColorMultipliers() calculates:
+    - ShiftTable::computeColorMultipliers() calculates:
      - H/S multipliers for colorA/B
      - globalBrightness multiplier (product of all active shifts)
 
 3. LightRun::applyToLights():
-   - Get base colors from ColorsStore
+    - Get base colors from ColorsCatalog
    - Apply H/S shifts via shiftColorHS() (simplified, no V)
    - Get brightness mult from colorMults[GLOBAL_BRIGHTNESS]
    - Call applyBrightnessShift(mult)
@@ -159,7 +159,7 @@ void applyBrightnessShift(float mult) {
 | `excel/colorsShifts.csv` | Remove 4 columns, add globalBrightness |
 | `sdroot/colorsShifts.csv` | Same |
 | `lib/ContextManager/ContextStatus.h` | Simplify ColorParam enum |
-| `lib/ConductManager/Light/ShiftStore.cpp` | Update parser |
+| `lib/ConductManager/Light/ShiftTable.cpp` | Update parser |
 | `lib/ConductManager/Light/LightRun.cpp` | Remove V shift, add brightness shift call |
 | `lib/LightManager/LightManager.cpp` | Add applyBrightnessShift() |
 | `lib/LightManager/LightManager.h` | Declare applyBrightnessShift() |
