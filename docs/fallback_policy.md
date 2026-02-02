@@ -1,6 +1,6 @@
 # Fallback Policy
 
-Defines graceful degradation when hardware or services fail.
+Defines graceful degradation when hardware or modules fail.
 
 **Version**: 260128A
 
@@ -27,7 +27,7 @@ Runtime flags set during boot. Check with `if (hwStatus & HW_xxx)`.
 
 **Behavior**:
 - **Audio**: TTS only (no MP3 playback)
-- **RGB**: Ambient mode - pink ↔ turquoise fade
+- **RGB**: Ambient preset - pink ↔ turquoise fade
   - Pink: hue ~350°, high saturation
   - Turquoise/Aqua: hue ~180°, high saturation
   - Brightness varies 30%-100%

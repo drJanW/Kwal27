@@ -4,7 +4,7 @@
  * @version 251231H
  * @date 2025-12-31
  *
- * Implementation of external data fetching services.
+ * Implementation of external data fetching sources.
  * Handles NTP time synchronization with configurable servers
  * and timezone support. Fetches weather and sunrise/sunset
  * data from external APIs. Uses TimerManager for scheduled

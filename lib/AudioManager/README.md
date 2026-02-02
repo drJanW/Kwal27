@@ -4,7 +4,7 @@
 
 This module describes the responsibilities and collaboration between AudioManager, PlayFragment, and PlaySentence. The design is optimized for reliable, non-blocking MP3 playback on ESP32, with fade support for fragments and sequential playback of individual words using a fixed word dictionary.
 
-1. AudioManager – Dispatcher and Resource Controller
+1. AudioManager – Playback Coordinator and Resource Controller
 AudioManager is responsible for:
 
 Initializing the I2S output and base gain (begin())
@@ -121,7 +121,7 @@ Fading is controlled externally using fFade and fadeArray[]
 Gain is applied as SetGain(fFade × baseGain)
 
 5. Files
-AudioManager.h/.cpp: central dispatcher and resource controller
+AudioManager.h/.cpp: central coordinator and resource controller
 
 PlayFragment.h/.cpp: non-blocking fragment playback with fade support
 

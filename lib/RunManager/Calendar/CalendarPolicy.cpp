@@ -15,7 +15,7 @@
 #include "Globals.h"
 #include "Audio/AudioPolicy.h"
 #include "SDController.h"
-#include "TodayContext.h"
+#include "TodayState.h"
 
 #include <stdio.h>
 

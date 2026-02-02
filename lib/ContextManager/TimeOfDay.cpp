@@ -12,7 +12,7 @@
  */
 
 #include "TimeOfDay.h"
-#include "ContextStatus.h"
+#include "StatusBits.h"
 #include "PRTClock.h"
 
 // Time boundaries (in minutes from midnight)

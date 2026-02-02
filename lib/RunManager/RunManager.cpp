@@ -1,6 +1,6 @@
 /**
  * @file RunManager.cpp
- * @brief Central orchestrator for all Kwal modules
+ * @brief Central run coordinator for all Kwal modules
  * @version 251231E
  * @date 2025-12-31
  * 
@@ -8,7 +8,7 @@
  * - Initializes all modules via BootMaster at startup
  * - Routes requests from WebGUI to appropriate modules
  * - Manages lux measurement cycles (LED blackout for sensor reading)
- * - Handles audio fragment playback requests
+ * - Runs audio fragment playback requests
  * - Coordinates OTA update window
  * 
  * Architecture follows the Boot→Plan→Policy→Run pattern:
@@ -294,14 +294,14 @@ void RunManager::requestShowTimerStatus() {
     timers.showAvailableTimers(true);
 }
 
-bool RunManager::requestStartClockTick(bool fallbackMode) {
-    if (clockRunning && clockInFallback == fallbackMode) {
+bool RunManager::requestStartClockTick(bool fallbackEnabled) {
+    if (clockRunning && clockInFallback == fallbackEnabled) {
         return true;
     }
 
     bool wasRunning = clockRunning;
     if (!timers.create(SECONDS_TICK, 0, cb_clockUpdate)) {
-        RUN_LOG_ERROR("[Run] Failed to start clock tick (%s)\n", fallbackMode ? "fallback" : "normal");
+        RUN_LOG_ERROR("[Run] Failed to start clock tick (%s)\n", fallbackEnabled ? "fallback" : "normal");
         if (wasRunning) {
             clockRunning = false;
         }
@@ -309,8 +309,8 @@ bool RunManager::requestStartClockTick(bool fallbackMode) {
     }
 
     clockRunning = true;
-    clockInFallback = fallbackMode;
-    RUN_LOG_INFO("[Run] Clock tick running (%s)\n", fallbackMode ? "fallback" : "normal");
+    clockInFallback = fallbackEnabled;
+    RUN_LOG_INFO("[Run] Clock tick running (%s)\n", fallbackEnabled ? "fallback" : "normal");
     return true;
 }
 

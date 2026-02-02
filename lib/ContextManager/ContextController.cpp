@@ -1,13 +1,13 @@
 /**
  * @file ContextController.cpp
- * @brief Central context coordination and TodayContext management
+ * @brief Central context coordination and TodayState management
  * @version 251231E
  * @date 2025-12-31
  *
  * This file implements the central context coordination system for the application.
- * It manages TodayContext which contains all current state information including
- * time context, web commands, and coordination between various modules.
- * Handles time updates, web command processing, and context state transitions.
+ * It manages TodayState which contains all current state information including
+ * time state, web commands, and coordination between various modules.
+ * Runs time updates, web command flow, and context state transitions.
  */
 
 #include <Arduino.h>
@@ -25,37 +25,37 @@ static volatile ContextController::WebCmd pendingCmd = ContextController::WebCmd
 static volatile uint8_t cmdDir = 0, cmdFile = 0;
 static volatile int8_t cmdDelta = 0;
 static bool nextPending = false;
-static ContextController::TimeContext timeContext{};
+static ContextController::TimeState timeState{};
 static float weatherMinC = 0.0f;
 static float weatherMaxC = 0.0f;
 static bool weatherValid = false;
 
 namespace {
 
-void updateTimeContext() {
-  timeContext.hour = prtClock.getHour();
-  timeContext.minute = prtClock.getMinute();
-  timeContext.second = prtClock.getSecond();
-  timeContext.year = static_cast<uint16_t>(2000 + prtClock.getYear());
-  timeContext.month = prtClock.getMonth();
-  timeContext.day = prtClock.getDay();
-  timeContext.dayOfWeek = prtClock.getDoW();
-  timeContext.dayOfYear = prtClock.getDoY();
-  timeContext.sunriseHour = prtClock.getSunriseHour();
-  timeContext.sunriseMinute = prtClock.getSunriseMinute();
-  timeContext.sunsetHour = prtClock.getSunsetHour();
-  timeContext.sunsetMinute = prtClock.getSunsetMinute();
-  timeContext.moonPhase = prtClock.getMoonPhaseValue();
-  timeContext.synced = prtClock.isTimeFetched();
+void updateTimeState() {
+  timeState.hour = prtClock.getHour();
+  timeState.minute = prtClock.getMinute();
+  timeState.second = prtClock.getSecond();
+  timeState.year = static_cast<uint16_t>(2000 + prtClock.getYear());
+  timeState.month = prtClock.getMonth();
+  timeState.day = prtClock.getDay();
+  timeState.dayOfWeek = prtClock.getDoW();
+  timeState.dayOfYear = prtClock.getDoY();
+  timeState.sunriseHour = prtClock.getSunriseHour();
+  timeState.sunriseMinute = prtClock.getSunriseMinute();
+  timeState.sunsetHour = prtClock.getSunsetHour();
+  timeState.sunsetMinute = prtClock.getSunsetMinute();
+  timeState.moonPhase = prtClock.getMoonPhaseValue();
+  timeState.synced = prtClock.isTimeFetched();
 
   if (weatherValid) {
-    timeContext.hasWeather = true;
-    timeContext.weatherMinC = weatherMinC;
-    timeContext.weatherMaxC = weatherMaxC;
+    timeState.hasWeather = true;
+    timeState.weatherMinC = weatherMinC;
+    timeState.weatherMaxC = weatherMaxC;
   } else {
-    timeContext.hasWeather = false;
-    timeContext.weatherMinC = 0.0f;
-    timeContext.weatherMaxC = 0.0f;
+    timeState.hasWeather = false;
+    timeState.weatherMinC = 0.0f;
+    timeState.weatherMaxC = 0.0f;
   }
 }
 
@@ -63,7 +63,7 @@ void updateTimeContext() {
 
 // 20 ms periodic via TimerManager
 static void ctx_tick_cb() {
-  updateTimeContext();
+  updateTimeState();
 
   // 1) pak één command
   ContextController::WebCmd cmd = pendingCmd;
@@ -134,28 +134,28 @@ bool ContextController_post(ContextController::WebCmd cmd, uint8_t dir, uint8_t 
 void ContextController::begin() {
   // Start een 20 ms heartbeat die de context events verwerkt.
   timers.cancel(ctx_tick_cb);
-  updateTimeContext();
+  updateTimeState();
   if (!timers.create(20, 0, ctx_tick_cb)) {
     PF("[ContextController] Failed to start context tick timer\n");
   }
 }
 
-const ContextController::TimeContext& ContextController::time() {
-  return timeContext;
+const ContextController::TimeState& ContextController::time() {
+  return timeState;
 }
 
 void ContextController::refreshTimeRead() {
-  updateTimeContext();
+  updateTimeState();
 }
 
 void ContextController::updateWeather(float minC, float maxC) {
   weatherMinC = minC;
   weatherMaxC = maxC;
   weatherValid = true;
-  updateTimeContext();
+  updateTimeState();
 }
 
 void ContextController::clearWeather() {
   weatherValid = false;
-  updateTimeContext();
+  updateTimeState();
 }

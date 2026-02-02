@@ -23,7 +23,7 @@ namespace AudioPolicy {
     bool distancePlaybackInterval(float distanceMm, uint32_t& intervalMs);
     float updateDistancePlaybackVolume(float distanceMm);
 
-    // Optional: queueing strategy
+    // Optional: queueing policy
     bool requestFragment(const AudioFragment& frag);
     void requestSentence(const String& phrase);
 

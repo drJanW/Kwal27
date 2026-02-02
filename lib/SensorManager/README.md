@@ -2,7 +2,7 @@
 
 > Version: 251218A | Updated: 2025-12-17
 
-Thin orchestrator for uniform sensor drivers. Timer-driven polling. No ISRs in v1. `loop()` only services `TimerSystem`.
+Thin coordinator for uniform sensor drivers. Timer-driven polling. No ISRs in v1. `loop()` only updates `TimerSystem`.
 
 ## Table of Contents
 - [Overview](#overview)
@@ -70,7 +70,7 @@ Drivers never call back into app logic; the controller **pulls**.
 // setup()
 SensorController::init(100);                 // start at 100 ms poll
 // loop()
-timerSystem.update();                     // service timers only
+timerSystem.update();                     // update timers only
 
 // consume events
 SensorEvent ev;
@@ -120,7 +120,7 @@ typedef struct {
 
 ## Events and Data
 - Each driver maintains an internal double buffer; `readData()` copies from the inactive buffer for coherence.
-- `isDataReady()` is one-shot to prevent duplicate processing.
+- `isDataReady()` is one-shot to prevent duplicate work.
 - Events are exposed by drivers and drained by SensorController into a shared ring buffer.
 
 ## Timing
@@ -151,18 +151,18 @@ MIT
 SENSORCONTROLLER README v1  (plain text friendly)
 
 PURPOSE:
-Central dispatcher for multiple sensors with one uniform driver API. No ISRs. Polling via TimerSystem. loop() only services timers.
+Central coordinator for multiple sensors with one uniform driver API. No ISRs. Polling via TimerSystem. loop() only updates timers.
 
 GOALS:
 - Uniform driver API per sensor
-- Orchestrator only calls init() once and update() periodically
+- Coordinator only calls init() once and update() periodically
 - Pull-based data/events (no callbacks into app logic)
 - Deterministic order, no dynamic allocation
 - Nonblocking drivers, short I2C/SPI bursts
 
 ARCHITECTURE:
 - Sensor drivers: self-contained; own buffers, FSM, I/O
-- SensorController: thin orchestrator; fixed sensor registry; iterates in priority order
+- SensorController: thin coordinator; fixed sensor registry; iterates in priority order
 - ContextController: consumes events and optional data snapshots from SensorController
 
 TIMING:
@@ -208,7 +208,7 @@ CONCURRENCY/OWNERSHIP:
 DATA CONSISTENCY:
 - Each sensor keeps its own double buffer
 - readData() copies from inactive buffer
-- isDataReady() is one-shot to prevent reprocessing
+- isDataReady() is one-shot to prevent repeat work
 
 EVENTS:
 - Drivers expose events via hasEvent()/readEvent()

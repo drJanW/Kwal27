@@ -1,6 +1,6 @@
 /**
  * @file SensorsPolicy.cpp
- * @brief Sensor data processing business logic implementation
+ * @brief Sensor data policy implementation
  * @version 251231E
  * @date 2025-12-31
  *

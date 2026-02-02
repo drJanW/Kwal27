@@ -2,7 +2,7 @@ Audio Subsystem
 
 Deze module beschrijft de gescheiden verantwoordelijkheden en samenwerking tussen AudioManager, PlayFragment, en PlaySentence. Het ontwerp is geoptimaliseerd voor betrouwbare, niet-blockerende MP3-weergave op ESP32, met fade-ondersteuning voor fragmenten, en sequentiële weergave van losse woorden via een intern woordenboek.
 
-1. AudioManager – Dispatcher en Resourcebeheer
+1. AudioManager – Coordinator and Resource Control
 AudioManager is verantwoordelijk voor:
 
 Initialisatie van I2S-output en geluidsniveau (begin())
@@ -115,7 +115,7 @@ Fading wordt geregeld via fFade en fadeArray[], extern beheerd
 Volume wordt steeds gezet via SetGain(fFade × baseGain)
 
 5. Bestanden
-AudioManager.h/.cpp: centrale dispatcher en resourcebeheer
+AudioManager.h/.cpp: centrale coordinator en resourcebeheer
 
 PlayFragment.h/.cpp: playback van willekeurige MP3-fragmenten met fading
 

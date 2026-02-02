@@ -61,3 +61,4 @@ Phase 6 — Build & validate
 Phase 7 — Cleanup & lock
 1. Update docs/comments to match new names.
 2. Grep to confirm only approved exceptions remain.
+3. Remove all legacy shim headers/cpps once references are migrated.

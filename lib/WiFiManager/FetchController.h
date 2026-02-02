@@ -4,7 +4,7 @@
  * @version 251231E
  * @date 2025-12-31
  *
- * Header file for external data fetching services.
+ * Header file for external data fetching sources.
  * Provides functions to fetch time from NTP servers,
  * retrieve weather data and sunrise/sunset times from
  * external APIs.

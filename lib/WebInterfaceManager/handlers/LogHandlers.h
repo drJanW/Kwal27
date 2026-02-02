@@ -1,6 +1,5 @@
 #pragma once
 #include <ESPAsyncWebServer.h>
 
-namespace LogHandlers {
-    void attachRoutes(AsyncWebServer &server);
-}
+// Legacy shim header. Use routes/LogRoutes.h instead.
+#include "../routes/LogRoutes.h"

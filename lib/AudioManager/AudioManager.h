@@ -1,6 +1,6 @@
 /**
  * @file AudioManager.h
- * @brief Main audio playback engine header for ESP32
+ * @brief Main audio playback core header for ESP32
  * @version 251231E
  * @date 2025-12-31
  *

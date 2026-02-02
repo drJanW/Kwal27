@@ -14,7 +14,7 @@
 #include <Arduino.h>
 #include <vector>
 #include <stdint.h>
-#include "ContextStatus.h"
+#include "StatusBits.h"
 
 // Compact shift entry: 3 bytes data + float multiplier
 struct ColorShiftEntry {

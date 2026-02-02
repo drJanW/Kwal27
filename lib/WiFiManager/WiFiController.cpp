@@ -24,7 +24,7 @@ static void cb_checkWiFiStatus();
 static void cb_checkWiFiConnection();
 static void cb_retryConnect();
 
-static void configureStationMode() {
+static void configureStation() {
     if (stationConfigured) return;
     WiFi.mode(WIFI_STA);
     stationConfigured = true;
@@ -98,7 +98,7 @@ static void cb_checkWiFiConnection() {
 
 // Public entry: arms the status-check + retry timers and kicks off a connection attempt.
 void bootWiFiConnect() {
-    configureStationMode();
+    configureStation();
 
     if (!loggedStart) {
         PL("[WiFi] Starting connection with growing interval");

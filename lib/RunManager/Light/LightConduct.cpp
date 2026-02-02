@@ -20,8 +20,8 @@
 #include "ColorsCatalog.h"
 #include "PatternCatalog.h"
 #include "ShiftTable.h"
-#include "ContextFlags.h"
-#include "ContextModels.h"
+#include "StatusFlags.h"
+#include "TodayModels.h"
 #include "Alert/AlertRGB.h"
 #include "Alert/AlertState.h"
 #include "WebGuiStatus.h"
@@ -130,7 +130,7 @@ void LightConduct::plan() {
     getColorsCatalog();
     
     // Apply immediately and start periodic check timer
-    lastStatusBits = ContextFlags::getFullContextBits();
+    lastStatusBits = StatusFlags::getFullStatusBits();
     applyToLights();
     scheduleShiftTimer();
     
@@ -173,7 +173,7 @@ void LightConduct::cb_animation() {
 void LightConduct::cb_shiftTimer() {
     shiftTimerActive = false;
     
-    uint64_t statusBits = ContextFlags::getFullContextBits();
+    uint64_t statusBits = StatusFlags::getFullStatusBits();
     if (statusBits != lastStatusBits) {
         lastStatusBits = statusBits;
         applyToLights();
@@ -204,7 +204,7 @@ void LightConduct::cb_luxMeasureRead() {
     
     // Step 4: Get calendar brightness shift and compute shiftedHi in one formula
 #ifndef DISABLE_SHIFTS
-    uint64_t statusBits = ContextFlags::getFullContextBits();
+    uint64_t statusBits = StatusFlags::getFullStatusBits();
     float colorMults[COLOR_PARAM_COUNT];
     shiftTable.computeColorMultipliers(statusBits, colorMults);
     int8_t calendarShift = static_cast<int8_t>((colorMults[GLOBAL_BRIGHTNESS] - 1.0f) * 100.0f);
@@ -501,7 +501,7 @@ void LightConduct::applyColor(uint8_t colorId) {
     applyToLights();
 }
 
-// --- TodayContext request methods ---
+// --- TodayState request methods ---
 
 bool LightConduct::describePatternById(uint8_t id, LightPattern& out) {
     if (id == 0) {
@@ -618,7 +618,7 @@ void LightConduct::applyToLights() {
     // Apply pattern shifts here in Conduct layer (not in Catalog)
 #ifndef DISABLE_SHIFTS
     {
-        uint64_t statusBits = ContextFlags::getFullContextBits();
+        uint64_t statusBits = StatusFlags::getFullStatusBits();
         float patMults[PAT_PARAM_COUNT];
         shiftTable.computePatternMultipliers(statusBits, patMults);
         
@@ -648,7 +648,7 @@ void LightConduct::applyToLights() {
     // Apply color shifts here in Conduct layer (not in Catalog) - identical to pattern shifts
 #ifndef DISABLE_SHIFTS
     {
-        uint64_t statusBits = ContextFlags::getFullContextBits();
+        uint64_t statusBits = StatusFlags::getFullStatusBits();
         float colorMults[COLOR_PARAM_COUNT];
         shiftTable.computeColorMultipliers(statusBits, colorMults);
         

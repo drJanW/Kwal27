@@ -27,7 +27,7 @@ After:
   #define WIFI_PASSWORD "MySecretPassword"
   #define IP_LAN_STR "192.168.1."
 
-DHCP MODE (no static IP)
+DHCP PROFILE (no static IP)
 ------------------------
 If you prefer DHCP (router assigns IP automatically):
   #define USE_STATIC_IP false

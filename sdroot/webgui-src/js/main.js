@@ -36,7 +36,7 @@
     
     // Initialize SSE and wire up live update listeners
     
-    // New unified state handler - primary source of truth
+    // New unified state callback - primary source of truth
     Kwal.sse.onState(function(data) {
       // Brightness slider uses sliderPct directly
       if (typeof data.sliderPct === 'number' && typeof data.brightnessMax === 'number' && data.brightnessMax > 0) {
@@ -79,7 +79,7 @@
       }
     });
     
-    // Legacy handlers (still fired by firmware during transition)
+    // Legacy callbacks (still fired by firmware during transition)
     Kwal.sse.onFragment(function(dir, file, score) {
       Kwal.audio.updateFragment(dir, file, score, 0);  // No duration in legacy event
     });

@@ -23,7 +23,7 @@ enum AudioParam {
 
 // Single shift entry parsed from CSV
 struct AudioShiftEntry {
-    uint64_t statusBit;                     // ContextFlags bit
+    uint64_t statusBit;                     // StatusFlags bit
     float shifts[AUDIO_PARAM_COUNT];        // percentage shifts (-100 to +inf)
     uint8_t themeBoxAdd;                    // extra ThemeBox ID (0 = none)
 };

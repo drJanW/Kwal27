@@ -63,7 +63,7 @@ Vermijd in nieuwe code en bij hernoemen (tenzij expliciet toegestaan):
 - **Context** als containerwoord (gebruik `Flags` of een concreet noun)
 - **Orchestrator / Engine / Service / Strategy** (te vaag / enterprise)
 - **State** (impliceert voortgang/FSM; alleen gebruiken als het écht voortgang is)
-- **Mode** (vermijden; als het toch moet: liever `Profile`/`Preset`)
+- **Preset/Profile** (vermijden; als het toch moet: liever `Profile`/`Preset`)
 - **Manager** (alleen toestaan als het echt resources/lifecycle beheert)
 
 

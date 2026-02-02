@@ -14,8 +14,8 @@
 #include "Globals.h"
 #include "TimerManager.h"
 #include "HeartbeatPolicy.h"
-#include "ContextFlags.h"
-#include "ContextStatus.h"
+#include "StatusFlags.h"
+#include "StatusBits.h"
 
 namespace {
 
@@ -30,7 +30,7 @@ uint32_t offMs = 500;
 bool ledState = false;
 
 void updateFailurePattern() {
-    const bool anyFail = ContextFlags::getHardwareFailBits() != 0;
+    const bool anyFail = StatusFlags::getHardwareFailBits() != 0;
     if (anyFail) {
         // Failure pattern: 0.5s aan, 3s uit
         onMs = 500;

@@ -1,13 +1,13 @@
 /**
  * @file BootMaster.h
- * @brief Master boot sequence orchestrator
+ * @brief Master boot sequence coordinator
  * @version 251231E
  * @date 2025-12-31
  *
- * Orchestrates the complete system boot sequence, coordinating initialization
+ * Coordinates the complete system boot sequence, coordinating initialization
  * of all subsystems in the correct order. Manages fallback timers to ensure
  * the system reaches a usable state even if some components fail. Tracks boot
- * progress and handles timeout scenarios for clock seeding and system readiness.
+ * progress and tracks timeout scenarios for clock seeding and system readiness.
  */
 
 #ifndef BOOTMASTER_H

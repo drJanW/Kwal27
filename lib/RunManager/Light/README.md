@@ -62,7 +62,7 @@ Manages LED patterns and colors for the RGB ring display via `PatternCatalog` an
    - Output: ~250 bytes per pattern
    - Capaciteit: 100+ patterns zonder geheugenproblemen
 
-4. **Browser**: JavaScript `processPatternCatalog()`
+4. **Browser**: JavaScript `Kwal.pattern.load()`
    - Parset JSON response
    - Vult `state.pattern.items` array
    - `updatePatternControls()` bouwt `<select>` dropdown
@@ -95,7 +95,7 @@ light_colors_id;light_colors_name;rgb1_hex;rgb2_hex
 ## Source Tracking
 
 `LightRun` tracks where the active pattern/color came from:
-- `CONTEXT` - Default from TodayContext (no explicit selection)
+- `CONTEXT` - Default from TodayState (no explicit selection)
 - `MANUAL` - User selected via WebGUI
 - `CALENDAR` - Set by calendar entry
 
@@ -107,7 +107,7 @@ Pattern and color shifts adjust visual parameters based on time-of-day, season, 
 
 **Timer**: `cb_shiftTimer` fires every 60 seconds to check for context changes.
 
-**Optimization**: Shifts only recompute when `ContextFlags::getFullContextBits()` changes.
+**Optimization**: Shifts only recompute when `StatusFlags::getFullStatusBits()` changes.
 The 64-bit status word is cached in `s_lastStatusBits`. If unchanged, `applyToLights()` 
 is skipped entirely - no multiplier calculations, no LED updates.
 

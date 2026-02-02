@@ -78,7 +78,7 @@ Kwal.health = (function() {
     html += '<tr><td>Timers</td><td>' + data.timers + '/' + data.maxTimers + '</td></tr>';
 
     // Flags with boot status (use boot field if available, fallback to health bits)
-    html += '<tr><th colspan="2">Hardware & Services</th></tr>';
+    html += '<tr><th colspan="2">Hardware & Status</th></tr>';
     var healthBits = data.health || 0;
     var bootStatus = data.boot || 0;
     var absentBits = data.absent || 0;

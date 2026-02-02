@@ -1,10 +1,10 @@
 /**
  * @file WebUtils.h
- * @brief Shared utilities for web handlers
+ * @brief Shared utilities for web routes
  * @version 251231E
  * @date 2025-12-31
  *
- * Common utility functions used across all web API handlers.
+ * Common utility functions used across all web API routes.
  * Provides helper functions for sending JSON responses, error responses,
  * JSON string escaping, RGB color conversion, and ID string formatting.
  * All functions are inline for performance in the embedded environment.

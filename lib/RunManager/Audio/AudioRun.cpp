@@ -20,7 +20,7 @@
 #include "PlayFragment.h"
 #include "AudioPolicy.h"
 #include "AudioShiftTable.h"
-#include "ContextFlags.h"
+#include "StatusFlags.h"
 #include "Globals.h"
 #include "TimerManager.h"
 #include "Sensors/SensorsPolicy.h"
@@ -120,7 +120,7 @@ void AudioRun::cb_playPCM()
 
 void AudioRun::cb_volumeShiftTimer()
 {
-    uint64_t statusBits = ContextFlags::getFullContextBits();
+    uint64_t statusBits = StatusFlags::getFullStatusBits();
     if (statusBits != lastStatusBits) {
         lastStatusBits = statusBits;
         applyVolumeShift(statusBits);
@@ -135,7 +135,7 @@ void AudioRun::plan()
     timers.cancel(AudioRun::cb_volumeShiftTimer);
     
     // Apply initial volume shift and start periodic timer
-    lastStatusBits = ContextFlags::getFullContextBits();
+    lastStatusBits = StatusFlags::getFullStatusBits();
     applyVolumeShift(lastStatusBits);
     timers.create(volumeShiftCheckMs, 1, AudioRun::cb_volumeShiftTimer);
     

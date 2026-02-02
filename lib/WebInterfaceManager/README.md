@@ -19,11 +19,11 @@ Serve a lightweight UI from the SD card so operators can monitor and steer the i
 - `POST /ota/start` – arms + confirms OTA window (replaces the old `/ota/arm` + `/ota/confirm` combo).
 - `GET /api/sd/status`, `POST /api/sd/upload`, `POST /api/sd/delete` – SD maintenance.
 
-Handlers live in `WebInterfaceController.cpp`; each maps directly to a `RunManager` request or SDController method. Logging uses `PF` macros guarded by `WEBIF_LOG_LEVEL`.
+Routes live in `WebInterfaceController.cpp`; each maps directly to a `RunManager` request or SDController method. Logging uses `PF` macros guarded by `WEBIF_LOG_LEVEL`.
 
 ## SSE Reconnect Behavior
 
-The WebGUI uses Server-Sent Events (SSE) for real-time updates. When the connection drops and reconnects (`sse.js` `onReconnect` handler):
+The WebGUI uses Server-Sent Events (SSE) for real-time updates. When the connection drops and reconnects (`sse.js` `onReconnect` callback):
 
 - Pattern and color selections are automatically refreshed from the device
 - UI state is synchronized without requiring manual page reload

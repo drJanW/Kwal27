@@ -4,7 +4,7 @@
  * @version 251231E
  * @date 2025-12-31
  *
- * This header declares CSV parsing utilities for reading and processing
+ * This header declares CSV parsing utilities for reading and parsing
  * semicolon-delimited CSV files from the SD card. Provides a namespace-based
  * API for line reading, column splitting, and BOM handling. These utilities
  * are used by calendar, color, pattern, and shift tables to load their

@@ -1,17 +1,17 @@
 /**
  * @file CalendarRun.h
- * @brief Calendar context state management
+ * @brief Calendar state management
  * @version 251231E
  * @date 2025-12-31
  *
- * Manages calendar context state and periodic updates. Handles calendar data
- * loading, context refresh scheduling, and calendar-triggered sentence playback.
+ * Manages calendar state and periodic updates. Handles calendar data
+ * loading, state refresh scheduling, and calendar-triggered sentence playback.
  * Coordinates with CalendarPolicy for decision making.
  */
 
 #pragma once
 
-struct TodayContext;
+struct TodayState;
 
 class CalendarRun {
 public:
@@ -19,8 +19,8 @@ public:
   static void cb_loadCalendar();
   static void cb_calendarSentence();
 
-  bool contextReady() const;
-  bool contextRead(TodayContext& out) const;
+  bool todayReady() const;
+  bool todayRead(TodayState& out) const;
 };
 
 extern CalendarRun calendarRun;

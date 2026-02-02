@@ -6,7 +6,7 @@
  *
  * Header file for the LightController class which provides centralized control
  * over LED strip operations. Manages brightness levels, color settings, and
- * special display modes like OTA update patterns. Implements singleton pattern
+ * special display presets like OTA update patterns. Implements singleton pattern
  * for global access to LED hardware control.
  */
 

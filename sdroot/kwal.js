@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v20260131E - Built 2026-01-31 19:41
+ * Kwal WebGUI v20260202A - Built 2026-02-02 08:56
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '20260131E';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '20260202A';  // Injected by build.ps1
 
 
 // === js/state.js ===
@@ -1303,7 +1303,7 @@ Kwal.health = (function() {
     html += '<tr><td>Timers</td><td>' + data.timers + '/' + data.maxTimers + '</td></tr>';
 
     // Flags with boot status (use boot field if available, fallback to health bits)
-    html += '<tr><th colspan="2">Hardware & Services</th></tr>';
+    html += '<tr><th colspan="2">Hardware & Status</th></tr>';
     var healthBits = data.health || 0;
     var bootStatus = data.boot || 0;
     var absentBits = data.absent || 0;
@@ -1644,7 +1644,7 @@ Kwal.health = (function() {
     
     // Initialize SSE and wire up live update listeners
     
-    // New unified state handler - primary source of truth
+    // New unified state callback - primary source of truth
     Kwal.sse.onState(function(data) {
       // Brightness slider uses sliderPct directly
       if (typeof data.sliderPct === 'number' && typeof data.brightnessMax === 'number' && data.brightnessMax > 0) {
@@ -1687,7 +1687,7 @@ Kwal.health = (function() {
       }
     });
     
-    // Legacy handlers (still fired by firmware during transition)
+    // Legacy callbacks (still fired by firmware during transition)
     Kwal.sse.onFragment(function(dir, file, score) {
       Kwal.audio.updateFragment(dir, file, score, 0);  // No duration in legacy event
     });

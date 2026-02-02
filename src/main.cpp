@@ -5,7 +5,7 @@
  * @date 2026-01-28
  *
  * This is the main entry point for the Kwal ambient light and audio sculpture.
- * The firmware runs on ESP32-S3 and orchestrates:
+ * The firmware runs on ESP32-S3 and coordinates:
  * - LED light shows (patterns, colors, brightness based on ambient light)
  * - Audio fragment playback from SD card (context-aware selection)
  * - Time-based behavior via calendar CSV files
@@ -13,7 +13,7 @@
  * - OTA firmware updates
  *
  * Architecture:
- * - RunManager: Central orchestrator using Boot→Plan→Policy→Run pattern
+ * - RunManager: Central run coordinator using Boot→Plan→Policy→Run pattern
  * - TimerManager: Non-blocking timer system (no millis() or delay())
  * - Controllers: AudioManager, LightController, SensorController, SDController, etc.
  *
@@ -47,7 +47,7 @@ void setup()
     }
     // Stage 1: Component probing (Stage 2 via OK reports)
     if (!systemBootStage1()) {
-        PL("[Main] Stage 1 incomplete - degraded mode");
+        PL("[Main] Stage 1 incomplete - degraded state");
     }
 }
 

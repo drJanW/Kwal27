@@ -34,7 +34,7 @@ bool isWiFiConnected();    // Query current connection state
 ## State
 
 - `connected` - module state, accessible via `isWiFiConnected()`
-- `modeConfigured` - one-time hardware init flag
+- `stationConfigured` - one-time hardware init flag
 - `loggedStart` - log-once flag for connection start message
 
 ## Configuration

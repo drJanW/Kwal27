@@ -20,7 +20,7 @@
 #include "PRTClock.h"
 
 
-// High-level orchestrator of system behavior
+// High-level run coordinator of system behavior
 class RunManager {
 
 public:
@@ -38,7 +38,7 @@ public:
     static void requestArmOTA(uint32_t window_s);
     static bool requestConfirmOTA();
     static void requestShowTimerStatus();
-    static bool requestStartClockTick(bool fallbackMode);
+    static bool requestStartClockTick(bool fallbackEnabled);
     static bool isClockRunning();
     static bool isClockInFallback();
     static bool requestSeedClockFromRtc();

@@ -1,18 +1,18 @@
 /**
- * @file TodayContext.cpp
- * @brief Today's context state management implementation
+ * @file TodayState.cpp
+ * @brief Today's state management implementation
  * @version 251231E
  * @date 2025-12-31
  *
- * Implements the today context management system combining calendar data,
- * theme boxes, colors, and patterns into a unified daily context.
- * Handles initialization from SD card, loading current day's context,
+ * Implements the today state management system combining calendar data,
+ * theme boxes, colors, and patterns into a unified daily state.
+ * Handles initialization from SD card, loading current day's state,
  * and providing access to theme boxes, patterns, and colors for the
  * current date. Central to date-aware behavior throughout the system.
  */
 
 #include <Arduino.h>
-#include "TodayContext.h"
+#include "TodayState.h"
 
 #include "Globals.h"
 #include "PRTClock.h"
@@ -29,7 +29,7 @@ public:
 
 namespace {
 
-struct TodayContextLogLimiter {
+struct TodayStateLogLimiter {
     uint32_t lastNoCalendar{0};
     uint32_t lastThemeFallback{0};
     uint32_t lastThemeUnavailable{0};
@@ -82,7 +82,7 @@ struct TodayContextLogLimiter {
     }
 };
 
-TodayContextLogLimiter g_logLimiter;
+TodayStateLogLimiter g_logLimiter;
 
 enum class LoaderLogState : uint8_t {
     Unknown,
@@ -99,32 +99,32 @@ struct LoaderInitLogState {
 LoaderLogState g_loaderLogState = LoaderLogState::Unknown;
 LoaderInitLogState g_loaderInitLogs;
 
-class TodayContextLoader {
+class TodayStateLoader {
 public:
     bool init(fs::FS& sd, const char* rootPath);
     bool ready() const { return ready_; }
-    bool loadToday(TodayContext& ctx);
+    bool loadToday(TodayState& state);
     const ThemeBox* findThemeBox(uint8_t id) const { return themeBoxes_.find(id); }
     const ThemeBox* getDefaultThemeBox() const { return themeBoxes_.active(); }
 
 private:
     bool resolveDate(uint16_t& year, uint8_t& month, uint8_t& day) const;
 
-    Context::CalendarSelector calendar_;
+    CalendarSelector calendar_;
     ThemeBoxTable themeBoxes_;
     String root_{"/"};
     bool ready_{false};
 };
 
-TodayContextLoader g_loader;
+TodayStateLoader g_loader;
 
-bool TodayContextLoader::init(fs::FS& sd, const char* rootPath) {
+bool TodayStateLoader::init(fs::FS& sd, const char* rootPath) {
     ready_ = false;
     const String desiredRoot = (rootPath && *rootPath) ? String(rootPath) : String("/");
     const String sanitized = SdPathUtils::sanitizeSdPath(desiredRoot);
     if (sanitized.isEmpty()) {
         if (!g_loaderInitLogs.invalidRoot) {
-            PF("[TodayContext] Invalid root '%s', falling back to '/'\n", desiredRoot.c_str());
+            PF("[TodayState] Invalid root '%s', falling back to '/'\n", desiredRoot.c_str());
             g_loaderInitLogs.invalidRoot = true;
         }
         root_ = "/";
@@ -137,7 +137,7 @@ bool TodayContextLoader::init(fs::FS& sd, const char* rootPath) {
 
     if (!calendar_.begin(sd, rootCStr)) {
         if (!g_loaderInitLogs.calendarInitFailed) {
-            PF("[TodayContext] CalendarSelector init failed\n");
+            PF("[TodayState] CalendarSelector init failed\n");
             g_loaderInitLogs.calendarInitFailed = true;
         }
         return false;
@@ -145,7 +145,7 @@ bool TodayContextLoader::init(fs::FS& sd, const char* rootPath) {
     g_loaderInitLogs.calendarInitFailed = false;
     if (!themeBoxes_.begin(sd, rootCStr)) {
         if (!g_loaderInitLogs.themeBoxInitFailed) {
-            PF("[TodayContext] ThemeBoxTable init failed\n");
+            PF("[TodayState] ThemeBoxTable init failed\n");
             g_loaderInitLogs.themeBoxInitFailed = true;
         }
         return false;
@@ -154,13 +154,13 @@ bool TodayContextLoader::init(fs::FS& sd, const char* rootPath) {
 
     ready_ = true;
     if (g_loaderLogState != LoaderLogState::Ready) {
-        PF("[TodayContext] Loader initialised\n");
+        PF("[TodayState] Loader initialised\n");
         g_loaderLogState = LoaderLogState::Ready;
     }
     return true;
 }
 
-bool TodayContextLoader::resolveDate(uint16_t& year, uint8_t& month, uint8_t& day) const {
+bool TodayStateLoader::resolveDate(uint16_t& year, uint8_t& month, uint8_t& day) const {
     const uint16_t rawYear = prtClock.getYear();
     month = prtClock.getMonth();
     day = prtClock.getDay();
@@ -176,11 +176,11 @@ bool TodayContextLoader::resolveDate(uint16_t& year, uint8_t& month, uint8_t& da
     return true;
 }
 
-bool TodayContextLoader::loadToday(TodayContext& ctx) {
-    ctx = TodayContext{};
+bool TodayStateLoader::loadToday(TodayState& state) {
+    state = TodayState{};
     if (!ready_) {
         if (g_loaderLogState != LoaderLogState::NotReady) {
-            PF("[TodayContext] Loader not ready\n");
+            PF("[TodayState] Loader not ready\n");
             g_loaderLogState = LoaderLogState::NotReady;
         }
         return false;
@@ -194,14 +194,19 @@ bool TodayContextLoader::loadToday(TodayContext& ctx) {
     }
 
     CalendarEntry entry;
-    const bool hasCalendarEntry = calendar_.findEntry(year, month, day, entry);
+    bool hasCalendarEntry = false;
+    if (calendar_.loadToday(year, month, day) && calendar_.hasCalendarData()) {
+        const CalendarData& calData = calendar_.calendarData();
+        entry = calData.day;
+        hasCalendarEntry = calData.day.valid;
+    }
     if (!hasCalendarEntry) {
         entry.valid = false;
         entry.year = year;
         entry.month = month;
         entry.day = day;
         if (g_logLimiter.logNoCalendar(year, month, day)) {
-            PF("[TodayContext] No calendar entry for %04u-%02u-%02u, using defaults\n",
+                PF("[TodayState] No calendar entry for %04u-%02u-%02u, using defaults\n",
                static_cast<unsigned>(year), static_cast<unsigned>(month), static_cast<unsigned>(day));
         }
     }
@@ -214,7 +219,7 @@ bool TodayContextLoader::loadToday(TodayContext& ctx) {
         const ThemeBox* fallbackTheme = themeBoxes_.active();
         if (fallbackTheme) {
             if (entry.themeBoxId != 0 && g_logLimiter.logThemeFallback(year, month, day)) {
-                PF("[TodayContext] Theme box %u missing, falling back to %u for %04u-%02u-%02u\n",
+                     PF("[TodayState] Theme box %u missing, falling back to %u for %04u-%02u-%02u\n",
                    static_cast<unsigned>(entry.themeBoxId),
                    static_cast<unsigned>(fallbackTheme->id),
                    static_cast<unsigned>(year),
@@ -226,7 +231,7 @@ bool TodayContextLoader::loadToday(TodayContext& ctx) {
     }
     if (!theme) {
         if (g_logLimiter.logThemeUnavailable(year, month, day)) {
-            PF("[TodayContext] No theme boxes available for %04u-%02u-%02u\n",
+                PF("[TodayState] No theme boxes available for %04u-%02u-%02u\n",
                static_cast<unsigned>(year), static_cast<unsigned>(month), static_cast<unsigned>(day));
         }
         return false;
@@ -242,7 +247,7 @@ bool TodayContextLoader::loadToday(TodayContext& ctx) {
         LightPattern fallbackPattern;
         if (LightRun::describeActivePattern(fallbackPattern)) {
             if (entry.patternId != 0 && g_logLimiter.logPatternFallback(year, month, day)) {
-                PF("[TodayContext] Pattern %u missing, falling back to %u for %04u-%02u-%02u\n",
+                     PF("[TodayState] Pattern %u missing, falling back to %u for %04u-%02u-%02u\n",
                    static_cast<unsigned>(entry.patternId),
                    static_cast<unsigned>(fallbackPattern.id),
                    static_cast<unsigned>(year),
@@ -255,7 +260,7 @@ bool TodayContextLoader::loadToday(TodayContext& ctx) {
     }
     if (!hasPattern) {
         if (g_logLimiter.logPatternUnavailable(year, month, day)) {
-            PF("[TodayContext] No light patterns available for %04u-%02u-%02u\n",
+                PF("[TodayState] No light patterns available for %04u-%02u-%02u\n",
                static_cast<unsigned>(year), static_cast<unsigned>(month), static_cast<unsigned>(day));
         }
         return false;
@@ -271,7 +276,7 @@ bool TodayContextLoader::loadToday(TodayContext& ctx) {
         LightColor fallbackColor;
         if (LightRun::describeActiveColor(fallbackColor)) {
             if (entry.colorId != 0 && g_logLimiter.logColorFallback(year, month, day)) {
-                PF("[TodayContext] Color %u missing, falling back to %u for %04u-%02u-%02u\n",
+                     PF("[TodayState] Color %u missing, falling back to %u for %04u-%02u-%02u\n",
                    static_cast<unsigned>(entry.colorId),
                    static_cast<unsigned>(fallbackColor.id),
                    static_cast<unsigned>(year),
@@ -284,32 +289,32 @@ bool TodayContextLoader::loadToday(TodayContext& ctx) {
     }
     if (!hasColor) {
         if (g_logLimiter.logColorUnavailable(year, month, day)) {
-            PF("[TodayContext] No light colors available for %04u-%02u-%02u\n",
+                PF("[TodayState] No light colors available for %04u-%02u-%02u\n",
                static_cast<unsigned>(year), static_cast<unsigned>(month), static_cast<unsigned>(day));
         }
         return false;
     }
 
-    ctx.valid = true;
-    ctx.entry = entry;
-    ctx.theme = *theme;
-    ctx.pattern = pattern;
-    ctx.colors = color;
+    state.valid = true;
+    state.entry = entry;
+    state.theme = *theme;
+    state.pattern = pattern;
+    state.colors = color;
     return true;
 }
 
 } // namespace
 
-bool InitTodayContext(fs::FS& sd, const char* rootPath) {
+bool InitTodayState(fs::FS& sd, const char* rootPath) {
     return g_loader.init(sd, rootPath);
 }
 
-bool TodayContextReady() {
+bool TodayStateReady() {
     return g_loader.ready();
 }
 
-bool LoadTodayContext(TodayContext& ctx) {
-    return g_loader.loadToday(ctx);
+bool LoadTodayState(TodayState& state) {
+    return g_loader.loadToday(state);
 }
 
 const ThemeBox* FindThemeBox(uint8_t id) {

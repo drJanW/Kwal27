@@ -14,13 +14,13 @@ File: lib/ContextController20251111/ShiftEnums.h
 
 2. Provide a bit generator
 --------------------------
-File: lib/ContextController20251111/ContextFlags.cpp
+File: lib/ContextController20251111/StatusFlags.cpp
 - Either extend an existing helper (time-of-day, season, weather, weekday,
   moon) or create a new helper function.
 - The helper should check the required data source (PRTClock, ContextController,
   SensorController, etc.) and set the corresponding bit using
   `bits |= (1ULL << STATUS_XXX);` when the condition is true.
-- Make sure the helper is included in `getFullContextBits()` so LightRun
+- Make sure the helper is included in `getFullStatusBits()` so LightRun
   can see the new bit.
 
 3. Update parser support

@@ -96,27 +96,27 @@ But the JS build is NOT automatic. You must run build.ps1 manually.
 ### 1. API Endpoints
 Every endpoint has a URL, HTTP method, request format, and response format defined in BOTH codebases:
 
-| Endpoint | C++ Handler | JS Consumer |
+| Endpoint | C++ Route | JS Consumer |
 |----------|-------------|-------------|
-| `GET /api/patterns` | `PatternsHandlers::handleList` | `Kwal.pattern.load()` |
-| `POST /api/patterns/next` | `PatternsHandlers::handleNext` | `Kwal.pattern.navigate()` |
-| `POST /api/patterns/prev` | `PatternsHandlers::handlePrev` | `Kwal.pattern.navigate()` |
-| `POST /api/patterns/select` | `PatternsHandlers::attachRoutes` | `Kwal.pattern` click handler |
-| `GET /api/colors` | `ColorsHandlers::handleList` | `Kwal.colors.load()` |
-| `POST /api/colors/next` | `ColorsHandlers::handleNext` | `Kwal.colors.navigate()` |
-| `POST /api/colors/prev` | `ColorsHandlers::handlePrev` | `Kwal.colors.navigate()` |
-| `GET /api/light/status` | `handleLightStatus` | `Kwal.status.load()` |
+| `GET /api/patterns` | `PatternsRoutes::routeList` | `Kwal.pattern.load()` |
+| `POST /api/patterns/next` | `PatternsRoutes::routeNext` | `Kwal.pattern.navigate()` |
+| `POST /api/patterns/prev` | `PatternsRoutes::routePrev` | `Kwal.pattern.navigate()` |
+| `POST /api/patterns/select` | `PatternsRoutes::attachRoutes` | `Kwal.pattern` click route |
+| `GET /api/colors` | `ColorsRoutes::routeList` | `Kwal.colors.load()` |
+| `POST /api/colors/next` | `ColorsRoutes::routeNext` | `Kwal.colors.navigate()` |
+| `POST /api/colors/prev` | `ColorsRoutes::routePrev` | `Kwal.colors.navigate()` |
+| `GET /api/light/status` | `routeLightStatus` | `Kwal.status.load()` |
 | `GET /api/events` | SSE EventSource | `Kwal.sse.connect()` |
 
 ### 2. SSE Events
 Server-Sent Events push real-time updates. The event name and payload format are contracts:
 
-| Event Name | C++ Sender | JS Handler | Payload |
+| Event Name | C++ Sender | JS Route | Payload |
 |------------|------------|------------|---------|
 | `fragment` | `SseController::cb_onFragmentChange` | `Kwal.sse.onFragment` | `{dir, file, score}` |
 | `light` | `SseController::cb_onLightChange` | `Kwal.sse.onLight` | `{pattern, color}` |
-| `colors` | delete handler | `Kwal.sse.onColors` | full colors list |
-| `patterns` | delete handler | `Kwal.sse.onPatterns` | full patterns list |
+| `colors` | delete route | `Kwal.sse.onColors` | full colors list |
+| `patterns` | delete route | `Kwal.sse.onPatterns` | full patterns list |
 
 ### 3. Response Headers
 Custom headers carry metadata:
@@ -134,7 +134,7 @@ The JS expects specific element IDs in `index.html`:
 
 ## MANDATORY WORKFLOW
 
-### When Changing C++ Handlers:
+### When Changing C++ Routes:
 
 1. **BEFORE editing**: grep the endpoint URL in `sdroot/webgui-src/js/*.js`
 2. **BEFORE editing**: grep the endpoint URL in `sdroot/kwal.js`
@@ -145,7 +145,7 @@ The JS expects specific element IDs in `index.html`:
 
 ### When Changing JS Modules:
 
-1. **BEFORE editing**: verify the endpoint exists in C++ handlers
+1. **BEFORE editing**: verify the endpoint exists in C++ routes
 2. **AFTER editing**: rebuild JS: `cd sdroot/webgui-src; .\build.ps1`
 3. **AFTER editing**: upload to SD: `.\upload_web.ps1`
 4. **ALWAYS**: bump version in `build.ps1` before rebuild
@@ -173,7 +173,7 @@ The JS expects specific element IDs in `index.html`:
 7. ❌ **Forget to run upload_web.ps1 after rebuild**
 8. ❌ **Leave *_new.cpp or *_old.cpp files in the codebase**
 9. ❌ **Move code without checking required #includes**
-10. ❌ **Refactor handlers without testing the web interface**
+10. ❌ **Refactor routes without testing the web interface**
 
 ### Always Do This:
 
@@ -205,14 +205,14 @@ lib/WebInterfaceManager/
 ├── WebInterfaceController.h
 ├── WebUtils.h                 # Shared: sendJson, sendError, etc.
 ├── WEBGUI_CONTRACT.md         # THIS FILE
-└── handlers/
-    ├── PatternsHandlers.cpp/h # /api/patterns/*
-    ├── ColorsHandlers.cpp/h   # /api/colors/*
-    ├── AudioHandlers.cpp/h    # /api/audio/*
-    ├── SdHandlers.cpp/h       # /api/sd/*
-    ├── OtaHandlers.cpp/h      # /ota/*
-    ├── TodayHandlers.cpp/h    # /api/context/*
-    └── SseController.cpp/h       # SSE /api/events
+└── routes/
+    ├── PatternsRoutes.cpp/h # /api/patterns/*
+    ├── ColorsRoutes.cpp/h   # /api/colors/*
+    ├── AudioRoutes.cpp/h    # /api/audio/*
+    ├── SdRoutes.cpp/h       # /api/sd/*
+    ├── OtaRoutes.cpp/h      # /ota/*
+    ├── TodayRoutes.cpp/h    # /api/context/*
+    └── SseController.cpp/h  # SSE /api/events
 
 sdroot/webgui-src/
 ├── build.ps1                  # Builds kwal.js from js/*.js
@@ -243,7 +243,7 @@ sdroot/webgui-src/
 **Prevention**: grep both codebases BEFORE changing any URL.
 
 ### 2. Refactor Without Rebuild/Upload
-**What happened**: Split WebInterfaceController.cpp into handler modules. Did not rebuild kwal.js.
+**What happened**: Split WebInterfaceController.cpp into route modules. Did not rebuild kwal.js.
 **Why obvious**: The JS build is a separate step from firmware build.
 **Result**: Old JS on SD card, version mismatch, confusing behavior.
 **Prevention**: ALWAYS run build.ps1 + upload_web.ps1 after ANY change.
@@ -273,7 +273,7 @@ sdroot/webgui-src/
 **Prevention**: Copy exact field names from working code, never retype.
 
 ### 7. Wrong HTTP Method
-**What happened**: Handler registered for POST, JS sends GET.
+**What happened**: Route registered for POST, JS sends GET.
 **Why obvious**: HTTP method is part of the endpoint contract.
 **Result**: 405 Method Not Allowed.
 **Prevention**: Verify method in both C++ `server.on()` and JS `fetch()`.

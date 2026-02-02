@@ -1,13 +1,13 @@
 /**
  * @file AudioManager.cpp
- * @brief Main audio playback engine for ESP32
+ * @brief Main audio playback core for ESP32
  * @version 251231E
  * @date 2025-12-31
  *
  * This file implements the core audio playback functionality for the Kwal project.
  * It manages the MP3 decoder (using libhelix) and I2S output for audio streaming.
  * Includes an integrated audio level meter for real-time volume monitoring.
- * Handles audio output initialization, sample processing, and gain control.
+ * Manages audio output initialization, sample updates, and gain control.
  */
 
 #include "Globals.h"

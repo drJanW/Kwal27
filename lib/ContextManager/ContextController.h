@@ -1,11 +1,11 @@
 /**
  * @file ContextController.h
- * @brief Central context coordination and TodayContext management interface
+ * @brief Central context coordination and TodayState management interface
  * @version 251231E
  * @date 2025-12-31
  *
  * Header file for the central context coordination system.
- * Defines the ContextController namespace with TimeContext structure for time tracking,
+ * Defines the ContextController namespace with TimeState structure for time tracking,
  * WebCmd enumeration for web interface commands, and functions for managing
  * the application's overall context state.
  */
@@ -16,7 +16,7 @@
 namespace ContextController {
   enum class WebCmd : uint8_t { None = 0, NextTrack, DeleteFile, ApplyVote, BanFile };
 
-  struct TimeContext {
+  struct TimeState {
     uint8_t hour{0};
     uint8_t minute{0};
     uint8_t second{0};
@@ -36,7 +36,7 @@ namespace ContextController {
     bool synced{false};
   };
 
-  const TimeContext& time();
+  const TimeState& time();
   void refreshTimeRead();
   void updateWeather(float minC, float maxC);
   void clearWeather();

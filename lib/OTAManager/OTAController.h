@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * This header declares the OTA (Over-The-Air) update control functions.
- * The OTA system uses a two-step confirmation process for safety:
+ * The OTA system uses a two-step confirmation flow for safety:
  * 1. otaArm() - Arms the OTA mode with a configurable time window (default 5 min)
  * 2. otaConfirmAndReboot() - Confirms and enters OTA mode if still within window
  * The otaBootHandler() must be called early in setup() to check if the device

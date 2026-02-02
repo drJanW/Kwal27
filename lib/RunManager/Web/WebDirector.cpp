@@ -6,7 +6,7 @@
  *
  * Implements async web request handling: SD directory listing with JSON
  * chunking, file deletion, pattern/color catalog operations, and job-based
- * request queuing with TimerManager-driven tick processing.
+ * request queuing with TimerManager-driven tick flow.
  */
 
 #include "WebDirector.h"
@@ -462,8 +462,8 @@ void WebDirector::runSdListJob(Job &job) {
         return;
     }
 
-    size_t processed = 0;
-    while (processed < kSdEntriesPerSlice) {
+    size_t entriesDone = 0;
+    while (entriesDone < kSdEntriesPerSlice) {
         File entry = job.dirHandle.openNextFile();
         if (!entry) {
             job.state = Job::State::Finishing;
@@ -495,7 +495,7 @@ void WebDirector::runSdListJob(Job &job) {
         job.entriesBuffer += F("}");
 
         ++job.entryCount;
-        ++processed;
+        ++entriesDone;
 
         entry.close();
     }
@@ -506,8 +506,8 @@ void WebDirector::runSdDeleteJob(Job &job) {
         return;
     }
 
-    size_t processed = 0;
-    while (processed < kSdDeleteStepsPerSlice) {
+    size_t stepsDone = 0;
+    while (stepsDone < kSdDeleteStepsPerSlice) {
         if (job.sdDeleteStack.empty()) {
             if (job.payloadBuffer.isEmpty()) {
                 job.payloadBuffer = F("{\"status\":\"ok\"}");
@@ -525,7 +525,7 @@ void WebDirector::runSdDeleteJob(Job &job) {
                 failJob(job, 500, String(F("Remove directory failed")));
                 return;
             }
-            ++processed;
+            ++stepsDone;
             continue;
         }
 
@@ -542,7 +542,7 @@ void WebDirector::runSdDeleteJob(Job &job) {
                 failJob(job, 500, String(F("Delete failed")));
                 return;
             }
-            ++processed;
+            ++stepsDone;
             continue;
         }
 
@@ -572,7 +572,7 @@ void WebDirector::runSdDeleteJob(Job &job) {
             child.close();
         }
         dir.close();
-        ++processed;
+        ++stepsDone;
     }
 
     if (job.state == Job::State::Running && job.sdDeleteStack.empty()) {

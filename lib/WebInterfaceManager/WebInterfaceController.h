@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Header for the main web interface controller. Provides public functions
- * to initialize the async web server and handle periodic updates.
+ * to initialize the async web server and run periodic updates.
  * The server exposes REST API endpoints for audio, lights, patterns,
  * colors, context, SD card operations, OTA updates, and health checks.
  */

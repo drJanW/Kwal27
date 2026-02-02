@@ -16,8 +16,8 @@
 #include "SDController.h"
 #include "AudioPolicy.h"
 #include "AudioShiftTable.h"
-#include "ContextFlags.h"
-#include "TodayContext.h"
+#include "StatusFlags.h"
+#include "TodayState.h"
 
 namespace {
 
@@ -202,7 +202,7 @@ bool AudioDirector::selectRandomFragment(AudioFragment& outFrag) {
     AudioPolicy::resetToBaseThemeBox();
     
     // Merge additional theme boxes from audio shifts
-    uint64_t statusBits = ContextFlags::getFullContextBits();
+    uint64_t statusBits = StatusFlags::getFullStatusBits();
     auto additions = AudioShiftTable::instance().getThemeBoxAdditions(statusBits);
     if (!additions.empty()) {
         for (uint8_t boxId : additions) {

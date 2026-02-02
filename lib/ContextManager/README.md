@@ -8,9 +8,9 @@ The runtime brain of the system: gathers state from the environment, normalizes 
 
 - **Calendar**: Calendar CSV parsing and theme lookup
 - **CalendarSelector**: Scheduled calendar selection
-- **ContextFlags**: System-wide boolean flags
+- **StatusFlags**: System-wide boolean flags
 - **LightColors/LightPatterns**: LED show configuration
 - **ThemeBoxTable**: Theme box audio/visual mapping
 - **TimeOfDay**: Time-based context (dawn, day, dusk, night)
-- **TodayContext**: Daily context snapshot
+- **TodayState**: Daily state snapshot
 

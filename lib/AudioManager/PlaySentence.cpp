@@ -484,7 +484,7 @@ void stop() {
 }
 
 void update() {
-    // Housekeeping only - queue processing via speakNext
+    // Housekeeping only - queue updates via speakNext
 }
 
 void speakNext() {

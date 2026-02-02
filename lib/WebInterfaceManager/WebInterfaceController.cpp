@@ -7,7 +7,7 @@
  * Main web interface implementation for the ESP32 Kwal project.
  * Sets up the ESPAsyncWebServer instance, configures all API routes,
  * serves static files from the SD card (index.html, CSS, JS), and
- * delegates endpoint handling to specialized handler modules.
+ * delegates endpoint routing to specialized route modules.
  */
 
 #include <Arduino.h>
@@ -23,16 +23,16 @@
 #include "Alert/AlertState.h"
 #include "Light/LightRun.h"
 
-// Handler modules
-#include "handlers/PatternsHandlers.h"
-#include "handlers/ColorsHandlers.h"
-#include "handlers/AudioHandlers.h"
-#include "handlers/SdHandlers.h"
-#include "handlers/OtaHandlers.h"
-#include "handlers/TodayHandlers.h"
-#include "handlers/HealthHandlers.h"
-#include "handlers/LogHandlers.h"
-#include "handlers/SseController.h"
+// Route modules
+#include "routes/PatternsRoutes.h"
+#include "routes/ColorsRoutes.h"
+#include "routes/AudioRoutes.h"
+#include "routes/SdRoutes.h"
+#include "routes/OtaRoutes.h"
+#include "routes/TodayRoutes.h"
+#include "routes/HealthRoutes.h"
+#include "routes/LogRoutes.h"
+#include "routes/SseController.h"
 #include "Light/LightPolicy.h"
 #include "SensorController.h"
 
@@ -57,7 +57,7 @@ using WebUtils::sendJson;
 
 namespace {
 
-void handleRoot(AsyncWebServerRequest *request)
+void routeRoot(AsyncWebServerRequest *request)
 {
     if (!AlertState::isSdOk()) {
         request->send(503, "text/plain", "OUT OF ORDER - SD card failure");
@@ -70,7 +70,7 @@ void handleRoot(AsyncWebServerRequest *request)
     request->send(SD, "/index.html", "text/html");
 }
 
-void handleSetBrightness(AsyncWebServerRequest *request)
+void routeSetBrightness(AsyncWebServerRequest *request)
 {
     if (!request->hasParam("value")) {
         request->send(400, "text/plain", "Missing ?value");
@@ -111,7 +111,7 @@ void handleSetBrightness(AsyncWebServerRequest *request)
     request->send(200, "text/plain", "OK");
 }
 
-void handleGetBrightness(AsyncWebServerRequest *request)
+void routeGetBrightness(AsyncWebServerRequest *request)
 {
     request->send(200, "text/plain", String(getSliderPct()));
 }
@@ -124,20 +124,20 @@ void beginWebInterface()
     SseController::setup(server, events);
 
     // Core routes
-    server.on("/", HTTP_GET, handleRoot);
-    server.on("/setBrightness", HTTP_GET, handleSetBrightness);
-    server.on("/setBrightness", HTTP_POST, handleSetBrightness);  // Accept both GET and POST
-    server.on("/getBrightness", HTTP_GET, handleGetBrightness);
+    server.on("/", HTTP_GET, routeRoot);
+    server.on("/setBrightness", HTTP_GET, routeSetBrightness);
+    server.on("/setBrightness", HTTP_POST, routeSetBrightness);  // Accept both GET and POST
+    server.on("/getBrightness", HTTP_GET, routeGetBrightness);
 
-    // Attach handler modules
-    AudioHandlers::attachRoutes(server);
-    PatternsHandlers::attachRoutes(server, events);
-    ColorsHandlers::attachRoutes(server, events);
-    SdHandlers::attachRoutes(server);
-    OtaHandlers::attachRoutes(server);
-    TodayHandlers::attachRoutes(server);
-    HealthHandlers::attachRoutes(server);
-    LogHandlers::attachRoutes(server);
+    // Attach route modules
+    AudioRoutes::attachRoutes(server);
+    PatternsRoutes::attachRoutes(server, events);
+    ColorsRoutes::attachRoutes(server, events);
+    SdRoutes::attachRoutes(server);
+    OtaRoutes::attachRoutes(server);
+    TodayRoutes::attachRoutes(server);
+    HealthRoutes::attachRoutes(server);
+    LogRoutes::attachRoutes(server);
 
     // Serve UI assets from SD card
     server.serveStatic("/styles.css", SD, "/styles.css");

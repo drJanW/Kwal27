@@ -6,7 +6,7 @@
  *
  * Implements alert routing: maps AlertRequest values to AlertState
  * updates, triggers RGB failure flash sequences, and coordinates with
- * ContextFlags for hardware failure bit tracking.
+ * StatusFlags for hardware failure bit tracking.
  */
 
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
@@ -17,7 +17,7 @@
 #include "Audio/AudioPolicy.h"
 #include "Speak/SpeakRun.h"
 #include "TimerManager.h"
-#include "ContextFlags.h"
+#include "StatusFlags.h"
 #include "Globals.h"
 #include "SD/SDBoot.h"
 
@@ -47,7 +47,7 @@ const char* requestName(AlertRequest request) {
 }
 
 void cb_statusReminder() {
-    uint64_t failBits = ContextFlags::getHardwareFailBits();
+    uint64_t failBits = StatusFlags::getHardwareFailBits();
     if (failBits == 0) return;
     
     PF("[*Run] Reminder: failures exist (0x%llX)\n", failBits);

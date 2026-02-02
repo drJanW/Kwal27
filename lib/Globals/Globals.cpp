@@ -95,7 +95,7 @@ static bool parseBool(const char* s, bool* out) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Override dispatcher: match key → apply value
+// Override lookup: match key → apply value
 // ─────────────────────────────────────────────────────────────
 
 static void applyOverride(const char* key, char type, const char* value) {

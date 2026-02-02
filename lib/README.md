@@ -31,7 +31,7 @@ RunManager is the decision layer: it consumes context plus request inputs (user/
 Each Policy (AudioPolicy, LightPolicy, SDPolicy, etc.) is now a focused ruleset: given a request and the current context, it enforces local constraints (context-driven brightness caps, playback arbitration) before delegating to the subsystem controllers.
 Net effect: context collects facts, run chooses actions, policies enforce domain-specific guardrails—clean separation that keeps subsystems modular and easier to evolve.
 
-Status ownership rule: controllers only write status to AlertState (or ContextStatus). All status reads must come from AlertState (or ContextStatus), not controller APIs.
+Status ownership rule: controllers only write status to AlertState (or StatusBits). All status reads must come from AlertState (or StatusBits), not controller APIs.
 
 A TimerManager slot fires and runs its callback (e.g., hourly “say time”, periodic fragment shuffle).
 Each callback raises a request toward RunManager (or directly queues a ContextController refresh), never touching hardware.
@@ -53,7 +53,7 @@ Policy layer: enforces priorities, resolves conflicts between runs.
 
 TimerManager: centralized timing, fade scheduling, FSM ticks.
 
-Each module has one global instance, and responsibilities are strictly separated. Dependencies flow top-down: context → run → policy → modules, with TimerManager as shared service
+Each module has one global instance, and responsibilities are strictly separated. Dependencies flow top-down: context → run → policy → modules, with TimerManager as shared core
 
 Analogie:
 Context (seizoen/zaal/programma): welk concert, begintijd, akoestiek, regels van de zaal.

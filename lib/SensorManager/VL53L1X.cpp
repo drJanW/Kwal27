@@ -7,7 +7,7 @@
  * Driver implementation for the VL53L1X time-of-flight laser ranging sensor.
  * This sensor measures distance using laser pulses and provides millimeter-accurate
  * readings. Used for proximity detection to trigger events when objects or people
- * approach the device. Supports configurable timing budget and short/long range modes.
+ * approach the device. Supports configurable timing budget and short/long range settings.
  * Communicates via I2C interface using the SparkFun VL53L1X library.
  */
 
@@ -41,7 +41,7 @@ static void logI2CProbe(uint8_t address, TwoWire &bus) {
     }
 }
 
-bool VL53L1X_begin(uint8_t address, TwoWire &bus, uint16_t timingBudgetMs, bool longMode)
+bool VL53L1X_begin(uint8_t address, TwoWire &bus, uint16_t timingBudgetMs, bool longRange)
 {
     if (!l1x_inited)
     {
@@ -64,7 +64,7 @@ bool VL53L1X_begin(uint8_t address, TwoWire &bus, uint16_t timingBudgetMs, bool 
         VL53_DBG("[SensorController] VL53L1X initialized (ID=0x%04X)\n", l1x.getSensorID());
     }
     l1x_budget = timingBudgetMs ? timingBudgetMs : 50;
-    if (longMode)
+    if (longRange)
         l1x.setDistanceModeLong();
     else
         l1x.setDistanceModeShort();

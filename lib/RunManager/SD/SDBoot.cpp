@@ -243,5 +243,5 @@ void SDBoot::onTimeAvailable() {
         return;
     }
     rebuildPending = false;
-    // Defer rebuild to avoid blocking NTP_OK event processing
+    // Defer rebuild to avoid blocking NTP_OK event flow
     timers.create(100, 1, cb_deferredRebuild);}

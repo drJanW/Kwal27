@@ -24,8 +24,8 @@
 #include "LightController.h"
 #include "Light/LightRun.h"
 #include "TimerManager.h"
-#include "ContextFlags.h"
-#include "ContextStatus.h"
+#include "StatusFlags.h"
+#include "StatusBits.h"
 #include "Globals.h"
 #include <FastLED.h>
 
@@ -129,7 +129,7 @@ void cb_flash() {
     // Cancel any running sequence timer from previous burst
     timers.cancel(cb_sequenceStep);
     
-    cachedNotOkBits = ContextFlags::getHardwareFailBits();
+    cachedNotOkBits = StatusFlags::getHardwareFailBits();
     if (cachedNotOkBits == 0) {
         flashing = false;
         LightRun::reapplyCurrentShow();

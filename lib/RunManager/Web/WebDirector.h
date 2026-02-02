@@ -4,9 +4,9 @@
  * @version 251231E
  * @date 2025-12-31
  *
- * Implements web request handling and response routing. Manages SD file
+ * Implements web request routing and response coordination. Manages SD file
  * listing/deletion, light pattern/color CRUD operations, and job-based
- * async request processing with chunked JSON responses.
+ * async request flow with chunked JSON responses.
  */
 
 #pragma once

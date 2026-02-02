@@ -1,10 +1,10 @@
 /**
  * @file SensorsRun.cpp
- * @brief Sensor data processing state management implementation
+ * @brief Sensor data update state management implementation
  * @version 251231E
  * @date 2025-12-31
  *
- * Implements sensor event processing: reads distance events from SensorController,
+ * Implements sensor event updates: reads distance events from SensorController,
  * applies normalization via SensorsPolicy, and triggers heartbeat rate changes,
  * audio playback, and light animation updates based on filtered distance.
  */
@@ -29,7 +29,7 @@ constexpr uint8_t SENSOR_EVENT_DISTANCE = 0x30;
 
 bool distancePlaybackEligible = false;
 
-void cb_processSensorEvents() {
+void cb_updateSensorEvents() {
     SensorEvent ev;
 
     while (SensorController::readEvent(ev)) {
@@ -82,13 +82,13 @@ void cb_processSensorEvents() {
     }
 
     // Reschedule with current interval (fast or normal)
-    timers.restart(SensorsPolicy::getPollingIntervalMs(), 0, cb_processSensorEvents);
+    timers.restart(SensorsPolicy::getPollingIntervalMs(), 0, cb_updateSensorEvents);
 }
 
 } // namespace
 
 void SensorsRun::plan() {
     distancePlaybackEligible = false;
-    timers.restart(SensorsPolicy::getPollingIntervalMs(), 0, cb_processSensorEvents);
-    PF("[Run][Plan] Sensor processing scheduled\n");
+    timers.restart(SensorsPolicy::getPollingIntervalMs(), 0, cb_updateSensorEvents);
+    PF("[Run][Plan] Sensor update scheduled\n");
 }

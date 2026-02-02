@@ -7,7 +7,7 @@
  * Implementation of the LightController class for controlling addressable LED strips
  * using the FastLED library. Handles brightness adjustment, color management,
  * measurement enable for sensor calibration, and visual feedback patterns.
- * Provides centralized LED hardware control with support for various display modes.
+ * Provides centralized LED hardware control with support for various display presets.
  */
 
 #include <Arduino.h>
@@ -112,7 +112,7 @@ void cb_brightCycle() { brightPhase++; }
 static void cb_xPhase() { xPhase++; }
 static void cb_yPhase() { yPhase++; }
 
-// === Dispatcher/Update ===
+// === Update ===
 void updateLightController() {
   applyBrightness();
 

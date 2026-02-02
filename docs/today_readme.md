@@ -39,7 +39,7 @@ Minutes are kept inclusive of the left boundary and exclusive of the right.
   anchors above.
 * Evaluate periods every 10 minutes; crossing guards decide when each boolean
   flips.
-* Each band lives on TodayContext and is consumed by policy layers.
+* Each band lives on TodayState and is consumed by policy layers.
 * Keep terminology stable (`isMorning`, `isDusk`, etc.) so it matches the
   spreadsheet and charter clause 2.2.
 

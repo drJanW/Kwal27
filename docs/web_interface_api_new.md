@@ -12,7 +12,7 @@ _Status: NA IMPLEMENTATIE_
    - `400` → malformed parameters / validation error
    - `404` → SD path not found
    - `500` → internal failure
-   - `503` → SD card busy of TodayContext unavailable
+  - `503` → SD card busy of TodayState unavailable
 
 ## 2. SSE Events (primaire communicatie)
 
@@ -132,7 +132,7 @@ Header: `X-Pattern: rainbow` (active pattern ID)
 
 **Create payload (geen id):**
 ```json
-{ "label": "Mijn Pattern", "speed": 50, "mode": 2, "select": true }
+{ "label": "Mijn Pattern", "speed": 50, "preset": 2, "select": true }
 ```
 
 **Update payload (met id):**
@@ -201,7 +201,7 @@ CSV upload triggert catalog reload → SSE patterns/colors indien relevant.
 | Endpoint | Methode | Response |
 |----------|---------|----------|
 | `/api/health` | GET | System diagnostics JSON |
-| `/api/context/today` | GET | TodayContext snapshot |
+| `/api/context/today` | GET | TodayState snapshot |
 
 ### /api/health Response (v260104+)
 

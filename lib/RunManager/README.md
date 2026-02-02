@@ -9,7 +9,7 @@ Every subsystem that lives under `lib/RunManager/**` follows the same stack so w
 | Layer | Responsibility | Typical Files |
 | --- | --- | --- |
 | **Boot** | Register timers, seed caches, hand off any pointers that run/policy will need later. Boot files run exactly once during system bring-up. | `AudioBoot.*`, `LightBoot.*`, `BootMaster.*` |
-| **Run** | Orchestrate requests. They own timer callbacks, subscribe to controller signals, and decide which director to invoke. Run code may _sequence_ work but must not invent behaviour. | `*Run.*`, `RunManager.*` |
+| **Run** | Coordinate requests. They own timer callbacks, subscribe to controller signals, and decide which director to invoke. Run code may _sequence_ work but must not invent behaviour. | `*Run.*`, `RunManager.*` |
 | **Director** | Translate context + storage into actionable requests. Directors query controllers (state, SD indices, calendar rows) and shape the payload that policies evaluate. They never touch hardware APIs directly. | `*Director.*` |
 | **Policy** | Enforce rules for a single domain (audio, light, OTA, etc.). Policies approve/deny requests, clamp levels, pick intervals, and expose helpers such as “distance playback volume”. They cannot schedule timers or manipulate global singletons. | `*Policy.*` |
 | **Controller** | Own hardware drivers and runtime state. Controllers expose query/update APIs and keep the state machines honest. | `AudioManager.*`, `LightController.*`, `SDController.*`, ... |
@@ -25,7 +25,7 @@ Every subsystem that lives under `lib/RunManager/**` follows the same stack so w
 
 ## Boot Discipline
 
-- `BootMaster` coordinates shared start-up (clock seeding, fallback timers) and hands off once common services are alive.
+- `BootMaster` coordinates shared start-up (clock seeding, fallback timers) and hands off once common modules are alive.
 - Each subsystem boot (`AudioBoot`, `LightBoot`, etc.) is responsible for: registering timers with `TimerManager`, caching pointers (e.g. PCM clips), and logging readiness via `PL("[Run][Plan] ...")`.
 - Boot layers must never start behaviour directly. They only prepare the scaffolding so that `RunManager::update()` and the subsystem runners can run deterministically.
 
@@ -72,7 +72,7 @@ Files: `AlertPolicy.h`, `AlertRGB.cpp`, `AlertState.h`, `AlertState.cpp`
 - ✅ Directors read data (calendar CSV, SD index, sensors) and return structured plans. They never make policy decisions.
 - ✅ Policies accept a plan and spit back either a green-light (with concrete numbers) or “no” with a reason. No side effects besides cached clamp state.
 - ✅ Controllers expose explicit APIs for every action; do not reach into singletons or globals directly from run/policy code.
-- ✅ Controllers write status to AlertState (or ContextStatus); status reads belong to AlertState (or ContextStatus), not controller APIs.
+- ✅ Controllers write status to AlertState (or StatusBits); status reads belong to AlertState (or StatusBits), not controller APIs.
 - ❌ No layer except controllers talks to hardware (`FastLED`, `I2S`, `SPI`, raw GPIO).
 - ❌ Policies never schedule timers, mutate controller state directly, or call other policies.
 - ❌ Runners do not normalise raw sensor readings—that belongs to the relevant input policy/controller.

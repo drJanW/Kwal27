@@ -53,7 +53,7 @@ public:
     static LightSource getPatternSource();
     static LightSource getColorSource();
 
-    // Request methods for TodayContext (returns ContextModels structs)
+    // Request methods for TodayState (returns TodayModels structs)
     static bool describePatternById(uint8_t id, LightPattern& out);
     static bool describeActivePattern(LightPattern& out);
     static bool describeColorById(uint8_t id, LightColor& out);

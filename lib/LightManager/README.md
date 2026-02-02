@@ -10,7 +10,7 @@ Universele struct: LightShowParams (kleur, cycli, type)
 
 Show-specifieke struct: ExtraXXParams (alleen in LightController.h)
 
-Dispatchers: PlayXXShow() in LightController.cpp
+Play entry points: PlayXXShow() in LightController.cpp
 
 Geen eigen timers, geen millis(), geen struct-definities in show-headers
 
@@ -22,11 +22,11 @@ Maak een struct ExtraFireflyParams in LightController.h
 
 Voeg aan enum LightShow in LightController.h je nieuwe show toe.
 
-Voeg dispatcher toe in LightController.h: void PlayFireflyShow(const LightShowParams&, const ExtraFireflyParams& = dummyFireflyParams);
+Voeg play entry point toe in LightController.h: void PlayFireflyShow(const LightShowParams&, const ExtraFireflyParams& = dummyFireflyParams);
 
 Voeg include toe in LightController.h: #include "FireflyShow.h"
 
-Implementeer dispatcher in LightController.cpp (zie voorbeeld)
+Implementeer play entry point in LightController.cpp (zie voorbeeld)
 
 Voeg aan switch/case van updateLightController() en PlayLightShow() jouw show toe.
 

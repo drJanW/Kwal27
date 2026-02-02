@@ -1,12 +1,12 @@
 /**
  * @file CalendarRun.cpp
- * @brief Calendar context state management implementation
+ * @brief Calendar state management implementation
  * @version 251231E
  * @date 2025-12-31
  *
  * Implements calendar state management: loads calendar CSV from SD card,
  * schedules periodic calendar sentence announcements, and coordinates
- * context updates with the light and audio subsystems.
+ * state updates with the light and audio subsystems.
  */
 
 #include <Arduino.h>
@@ -19,7 +19,7 @@
 #include "TimerManager.h"
 #include "PRTClock.h"
 #include "SDController.h"
-#include "TodayContext.h"
+#include "TodayState.h"
 #include "Light/LightRun.h"
 #include "Alert/AlertState.h"
 
@@ -41,26 +41,26 @@ struct CalendarRunLogFlags {
 CalendarRunLogFlags logFlags;
 bool initialDelayPending = true;
 
-TodayContext todayContext;
-bool todayContextValid = false;
+TodayState todayState;
+bool todayStateValid = false;
 
 void resetLogFlags() {
   logFlags.controllerNotReady = false;
   logFlags.sdBusy = false;
 }
 
-void clearTodayContextRead() {
-  todayContext = TodayContext{};
-  todayContextValid = false;
+void clearTodayStateRead() {
+  todayState = TodayState{};
+  todayStateValid = false;
 }
 
-void refreshTodayContextRead() {
-  TodayContext ctx;
-  if (LoadTodayContext(ctx) && ctx.valid) {
-    todayContext = ctx;
-    todayContextValid = true;
+void refreshTodayStateRead() {
+  TodayState state;
+  if (LoadTodayState(state) && state.valid) {
+    todayState = state;
+    todayStateValid = true;
   } else {
-    clearTodayContextRead();
+    clearTodayStateRead();
   }
 }
 
@@ -169,7 +169,7 @@ void CalendarRun::cb_loadCalendar() {
     CalendarPolicy::applyThemeBox(CalendarThemeBox{});
     LightRun::applyPattern(0);
     LightRun::applyColor(0);
-    clearTodayContextRead();
+    clearTodayStateRead();
     AlertState::setCalendarStatus(true);  // OK - geen bijzondere dag
     RunManager::triggerBootFragment();  // Theme box set, play first fragment
     PL("[CalendarRun] No calendar data for today");
@@ -184,7 +184,7 @@ void CalendarRun::cb_loadCalendar() {
     CalendarPolicy::applyThemeBox(CalendarThemeBox{});
     LightRun::applyPattern(0);
     LightRun::applyColor(0);
-    clearTodayContextRead();
+    clearTodayStateRead();
     timers.restart(Globals::calendarRefreshIntervalMs, 0, CalendarRun::cb_loadCalendar);
     return;
   }
@@ -220,7 +220,7 @@ void CalendarRun::cb_loadCalendar() {
   LightRun::applyPattern(calData.day.patternId);
   LightRun::applyColor(calData.day.colorId);
 
-  refreshTodayContextRead();
+  refreshTodayStateRead();
   AlertState::setCalendarStatus(true);
   RunManager::triggerBootFragment();  // Theme box set, play first fragment
   PL("[CalendarRun] Calendar loaded");
@@ -235,14 +235,14 @@ void CalendarRun::cb_calendarSentence() {
   CalendarPolicy::speakSentence(sentence);
 }
 
-bool CalendarRun::contextReady() const {
-  return todayContextValid && todayContext.valid;
+bool CalendarRun::todayReady() const {
+  return todayStateValid && todayState.valid;
 }
 
-bool CalendarRun::contextRead(TodayContext& out) const {
-  if (!contextReady()) {
+bool CalendarRun::todayRead(TodayState& out) const {
+  if (!todayReady()) {
     return false;
   }
-  out = todayContext;
+  out = todayState;
   return true;
 }

@@ -5,7 +5,7 @@ NAMING CANON (must follow):
 - Use `run*` or `do*` for execution functions. Avoid the word `dispatch`.
 - Use `select*` and `*Selector` for choosing logic.
 - Use `Rules` for allow/priority/conflict checks.
-- Use `Flags` for simultaneous conditions (bitmask), NOT `Mode` and NOT `State` unless it is truly progress/FSM.
+- Use `Flags` for simultaneous conditions (bitmask), NOT `Preset`/`Profile` and NOT `State` unless it is truly progress/FSM.
 - Replace vague container words: avoid Intent, Conduct, Context (as container), Orchestrator, Engine, Service, Strategy.
 - Replace Store:
   - CRUD/collection/config -> `Catalog`

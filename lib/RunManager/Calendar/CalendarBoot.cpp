@@ -5,7 +5,7 @@
  * @date 2025-12-31
  *
  * Implements calendar boot sequence with retry logic. Waits for both SD card
- * and system clock to be available before initializing TodayContext from
+ * and system clock to be available before initializing TodayState from
  * calendar CSV data on SD card.
  */
 
@@ -19,7 +19,7 @@
 #include "Alert/AlertState.h"
 #include <SD.h>
 
-bool InitTodayContext(fs::FS& sd, const char* rootPath = "/");
+bool InitTodayState(fs::FS& sd, const char* rootPath = "/");
 
 CalendarBoot calendarBoot;
 
@@ -32,7 +32,7 @@ constexpr int32_t  retryCount   = -14;           // 14 retries with growing inte
 bool loggedSdWait = false;
 bool loggedClockWait = false;
 bool loggedInitFail = false;
-bool loggedContextFail = false;
+bool loggedStateFail = false;
 
 void armRetry();
 void cancelRetry();
@@ -100,17 +100,17 @@ void CalendarBoot::plan() {
     PF("[CalendarBoot] Calendar selector initialised\n");
   }
 
-  if (!InitTodayContext(SD)) {
-    if (!loggedContextFail) {
-      PF("[CalendarBoot] Today context init failed\n");
-      loggedContextFail = true;
+  if (!InitTodayState(SD)) {
+    if (!loggedStateFail) {
+      PF("[CalendarBoot] Today state init failed\n");
+      loggedStateFail = true;
     }
     armRetry();
     return;
   }
-  loggedContextFail = false;
+  loggedStateFail = false;
 
-  PF("[CalendarBoot] Today context initialised\n");
+  PF("[CalendarBoot] Today state initialised\n");
   AlertState::setStatusOK(SC_CALENDAR);
   cancelRetry();
 }
