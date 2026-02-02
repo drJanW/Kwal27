@@ -1,4 +1,3 @@
 #pragma once
 
-// Legacy shim header. Use routes/TodayRoutes.h instead.
-#include "../routes/TodayRoutes.h"
+// Legacy shim removed. Include routes/TodayRoutes.h instead.

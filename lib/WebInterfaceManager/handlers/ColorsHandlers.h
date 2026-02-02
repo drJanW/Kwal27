@@ -1,4 +1,3 @@
 #pragma once
 
-// Legacy shim header. Use routes/ColorsRoutes.h instead.
-#include "../routes/ColorsRoutes.h"
+// Legacy shim removed. Include routes/ColorsRoutes.h instead.

@@ -1,11 +1,10 @@
 /**
  * @file CalendarSelector.h
- * @brief Legacy shim header
+ * @brief Legacy shim removed
  * @version 251231E
  * @date 2025-12-31
  */
 
 #pragma once
 
-// Legacy shim header. Use Calendar.h instead.
-#include "Calendar.h"
+// Legacy shim removed. Include Calendar.h instead.

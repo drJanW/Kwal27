@@ -1,2 +1,1 @@
-#include <Arduino.h>
-#include "SseController.h"
+// Legacy shim removed.

@@ -1,2 +1,2 @@
-#include "Calendar.h"
+// Legacy shim removed.
 

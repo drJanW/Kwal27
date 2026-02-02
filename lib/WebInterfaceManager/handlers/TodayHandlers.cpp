@@ -1,1 +1,1 @@
-#include "../routes/TodayRoutes.h"
+// Legacy shim removed.

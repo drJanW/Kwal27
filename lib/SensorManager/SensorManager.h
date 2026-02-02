@@ -1,4 +1,3 @@
 #pragma once
 
-// Legacy shim header. Use SensorController.h instead.
-#include "SensorController.h"
+// Legacy shim removed. Include SensorController.h instead.

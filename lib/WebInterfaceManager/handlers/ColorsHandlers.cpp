@@ -1,1 +1,1 @@
-#include "../routes/ColorsRoutes.h"
+// Legacy shim removed.

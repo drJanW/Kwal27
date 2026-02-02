@@ -1,1 +1,1 @@
-#include "../routes/SseController.h"
+// Legacy shim removed.

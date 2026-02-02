@@ -1,4 +1,3 @@
 #pragma once
 
-// Legacy shim header. Use routes/OtaRoutes.h instead.
-#include "../routes/OtaRoutes.h"
+// Legacy shim removed. Include routes/OtaRoutes.h instead.

@@ -1,4 +1,3 @@
 #pragma once
 
-// Legacy shim header. Use ThemeBoxTable.h instead.
-#include "ThemeBoxTable.h"
+// Legacy shim removed. Include ThemeBoxTable.h instead.

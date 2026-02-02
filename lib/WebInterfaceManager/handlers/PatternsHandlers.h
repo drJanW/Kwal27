@@ -1,4 +1,3 @@
 #pragma once
 
-// Legacy shim header. Use routes/PatternsRoutes.h instead.
-#include "../routes/PatternsRoutes.h"
+// Legacy shim removed. Include routes/PatternsRoutes.h instead.

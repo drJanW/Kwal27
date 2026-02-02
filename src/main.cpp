@@ -1,7 +1,7 @@
 /**
  * @file main.cpp
  * @brief Kwal ESP32 Firmware - Main entry point
- * @version 260128A
+ * @version 260128A for this file, see globals.h for project version
  * @date 2026-01-28
  *
  * This is the main entry point for the Kwal ambient light and audio sculpture.

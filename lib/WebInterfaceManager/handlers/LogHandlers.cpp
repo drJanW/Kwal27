@@ -1,1 +1,1 @@
-#include "../routes/LogRoutes.h"
+// Legacy shim removed.

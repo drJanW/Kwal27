@@ -1,4 +1,3 @@
 #pragma once
 
-// Legacy shim header. Use LightController.h instead.
-#include "LightController.h"
+// Legacy shim removed. Include LightController.h instead.

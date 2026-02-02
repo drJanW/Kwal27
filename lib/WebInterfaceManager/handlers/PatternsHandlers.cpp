@@ -1,1 +1,1 @@
-#include "../routes/PatternsRoutes.h"
+// Legacy shim removed.

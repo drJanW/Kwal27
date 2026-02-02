@@ -1,4 +1,3 @@
 #pragma once
 
-// Legacy shim header. Use OTAController.h instead.
-#include "OTAController.h"
+// Legacy shim removed. Include OTAController.h instead.

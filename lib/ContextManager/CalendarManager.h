@@ -1,4 +1,3 @@
 #pragma once
 
-// Legacy shim header. Use CalendarSelector.h instead.
-#include "CalendarSelector.h"
+// Legacy shim removed. Include Calendar.h instead.

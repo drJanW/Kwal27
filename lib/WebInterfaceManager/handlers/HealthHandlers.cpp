@@ -1,1 +1,1 @@
-#include "../routes/HealthRoutes.h"
+// Legacy shim removed.
