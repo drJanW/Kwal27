@@ -21,14 +21,14 @@ Goal: SD status reads come only from AlertState. SDController should only write 
             lib/ConductManager/Light/ColorsCatalog.cpp
             lib/ConductManager/Speak/SpeakRun.cpp
             lib/AudioManager/PlayPCM.cpp
-            lib/WebInterfaceManager/routes/SdRoutes.cpp
+            lib/WebInterfaceController/routes/SdRoutes.cpp
 
 4) DONE: Replaced SDController::isSDbusy() call sites with AlertState::isSdBusy()
    - Files: lib/ConductManager/SD/SDPolicy.cpp
             lib/ConductManager/Calendar/CalendarRun.cpp
             lib/ConductManager/Web/WebDirector.cpp
-            lib/SDManager/SDVoting.cpp
-            lib/WebInterfaceManager/routes/SdRoutes.cpp
+            lib/SDController/SDVoting.cpp
+            lib/WebInterfaceController/routes/SdRoutes.cpp
 
 5) DONE: SDController now sets AlertState SD ready/busy
 

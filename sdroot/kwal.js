@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v20260202E - Built 2026-02-02 10:40
+ * Kwal WebGUI v260202F - Built 2026-02-02 17:22
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '20260202E';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260202F';  // Injected by build.ps1
 
 
 // === js/state.js ===

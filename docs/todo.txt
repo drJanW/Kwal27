@@ -1,24 +1,14 @@
 todo list
-Updated: 2026-01-05
+Updated: 2026-02-02
 
 REGEL: Geen "Completed" sectie. Succes = delete uit todo.
 
 === Active ===
-B6. Brightness slider lux trigger met cooldown
-    - Slider change triggert lux herberekening met 60s cooldown
-    - baseBrightness wordt niet herberekend na slider change
-    - Zie: docs/plan_b6_brightness_cooldown.md
-    - FIX NEEDED: Replace millis() with boolean+timer pattern
-    - FIX NEEDED: pushState() after lux measurement for SSE update
+
 
 b9. Re-read calendar after midnight for new day
 
-b10. Calibrating lux sensor
 
-b11. Rename luxBeta → luxOffset in Globals.h + Globals.cpp
-    - Variable meaning changed from "exponential steepness" to "linear offset"
-    - Name should match purpose
-    - Also update parser in Globals.cpp
 
 b12. Replace linear lux formula with Stevens' power law
     - Current: linear (luxFactor = offset + scale × lux/L_MAX)
@@ -39,6 +29,48 @@ F2. HTTP upload endpoint voor SD card
     - Multipart form-data voor file upload
     - Werkt met browser en PowerShell scripts
 
+
+
+=== Minor Bugs ===
+
+
+=== Housekeeping ===
+
+H4. Refactor WiFiController.cpp timer usage
+    - Does not use timers correctly, superfluous state checking
+    - Source: A56/WiFiController.cpp
+
+H5. Refactor BootMaster.cpp
+    - Clean up, check overlap with SystemBoot.cpp
+    - Source: A56/BootMaster.cpp
+
+H6. Review SDVoting.cpp file selection
+    - Contains random file selection logic - belongs in Director?
+    - Source: A56/SDVoting.cpp
+
+H7. Review StatusPolicy.cpp stub
+    - Determine if refactor needed or intentionally minimal
+    - Source: A56/StatusPolicy.cpp
+
+H8. Review TimerManager::instance() pattern
+    - Consider global `timers` reference vs singleton
+    - See A56/TodoSal.txt for DI architecture notes
+    - Pattern: std::atomic<float> webShift{1.0f}; met .load()/.store()
+
+=== side lined ===
+B6. Brightness slider lux trigger met cooldown
+    - Slider change triggert lux herberekening met 60s cooldown
+    - baseBrightness wordt niet herberekend na slider change
+    - Zie: docs/plan_b6_brightness_cooldown.md
+    - FIX NEEDED: Replace millis() with boolean+timer pattern
+    - FIX NEEDED: pushState() after lux measurement for SSE update
+b10. Calibrating lux sensor
+
+b11. Rename luxBeta → luxOffset in Globals.h + Globals.cpp
+    - Variable meaning changed from "exponential steepness" to "linear offset"
+    - Name should match purpose
+    - Also update parser in Globals.cpp
+
 F3. Simplify brightness shifts: HSV V → FastLED
     - Verwijder colorA.value/colorB.value uit colorsShifts.csv
     - Voeg globalBrightness kolom toe
@@ -50,11 +82,6 @@ F9. Implement distanceAnimationFor() in LightPolicy
     - Currently a stub returning false
     - Distance-driven LED animation modulation
     - Stub location: LightPolicy.cpp:47
-
-=== Minor Bugs ===
-
-
-=== Housekeeping ===
 H1. Refactor codebase according to glossary terminology rules
     - modifier (0-1), multiplier (any float), pct (0-100), shift (additive)
     - brightness (not bright), volume (not gain except I2S)
@@ -78,28 +105,6 @@ H3. Make webShift and brightnessShiftedHi atomic
     - LightController.cpp: webShift en brightnessShiftedHi zijn niet atomic
     - AudioState.cpp gebruikt WEL std::atomic voor g_volumeShiftedHi, g_volumeWebModifier
     - Voor consistentie en thread-safety: maak ze atomic
-
-H4. Refactor WiFiController.cpp timer usage
-    - Does not use timers correctly, superfluous state checking
-    - Source: A56/WiFiController.cpp
-
-H5. Refactor BootMaster.cpp
-    - Clean up, check overlap with SystemBoot.cpp
-    - Source: A56/BootMaster.cpp
-
-H6. Review SDVoting.cpp file selection
-    - Contains random file selection logic - belongs in Director?
-    - Source: A56/SDVoting.cpp
-
-H7. Review StatusPolicy.cpp stub
-    - Determine if refactor needed or intentionally minimal
-    - Source: A56/StatusPolicy.cpp
-
-H8. Review TimerManager::instance() pattern
-    - Consider global `timers` reference vs singleton
-    - See A56/TodoSal.txt for DI architecture notes
-    - Pattern: std::atomic<float> webShift{1.0f}; met .load()/.store()
-
 
 ### not ordered new issues/ideas
 

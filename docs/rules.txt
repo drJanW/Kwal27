@@ -282,7 +282,7 @@ WEBGUI
 ================================================================
 
 W1. BEFORE touching web interface/API/SSE/JS:
-    Read lib/WebInterfaceManager/WEBGUI_CONTRACT.md
+  Read lib/WebInterfaceController/WEBGUI_CONTRACT.md
 W2. NEVER edit sdroot/kwal.js directly (build output)
 W3. Edit sources in sdroot/webgui-src/js/*.js
 W4. After JS changes: Copilot bumps version in build.ps1, runs build.ps1, runs upload_web.ps1 <lastOctet>

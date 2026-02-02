@@ -9,7 +9,7 @@ constexpr size_t BUFFER_SIZE = 8192;
 // Returns true if timestamp was written, false to skip timestamp
 using TimestampProvider = bool (*)(char* buf, size_t bufSize);
 
-// Set timestamp provider (called by ClockManager after init)
+// Set timestamp provider (called by ClockController after init)
 void setTimestampProvider(TimestampProvider provider);
 
 // Get current timestamp string (returns empty if no provider or provider returns false)

@@ -8,7 +8,7 @@ This document defines the **binding contract** between the ESP32 C++ backend and
 
 | Component | Location | Output | Deployment |
 |-----------|----------|--------|------------|
-| **C++ Backend** | `lib/WebInterfaceManager/` | Firmware | Flash via PlatformIO |
+| **C++ Backend** | `lib/WebInterfaceController/` | Firmware | Flash via PlatformIO |
 | **JS Frontend** | `sdroot/webgui-src/js/*.js` | `sdroot/kwal.js` | Upload to SD card |
 
 **BOTH must be updated together when changing APIs.**
@@ -83,7 +83,7 @@ cd ../..   # back to project root
 ### C++ Build Pipeline (PlatformIO handles this)
 
 ```
-lib/WebInterfaceManager/*.cpp  ──► pio run ──► firmware.bin ──► Flash to ESP32
+lib/WebInterfaceController/*.cpp  ──► pio run ──► firmware.bin ──► Flash to ESP32
 ```
 
 For C++ the build is automatic when you run `pio run` or click Upload.
@@ -200,7 +200,7 @@ The JS expects specific element IDs in `index.html`:
 ## FILE STRUCTURE REFERENCE
 
 ```
-lib/WebInterfaceManager/
+lib/WebInterfaceController/
 ├── WebInterfaceController.cpp    # Main setup, core routes
 ├── WebInterfaceController.h
 ├── WebUtils.h                 # Shared: sendJson, sendError, etc.
