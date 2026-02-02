@@ -21,10 +21,52 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+$repoRoot = git rev-parse --show-toplevel
+if ($LASTEXITCODE -ne 0 -or -not $repoRoot) {
+    Write-Host "✗ FOUT: Kan git root niet bepalen."
+    exit 1
+}
+$repoName = Split-Path -Leaf $repoRoot
+
+$remoteName = "nas"
+$remotePath = "T:\git\$repoName.git"
+
+# Ensure NAS repo exists (auto-init)
+if (-not (Test-Path $remotePath)) {
+    $remoteRoot = Split-Path -Parent $remotePath
+    if (-not (Test-Path $remoteRoot)) {
+        Write-Host "✗ FOUT: NAS map bestaat niet: $remoteRoot"
+        exit 1
+    }
+    Write-Host "ⓘ NAS repo bestaat niet, initialiseren: $remotePath"
+    git init --bare $remotePath | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "✗ FOUT: Kon NAS repo niet initialiseren."
+        exit 1
+    }
+}
+
+# Ensure remote exists and points to the right path
+$currentRemote = git remote get-url $remoteName 2>$null
+if ($LASTEXITCODE -ne 0 -or -not $currentRemote) {
+    git remote add $remoteName $remotePath
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "✗ FOUT: Kon remote '$remoteName' niet toevoegen."
+        exit 1
+    }
+} elseif ($currentRemote -ne $remotePath) {
+    git remote set-url $remoteName $remotePath
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "✗ FOUT: Kon remote '$remoteName' niet bijwerken."
+        exit 1
+    }
+}
+
 Write-Host "========================================"
 Write-Host "COMMIT & PUSH NAAR NAS"
 Write-Host "Branch: $branch"
-Write-Host "Remote: nas (T:\git\Kwal26.git)"
+Write-Host "Repo: $repoName"
+Write-Host "Remote: $remoteName ($remotePath)"
 Write-Host "Beschrijving: $beschrijving"
 Write-Host "========================================"
 
@@ -46,8 +88,8 @@ $skipCommit = $false
 if (-not $wijzigingen) {
     Write-Host "  ⓘ Geen uncommitted wijzigingen."
     # Check of local ahead is van nas
-    git fetch nas 2>$null
-    $ahead = git rev-list --count nas/$branch..HEAD 2>$null
+    git fetch $remoteName 2>$null
+    $ahead = git rev-list --count $remoteName/$branch..HEAD 2>$null
     if ($ahead -gt 0) {
         Write-Host "  ✓ Lokaal $ahead commit(s) voor op NAS - doorgaan met push"
         $skipCommit = $true
@@ -75,7 +117,7 @@ if (-not $skipCommit) {
 
 # Pull --rebase (voor laptop/desktop sync)
 Write-Host "`n[4/5] Controleren of NAS nieuwere versie heeft..."
-git pull --rebase nas $branch 2>$null
+git pull --rebase $remoteName $branch 2>$null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  ⚠️  BOTSING MET NAS!"
     Write-Host "  Iemand anders heeft ook gepusht."
@@ -91,7 +133,7 @@ Write-Host "  ✓ Up-to-date met NAS"
 
 # Push
 Write-Host "`n[5/5] Pushen naar NAS..."
-git push nas $branch
+git push $remoteName $branch
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  ✗ FOUT: Push naar NAS mislukt."
     exit 1
