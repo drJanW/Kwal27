@@ -180,7 +180,7 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     // CSV HTTP (3 params)
     // ─────────────────────────────────────────────────────────────
-    inline static char     csvBaseUrl[96]            = "http://192.168.2.23:8080/csv/"; // Base URL for CSV fetch
+    inline static char     csvBaseUrl[96]            = "http://192.168.2.23:8081/csv/"; // Base URL for CSV fetch
     inline static uint32_t csvHttpTimeoutMs          = 5000UL;    // HTTP timeout per CSV
     inline static uint32_t csvFetchWaitMs            = 6000UL;    // Wait for WiFi before SD fallback
 

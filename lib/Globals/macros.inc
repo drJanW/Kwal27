@@ -48,6 +48,10 @@
 #define LOG_HEARTBEAT 0
 #endif
 
+#ifndef LOG_TIMESTAMP
+#define LOG_TIMESTAMP 1
+#endif
+
 #if SERIAL_ENABLED
 
 #define LOG_LEVEL_ACTIVE(lvl) ((lvl) <= LOCAL_LOG_LEVEL)
@@ -68,19 +72,23 @@
 
 #define PP(x) do { if (LOG_LEVEL_ACTIVE(LOG_LEVEL_INFO)) Serial.print(x); } while (0)
 #define PL(x) do { \
-    char __ts[12]; \
-    if (LogBuffer::getTimestamp(__ts, sizeof(__ts)) > 0) { \
-        LogBuffer::appendf("%s", __ts); \
-        if (LOG_LEVEL_ACTIVE(LOG_LEVEL_INFO)) Serial.print(__ts); \
+    if (LOG_TIMESTAMP) { \
+        char __ts[12]; \
+        if (LogBuffer::getTimestamp(__ts, sizeof(__ts)) > 0) { \
+            LogBuffer::appendf("%s", __ts); \
+            if (LOG_LEVEL_ACTIVE(LOG_LEVEL_INFO)) Serial.print(__ts); \
+        } \
     } \
     LogBuffer::appendLine(x); \
     LOG_INFO_LN(x); \
 } while(0)
 #define PF(...) do { \
-    char __ts[12]; \
-    if (LogBuffer::getTimestamp(__ts, sizeof(__ts)) > 0) { \
-        LogBuffer::appendf("%s", __ts); \
-        if (LOG_LEVEL_ACTIVE(LOG_LEVEL_INFO)) Serial.print(__ts); \
+    if (LOG_TIMESTAMP) { \
+        char __ts[12]; \
+        if (LogBuffer::getTimestamp(__ts, sizeof(__ts)) > 0) { \
+            LogBuffer::appendf("%s", __ts); \
+            if (LOG_LEVEL_ACTIVE(LOG_LEVEL_INFO)) Serial.print(__ts); \
+        } \
     } \
     LogBuffer::appendf(__VA_ARGS__); \
     LOG_INFO(__VA_ARGS__); \
@@ -106,13 +114,17 @@
 #define LOG_DEBUG_LN(msg)
 #define PP(x)
 #define PL(x) do { \
-    char __ts[12]; \
-    if (LogBuffer::getTimestamp(__ts, sizeof(__ts)) > 0) LogBuffer::appendf("%s", __ts); \
+    if (LOG_TIMESTAMP) { \
+        char __ts[12]; \
+        if (LogBuffer::getTimestamp(__ts, sizeof(__ts)) > 0) LogBuffer::appendf("%s", __ts); \
+    } \
     LogBuffer::appendLine(x); \
 } while(0)
 #define PF(...) do { \
-    char __ts[12]; \
-    if (LogBuffer::getTimestamp(__ts, sizeof(__ts)) > 0) LogBuffer::appendf("%s", __ts); \
+    if (LOG_TIMESTAMP) { \
+        char __ts[12]; \
+        if (LogBuffer::getTimestamp(__ts, sizeof(__ts)) > 0) LogBuffer::appendf("%s", __ts); \
+    } \
     LogBuffer::appendf(__VA_ARGS__); \
 } while(0)
 #define PL_BOOT(x)
