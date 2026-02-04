@@ -21,6 +21,11 @@ Controllers (hardware APIs)    Directors (context→requests)
 
 ## Critical Rules
 
+### Decision Discipline
+- You may question me, please do.
+- Never ignore a direct request.
+- Never reverse a decision without asking first.
+
 ### Terminology Discipline
 - Never introduce new terms as synonyms. If a term exists, reuse it.
 - New terms must mean new concepts and require explicit approval.
@@ -32,7 +37,7 @@ Controllers (hardware APIs)    Directors (context→requests)
 
 ### Version Bumping (BEFORE any code change)
 - Firmware: [lib/Globals/Globals.h](../lib/Globals/Globals.h) → `FIRMWARE_VERSION`
-- WebGUI JS: [sdroot/webgui-src/build.ps1](../sdroot/webgui-src/build.ps1#L23) → `$version`
+- WebGUI JS: [sdroot/webgui-src/build.ps1](../sdroot/webgui-src/build.ps1) → `$version` **ONLY when WebGUI sources change**
 
 ### WebGUI Pipeline (JS is NOT auto-built)
 ```powershell

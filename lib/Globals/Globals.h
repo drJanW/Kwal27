@@ -32,7 +32,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260202G"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260204D"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -84,6 +84,8 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     inline static uint32_t minSaytimeIntervalMs   = MINUTES(85);  // Min wait between time announcements
     inline static uint32_t maxSaytimeIntervalMs   = MINUTES(145); // Max wait between time announcements
+    inline static uint32_t minTemperatureSpeakIntervalMs = MINUTES(60); // Min wait between temperature announcements
+    inline static uint32_t maxTemperatureSpeakIntervalMs = MINUTES(140); // Max wait between temperature announcements
 
     // ─────────────────────────────────────────────────────────────
     // LIGHT/PATTERN (3 params)
@@ -157,6 +159,7 @@ struct Globals {
     inline static uint32_t clockBootstrapIntervalMs  = 500UL;     // Clock init retry interval
     inline static uint32_t ntpFallbackTimeoutMs      = SECONDS(15); // NTP timeout before RTC fallback
     inline static uint32_t bootPhaseMs               = 500UL;     // Delay between boot phases
+    inline static uint32_t rtcTemperatureIntervalMs  = MINUTES(3); // RTC temperature read interval
 
     // ─────────────────────────────────────────────────────────────
     // WIFI (4 params)
@@ -173,6 +176,13 @@ struct Globals {
     inline static uint32_t weatherRefreshIntervalMs  = HOURS(1);  // Weather API refresh
     inline static uint32_t sunRefreshIntervalMs      = HOURS(2);  // Sunrise/sunset refresh
     inline static uint32_t calendarRefreshIntervalMs = HOURS(1);  // Calendar CSV refresh
+
+    // ─────────────────────────────────────────────────────────────
+    // CSV HTTP (3 params)
+    // ─────────────────────────────────────────────────────────────
+    inline static char     csvBaseUrl[96]            = "http://192.168.2.23:8080/csv/"; // Base URL for CSV fetch
+    inline static uint32_t csvHttpTimeoutMs          = 5000UL;    // HTTP timeout per CSV
+    inline static uint32_t csvFetchWaitMs            = 6000UL;    // Wait for WiFi before SD fallback
 
     // ─────────────────────────────────────────────────────────────
     // LOCATION (2 params)

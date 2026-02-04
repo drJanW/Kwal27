@@ -9,12 +9,16 @@
  * audio playback, and light animation updates based on filtered distance.
  */
 
+#include <Arduino.h>
 #include "SensorsRun.h"
 
 #include "Globals.h"
+#include "ContextController.h"
+#include "RTCController.h"
 #include "SensorController.h"
 #include "SensorsPolicy.h"
 #include "TimerManager.h"
+#include <math.h>
 
 #include "Heartbeat/HeartbeatRun.h"
 #include "Heartbeat/HeartbeatPolicy.h"
@@ -28,6 +32,23 @@ namespace {
 constexpr uint8_t SENSOR_EVENT_DISTANCE = 0x30;
 
 bool distancePlaybackEligible = false;
+
+cb_type cb_readRtcTemperature() {
+    if (!RTCController::isAvailable()) {
+        ContextController::clearRtcTemperature();
+        PF("[SensorsRun] RTC temperature unavailable\n");
+        return;
+    }
+
+    float tempC = RTCController::getTemperature();
+    if (isfinite(tempC)) {
+        ContextController::updateRtcTemperature(tempC);
+        PF("[SensorsRun] RTC temperature %.1f C\n", static_cast<double>(tempC));
+        return;
+    }
+    ContextController::clearRtcTemperature();
+    PF("[SensorsRun] RTC temperature read failed\n");
+}
 
 void cb_updateSensorEvents() {
     SensorEvent ev;
@@ -90,5 +111,7 @@ void cb_updateSensorEvents() {
 void SensorsRun::plan() {
     distancePlaybackEligible = false;
     timers.restart(SensorsPolicy::getPollingIntervalMs(), 0, cb_updateSensorEvents);
+    cb_readRtcTemperature();
+    timers.create(Globals::rtcTemperatureIntervalMs, 0, cb_readRtcTemperature);
     PF("[Run][Plan] Sensor update scheduled\n");
 }

@@ -61,6 +61,8 @@ uint8_t speakQueueTail = 0;
 uint8_t mp3Scratchpad[8];
 
 constexpr uint16_t WORD_FALLBACK_MS = 800;
+constexpr uint16_t TTS_CHAR_INTERVAL_MS = 95;
+constexpr uint16_t TTS_TAIL_INTERVAL_MS = 900;
 
 uint16_t wordDurations[SD_MAX_FILES_PER_SUBDIR] = {0};
 bool wordDurationsLoaded = false;
@@ -311,7 +313,7 @@ void playNextSpeakItem() {
         const char* sentence = static_cast<const char*>(item.payload);
         
         startTTSInternal(sentence);
-        durationMs = strlen(sentence) * 80 + 500;
+        durationMs = strlen(sentence) * TTS_CHAR_INTERVAL_MS + TTS_TAIL_INTERVAL_MS;
         PF("[TTS] Started: %s (%ums)\n", sentence, durationMs);
         
         // T4: Timer-based completion

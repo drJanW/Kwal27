@@ -1,0 +1,37 @@
+1. Scope
+1.1. Add RTC temperature as a sensor input when rtcOk is true.
+1.2. Read temperature on a fixed 3‑minute TimerManager interval only.
+1.3. Use temperature as a subtle, dynamic shift source for audio/colors/patterns.
+1.4. Speak temperature at irregular intervals, with comma decimal formatting.
+
+2. Architecture placement
+2.1. Boot
+2.1.1. Probe RTC once.
+2.1.2. Set hwStatus bit rtcOk.
+2.2. Controller
+2.2.1. RTC/Clock controller exposes getTemperatureC and availability based on rtcOk.
+2.3. Run (SensorController)
+2.3.1. TimerManager callback reads temperature every 3 minutes.
+2.3.2. No long‑term storage, just the current reading for immediate use.
+2.4. Policy
+2.4.1. Authorize temperature shift usage when rtcOk and reading is valid.
+2.4.2. Apply “too cold” <10°C and “too hot” >40°C guards if needed.
+2.4.3. Apply <15°C “no‑one present” rule to audio calm + light sober.
+2.5. Director
+2.5.1. Build temperature shift requests using existing shift pipeline style.
+2.5.2. Build temperature speak requests for Audio controller.
+
+3. Temperature shift formula (single dynamic formula)
+3.1. Normalize temperature into 0..1 inside 15–30°C.
+3.2. Center to −1..+1 for symmetric subtle effect.
+3.3. Apply small per‑domain multipliers from shift.csv to keep effect subtle.
+
+4. Speech behavior
+4.1. Separate irregular cadence (not saytime) but may interrupt like saytime.
+4.2. Speak: “het is 19,4 graden celsius” with comma decimal separator.
+4.3. Units are Celsius, one decimal.
+
+5. Confirmed decisions
+5.1. “Subtle” shift magnitude is designer‑chosen (no explicit cap provided).
+5.2. Too hot (>40°C) applies no shift.
+5.3. No extra suppression rules for temperature speech beyond saytime‑like behavior.

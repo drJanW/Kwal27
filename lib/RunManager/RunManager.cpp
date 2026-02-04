@@ -20,6 +20,8 @@
  * All timing uses TimerManager callbacks (no millis() or delay()).
  */
 
+#include <Arduino.h>
+#include <math.h>
 #include "LightController.h"
 #include "TimerManager.h"
 #include "SensorController.h"
@@ -107,6 +109,34 @@ void cb_sayTime() {
     timers.restart(random(Globals::minSaytimeIntervalMs, Globals::maxSaytimeIntervalMs + 1), 1, cb_sayTime);
 }
 
+String buildTemperatureSentence(float tempC) {
+    char tempBuf[16];
+    const float roundedOneDecimal = roundf(tempC * 10.0f) / 10.0f;
+    const float roundedWhole = roundf(roundedOneDecimal);
+    if (fabsf(roundedOneDecimal - roundedWhole) < 0.01f) {
+        snprintf(tempBuf, sizeof(tempBuf), "%d", static_cast<int>(roundedWhole));
+    } else {
+        snprintf(tempBuf, sizeof(tempBuf), "%.1f", static_cast<double>(roundedOneDecimal));
+    }
+    for (char* p = tempBuf; *p != '\0'; ++p) {
+        if (*p == '.') {
+            *p = ',';
+        }
+    }
+    String sentence = "het is ";
+    sentence += tempBuf;
+    sentence += " graden celsius";
+    return sentence;
+}
+
+void cb_sayTemperature() {
+    RUN_LOG_INFO("[Run] cb_sayTemperature fired\n");
+    RunManager::requestSayTemperature();
+    timers.restart(random(Globals::minTemperatureSpeakIntervalMs,
+                          Globals::maxTemperatureSpeakIntervalMs + 1),
+                   1, cb_sayTemperature);
+}
+
 void cb_playFragment() {
     RunManager::requestPlayFragment();
     // Schedule next with fresh random interval - the creature breathes
@@ -159,11 +189,14 @@ static OTARun otaRun;
 static SpeakBoot speakBoot;
 static SpeakRun speakRun;
 static bool sdPostBootCompleted = false;
+static bool wifiPostBootCompleted = false;
 
 void RunManager::begin() {
     // I2C already initialized in systemBootStage1()
     // First sayTime after random 45-145 min, then reschedules itself
     timers.create(random(Globals::minSaytimeIntervalMs, Globals::maxSaytimeIntervalMs + 1), 1, cb_sayTime);
+    timers.create(random(Globals::minTemperatureSpeakIntervalMs, Globals::maxTemperatureSpeakIntervalMs + 1),
+                  1, cb_sayTemperature);
     // First audio after random 6-18 min, then reschedules itself
     timers.create(random(Globals::minAudioIntervalMs, Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
     timers.create(Globals::timerStatusIntervalMs, 0, cb_showTimerStatus);
@@ -283,6 +316,17 @@ void RunManager::requestSayTime(TimeStyle style) {
     AudioPolicy::requestSentence(sentence);
 }
 
+void RunManager::requestSayTemperature() {
+    const auto& ctx = ContextController::time();
+    const float tempC = ctx.rtcTemperatureC;
+    RUN_LOG_INFO("[Run] requestSayTemperature: temp=%.2f\n", static_cast<double>(tempC));
+    const String sentence = buildTemperatureSentence(tempC);
+    if (sentence.isEmpty()) {
+        return;
+    }
+    AudioPolicy::requestSentence(sentence);
+}
+
 void RunManager::requestSetAudioLevel(float value) {
     // F9 pattern: webShift can be >1.0, no clamp
     audio.setVolumeWebShift(value);
@@ -339,25 +383,38 @@ void RunManager::resumeAfterSDBoot() {
 
     PL("[Stage 1] Post-SD modules...");
     sdRun.plan();
-    calendarBoot.plan();
-    calendarRun.plan();
     wifiBoot.plan();
     wifiRun.plan();
     webBoot.plan();
     webRun.plan();
     WebDirector::instance().plan();
-    lightBoot.plan();
-    lightRun.plan();
-    audioBoot.plan();
-    audioRun.plan();
     sensorsBoot.plan();
     sensorsRun.plan();
     otaBoot.plan();
     otaRun.plan();
     speakBoot.plan();
     speakRun.plan();
-    PL("[Stage 1] Complete - Stage 2 actions via OK reports");
+    PL("[Stage 1] Waiting for CSV fetch");
     // Stage 2 triggered per-component when OK reported (WIFI_OK, AUDIO_OK, etc.)
+}
+
+void RunManager::resumeAfterWiFiBoot() {
+    if (wifiPostBootCompleted) {
+        return;
+    }
+
+    wifiPostBootCompleted = true;
+
+    PL("[Stage 1] CSV modules...");
+    Globals::begin();
+    bootMaster.restartBootTimer();
+    calendarBoot.plan();
+    calendarRun.plan();
+    lightBoot.plan();
+    lightRun.plan();
+    audioBoot.plan();
+    audioRun.plan();
+    PL("[Stage 1] Complete - Stage 2 actions via OK reports");
 }
 
 void RunManager::requestWebAudioNext(uint16_t fadeMs) {

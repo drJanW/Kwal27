@@ -28,7 +28,7 @@ void cb_timeDisplay() {
     ContextController::refreshTimeRead();
     const auto &timeState = ContextController::time();
     const char *source = prtClock.isTimeFetched() ? "ntp" : "fallback";
-     PF("[Run] Time now: %02u:%02u:%02u (%u-%02u-%02u, %s)\n",
+     PF("[Run] Time: %02u:%02u:%02u (%u-%02u-%02u, %s)\n",
          timeState.hour, timeState.minute, timeState.second,
          static_cast<unsigned>(timeState.year),
          timeState.month, timeState.day,

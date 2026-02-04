@@ -5,10 +5,13 @@
 #pragma once
 
 #include <Arduino.h>
+#include <RTClib.h>
 
 class PRTClock;
 
 namespace RTCController {
+
+inline RTC_DS3231 rtc;
 
 // Hardware initialization
 void begin();

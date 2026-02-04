@@ -16,6 +16,7 @@
 
 #include "SDController.h"
 #include "CsvUtils.h"
+#include "SdPathUtils.h"
 #include "LightController.h"
 #include "PatternCatalog.h"  // For previewColors only
 #include "Alert/AlertState.h"
@@ -417,10 +418,11 @@ bool ColorsCatalog::loadColorsFromSD() {
     if (!AlertState::isSdOk()) {
         return false;
     }
-    if (!SDController::fileExists(kColorPath)) {
+    const String csvPath = SdPathUtils::chooseCsvPath(kColorPath);
+    if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         return false;
     }
-    File file = SDController::openFileRead(kColorPath);
+    File file = SDController::openFileRead(csvPath.c_str());
     if (!file) {
         return false;
     }

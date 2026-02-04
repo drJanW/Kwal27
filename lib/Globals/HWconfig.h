@@ -97,7 +97,7 @@
   #define SENSOR3_PRESENT false
   #define IP_KWAL IP_MARMER
 #else // HOUT
-  #define RTC_PRESENT false
+  #define RTC_PRESENT true//false
   #define DISTANCE_SENSOR_PRESENT false
   #define LUX_SENSOR_PRESENT false
   #define SENSOR3_PRESENT false

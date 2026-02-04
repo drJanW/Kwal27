@@ -171,7 +171,7 @@ void pushPatterns() {
     
     String json = PatternCatalog::instance().buildJson("manual");
     eventsPtr_->send(json.c_str(), "patterns", millis());
-    WEBIF_LOG("[SSE] patterns pushed (%u bytes)\n", json.length());
+    WEBIF_LOG("[SSE] patterns sent to WebGUI (%u bytes)\n", json.length());
 }
 
 void pushColors() {
@@ -179,7 +179,7 @@ void pushColors() {
     
     String json = ColorsCatalog::instance().buildColorsJson("manual");
     eventsPtr_->send(json.c_str(), "colors", millis());
-    WEBIF_LOG("[SSE] colors pushed (%u bytes)\n", json.length());
+    WEBIF_LOG("[SSE] colors sent to WebGUI (%u bytes)\n", json.length());
 }
 
 void pushAll() {

@@ -147,4 +147,24 @@ String buildUploadTarget(const String &directory, const String &filename) {
     return dir + "/" + name;
 }
 
+String chooseCsvPath(const char *filename) {
+    if (!filename || !*filename) {
+        return String();
+    }
+    const String baseName = extractBaseName(filename);
+    if (baseName.isEmpty()) {
+        return String();
+    }
+
+    String nasPath = "/nas/";
+    nasPath += baseName;
+    if (SDController::fileExists(nasPath.c_str())) {
+        return nasPath;
+    }
+
+    String sdPath = "/";
+    sdPath += baseName;
+    return sdPath;
+}
+
 } // namespace SdPathUtils

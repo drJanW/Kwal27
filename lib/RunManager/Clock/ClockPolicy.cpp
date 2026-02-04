@@ -5,8 +5,7 @@
  * @date 2025-12-31
  *
  * Implements RTC hardware interface: DS3231 initialization and probing,
- * time reading/writing, temperature sensor access, and notification
- * reporting for RTC failure conditions.
+ * time reading/writing, and notification reporting for RTC failure conditions.
  */
 
 #include <Arduino.h>
@@ -15,26 +14,22 @@
 #include "Globals.h"
 #include "I2CInitHelper.h"
 #include "PRTClock.h"
+#include "RTCController.h"
 #include "Alert/AlertRun.h"
 #include "Alert/AlertState.h"
 #include "TimerManager.h"
 
 #include <Wire.h>
 #include <RTClib.h>
-#include <math.h>
 #include <sys/time.h>
 
 namespace {
-    RTC_DS3231 rtc;
-    float lastTempC = NAN;
-
     bool probeRtc() {
-        if (rtc.begin()) {
-            hwStatus |= HW_RTC;
-            if (rtc.lostPower()) {
+        RTCController::begin();
+        if (RTCController::isAvailable()) {
+            if (RTCController::rtc.lostPower()) {
                 PL("[RTC] Power lost; set time manually");
             }
-            lastTempC = rtc.getTemperature();
             return true;
         }
         return false;
@@ -75,7 +70,7 @@ bool seedClockFromRTC(PRTClock &clock) {
     if (!I2CInitHelper::isReady(SC_RTC)) {
         return false;
     }
-    DateTime now = rtc.now();
+    DateTime now = RTCController::rtc.now();
     if (now.year() < 2000 || now.year() > 2099) {
         return false;
     }
@@ -94,17 +89,9 @@ bool seedClockFromRTC(PRTClock &clock) {
     tv.tv_sec = static_cast<time_t>(now.unixtime());
     tv.tv_usec = 0;
     settimeofday(&tv, nullptr);
-    lastTempC = rtc.getTemperature();
-    if (!isnan(lastTempC)) {
-        PF("[RTC] Seeded clock from RTC read (%04d-%02d-%02d %02d:%02d:%02d) [%.2f C]\n",
-           now.year(), now.month(), now.day(),
-           now.hour(), now.minute(), now.second(),
-           static_cast<double>(lastTempC));
-    } else {
-        PF("[RTC] Seeded clock from RTC read (%04d-%02d-%02d %02d:%02d:%02d)\n",
-           now.year(), now.month(), now.day(),
-           now.hour(), now.minute(), now.second());
-    }
+    PF("[RTC] Seeded clock from RTC read (%04d-%02d-%02d %02d:%02d:%02d)\n",
+       now.year(), now.month(), now.day(),
+       now.hour(), now.minute(), now.second());
     return true;
 }
 
@@ -116,15 +103,10 @@ void syncRTCFromClock(const PRTClock &clock) {
     if (dt.year() < 2000 || dt.year() > 2099) {
         return;
     }
-    rtc.adjust(dt);
-    lastTempC = rtc.getTemperature();
+    RTCController::rtc.adjust(dt);
     PF("[RTC] Synced hardware clock to %04d-%02d-%02d %02d:%02d:%02d\n",
        dt.year(), dt.month(), dt.day(),
        dt.hour(), dt.minute(), dt.second());
-}
-
-float lastTemperatureC() {
-    return lastTempC;
 }
 
 } // namespace ClockPolicy

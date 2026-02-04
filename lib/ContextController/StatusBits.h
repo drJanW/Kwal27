@@ -55,6 +55,9 @@ enum TimeStatus : uint8_t {
     STATUS_DISTANCE_SENSOR_OK,
     STATUS_LUX_SENSOR_OK,
     STATUS_SENSOR3_OK,
+
+    // Temperature shift flag (RTC temperature-based)
+    STATUS_TEMPERATURE_SHIFT,
     
     STATUS_COUNT        // Must be < 64 for uint64_t bitmask
 };

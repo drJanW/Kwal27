@@ -29,5 +29,7 @@ uint64_t getWeekdayBits();      // Monday-Sunday, Weekend
 uint64_t getWeatherBits();      // Freezing, Cold, Mild, Warm, Hot
 uint64_t getMoonPhaseBits();    // NewMoon, Waxing, FullMoon, Waning
 uint64_t getHardwareFailBits(); // SD, WiFi, RTC, NTP, sensors
+uint64_t getTemperatureShiftBits();
+float getTemperatureShiftScale();
 
 } // namespace StatusFlags

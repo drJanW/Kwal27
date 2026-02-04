@@ -19,6 +19,7 @@ isCold;-3;10;0
 isMild;13;0;1
 isWarm;9;-5;2
 isHot;5;-12;3
+temperatureShift;5;5;0
 isMonday;-2;5;10
 isTuesday;0;10;0
 isWednesday;2;0;1

@@ -8,11 +8,12 @@
  * provides unified interface for clock seeding and synchronization operations.
  */
 
+#include <Arduino.h>
 #include "ClockRun.h"
 
 #include "ClockPolicy.h"
-#include "PRTClock.h"
 #include "Globals.h"
+#include "PRTClock.h"
 
 void ClockRun::plan() {
     if (ClockPolicy::isRtcAvailable()) {

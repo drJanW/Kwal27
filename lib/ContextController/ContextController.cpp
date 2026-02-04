@@ -29,6 +29,8 @@ static ContextController::TimeState timeState{};
 static float weatherMinC = 0.0f;
 static float weatherMaxC = 0.0f;
 static bool weatherValid = false;
+static float rtcTemperatureC = 0.0f;
+static bool rtcTemperatureValid = false;
 
 namespace {
 
@@ -56,6 +58,14 @@ void updateTimeState() {
     timeState.hasWeather = false;
     timeState.weatherMinC = 0.0f;
     timeState.weatherMaxC = 0.0f;
+  }
+
+  if (rtcTemperatureValid) {
+    timeState.hasRtcTemperature = true;
+    timeState.rtcTemperatureC = rtcTemperatureC;
+  } else {
+    timeState.hasRtcTemperature = false;
+    timeState.rtcTemperatureC = 0.0f;
   }
 }
 
@@ -157,5 +167,16 @@ void ContextController::updateWeather(float minC, float maxC) {
 
 void ContextController::clearWeather() {
   weatherValid = false;
+  updateTimeState();
+}
+
+void ContextController::updateRtcTemperature(float tempC) {
+  rtcTemperatureC = tempC;
+  rtcTemperatureValid = true;
+  updateTimeState();
+}
+
+void ContextController::clearRtcTemperature() {
+  rtcTemperatureValid = false;
   updateTimeState();
 }

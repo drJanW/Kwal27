@@ -5,8 +5,7 @@
  * @date 2025-12-31
  *
  * Contains business logic for clock operations. Handles DS3231 RTC detection,
- * time seeding from RTC, synchronizing RTC from NTP, and temperature reading
- * from the RTC module.
+ * time seeding from RTC, and synchronizing RTC from NTP.
  */
 
 #pragma once
@@ -21,6 +20,5 @@ void begin();
 bool isRtcAvailable();
 bool seedClockFromRTC(PRTClock &clock);
 void syncRTCFromClock(const PRTClock &clock);
-float lastTemperatureC();
 
 }

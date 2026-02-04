@@ -226,7 +226,7 @@ String LightColorCatalog::pathFor(const char* file) const {
         return combined;
     }
     if (root_ == "/") {
-        return String("/") + sanitizedFile;
+        return SdPathUtils::chooseCsvPath(sanitizedFile.c_str());
     }
     return root_ + "/" + sanitizedFile;
 }

@@ -36,6 +36,11 @@ F2. HTTP upload endpoint voor SD card
 
 === Housekeeping ===
 
+H9. Normalize say → speak naming in time/temperature paths
+    - Replace sayTime/saytime usage with speak naming
+    - Rename Globals keys (minSaytimeIntervalMs/maxSaytimeIntervalMs)
+    - Update CSV parser keys in Globals.cpp
+
 H4. Refactor WiFiController.cpp timer usage
     - Does not use timers correctly, superfluous state checking
     - Source: A56/WiFiController.cpp

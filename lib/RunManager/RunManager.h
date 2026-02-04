@@ -34,6 +34,7 @@ public:
     static void requestWebAudioNext(uint16_t fadeMs);
     static void triggerBootFragment();  // Called by CalendarRun after theme box set
     static void requestSayTime(TimeStyle style = TimeStyle::NORMAL);
+    static void requestSayTemperature();
     static void requestSetAudioLevel(float value);
     static void requestArmOTA(uint32_t window_s);
     static bool requestConfirmOTA();
@@ -46,6 +47,9 @@ public:
 
     // Lux measurement request (Run-compliant)
     static void requestLuxMeasurement();
+
+    // Called by WiFiBoot after CSV fetch completes or times out
+    static void resumeAfterWiFiBoot();
 
 private:
     friend class SDBoot;

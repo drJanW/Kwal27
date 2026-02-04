@@ -15,6 +15,7 @@
 #include "Globals.h"
 #include "SDController.h"
 #include "Alert/AlertState.h"
+#include "SdPathUtils.h"
 #include <esp_system.h>
 
 // Hardware status register (graceful degradation)
@@ -24,7 +25,6 @@ uint16_t hwStatus = 0;
 // CSV Parser helpers (C-style, no Arduino String, heap-safe)
 // ─────────────────────────────────────────────────────────────
 
-static constexpr const char* CSV_PATH = "/globals.csv";
 static constexpr size_t MAX_LINE_LEN = 128;
 
 // Find nth semicolon, return pointer after it (or nullptr)
@@ -92,6 +92,26 @@ static bool parseBool(const char* s, bool* out) {
         return true;
     }
     return false;
+}
+
+static bool setCsvBaseUrl(const char* value) {
+    if (!value || !*value) return false;
+
+    const size_t maxLen = sizeof(Globals::csvBaseUrl);
+    const size_t len = strlen(value);
+    if (len >= maxLen) return false;
+
+    strncpy(Globals::csvBaseUrl, value, maxLen);
+    Globals::csvBaseUrl[maxLen - 1] = '\0';
+
+    size_t finalLen = strlen(Globals::csvBaseUrl);
+    if (finalLen > 0 && Globals::csvBaseUrl[finalLen - 1] != '/') {
+        if (finalLen + 1 >= maxLen) return false;
+        Globals::csvBaseUrl[finalLen] = '/';
+        Globals::csvBaseUrl[finalLen + 1] = '\0';
+    }
+
+    return true;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -184,6 +204,18 @@ static void applyOverride(const char* key, char type, const char* value) {
         if (parseUint32(value, &u32)) {
             Globals::maxSaytimeIntervalMs = u32;
             Serial.printf("[Globals] maxSaytimeIntervalMs = %lu\n", (unsigned long)u32);
+        }
+    }
+    else if (strcmp(key, "minTemperatureSpeakIntervalMs") == 0 && type == 'u') {
+        if (parseUint32(value, &u32)) {
+            Globals::minTemperatureSpeakIntervalMs = u32;
+            Serial.printf("[Globals] minTemperatureSpeakIntervalMs = %lu\n", (unsigned long)u32);
+        }
+    }
+    else if (strcmp(key, "maxTemperatureSpeakIntervalMs") == 0 && type == 'u') {
+        if (parseUint32(value, &u32)) {
+            Globals::maxTemperatureSpeakIntervalMs = u32;
+            Serial.printf("[Globals] maxTemperatureSpeakIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -462,6 +494,12 @@ static void applyOverride(const char* key, char type, const char* value) {
             Serial.printf("[Globals] bootPhaseMs = %lu\n", (unsigned long)u32);
         }
     }
+    else if (strcmp(key, "rtcTemperatureIntervalMs") == 0 && type == 'u') {
+        if (parseUint32(value, &u32)) {
+            Globals::rtcTemperatureIntervalMs = u32;
+            Serial.printf("[Globals] rtcTemperatureIntervalMs = %lu\n", (unsigned long)u32);
+        }
+    }
     // ═══════════════════════════════════════════════════════════
     // NETWORK/FETCH
     // ═══════════════════════════════════════════════════════════
@@ -481,6 +519,26 @@ static void applyOverride(const char* key, char type, const char* value) {
         if (parseUint32(value, &u32)) {
             Globals::calendarRefreshIntervalMs = u32;
             Serial.printf("[Globals] calendarRefreshIntervalMs = %lu\n", (unsigned long)u32);
+        }
+    }
+    // ═══════════════════════════════════════════════════════════
+    // CSV HTTP
+    // ═══════════════════════════════════════════════════════════
+    else if (strcmp(key, "csvBaseUrl") == 0 && type == 's') {
+        if (setCsvBaseUrl(value)) {
+            Serial.printf("[Globals] csvBaseUrl = %s\n", Globals::csvBaseUrl);
+        }
+    }
+    else if (strcmp(key, "csvHttpTimeoutMs") == 0 && type == 'u') {
+        if (parseUint32(value, &u32)) {
+            Globals::csvHttpTimeoutMs = u32;
+            Serial.printf("[Globals] csvHttpTimeoutMs = %lu\n", (unsigned long)u32);
+        }
+    }
+    else if (strcmp(key, "csvFetchWaitMs") == 0 && type == 'u') {
+        if (parseUint32(value, &u32)) {
+            Globals::csvFetchWaitMs = u32;
+            Serial.printf("[Globals] csvFetchWaitMs = %lu\n", (unsigned long)u32);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -555,19 +613,20 @@ void Globals::begin() {
     }
     
     // Check file existence
-    if (!SDController::fileExists(CSV_PATH)) {
+    const String csvPath = SdPathUtils::chooseCsvPath("globals.csv");
+    if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         Serial.println("[Globals] No globals.csv, using defaults");
         return;
     }
     
     // Open file
-    File file = SD.open(CSV_PATH, FILE_READ);
+    File file = SD.open(csvPath.c_str(), FILE_READ);
     if (!file) {
-        Serial.println("[Globals] Failed to open globals.csv");
+        Serial.printf("[Globals] Failed to open %s\n", csvPath.c_str());
         return;
     }
-    
-    Serial.println("[Globals] Loading globals.csv...");
+
+    Serial.printf("[Globals] Loading %s...\n", csvPath.c_str());
     
     char line[MAX_LINE_LEN];
     int lineNum = 0;

@@ -23,5 +23,6 @@ String extractBaseName(const char *fullPath);
 bool removeSdPath(const String &targetPath, String &errorMessage);
 String sanitizeSdFilename(const String &raw);
 String buildUploadTarget(const String &directory, const String &filename);
+String chooseCsvPath(const char *filename);
 
 } // namespace SdPathUtils

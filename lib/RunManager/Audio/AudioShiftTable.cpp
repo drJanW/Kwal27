@@ -12,7 +12,9 @@
 #include "AudioShiftTable.h"
 #include "CsvUtils.h"
 #include "SDController.h"
+#include "SdPathUtils.h"
 #include "StatusBits.h"
+#include "StatusFlags.h"
 #include "Globals.h"
 #include "Alert/AlertState.h"
 #include <algorithm>
@@ -54,6 +56,7 @@ namespace {
         if (s == "isWaxing")    { out = STATUS_WAXING; return true; }
         if (s == "isFullMoon")  { out = STATUS_FULL_MOON; return true; }
         if (s == "isWaning")    { out = STATUS_WANING; return true; }
+        if (s == "temperatureShift") { out = STATUS_TEMPERATURE_SHIFT; return true; }
         return false;
     }
 }
@@ -74,13 +77,14 @@ void AudioShiftTable::begin() {
         return;
     }
 
-    if (!SDController::fileExists(kAudioShiftPath)) {
+    const String csvPath = SdPathUtils::chooseCsvPath(kAudioShiftPath);
+    if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         PF("[AudioShiftTable] %s not found\n", kAudioShiftPath);
         ready_ = true;
         return;
     }
 
-    File file = SDController::openFileRead(kAudioShiftPath);
+    File file = SDController::openFileRead(csvPath.c_str());
     if (!file) {
         ready_ = true;
         return;
@@ -170,11 +174,19 @@ void AudioShiftTable::computeMultipliers(uint64_t statusBits, float outMults[]) 
         outMults[i] = 1.0f;
     }
 
+    const uint64_t temperatureShiftBit = (1ULL << STATUS_TEMPERATURE_SHIFT);
+    const bool temperatureShiftActive = (statusBits & temperatureShiftBit) != 0;
+    const float temperatureShiftScale = temperatureShiftActive ? StatusFlags::getTemperatureShiftScale() : 0.0f;
+
     // Multiply in all active shifts
     for (const auto& entry : entries_) {
         if (statusBits & entry.statusBit) {
             for (int i = 0; i < AUDIO_PARAM_COUNT; i++) {
-                outMults[i] *= (1.0f + entry.shifts[i] / 100.0f);
+                float shiftPct = entry.shifts[i];
+                if (entry.statusBit == temperatureShiftBit) {
+                    shiftPct *= temperatureShiftScale;
+                }
+                outMults[i] *= (1.0f + shiftPct / 100.0f);
             }
         }
     }

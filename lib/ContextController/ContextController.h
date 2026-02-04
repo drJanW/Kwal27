@@ -33,6 +33,8 @@ namespace ContextController {
     float weatherMinC{0.0f};
     float weatherMaxC{0.0f};
     bool hasWeather{false};
+    float rtcTemperatureC{0.0f};
+    bool hasRtcTemperature{false};
     bool synced{false};
   };
 
@@ -40,6 +42,8 @@ namespace ContextController {
   void refreshTimeRead();
   void updateWeather(float minC, float maxC);
   void clearWeather();
+  void updateRtcTemperature(float tempC);
+  void clearRtcTemperature();
   void begin();  // Start periodic tick timer
 }
 

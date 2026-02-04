@@ -11,12 +11,14 @@
  * and light pattern matching.
  */
 
+#include <Arduino.h>
 #include "StatusFlags.h"
 #include "StatusBits.h"
 #include "TimeOfDay.h"
 #include "ContextController.h"
 #include "Alert/AlertState.h"
 #include "Globals.h"
+#include <math.h>
 #include "HWconfig.h"
 
 namespace StatusFlags {
@@ -109,6 +111,33 @@ uint64_t getWeatherBits() {
 }
 
 // ============================================================
+// RTC temperature shift (indoor temp)
+// ============================================================
+uint64_t getTemperatureShiftBits() {
+    const auto& ctx = ContextController::time();
+    if (!ctx.hasRtcTemperature) {
+        return 0;
+    }
+    return (1ULL << STATUS_TEMPERATURE_SHIFT);
+}
+
+float getTemperatureShiftScale() {
+    const auto& ctx = ContextController::time();
+    if (!ctx.hasRtcTemperature) {
+        return 0.0f;
+    }
+    float tempC = ctx.rtcTemperatureC;
+    if (isnan(tempC)) {
+        return 0.0f;
+    }
+    if (tempC > 40.0f) {
+        return 0.0f;
+    }
+    const float normalized = clamp((tempC - 15.0f) / 15.0f, 0.0f, 1.0f);
+    return (normalized - 0.5f) * 2.0f;
+}
+
+// ============================================================
 // Moon phase detection (from moonPhase: 0=new, 0.5=full, 1=new)
 // ============================================================
 uint64_t getMoonPhaseBits() {
@@ -169,6 +198,7 @@ uint64_t getFullStatusBits() {
     bits |= getSeasonBits();
     bits |= getWeekdayBits();
     bits |= getWeatherBits();
+    bits |= getTemperatureShiftBits();
     bits |= getMoonPhaseBits();
     bits |= getHardwareFailBits();
     

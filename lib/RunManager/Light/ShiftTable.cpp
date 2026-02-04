@@ -14,6 +14,8 @@
 #include "CsvUtils.h"
 #include "SDController.h"
 #include "Globals.h"
+#include "SdPathUtils.h"
+#include "StatusFlags.h"
 #include "Alert/AlertState.h"
 #include <algorithm>
 
@@ -69,6 +71,7 @@ bool ShiftTable::parseStatusString(const String& s, uint8_t& out) {
     if (s == "isMild")      { out = STATUS_MILD; return true; }
     if (s == "isWarm")      { out = STATUS_WARM; return true; }
     if (s == "isHot")       { out = STATUS_HOT; return true; }
+    if (s == "temperatureShift") { out = STATUS_TEMPERATURE_SHIFT; return true; }
     
     // Weekday flags
     if (s == "isMonday")    { out = STATUS_MONDAY; return true; }
@@ -132,12 +135,13 @@ bool ShiftTable::loadColorShiftsFromSD() {
         return false;
     }
     
-    if (!SDController::fileExists(kColorShiftPath)) {
+    const String csvPath = SdPathUtils::chooseCsvPath(kColorShiftPath);
+    if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         PF("[ShiftTable] %s not found\n", kColorShiftPath);
         return false;
     }
     
-    File file = SDController::openFileRead(kColorShiftPath);
+    File file = SDController::openFileRead(csvPath.c_str());
     if (!file) {
         return false;
     }
@@ -223,13 +227,14 @@ bool ShiftTable::loadPatternShiftsFromSD() {
         return false;
     }
     
-    if (!SDController::fileExists(kPatternShiftPath)) {
+    const String csvPath = SdPathUtils::chooseCsvPath(kPatternShiftPath);
+    if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         PF("[ShiftTable] %s not found on SD\n", kPatternShiftPath);
         return false;
     }
     
-    PF("[ShiftTable] Loading %s...\n", kPatternShiftPath);
-    File file = SDController::openFileRead(kPatternShiftPath);
+    PF("[ShiftTable] Loading %s...\n", csvPath.c_str());
+    File file = SDController::openFileRead(csvPath.c_str());
     if (!file) {
         return false;
     }
@@ -313,11 +318,19 @@ void ShiftTable::computeColorMultipliers(uint64_t activeStatusBits, float* outMu
     for (int i = 0; i < COLOR_PARAM_COUNT; i++) {
         outMultipliers[i] = 1.0f;
     }
+
+    const uint8_t temperatureShiftStatus = STATUS_TEMPERATURE_SHIFT;
+    const bool temperatureShiftActive = (activeStatusBits & (1ULL << temperatureShiftStatus)) != 0;
+    const float temperatureShiftScale = temperatureShiftActive ? StatusFlags::getTemperatureShiftScale() : 0.0f;
     
     // Multiply in all active shifts
     for (const auto& entry : colorShifts_) {
         if (activeStatusBits & (1ULL << entry.statusId)) {
-            outMultipliers[entry.paramId] *= entry.multiplier;
+            float multiplier = entry.multiplier;
+            if (entry.statusId == temperatureShiftStatus) {
+                multiplier = 1.0f + (entry.multiplier - 1.0f) * temperatureShiftScale;
+            }
+            outMultipliers[entry.paramId] *= multiplier;
         }
     }
 }
@@ -327,11 +340,19 @@ void ShiftTable::computePatternMultipliers(uint64_t activeStatusBits, float* out
     for (int i = 0; i < PAT_PARAM_COUNT; i++) {
         outMultipliers[i] = 1.0f;
     }
+
+    const uint8_t temperatureShiftStatus = STATUS_TEMPERATURE_SHIFT;
+    const bool temperatureShiftActive = (activeStatusBits & (1ULL << temperatureShiftStatus)) != 0;
+    const float temperatureShiftScale = temperatureShiftActive ? StatusFlags::getTemperatureShiftScale() : 0.0f;
     
     // Multiply in all active shifts
     for (const auto& entry : patternShifts_) {
         if (activeStatusBits & (1ULL << entry.statusId)) {
-            outMultipliers[entry.paramId] *= entry.multiplier;
+            float multiplier = entry.multiplier;
+            if (entry.statusId == temperatureShiftStatus) {
+                multiplier = 1.0f + (entry.multiplier - 1.0f) * temperatureShiftScale;
+            }
+            outMultipliers[entry.paramId] *= multiplier;
         }
     }
 }
