@@ -1,21 +1,16 @@
 /**
  * @file SpeakRun.h
  * @brief TTS speech state management
- * @version 251231E
- * @date 2025-12-31
- *
- * Runs TTS speech coordination and sentence playback. Provides speak interface
- * for various requests (failures, time announcements), coordinates with
- * PlaySentence for word-based audio output.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #pragma once
 
 #include <Arduino.h>
 #include <stdint.h>
-#include "Alert/AlertState.h"  // voor StatusComponent
+#include "Alert/AlertState.h"  // for StatusComponent
 
-// Speak requests
+/// Speech request types
 enum class SpeakRequest : uint8_t {
     // Component failures (for boot notification)
     SD_FAIL,
@@ -38,14 +33,21 @@ enum class SpeakRequest : uint8_t {
     WELCOME
 };
 
+/**
+ * @class SpeakRun
+ * @brief Orchestrates TTS and MP3-based speech output
+ */
 class SpeakRun {
 public:
+    /// Register speech timers with TimerManager
     void plan();
+    
+    /// Speak a request (TTS primary, MP3 fallback)
     static void speak(SpeakRequest request);
     
-    // Speak FAIL voor component (lookup table SC_* → SpeakRequest::*_FAIL)
+    /// Speak FAIL for component (lookup table SC_* → SpeakRequest::*_FAIL)
     static void speakFail(StatusComponent c);
     
-    // Zeg de huidige tijd als zin: "het is X uur Y"
+    /// Say current time as sentence: "het is X uur Y"
     static void sayTime(uint8_t hour, uint8_t minute);
 };

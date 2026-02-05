@@ -1,13 +1,9 @@
 /**
  * @file WebRun.h
  * @brief Web interface state management
- * @version 251231E
- * @date 2025-12-31
- *
- * Runs web interface coordination. Currently a stub - web
- * server lifecycle is managed via WebInterfaceController directly.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #pragma once
 
 #include <Arduino.h>

@@ -1,17 +1,10 @@
 /**
  * @file SystemBoot.h
  * @brief System-level boot stages
- * @version 251231E
- * @date 2025-12-31
- *
- * Handles staged boot sequence:
- * - Stage 0: Serial, RNG, OTA check (pre-architecture)
- * - Stage 1: Component probing, timer setup, status64 population
- * - Stage 2: Per-component when prerequisites met (via OK reports)
+ * @version 260205A
+ * @date 2026-02-05
  */
-
-#ifndef SYSTEMBOOT_H
-#define SYSTEMBOOT_H
+#pragma once
 
 /**
  * @brief Stage 0: Hardware primitives before any controller
@@ -32,5 +25,3 @@ bool systemBootStage1();
  * Exception to no-delay architecture: system is dead anyway.
  */
 [[noreturn]] void haltBlink();
-
-#endif // SYSTEMBOOT_H

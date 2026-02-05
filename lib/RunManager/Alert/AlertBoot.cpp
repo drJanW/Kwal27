@@ -1,13 +1,9 @@
 /**
  * @file AlertBoot.cpp
  * @brief Alert system one-time initialization implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements alert boot sequence: configures AlertRun to be
- * ready for receiving hardware status reports during system startup.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "AlertBoot.h"
 #include "AlertRun.h"

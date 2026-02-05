@@ -1,16 +1,9 @@
 /**
  * @file CsvUtils.cpp
  * @brief CSV parsing utilities implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * This file implements CSV parsing utilities for reading and parsing
- * semicolon-delimited CSV files from the SD card. It provides functions
- * for reading lines, splitting columns, handling UTF-8 BOM markers, and
- * trimming whitespace. Used throughout the project for loading calendar,
- * color, pattern, and shift configuration data.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include "CsvUtils.h"
 
 namespace csv {

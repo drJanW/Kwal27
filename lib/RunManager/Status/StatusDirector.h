@@ -1,14 +1,9 @@
 /**
  * @file StatusDirector.h
  * @brief Status display selection logic
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements selection logic for status displays. Currently a stub for
- * future status orchestration - determining what status information to
- * display based on system events.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 #include <Arduino.h>

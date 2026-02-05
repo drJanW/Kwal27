@@ -1,15 +1,9 @@
 /**
  * @file BootMaster.cpp
  * @brief Master boot sequence coordinator implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements the boot sequence coordination logic. Coordinates the startup
- * of all subsystems: SD card, WiFi, clock, sensors, audio, lights, and web
- * interface. Tracks fallback scenarios when components fail to initialize
- * within expected timeframes.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include "BootMaster.h"
 #include "Globals.h"
 #include "TimerManager.h"

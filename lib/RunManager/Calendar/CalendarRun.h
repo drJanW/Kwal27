@@ -1,14 +1,9 @@
 /**
  * @file CalendarRun.h
  * @brief Calendar state management
- * @version 251231E
- * @date 2025-12-31
- *
- * Manages calendar state and periodic updates. Handles calendar data
- * loading, state refresh scheduling, and calendar-triggered sentence playback.
- * Coordinates with CalendarPolicy for decision making.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 struct TodayState;

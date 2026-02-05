@@ -1,3 +1,9 @@
+/**
+ * @file LogBuffer.cpp
+ * @brief LogBuffer implementation
+ * @version 260127A
+ * @date 2026-01-27
+ */
 #include <Arduino.h>
 #include "LogBuffer.h"
 

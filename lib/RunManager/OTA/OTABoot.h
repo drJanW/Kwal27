@@ -1,14 +1,9 @@
 /**
  * @file OTABoot.h
  * @brief OTA update one-time initialization
- * @version 251231E
- * @date 2025-12-31
- *
- * Handles OTA subsystem initialization during boot. Configures OTA policy
- * settings. Part of the Boot→Plan→Policy→Run pattern for OTA update
- * coordination.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 class OTABoot {

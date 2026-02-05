@@ -1,15 +1,9 @@
 /**
  * @file SdRoutes.cpp
  * @brief SD card API endpoint routes
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements HTTP routes for the /api/sd/* endpoints.
- * Provides routes to check SD card status (ready, busy, hasIndex),
- * download files from SD, and route file uploads to the SD card.
- * Integrates with SDController for safe file operations.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include "SdRoutes.h"
 #include "../WebUtils.h"
 #include "Globals.h"

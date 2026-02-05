@@ -1,20 +1,9 @@
 /**
  * @file SDVoting.cpp
  * @brief Audio fragment voting system implementation with score tracking per file
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements a voting system for audio fragments stored on SD card.
- * Features:
- * - Score tracking per file (1-200 range, 0=empty/banned)
- * - Weighted random file selection based on scores
- * - Vote application with delta adjustments (+/-)
- * - File banning (score set to 0) and deletion
- * - Web API route for vote submission via AsyncWebServer
- * - Integration with AudioState for tracking currently playing file
- * - Persistent score storage in the SD card index files
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include "SDVoting.h"
 #include "Globals.h"

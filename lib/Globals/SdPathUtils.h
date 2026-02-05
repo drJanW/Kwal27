@@ -1,16 +1,9 @@
 /**
  * @file SdPathUtils.h
  * @brief SD card path helper functions interface
- * @version 251231E
- * @date 2025-12-31
- *
- * This header declares helper functions for SD card path manipulation.
- * Provides utilities for path sanitization, parent path extraction,
- * filename extraction, and safe file operations. These functions ensure
- * consistent path formatting and security against directory traversal
- * attacks throughout the SD card subsystem.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #pragma once
 
 #include <Arduino.h>

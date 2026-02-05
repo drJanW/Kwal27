@@ -1,5 +1,7 @@
 # NAS CSV Extension
 
+> Version: 260205D | Updated: 2026-02-05
+
 ## Purpose
 This document describes the NAS CSV extension added to the firmware. The goal is to fetch configuration CSV files over HTTP from a NAS and store them on the SD card under /nas/ without overwriting the root CSV files.
 
@@ -15,7 +17,7 @@ This document describes the NAS CSV extension added to the firmware. The goal is
 
 ## Configuration
 Configuration values are defined in [lib/Globals/Globals.h](../../lib/Globals/Globals.h):
-- `Globals::csvBaseUrl` (default: http://192.168.2.23:8080/csv/)
+- `Globals::csvBaseUrl` (default: http://192.168.2.23:8081/csv/)
 - `Globals::csvHttpTimeoutMs`
 - `Globals::csvFetchWaitMs`
 

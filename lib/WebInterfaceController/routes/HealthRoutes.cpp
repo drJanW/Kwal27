@@ -1,15 +1,9 @@
 /**
  * @file HealthRoutes.cpp
  * @brief Health API endpoint routes
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements HTTP routes for the /api/health endpoint.
- * Returns system health information including firmware version,
- * health status bits from AlertState, and active timer count.
- * Also provides /api/restart for remote device restart.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include "HealthRoutes.h"
 #include "Globals.h"

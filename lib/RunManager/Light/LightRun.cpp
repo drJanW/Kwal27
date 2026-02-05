@@ -1,14 +1,9 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260102F
- * @date 2026-01-02
- *
- * Implements LED show orchestration: manages pattern/color state, applies
- * context-based shifts, handles lux measurement cycles with LED blackout,
- * and coordinates with ColorsCatalog, PatternCatalog, and ShiftTable.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include "LightRun.h"
 
 #include "Globals.h"
@@ -430,23 +425,23 @@ bool LightRun::previewPattern(JsonVariantConst body, String &errorMessage) {
 
     // Parse colors from body.color
     JsonVariantConst colorVariant = obj["color"];
+    CRGB colorA, colorB;
     if (!colorVariant.isNull()) {
-        CRGB colorA, colorB;
         String colorError;
         if (ColorsCatalog::parseColorPayload(colorVariant, colorA, colorB, colorError)) {
             params.RGB1 = colorA;
             params.RGB2 = colorB;
         } else {
             // Color parsing failed, use current active colors
-            LightShowParams activeParams = patternCatalog.getActiveParams();
-            params.RGB1 = activeParams.RGB1;
-            params.RGB2 = activeParams.RGB2;
+            colorCatalog.getActiveColors(colorA, colorB);
+            params.RGB1 = colorA;
+            params.RGB2 = colorB;
         }
     } else {
         // No color in body, use current active colors
-        LightShowParams activeParams = patternCatalog.getActiveParams();
-        params.RGB1 = activeParams.RGB1;
-        params.RGB2 = activeParams.RGB2;
+        colorCatalog.getActiveColors(colorA, colorB);
+        params.RGB1 = colorA;
+        params.RGB2 = colorB;
     }
 
     PF("[LightRun] previewPattern applied\n");

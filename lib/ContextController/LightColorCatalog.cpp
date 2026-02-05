@@ -1,15 +1,9 @@
 /**
  * @file LightColorCatalog.cpp
  * @brief Color set management from CSV implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements the LightColorCatalog class for managing light color definitions.
- * Loads color sets from CSV files on SD card, parses hex color values to RGB,
- * and provides lookup functionality by color ID. Supports multiple colors
- * per set for gradient and multi-color light effects.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include "LightColorCatalog.h"
 
 #include "Globals.h"

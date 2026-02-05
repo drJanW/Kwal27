@@ -1,17 +1,9 @@
 /**
  * @file SDBoot.h
  * @brief SD card one-time initialization
- * @version 251231E
- * @date 2025-12-31
- *
- * Handles SD card initialization during boot with retry logic. Mounts the SD
- * card, verifies firmware version, and reports SD status to notification
- * system. Part of the Boot→Plan→Policy→Run pattern.
- * 
- * Index rebuild is deferred until valid time (RTC/NTP) is available,
- * triggered via onTimeAvailable() from AlertRun.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 class SDBoot {

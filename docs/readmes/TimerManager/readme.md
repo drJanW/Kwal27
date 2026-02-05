@@ -1,6 +1,6 @@
 # TimerManager Library
 
-> Version: 260104M | Updated: 2026-01-04
+> Version: 260205D | Updated: 2026-02-05
 
 TimerManager is a lightweight timer system for Arduino-based ESP32 projects.
 It allocates up to 60 software timers that run callbacks at fixed or growing intervals.
@@ -58,7 +58,7 @@ timers.restart(1000, 1, cb_sequenceStep);  // Always succeeds
 - `repeat`: execution count with three repeat types:
   - `0` = infinite repeats at fixed interval
   - `>0` = exactly N repeats at fixed interval
-  - `<0` = |N| repeats with **growing interval** (interval grows 1.5× each time, max 30s)
+  - `<0` = |N| repeats with **growing interval** (interval grows 1.5× each time, capped at 20 hours)
 - `cb`: pointer to a function with signature `void callback();`
 
 ### Repeat Summary

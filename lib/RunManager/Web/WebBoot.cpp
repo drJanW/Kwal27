@@ -1,13 +1,9 @@
 /**
  * @file WebBoot.cpp
  * @brief Web interface one-time initialization implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements web boot sequence: initializes WebInterfaceController, enables
- * web interface, and configures WebPolicy settings.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #include <Arduino.h>
 #include "WebBoot.h"
 #include "Globals.h"

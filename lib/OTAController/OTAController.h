@@ -1,17 +1,9 @@
 /**
  * @file OTAController.h
  * @brief Over-the-air firmware update handling
- * @version 251231E
- * @date 2025-12-31
- *
- * This header declares the OTA (Over-The-Air) update control functions.
- * The OTA system uses a two-step confirmation flow for safety:
- * 1. otaArm() - Arms the OTA mode with a configurable time window (default 5 min)
- * 2. otaConfirmAndReboot() - Confirms and enters OTA mode if still within window
- * The otaBootHandler() must be called early in setup() to check if the device
- * should enter OTA update mode based on NVS-stored state flags.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 #include <Arduino.h>
 

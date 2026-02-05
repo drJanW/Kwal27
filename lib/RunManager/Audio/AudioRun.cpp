@@ -1,14 +1,9 @@
 /**
  * @file AudioRun.cpp
  * @brief Audio playback state management implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements audio playback orchestration: manages PCM playback timers,
- * handles distance-triggered audio responses, coordinates volume shifts
- * based on context, and schedules fragment playback through AudioPolicy.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include "AudioRun.h"
 
 #include <Arduino.h>

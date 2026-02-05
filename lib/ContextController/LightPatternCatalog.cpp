@@ -1,15 +1,9 @@
 /**
  * @file LightPatternCatalog.cpp
  * @brief Pattern definitions from CSV implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements the LightPatternCatalog class for managing light pattern definitions.
- * Loads pattern configurations from CSV files on SD card, including pattern
- * names, animation types, timing parameters, and associated settings.
- * Provides lookup by pattern ID and active pattern tracking.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include "LightPatternCatalog.h"
 
 #include "Globals.h"

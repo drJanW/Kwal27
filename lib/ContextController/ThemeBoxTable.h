@@ -1,16 +1,9 @@
 /**
  * @file ThemeBoxTable.h
  * @brief Audio theme box table interface
- * @version 251231E
- * @date 2025-12-31
- *
- * Defines the ThemeBoxTable class for managing audio theme boxes.
- * Provides interface for loading theme boxes from CSV, looking up
- * theme boxes by ID, accessing the currently active theme box,
- * and clearing the theme box table. Theme boxes organize audio
- * content into themed collections.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <Arduino.h>

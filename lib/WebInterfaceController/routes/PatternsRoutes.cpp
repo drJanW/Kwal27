@@ -1,15 +1,9 @@
 /**
  * @file PatternsRoutes.cpp
  * @brief Patterns API endpoint routes
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements HTTP routes for the /api/patterns/* endpoints.
- * Provides routes to list available light patterns, navigate to
- * next/previous patterns, and manage active pattern selection.
- * Integrates with LightRun and PatternCatalog for pattern control.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include "PatternsRoutes.h"
 #include "../WebGuiStatus.h"
 #include "../WebUtils.h"

@@ -1,17 +1,9 @@
 /**
  * @file PRTClock.h
  * @brief Real-time clock management with DS3231 RTC and NTP synchronization
- * @version 251231E
- * @date 2025-12-31
- *
- * This header defines the PRTClock singleton class that provides unified access
- * to time and date information. It manages the DS3231 hardware RTC module and
- * supports NTP-based time synchronization over WiFi. The class provides getters
- * and setters for time (hour, minute, second), date (year, month, day, day-of-week,
- * day-of-year), sunrise/sunset times, and moon phase calculations. All time values
- * are stored atomically for thread-safe access from multiple tasks.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 #include <Arduino.h>
 

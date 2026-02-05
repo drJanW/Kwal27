@@ -1,5 +1,7 @@
 # NAS CSV Read and Fallback
 
+> Version: 260205D | Updated: 2026-02-05
+
 ## Purpose
 This document explains how CSV reading prefers NAS files and how fallback to SD root works.
 

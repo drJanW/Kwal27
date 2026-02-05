@@ -1,15 +1,9 @@
 /**
  * @file OtaRoutes.h
  * @brief OTA update API endpoint routes
- * @version 251231E
- * @date 2025-12-31
- *
- * Header for OTA (Over-The-Air) update web API routes.
- * Declares routes for the arm/confirm/start endpoints that
- * manage the firmware update flow. The two-step flow
- * prevents accidental updates and allows timeout expiration.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <ESPAsyncWebServer.h>

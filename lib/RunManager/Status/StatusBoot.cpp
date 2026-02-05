@@ -1,14 +1,9 @@
 /**
  * @file StatusBoot.cpp
  * @brief Status display one-time initialization implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements status boot sequence: configures StatusPolicy and provides
- * time display callback that logs current time with source indication
- * (NTP or fallback).
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include "StatusBoot.h"
 #include "Globals.h"
 #include "StatusPolicy.h"

@@ -1,34 +1,15 @@
 /**
  * @file AlertState.h
  * @brief Hardware status state storage
- * @version 260104M
- * @date 2026-01-04
- *
- * Stores hardware component status in a single uint64_t with 4-bit fields.
- * Each component uses 4 bits: 0=OK, 1-14=retries remaining, 15=FAILED.
- * Status ownership: controllers only write status here; status reads must come from
- * AlertState (or StatusBits), not controller APIs.
- * 
- * Status values (SC_Status enum):
- *   OK (0)       - Component working normally
- *   RETRY (2-14) - Init in progress, N retries remaining  
- *   LAST_TRY (1) - Final init attempt
- *   FAILED (15)  - Init gave up after all retries
- *   ABSENT       - Hardware not present per HWconfig.h *_PRESENT defines
- *
- * Hardware presence: Components marked absent in HWconfig.h (*_PRESENT=false)
- * are skipped during init, show '—' in health displays, and never trigger
- * error flashes or reminders. Use isPresent() to check before error handling.
- *
- * API: getAbsentBits() returns bitmask of absent hardware for /api/health.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #pragma once
 
 #include <stdint.h>
 
 // Component identifiers for boot status tracking
-// KRITIEK: Volgorde MOET matchen met health.js FLAGS array!
+// CRITICAL: Order MUST match health.js FLAGS array!
 enum StatusComponent {
     SC_SD = 0,
     SC_WIFI,
@@ -44,7 +25,7 @@ enum StatusComponent {
     SC_COUNT  // = 11 (StatusComponent count)
 };
 
-// Status interpretatie (4-bit waarde → logische status)
+// Status interpretation (4-bit value → logical status)
 enum class SC_Status : uint8_t { 
     OK,        // 0
     RETRY,     // 2-14
@@ -53,7 +34,7 @@ enum class SC_Status : uint8_t {
     ABSENT     // hardware not present per HWconfig.h
 };
 
-// Status values for 4-bit fields (legacy, te verwijderen)
+// Status values for 4-bit fields (legacy, pending removal)
 constexpr uint8_t STATUS_OK = 0;
 constexpr uint8_t STATUS_NOTOK = 15;  // 0xF
 
@@ -61,7 +42,7 @@ namespace AlertState {
     // ===== NEW API (v4) =====
     uint8_t get(StatusComponent c);
     void set(StatusComponent c, uint8_t value);
-    SC_Status getStatus(StatusComponent c);  // geïnterpreteerd
+    SC_Status getStatus(StatusComponent c);  // interpreted status
     bool isPresent(StatusComponent c);       // hardware present per HWconfig.h
     void setSdBusy(bool busy);
     bool isSdBusy();
@@ -72,7 +53,7 @@ namespace AlertState {
     uint64_t getBootStatus();
     
     // ===== LEGACY API (backward compatible) =====
-    // Status setters - alleen aangeroepen door AlertRun::report()
+    // Status setters - only called by AlertRun::report()
     void setSdStatus(bool status);
     void setWifiStatus(bool status);
     void setRtcStatus(bool status);
@@ -86,7 +67,7 @@ namespace AlertState {
     void setTtsStatus(bool status);
     void startRuntime();
     
-    // Status getters - voor Policy en andere modules
+    // Status getters - for Policy and other modules
     bool isSdOk();
     bool isWifiOk();
     bool isRtcOk();

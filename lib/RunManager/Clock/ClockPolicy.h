@@ -1,13 +1,9 @@
 /**
  * @file ClockPolicy.h
  * @brief RTC/NTP clock business logic
- * @version 251231E
- * @date 2025-12-31
- *
- * Contains business logic for clock operations. Handles DS3231 RTC detection,
- * time seeding from RTC, and synchronizing RTC from NTP.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #pragma once
 
 #include <Arduino.h>

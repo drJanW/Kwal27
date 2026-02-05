@@ -1,14 +1,9 @@
 /**
  * @file AudioPolicy.h
  * @brief Audio playback business logic
- * @version 251231E
- * @date 2025-12-31
- *
- * Contains business logic for audio playback decisions. Determines when
- * fragments or sentences can play, applies volume rules, and calculates
- * distance-driven playback parameters. Pure logic with no state management.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 #include <Arduino.h>
 #include "AudioManager.h"

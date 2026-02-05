@@ -1,16 +1,9 @@
 /**
  * @file MathUtils.h
  * @brief Math utility functions (clamp, map, min/max)
- * @version 251231E
- * @date 2025-12-31
- *
- * This header provides type-safe math utility functions and constants.
- * Includes template-based min/max/clamp functions that avoid the double
- * evaluation problem of Arduino macros, range mapping functions for
- * linear interpolation, mathematical constants (pi, 2pi), and specialized
- * functions for color/brightness calculations used in LED animations.
+ * @version 260127A
+ * @date 2026-01-27
  */
-
 #pragma once
 
 #include <Arduino.h>

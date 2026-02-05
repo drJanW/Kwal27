@@ -1,14 +1,9 @@
 /**
  * @file CalendarRun.cpp
  * @brief Calendar state management implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements calendar state management: loads calendar CSV from SD card,
- * schedules periodic calendar sentence announcements, and coordinates
- * state updates with the light and audio subsystems.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include <Arduino.h>
 #include "CalendarRun.h"
 
@@ -170,7 +165,7 @@ void CalendarRun::cb_loadCalendar() {
     LightRun::applyPattern(0);
     LightRun::applyColor(0);
     clearTodayStateRead();
-    AlertState::setCalendarStatus(true);  // OK - geen bijzondere dag
+    AlertState::setCalendarStatus(true);  // OK - no special day
     RunManager::triggerBootFragment();  // Theme box set, play first fragment
     PL("[CalendarRun] No calendar data for today");
     timers.restart(Globals::calendarRefreshIntervalMs, 0, CalendarRun::cb_loadCalendar);

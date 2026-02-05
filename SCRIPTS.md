@@ -1,6 +1,6 @@
-# Kwal26 Scripts
+# Kwal27 Scripts
 
-Helper scripts for development, deployment and backup of the Kwal26 ESP32 project.
+Helper scripts for development, deployment and backup of the Kwal27 ESP32 project.
 
 ## Build & Upload
 

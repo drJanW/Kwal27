@@ -1,14 +1,9 @@
 /**
  * @file AudioDirector.cpp
  * @brief Audio fragment selection logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements weighted random selection of audio fragments from SD card.
- * Considers theme box configuration, context flags, and directory scoring
- * to select appropriate fragments for the current situation.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include "AudioDirector.h"
 
 #define LOCAL_LOG_LEVEL LOG_LEVEL_NONE

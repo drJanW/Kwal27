@@ -1,13 +1,9 @@
 /**
  * @file WebPolicy.cpp
  * @brief Web interface business logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Stub implementation for web policy. Web access rules are handled by
- * WebInterfaceController directly.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #include "WebPolicy.h"
 #include "Globals.h"
 

@@ -1,14 +1,9 @@
 /**
  * @file LightRun.h
  * @brief LED show state management
- * @version 251231E
- * @date 2025-12-31
- *
- * Manages LED show state and coordination. Handles pattern/color selection,
- * distance-responsive animation timing, lux-based brightness adjustment, and
- * shift application based on context. Coordinates with catalogs and policy.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <Arduino.h>

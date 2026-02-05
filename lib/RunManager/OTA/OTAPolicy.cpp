@@ -1,13 +1,9 @@
 /**
  * @file OTAPolicy.cpp
  * @brief OTA update business logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Stub implementation for OTA policy. OTA decisions are currently handled
- * by OTAController directly.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #include "OTAPolicy.h"
 #include "Globals.h"
 

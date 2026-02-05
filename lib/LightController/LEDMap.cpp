@@ -1,19 +1,12 @@
 /**
  * @file LEDMap.cpp
  * @brief Physical LED strip mapping implementation
- * @version 251231F
- * @date 2025-12-31
- *
- * Implementation of LED position mapping from physical strip indices to logical
- * 2D coordinates. Loads position data from binary file on SD card when available
- * (pairs of floats for x,y coordinates), or generates a fallback circular layout
- * based on LED count. Used for spatial lighting effects and position-aware
- * color patterns.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include "LEDMap.h"
 #include <SDController.h>
-#include "HWconfig.h"  // voor NUM_LEDS
+#include "HWconfig.h"  // for NUM_LEDS
 #include "Globals.h"
 #include <math.h>
 

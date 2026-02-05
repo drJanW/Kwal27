@@ -1,14 +1,9 @@
 /**
  * @file AudioPolicy.cpp
  * @brief Audio playback business logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements audio playback rules: arbitration between fragments and sentences,
- * volume capping, distance-to-interval mapping, and theme directory filtering.
- * All decisions are stateless - state is managed by AudioRun.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #include "AudioPolicy.h"
 #include "AudioState.h"  // isAudioBusy, isSentencePlaying
 #include "PlaySentence.h"

@@ -1,13 +1,9 @@
 /**
  * @file WiFiRun.h
  * @brief WiFi connection state management
- * @version 251231E
- * @date 2025-12-31
- *
- * Runs WiFi connection coordination. Currently a stub - WiFi
- * state machine is managed via WiFiController directly.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #pragma once
 
 #include <Arduino.h>

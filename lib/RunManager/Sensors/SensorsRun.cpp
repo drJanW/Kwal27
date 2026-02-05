@@ -1,14 +1,9 @@
 /**
  * @file SensorsRun.cpp
  * @brief Sensor data update state management implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements sensor event updates: reads distance events from SensorController,
- * applies normalization via SensorsPolicy, and triggers heartbeat rate changes,
- * audio playback, and light animation updates based on filtered distance.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include <Arduino.h>
 #include "SensorsRun.h"
 
@@ -93,7 +88,7 @@ void cb_updateSensorEvents() {
         } else if (distancePlaybackEligible) {
             distancePlaybackEligible = false;
             timers.cancel(AudioRun::cb_playPCM);
-            // Object moved away - speak "geen afstand" if cooldown allows
+            // Object moved away - speak distance cleared if cooldown allows
             if (SensorsPolicy::canSpeakDistanceCleared()) {
                 SpeakRun::speak(SpeakRequest::DISTANCE_CLEARED);
             }

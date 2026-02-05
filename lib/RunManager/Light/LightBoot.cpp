@@ -1,14 +1,9 @@
 /**
  * @file LightBoot.cpp
  * @brief LED show one-time initialization implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements LED boot sequence: configures FastLED hardware, loads LED map
- * from SD card, sets power limits, and starts periodic LED update and
- * color/brightness cycle timers.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #include "LightBoot.h"
 #include "LightController.h"
 #include "LEDMap.h"

@@ -1,23 +1,19 @@
 /**
  * @file SpeakWords.h
  * @brief MP3 word ID definitions for TTS
- * @version 251231E
- * @date 2025-12-31
- *
- * Defines MP3 file IDs for the modular word-based TTS system. Words are
- * stored as /000/XXX.mp3 files and combined to form sentences. Includes
- * Dutch numbers (0-59), subjects, states, and modifiers.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
-// SpeakWords.h
-// MP3 IDs for speak audio files in /000/
 #pragma once
 #include <stdint.h>
 
-// MP3 files stored as /000/XXX.mp3 where XXX = 3-digit ID
-// Modular word system: subjects + states + modifiers = flexible sentences
-// SD_MAX_FILES_PER_SUBDIR = 101, so max file is 100.mp3
-
+/**
+ * @enum Mp3Id
+ * @brief MP3 file IDs stored as /000/XXX.mp3 where XXX = 3-digit ID
+ * 
+ * Modular word system: subjects + states + modifiers = flexible sentences
+ * SD_MAX_FILES_PER_SUBDIR = 101, so max file is 100.mp3
+ */
 enum Mp3Id : uint8_t {
     // ============================================
     // Numbers 0-59: spoken Dutch numbers
@@ -26,10 +22,10 @@ enum Mp3Id : uint8_t {
     MP3_ZERO        = 0,    // "nul"
     MP3_ONE         = 1,    // "een"
     MP3_TWO         = 2,    // "twee"
-    // ... 3-59: drie t/m negenenvijftig
+    // ... 3-59: three through fifty-nine
 
     // ============================================
-    // Subjects 60-72: onderwerpen
+    // Subjects 60-72: topics
     // ============================================
     MP3_SYSTEM      = 60,   // "systeem"
     MP3_WIFI        = 61,   // "wifi"
@@ -46,7 +42,7 @@ enum Mp3Id : uint8_t {
     MP3_POWER       = 72,   // "voeding"
 
     // ============================================
-    // States/actions 73-83: staten en acties
+    // States/actions 73-83: states and actions
     // ============================================
     MP3_START       = 73,   // "start"
     MP3_GEREED      = 74,   // "gereed"
@@ -61,7 +57,7 @@ enum Mp3Id : uint8_t {
     MP3_BESCHIKBAAR = 83,   // "beschikbaar"
 
     // ============================================
-    // Modifiers 84-90: bijwoorden/bijvoeglijk
+    // Modifiers 84-90: adverbs/adjectives
     // ============================================
     MP3_GEEN        = 84,   // "geen"
     MP3_LAGE        = 85,   // "lage"

@@ -1,15 +1,9 @@
 /**
  * @file PatternsRoutes.h
  * @brief Patterns API endpoint routes
- * @version 251231E
- * @date 2025-12-31
- *
- * Header for pattern-related web API routes.
- * Declares functions for listing light patterns, navigating between
- * patterns (next/prev), and attaching pattern routes to the web server.
- * Routes send SSE events when the active pattern changes.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <ESPAsyncWebServer.h>

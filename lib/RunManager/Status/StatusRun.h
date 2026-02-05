@@ -1,13 +1,9 @@
 /**
  * @file StatusRun.h
  * @brief Status display state management
- * @version 251231E
- * @date 2025-12-31
- *
- * Runs status display coordination. Currently a stub for
- * future status orchestration logic.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 #include <Arduino.h>

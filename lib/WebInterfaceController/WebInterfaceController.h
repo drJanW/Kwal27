@@ -1,19 +1,10 @@
 /**
  * @file WebInterfaceController.h
  * @brief Async web server setup, routes index.html and API endpoints
- * @version 251231E
- * @date 2025-12-31
- *
- * Header for the main web interface controller. Provides public functions
- * to initialize the async web server and run periodic updates.
- * The server exposes REST API endpoints for audio, lights, patterns,
- * colors, context, SD card operations, OTA updates, and health checks.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
-#ifndef WEB_INTERFACE_CONTROLLER_H
-#define WEB_INTERFACE_CONTROLLER_H
+#pragma once
 
 void beginWebInterface();
 void updateWebInterface();
-
-#endif

@@ -1,15 +1,9 @@
 /**
  * @file TodayRoutes.cpp
  * @brief Today API endpoint routes
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements HTTP routes for the /api/context/* endpoints.
- * Provides the /api/context/today route that returns current date,
- * calendar entry status, theme information, and active color/pattern.
- * Integrates with TodayState and CalendarRun for today data.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include "TodayRoutes.h"
 #include "../WebUtils.h"
 #include "Globals.h"

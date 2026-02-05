@@ -1,14 +1,9 @@
 /**
  * @file ClockRun.h
  * @brief RTC/NTP clock state management
- * @version 251231E
- * @date 2025-12-31
- *
- * Manages clock state and RTC synchronization. Provides interface for seeding
- * the system clock from RTC, syncing RTC from NTP time, and querying RTC
- * hardware availability.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 class PRTClock;

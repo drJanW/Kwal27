@@ -1,14 +1,9 @@
 /**
  * @file HeartbeatPolicy.h
  * @brief Heartbeat LED business logic
- * @version 251231E
- * @date 2025-12-31
- *
- * Contains business logic for heartbeat rate calculations. Maps sensor distance
- * to blink interval, applies smoothing to prevent jitter, and enforces min/max
- * interval bounds.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 #include <Arduino.h>

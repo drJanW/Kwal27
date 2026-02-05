@@ -1,15 +1,9 @@
 /**
  * @file WebInterfaceController.cpp
  * @brief Async web server setup, routes index.html and API endpoints
- * @version 251231E
- * @date 2025-12-31
- *
- * Main web interface implementation for the ESP32 Kwal project.
- * Sets up the ESPAsyncWebServer instance, configures all API routes,
- * serves static files from the SD card (index.html, CSS, JS), and
- * delegates endpoint routing to specialized route modules.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include <Arduino.h>
 #include "WebInterfaceController.h"
 #include "WebGuiStatus.h"
@@ -78,7 +72,7 @@ void routeRoot(AsyncWebServerRequest *request)
         return;
     }
     if (!SD.exists("/index.html")) {
-        request->send(500, "text/plain", "index.html niet gevonden");
+        request->send(500, "text/plain", "index.html not found");
         return;
     }
     request->send(SD, "/index.html", "text/html");
@@ -179,5 +173,5 @@ void beginWebInterface()
 
 void updateWebInterface()
 {
-    // AsyncWebServer: niet nodig. Leeg laten voor compatibiliteit.
+    // AsyncWebServer: not needed. Keep empty for compatibility.
 }

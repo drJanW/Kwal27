@@ -1,15 +1,9 @@
 /**
  * @file ContextController.h
  * @brief Central context coordination and TodayState management interface
- * @version 251231E
- * @date 2025-12-31
- *
- * Header file for the central context coordination system.
- * Defines the ContextController namespace with TimeState structure for time tracking,
- * WebCmd enumeration for web interface commands, and functions for managing
- * the application's overall context state.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #pragma once
 #include <Arduino.h>
 

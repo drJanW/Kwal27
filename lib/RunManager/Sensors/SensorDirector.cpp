@@ -1,13 +1,9 @@
 /**
  * @file SensorDirector.cpp
  * @brief Sensor response selection logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Stub implementation for sensor director. Future home for sensor data
- * pattern recognition and response selection logic.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #include "SensorDirector.h"
 
 #include "Globals.h"

@@ -1,15 +1,13 @@
 /**
  * @file PlaySentence.cpp
- * @brief TTS sentence playback using word dictionary
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements text-to-speech sentence playback by concatenating pre-recorded word clips.
- * Words are stored as MP3 files on SD card and played sequentially with configurable intervals.
- * Supports both word-index based playback and text-to-word conversion via startTTS().
- * Uses a FIFO queue for word scheduling and timer-based word sequencing.
+ * @brief TTS sentence playback with word dictionary and VoiceRSS API
+ * @version 260205A
+ * @date 2026-02-05
+ * 
+ * Implements sequential word playback from /000/ directory.
+ * Uses unified SpeakItem queue for mixing MP3 words and TTS sentences.
+ * Timer-driven completion (T4 rule: never use loop() return).
  */
-
 #include <Arduino.h>
 #include <HTTPClient.h>
 #include <WiFiClient.h>

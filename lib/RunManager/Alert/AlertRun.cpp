@@ -1,14 +1,9 @@
 /**
  * @file AlertRun.cpp
  * @brief Hardware failure alert state management implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements alert routing: maps AlertRequest values to AlertState
- * updates, triggers RGB failure flash sequences, and coordinates with
- * StatusFlags for hardware failure bit tracking.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "AlertRun.h"
 #include "AlertState.h"

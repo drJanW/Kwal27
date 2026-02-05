@@ -1,15 +1,9 @@
 /**
  * @file LightController.h
  * @brief LED control interface via FastLED library
- * @version 251231E
- * @date 2025-12-31
- *
- * Header file for the LightController class which provides centralized control
- * over LED strip operations. Manages brightness levels, color settings, and
- * special display presets like OTA update patterns. Implements singleton pattern
- * for global access to LED hardware control.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <FastLED.h>

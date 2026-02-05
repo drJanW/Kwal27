@@ -1,14 +1,12 @@
 /**
  * @file AudioState.cpp
- * @brief Shared audio state between playback modules
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements thread-safe audio state management using atomic variables.
- * Tracks playback status (fragment, sentence, TTS, word playing states).
- * Manages audio gain levels (base gain, web audio level, raw level).
+ * @brief Thread-safe audio state storage using atomics
+ * @version 260205A
+ * @date 2026-02-05
+ * 
+ * All state is stored in std::atomic variables with relaxed ordering
+ * for safe cross-core access on ESP32 dual-core architecture.
  */
-
 #include "AudioState.h"
 #include "Globals.h"
 #include "MathUtils.h"

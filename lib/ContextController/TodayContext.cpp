@@ -1,16 +1,9 @@
 /**
- * @file TodayState.cpp
+ * @file TodayContext.cpp
  * @brief Today's state management implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements the today state management system combining calendar data,
- * theme boxes, colors, and patterns into a unified daily state.
- * Handles initialization from SD card, loading current day's state,
- * and providing access to theme boxes, patterns, and colors for the
- * current date. Central to date-aware behavior throughout the system.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include "TodayState.h"
 

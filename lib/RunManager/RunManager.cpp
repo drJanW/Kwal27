@@ -1,25 +1,9 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 251231E
- * @date 2025-12-31
- * 
- * The RunManager is the main coordinator that:
- * - Initializes all modules via BootMaster at startup
- * - Routes requests from WebGUI to appropriate modules
- * - Manages lux measurement cycles (LED blackout for sensor reading)
- * - Runs audio fragment playback requests
- * - Coordinates OTA update window
- * 
- * Architecture follows the Boot→Plan→Policy→Run pattern:
- * - Boot: One-time initialization, hardware detection
- * - Plan: Timer scheduling for periodic tasks  
- * - Policy: Business logic and decision making
- * - Run: State management and execution
- * 
- * All timing uses TimerManager callbacks (no millis() or delay()).
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include <Arduino.h>
 #include <math.h>
 #include "LightController.h"

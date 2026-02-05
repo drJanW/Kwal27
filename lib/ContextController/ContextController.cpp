@@ -1,15 +1,9 @@
 /**
  * @file ContextController.cpp
  * @brief Central context coordination and TodayState management
- * @version 251231E
- * @date 2025-12-31
- *
- * This file implements the central context coordination system for the application.
- * It manages TodayState which contains all current state information including
- * time state, web commands, and coordination between various modules.
- * Runs time updates, web command flow, and context state transitions.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include <Arduino.h>
 #include "ContextController.h"
 #include "Globals.h"
@@ -71,22 +65,22 @@ void updateTimeState() {
 
 } // namespace
 
-// 20 ms periodic via TimerManager
+/// 20ms periodic callback via TimerManager for context coordination
 static void ctx_tick_cb() {
   updateTimeState();
 
-  // 1) pak één command
+  // 1) Dequeue single command
   ContextController::WebCmd cmd = pendingCmd;
   if (cmd != ContextController::WebCmd::None) pendingCmd = ContextController::WebCmd::None;
 
-  // 2) verwerk command
+  // 2) Process command
   if (cmd == ContextController::WebCmd::NextTrack) {
     nextPending = true;
   } else if (cmd == ContextController::WebCmd::DeleteFile) {
     if (!isAudioBusy() && !isSentencePlaying()) {
       SDVoting::deleteIndexedFile(cmdDir, cmdFile);
     } else {
-      pendingCmd = ContextController::WebCmd::DeleteFile; // retry zodra idle
+      pendingCmd = ContextController::WebCmd::DeleteFile; // retry when idle
     }
   } else if (cmd == ContextController::WebCmd::ApplyVote) {
     SDVoting::applyVote(cmdDir, cmdFile, cmdDelta);
@@ -94,15 +88,15 @@ static void ctx_tick_cb() {
     if (!isAudioBusy() && !isSentencePlaying()) {
       SDVoting::banFile(cmdDir, cmdFile);
     } else {
-      pendingCmd = ContextController::WebCmd::BanFile; // retry zodra idle
+      pendingCmd = ContextController::WebCmd::BanFile; // retry when idle
     }
   }
 
-  // 3) NEXT uitvoeren
+  // 3) Execute NEXT command
   if (nextPending) {
     if (isAudioBusy() || isSentencePlaying()) {
       audio.stop();
-      return; // volgende tick start nieuwe
+      return; // next tick will start new track
     }
     AudioFragment frag{};
     if (AudioDirector::selectRandomFragment(frag)) {
@@ -142,7 +136,7 @@ bool ContextController_post(ContextController::WebCmd cmd, uint8_t dir, uint8_t 
 }
 
 void ContextController::begin() {
-  // Start een 20 ms heartbeat die de context events verwerkt.
+  // Start 20ms heartbeat to process context events
   timers.cancel(ctx_tick_cb);
   updateTimeState();
   if (!timers.create(20, 0, ctx_tick_cb)) {

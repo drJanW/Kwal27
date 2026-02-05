@@ -1,14 +1,9 @@
 /**
  * @file AudioShiftTable.h
  * @brief Audio parameter shift storage
- * @version 251231E
- * @date 2025-12-31
- *
- * Maintains and manages audio parameter shifts loaded from CSV configuration.
- * Shifts modify volume and fade timing based on context flags (time of day,
- * calendar events). Provides computed shift values for current context status.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #pragma once
 
 #include <Arduino.h>

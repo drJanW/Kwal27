@@ -1,8 +1,8 @@
 # SensorController
 
-> Version: 251218A | Updated: 2025-12-17
+> Version: 260205D | Updated: 2026-02-05
 
-Thin coordinator for uniform sensor drivers. Timer-driven polling. No ISRs in v1. `loop()` only updates `TimerSystem`.
+Thin coordinator for uniform sensor drivers. Timer-driven polling. No ISRs in v1. `loop()` only updates `TimerManager`.
 
 ## Table of Contents
 - [Overview](#overview)
@@ -58,7 +58,7 @@ Drivers never call back into app logic; the controller **pulls**.
 ## Installation
 - Arduino-ESP32 5.5.1+ (ESP32‑D0WD‑V3 tested)
 - Copy `SensorController.{h,cpp}` and sensor drivers into your project `src/`.
-- Ensure `TimerSystem` is available and initialized.
+- Ensure `TimerManager` is available and initialized.
 
 ## Configuration
 - Poll period: set via `SensorController::init(period_ms)`; typical 50–100 ms.

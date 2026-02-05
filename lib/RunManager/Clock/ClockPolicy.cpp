@@ -1,13 +1,9 @@
 /**
  * @file ClockPolicy.cpp
  * @brief RTC/NTP clock business logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements RTC hardware interface: DS3231 initialization and probing,
- * time reading/writing, and notification reporting for RTC failure conditions.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include <Arduino.h>
 #include "ClockPolicy.h"
 

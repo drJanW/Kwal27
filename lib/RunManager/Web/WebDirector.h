@@ -1,14 +1,9 @@
 /**
  * @file WebDirector.h
  * @brief Web request routing and response coordination
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements web request routing and response coordination. Manages SD file
- * listing/deletion, light pattern/color CRUD operations, and job-based
- * async request flow with chunked JSON responses.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <Arduino.h>

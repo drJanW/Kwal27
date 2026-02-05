@@ -1,8 +1,8 @@
 # SD Card Root Files
 
-> Version: 251230A | Updated: 2025-12-30
+> Version: 260205D | Updated: 2026-02-05
 
-This folder contains all files that should be copied to the SD card root for the Kwal26 installation.
+This folder contains all files that should be copied to the SD card root for the Kwal27 installation.
 
 ## Directory Structure
 

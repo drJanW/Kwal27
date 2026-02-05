@@ -1,16 +1,9 @@
 /**
  * @file Globals.cpp
  * @brief CSV override loader for Globals
- * @version 251231E
- * @date 2025-12-31
- *
- * Globals::begin() loads /config/globals.csv and overrides known keys.
- * Default values are defined in Globals.h using C++17 inline static.
- * 
- * OVERRIDE MODEL: Code defines truth. CSV may deviate.
- * Missing/corrupt CSV → system runs on code defaults.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include "Arduino.h"
 #include "Globals.h"
 #include "SDController.h"

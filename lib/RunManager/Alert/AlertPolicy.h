@@ -1,14 +1,9 @@
 /**
  * @file AlertPolicy.h
  * @brief Hardware failure alert business logic
- * @version 251231I
- * @date 2025-12-31
- *
- * Contains business logic and configuration for failure alerts. Defines
- * RGB colors for each component failure type, blink timing constants, and
- * alert priority rules.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 #include <stdint.h>

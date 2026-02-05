@@ -1,15 +1,9 @@
 /**
  * @file AsyncJsonCompat.cpp
  * @brief JSON handling compatibility layer
- * @version 251231E
- * @date 2025-12-31
- *
- * Provides a compatibility layer for handling JSON requests with ESPAsyncWebServer.
- * Implements AsyncCallbackJsonWebHandler to parse incoming JSON payloads and
- * supports both ArduinoJson v6 and v7. Handles content-type validation,
- * request body accumulation, and JSON parsing with configurable buffer sizes.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <AsyncJson.h>
 #include <cstring>
 #include <cstdlib>

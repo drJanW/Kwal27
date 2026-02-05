@@ -1,14 +1,9 @@
 /**
  * @file AudioDirector.h
  * @brief Audio fragment selection logic
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements selection logic for audio fragment playback. Chooses which audio
- * fragments to play based on current context, theme boxes, and weighted random
- * selection from available SD card directories.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 #include <Arduino.h>

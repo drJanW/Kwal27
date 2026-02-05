@@ -1,15 +1,9 @@
 /**
  * @file Calendar.cpp
  * @brief Calendar day structure and parsing implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements the calendar day structure and parsing functionality.
- * Handles loading and parsing of calendar entries from CSV files,
- * including date parsing, TTS sentence extraction, theme box assignments,
- * and pattern/color ID associations for each calendar day.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include <Arduino.h>
 #include "Calendar.h"
 #include "Globals.h"

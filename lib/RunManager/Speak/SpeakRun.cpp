@@ -1,14 +1,9 @@
 /**
  * @file SpeakRun.cpp
  * @brief TTS speech state management implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements speech routing: maps SpeakRequest values to word sequences
- * (component names for failures, numbers for time), and queues them via
- * PlaySentence for sequential MP3 playback.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include "SpeakRun.h"
 #include "SpeakPolicy.h"
 #include "SpeakWords.h"
@@ -22,7 +17,7 @@
 
 namespace {
 
-// TTS zinnen (primair)
+/// Get TTS sentence text for a request (primary voice output)
 const char* getTtsSentence(SpeakRequest request) {
     switch (request) {
         case SpeakRequest::SD_FAIL:              return "Geheugenkaart werkt niet";
@@ -45,10 +40,10 @@ const char* getTtsSentence(SpeakRequest request) {
     }
 }
 
-// MP3 fallback: request → max 2 woorden
+/// MP3 fallback: request → max 2 words
 struct RequestPhrase {
     SpeakRequest request;
-    uint8_t words[3];  // max 2 woorden + terminator
+    uint8_t words[3];  // max 2 words + terminator
 };
 
 constexpr RequestPhrase phrases[] = {
@@ -101,7 +96,7 @@ void SpeakRun::speak(SpeakRequest request) {
         }
     }
 
-    // MP3 fallback - alleen SD nodig
+    // MP3 fallback - only requires SD
     if (!AlertState::isSdOk()) {
         PF("[SpeakRun] Cannot play MP3 (no SD)\n");
         return;
@@ -156,6 +151,6 @@ void SpeakRun::speakFail(StatusComponent c) {
         case SC_SENSOR3:  speak(SpeakRequest::SENSOR3_FAIL); break;
         case SC_WEATHER:  speak(SpeakRequest::WEATHER_FAIL); break;
         case SC_CALENDAR: speak(SpeakRequest::CALENDAR_FAIL); break;
-        default: break;  // SC_AUDIO, SC_TTS hebben geen FAIL request
+        default: break;  // SC_AUDIO, SC_TTS have no FAIL request
     }
 }

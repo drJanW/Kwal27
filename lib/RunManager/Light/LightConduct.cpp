@@ -1,14 +1,9 @@
 /**
  * @file LightConduct.cpp
  * @brief LED show state management implementation
- * @version 260102F
- * @date 2026-01-02
- *
- * Implements LED show orchestration: manages pattern/color state, applies
- * context-based shifts, handles lux measurement cycles with LED blackout,
- * and coordinates with ColorsCatalog, PatternCatalog, and ShiftTable.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #if 0
 #include "LightConduct.h"
 

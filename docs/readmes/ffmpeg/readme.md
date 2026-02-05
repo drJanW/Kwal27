@@ -1,6 +1,8 @@
 # FFmpeg Audio Processing
 
-Scripts voor het converteren van MP3's naar het SD-kaart formaat van Kwal26.
+> Version: 260205D | Updated: 2026-02-05
+
+Scripts voor het converteren van MP3's naar het SD-kaart formaat van Kwal27.
 
 ## Waarom?
 

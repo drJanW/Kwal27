@@ -1,15 +1,9 @@
 /**
  * @file LightColorCatalog.h
  * @brief Color set management from CSV interface
- * @version 251231E
- * @date 2025-12-31
- *
- * Defines the LightColorCatalog class for managing light color definitions.
- * Provides interface for loading colors from CSV, looking up colors by ID,
- * and accessing the currently active color set. Includes HexToRgb utility
- * function for parsing hex color strings.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <Arduino.h>

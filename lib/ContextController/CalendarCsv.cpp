@@ -1,15 +1,9 @@
 /**
  * @file CalendarCsv.cpp
  * @brief CSV file parsing for calendar data implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements CSV parsing functionality specifically for calendar data files.
- * Handles row-by-row parsing of calendar CSV files, extracting date fields,
- * TTS sentences, interval settings, and theme/pattern/color IDs.
- * Includes validation and error handling for malformed CSV data.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include "CalendarCsv.h"
 
 #include <ctype.h>

@@ -1,13 +1,9 @@
 /**
  * @file WebGuiStatus.cpp
  * @brief Centralized WebGUI state management implementation
- * @version 260101A
- * @date 2026-01-01
- *
- * SSE pushes current state from source modules (LightController, AudioState).
- * No local caching of brightness/audio - always reads from source.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include "WebGuiStatus.h"
 #include "Globals.h"
 #include "Light/PatternCatalog.h"

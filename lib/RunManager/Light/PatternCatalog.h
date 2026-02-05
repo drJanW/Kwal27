@@ -1,14 +1,9 @@
 /**
  * @file PatternCatalog.h
  * @brief LED pattern storage
- * @version 251231E
- * @date 2025-12-31
- *
- * Maintains and manages LED animation patterns loaded from CSV configuration.
- * Provides pattern selection, CRUD operations, and JSON serialization for
- * web interface. Single source of truth for pattern definitions.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #pragma once
 
 #include <Arduino.h>

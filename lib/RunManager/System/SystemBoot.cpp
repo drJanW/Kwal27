@@ -1,16 +1,9 @@
 /**
  * @file SystemBoot.cpp
  * @brief System-level boot stages implementation
- * @version 260128A
- * @date 2026-01-28
- * 
- * Implements staged boot sequence:
- * - Stage 0: Serial, RNG, OTA check
- * - Stage 1: I2C init, component probing via RunManager
- * 
- * RunManager::begin() handles finer subsystem orchestration internally.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #include <Arduino.h>
 #include "SystemBoot.h"
 #include "Globals.h"

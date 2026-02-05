@@ -1,20 +1,9 @@
 /**
  * @file PRTClock.cpp
  * @brief Real-time clock management with DS3231 RTC and NTP synchronization
- * @version 251231E
- * @date 2025-12-31
- *
- * This implementation provides the PRTClock singleton that manages timekeeping
- * for the system. It uses atomic storage for all time/date fields to ensure
- * thread-safe access. The class handles:
- * - Time tracking with automatic second/minute/hour rollover via update()
- * - DS3231 RTC hardware communication for persistent timekeeping
- * - NTP synchronization to fetch accurate time from the network
- * - Sunrise/sunset calculation based on geographic coordinates
- * - Moon phase computation for astronomical features
- * - Daily automatic re-sync at midnight to maintain accuracy
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include <atomic>
 #include <math.h>

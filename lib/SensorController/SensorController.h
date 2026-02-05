@@ -1,16 +1,9 @@
 /**
  * @file SensorController.h
  * @brief Sensor initialization and reading interface for distance (VL53L1X) and lux (BH1750/VEML7700)
- * @version 251231E
- * @date 2025-12-31
- *
- * Header file defining the SensorController class and SensorEvent structure.
- * Provides a unified interface for initializing and reading multiple sensors:
- * - Distance sensor (VL53L1X) for proximity detection
- * - Lux sensor (VEML7700) for ambient light measurement
- * Sensor events are queued and can be polled or consumed by other modules.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 // lib/SensorController20251004/SensorController.h
 #pragma once
 #include <Arduino.h>

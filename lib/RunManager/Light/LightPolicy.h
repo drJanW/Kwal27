@@ -1,14 +1,9 @@
 /**
  * @file LightPolicy.h
  * @brief LED show business logic
- * @version 251231E
- * @date 2025-12-31
- *
- * Contains business logic for LED brightness and animation decisions. Applies
- * brightness rules, computes lux-based brightness, and calculates distance-
- * driven animation parameters. Pure logic with no state management.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 #include <Arduino.h>
 

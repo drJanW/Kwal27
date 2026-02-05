@@ -1,19 +1,9 @@
 /**
  * @file SDSettings.h
  * @brief Centralized SD card configuration constants and index format definitions
- * @version 251231E
- * @date 2025-12-31
- *
- * Defines compile-time constants for SD card media index system.
- * Configuration includes:
- * - SD_MAX_DIRS: Maximum number of directories (200)
- * - SD_MAX_FILES_PER_SUBDIR: Maximum files per directory (101)
- * - BYTES_PER_MS: Bitrate conversion factor (16 bytes/ms at 128kbps)
- * - Index file paths (.root_dirs, .files_dir, .words_dir)
- * - SD_INDEX_VERSION: Human-readable index format specification
- * - SDPATHLENGTH: Maximum path string length (32 chars)
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 // Centralised SD card configuration for the media index.

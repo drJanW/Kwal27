@@ -1,14 +1,9 @@
 /**
  * @file SpeakPolicy.cpp
  * @brief TTS speech business logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements speech arbitration: speech always has priority over fragments,
- * only blocks if another sentence is already playing. PlaySentence handles
- * fragment interruption automatically.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include "SpeakPolicy.h"
 #include "Globals.h"
 #include "AudioState.h"
@@ -19,10 +14,10 @@ void configure() {
     // No configuration needed yet
 }
 
+/// Check if speech can be started
+/// Speech ALWAYS has priority - PlaySentence::addWords() stops fragment if needed
+/// Only block if a sentence is already playing
 bool canSpeak() {
-    // Speak heeft ALTIJD prioriteit
-    // PlaySentence::addWords() stopt fragment indien nodig
-    // Alleen blokkeren als er al een sentence speelt
     if (isSentencePlaying()) {
         return false;
     }

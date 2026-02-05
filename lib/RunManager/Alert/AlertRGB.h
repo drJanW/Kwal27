@@ -1,14 +1,9 @@
 /**
  * @file AlertRGB.h
  * @brief RGB LED failure flash coordination
- * @version 251231E
- * @date 2025-12-31
- *
- * Manages RGB LED failure indication patterns. Flashes component-specific
- * colors when hardware failures are detected, temporarily overriding the
- * normal light show during failure alert sequences.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 #include <stdint.h>

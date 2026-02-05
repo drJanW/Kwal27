@@ -1,15 +1,9 @@
 /**
  * @file AlertState.cpp
  * @brief Hardware status state storage implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements hardware status tracking using a single uint64_t with 4-bit fields.
- * Each component uses 4 bits: 0=OK, 1-14=retries, 15=NotOK.
- * Triggers TTS failure announcements during boot phase and
- * coordinates RGB flash sequences for active failures.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
 #include <atomic>

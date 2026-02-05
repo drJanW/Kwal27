@@ -1,3 +1,9 @@
+/**
+ * @file RTCController.h
+ * @brief RTCController implementation
+ * @version 260204A
+ * @date 2026-02-04
+ */
 // RTCController.h - Hardware RTC (DS3231) control
 // Only this module talks to I2C/RTC hardware
 // @version 251231E

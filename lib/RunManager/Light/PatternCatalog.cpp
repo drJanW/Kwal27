@@ -1,14 +1,9 @@
 /**
  * @file PatternCatalog.cpp
  * @brief LED pattern storage implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Loads animation patterns from /light_patterns.csv on SD card. Provides
- * pattern selection with persistence, CRUD operations with SD write-back,
- * and JSON building for web interface status display.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include "PatternCatalog.h"
 
 #include <algorithm>

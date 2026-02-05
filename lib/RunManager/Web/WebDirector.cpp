@@ -1,14 +1,9 @@
 /**
  * @file WebDirector.cpp
  * @brief Web request routing and response coordination implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements async web request handling: SD directory listing with JSON
- * chunking, file deletion, pattern/color catalog operations, and job-based
- * request queuing with TimerManager-driven tick flow.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include "WebDirector.h"
 
 #include "Globals.h"

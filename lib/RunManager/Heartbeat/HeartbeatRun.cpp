@@ -1,14 +1,9 @@
 /**
  * @file HeartbeatRun.cpp
  * @brief Heartbeat LED state management implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements heartbeat LED orchestration: manages on/off timing, adjusts
- * blink pattern based on hardware failure flags, and schedules LED toggle
- * timers through TimerManager.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include "HeartbeatRun.h"
 
 #include "Globals.h"
@@ -29,14 +24,15 @@ uint32_t onMs = 500;
 uint32_t offMs = 500;
 bool ledState = false;
 
+/// Update heartbeat pattern based on hardware failure state
 void updateFailurePattern() {
     const bool anyFail = StatusFlags::getHardwareFailBits() != 0;
     if (anyFail) {
-        // Failure pattern: 0.5s aan, 3s uit
+        // Failure pattern: 0.5s on, 3s off
         onMs = 500;
         offMs = 3000;
     } else {
-        // Normaal: 0.5s aan, 0.5s uit
+        // Normal: 0.5s on, 0.5s off
         onMs = 500;
         offMs = 500;
     }
@@ -63,7 +59,7 @@ void HeartbeatRun::plan() {
 }
 
 void HeartbeatRun::setRate(uint32_t intervalMs) {
-    // Legacy - nu asymmetrisch, deze functie doet niets meer
+    // Legacy - now asymmetric, this function is no-op
 }
 
 uint32_t HeartbeatRun::currentRate() const {
@@ -71,5 +67,5 @@ uint32_t HeartbeatRun::currentRate() const {
 }
 
 void HeartbeatRun::signalError() {
-    // Niet meer nodig - failure pattern is altijd actief
+    // No longer needed - failure pattern is always active
 }

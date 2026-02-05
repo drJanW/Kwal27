@@ -1,17 +1,9 @@
 /**
  * @file SDBoot.cpp
  * @brief SD card one-time initialization implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements SD boot sequence with retry logic: attempts to mount SD card,
- * verifies version.txt matches firmware, shows pink/turquoise failure pattern
- * if SD mount fails, and reports status via AlertRun.
- * 
- * Index rebuild is deferred until valid time (RTC/NTP) available via
- * onTimeAvailable() callback from AlertRun - no polling needed.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include "SDBoot.h"
 #include "Globals.h"

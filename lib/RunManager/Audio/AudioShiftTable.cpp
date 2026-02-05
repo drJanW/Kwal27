@@ -1,14 +1,9 @@
 /**
  * @file AudioShiftTable.cpp
  * @brief Audio parameter shift storage implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Loads audio shift configuration from /audioShifts.csv on SD card.
- * Parses status conditions and percentage shifts, calculates aggregate
- * multipliers based on current context status bits.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include "AudioShiftTable.h"
 #include "CsvUtils.h"
 #include "SDController.h"

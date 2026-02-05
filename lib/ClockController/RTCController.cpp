@@ -1,10 +1,9 @@
 /**
  * @file RTCController.cpp
  * @brief Hardware RTC (DS3231) control implementation
- * @version 260203Q
- * @date 2026-02-03
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include <Arduino.h>
 #include "RTCController.h"
 #include "Globals.h"

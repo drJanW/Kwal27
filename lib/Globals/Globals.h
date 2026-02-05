@@ -1,22 +1,9 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260205C
+ * @version 260205A
  * @date 2026-02-05
- * 
- * Central configuration file containing:
- * - Firmware version string
- * - Runtime-overridable timing constants (via /config/globals.csv)
- * - Thread-safe atomic helpers for ESP32 dual-core communication
- * - Hardware status register for graceful degradation
- * 
- * All timing is in milliseconds. Intervals are designed to feel organic
- * and non-metronomic where possible.
- * 
- * OVERRIDE MODEL: Code defines defaults. CSV may override at runtime.
- * If CSV is missing/corrupt → system runs on code defaults.
  */
-
 #pragma once
 
 #include <Arduino.h>
@@ -32,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260205C"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260205D"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000

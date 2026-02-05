@@ -1,17 +1,9 @@
 /**
  * @file SensorController.cpp
  * @brief Sensor initialization and reading for distance (VL53L1X) and lux (BH1750/VEML7700)
- * @version 251231E
- * @date 2025-12-31
- *
- * This file implements the SensorController class which coordinates multiple sensors
- * on the ESP32. It handles initialization, periodic reading, and event queuing for:
- * - VL53L1X time-of-flight distance sensor (detects presence/proximity)
- * - VEML7700 ambient light sensor (measures illuminance in lux)
- * The controller uses a timer-based update mechanism and provides a unified event
- * interface for sensor data to the rest of the system.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 // lib/SensorController20251004/SensorController.cpp
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>

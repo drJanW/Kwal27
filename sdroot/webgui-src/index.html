@@ -1,18 +1,26 @@
 <!DOCTYPE html>
 <html lang="nl">
+
+<!DOCTYPE html>
+<html lang="nl">
 <head>
+  <!-- 20260205 -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kwal</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" href="/favicon.ico">
 </head>
+
+
 <body>
   <div id="app">
-    
+
     <section class="panel">
       <div class="row audio-header-row">
         <h2>Audio</h2>
-        <span class="fragment-id"><span id="audio-dir" class="clickable">---</span>/<span id="audio-file" class="clickable">---</span></span>
+        <span class="fragment-id"><span id="audio-dir" class="clickable">---</span>/<span id="audio-file"
+            class="clickable">---</span></span>
         <button id="audio-next" class="btn-icon">⏭</button>
         <span class="spacer"></span>
         <button id="vote-down" class="btn-icon">👎</button>
@@ -25,13 +33,13 @@
         <span id="vol-num">100%</span>
       </div>
     </section>
-    
+
     <section class="panel">
       <h2>Licht</h2>
       <div class="row">
         <label>Helderheid</label>
-        <input type="range" id="brightness" min="0" max="100" value="100">
-        <span id="bri-num">100%</span>
+        <input type="range" id="brightness" min="0" max="100" value="50">
+        <span id="bri-num">50%</span>
       </div>
       <div class="row">
         <label>Patroon</label>
@@ -46,12 +54,12 @@
         <button id="colors-next" class="btn-icon">⏭</button>
       </div>
     </section>
-    
+
     <div id="save-buttons">
       <button id="save-colors-btn" class="btn-save" style="display:none;">Kleuren opslaan</button>
       <button id="save-pattern-btn" class="btn-save" style="display:none;">Patroon opslaan</button>
     </div>
-    
+
     <footer>
       <button id="dev-btn">⚙</button>
     </footer>
@@ -65,6 +73,7 @@
       <button data-open="pattern-modal">Pattern</button>
       <button data-open="colors-modal">Colors</button>
       <button data-open="health-modal">Status</button>
+      <button data-open="log-modal">View Log</button>
       <button data-close>Close</button>
     </div>
   </div>
@@ -137,10 +146,22 @@
       <h3>System Status</h3>
       <div id="health-content"></div>
       <button id="health-refresh" class="btn-icon">🔄</button>
+      <button id="restart-btn" class="btn-warn">Restart ESP</button>
+      <button data-close data-return="dev-modal">Close</button>
+    </div>
+  </div>
+
+  <div id="log-modal" class="modal">
+    <div class="modal-box modal-wide">
+      <h3>Serial Log</h3>
+      <pre id="log-content" class="log-view"></pre>
+      <button id="log-refresh">Refresh</button>
+      <button id="log-clear">Clear</button>
       <button data-close data-return="dev-modal">Close</button>
     </div>
   </div>
 
   <script src="kwal.js"></script>
 </body>
+
 </html>

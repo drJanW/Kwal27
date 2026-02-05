@@ -1,15 +1,9 @@
 /**
  * @file LightController.cpp
  * @brief LED control implementation via FastLED library
- * @version 251231E
- * @date 2025-12-31
- *
- * Implementation of the LightController class for controlling addressable LED strips
- * using the FastLED library. Handles brightness adjustment, color management,
- * measurement enable for sensor calibration, and visual feedback patterns.
- * Provides centralized LED hardware control with support for various display presets.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include "Globals.h"
 #include "LightController.h"

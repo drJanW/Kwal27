@@ -1,15 +1,15 @@
 /**
  * @file PlayFragment.cpp
- * @brief Audio fragment playback with fade-in/fade-out support
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements audio fragment playback from SD card MP3 files.
- * Supports configurable fade-in and fade-out transitions using a power curve.
- * Handles fragment timing, start position offset, and duration limits.
- * Provides smooth volume transitions to avoid audio pops and clicks.
+ * @brief MP3 fragment playback with sine-power fade curves
+ * @version 260205A
+ * @date 2026-02-05
+ * 
+ * Implements fade-in/fade-out using precomputed sine-power curve.
+ * Timer-driven: no polling, no loop() dependency.
+ * 
+ * Fade curve: curve[i] = pow(sin(π/2 * i/(N-1)), FADE_POWER)
+ * Default FADE_POWER = 2.0 gives smooth perceptual fade.
  */
-
 #include "PlayFragment.h"
 #include "Globals.h"
 #include "AudioState.h"

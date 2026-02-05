@@ -1,15 +1,12 @@
 /**
  * @file PlayPCM.cpp
- * @brief Raw PCM audio playback for sound effects
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements raw 16-bit mono PCM WAV file playback from SD card.
- * Loads WAV files into memory and caches them for low-latency playback.
- * Supports volume control and optional duration limiting.
- * Ideal for short sound effects that need immediate, responsive playback.
+ * @brief PCM WAV loading and playback implementation
+ * @version 260205A
+ * @date 2026-02-05
+ * 
+ * Parses standard WAV headers, validates format against policy,
+ * caches samples in heap, and feeds to AudioManager for I2S output.
  */
-
 #include "PlayPCM.h"
 
 #include "Globals.h"

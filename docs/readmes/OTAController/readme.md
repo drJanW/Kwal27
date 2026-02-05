@@ -1,6 +1,6 @@
 # OTA Controller – Push Workflow
 
-> Version: 251218A | Updated: 2025-12-17
+> Version: 260205D | Updated: 2026-02-05
 
 ## Overview
 The OTA controller now runs a **single-button ArduinoOTA push** flow. The ESP32 exposes the usual ArduinoOTA listener (port `3232`) but only after the web UI asks for it. A short reboot delay gives the operator time to hit Enter in `ota.bat` so the upload can begin.
@@ -34,7 +34,7 @@ The OTA controller now runs a **single-button ArduinoOTA push** flow. The ESP32 
 	- `mode`: `0` idle, `1` enabled, `2` awaiting reboot. Always reset after success or expiry.
 	- `enabled_until`: absolute seconds from `millis()/1000` when the window closes.
 - **TimerManager** handles both the reboot delay and the Wi-Fi keepalive updates while ArduinoOTA is running.
-- **Password**: defined in `Globals20251030/HWconfig.h` as `KwalOTA_3732`. Change both firmware and `platformio.ini` together if you rotate it.
+- **Password**: defined in `lib/Globals/HWconfig.h` as `KwalOTA_3732`. Change both firmware and `platformio.ini` together if you rotate it.
 
 ## Failure Handling
 - If upload fails (`espota` reports `Authentication Failed` or timeout), `mode` resets to `0` and run status reverts to normal.

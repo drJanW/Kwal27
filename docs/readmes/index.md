@@ -18,6 +18,7 @@ Central index of README files moved into docs/readmes/.
 - [SensorController/readme.md](SensorController/readme.md)
 - [TimerManager/readme.md](TimerManager/readme.md)
 - [WebInterfaceController/readme.md](WebInterfaceController/readme.md)
+- [WiFiController/readme.md](WiFiController/readme.md)
 
 ## Other
 - [sdroot/readme.md](sdroot/readme.md)

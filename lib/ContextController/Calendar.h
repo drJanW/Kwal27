@@ -1,15 +1,9 @@
 /**
  * @file Calendar.h
  * @brief Calendar day structure and parsing interface
- * @version 251231E
- * @date 2025-12-31
- *
- * Defines the CalendarEntry structure representing a single calendar day
- * with all its associated properties: date, TTS sentence, interval settings,
- * theme box ID, pattern ID, and color ID. Provides the interface for
- * calendar data access and manipulation.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <Arduino.h>

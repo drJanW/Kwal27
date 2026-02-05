@@ -1,14 +1,9 @@
 /**
  * @file CalendarBoot.cpp
  * @brief Calendar subsystem one-time initialization implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements calendar boot sequence with retry logic. Waits for both SD card
- * and system clock to be available before initializing TodayState from
- * calendar CSV data on SD card.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include "CalendarBoot.h"
 

@@ -1,6 +1,6 @@
 # Globals - Shared Configuration
 
-> Version: 251218A | Updated: 2025-12-17
+> Version: 260205D | Updated: 2026-02-05
 
 Contains all parameters used by more than one module or file.
 
@@ -29,7 +29,7 @@ Most global state accessors follow this pattern and should migrate into dedicate
 
 ## Audio timing constants
 
-`MIN_AUDIO_INTERVAL_MS` and `MAX_AUDIO_INTERVAL_MS` define the random range for audio fragment intervals (default 6-18 minutes). Audio playback picks a random delay within this window after each fragment completes.
+`Globals::minAudioIntervalMs` and `Globals::maxAudioIntervalMs` define the random range for audio fragment intervals (default 6-48 minutes). Audio playback picks a random delay within this window after each fragment completes.
 
 ## Error Flash Notification Constants (v260104+)
 
@@ -53,7 +53,7 @@ One flash burst = `black(1s) + color(1-2s) + black(1s)` ≈ 3-4s per failing com
 
 `macros.inc` centralizes logging macros for every module:
 
-- Default build uses `LOG_LEVEL_INFO`. Override per build via PlatformIO flag, e.g. `-DLOG_LEVEL=LOG_LEVEL_WARN` for quieter output or `LOG_LEVEL_DEBUG` for full tracing.
+- Default build uses `LOG_LEVEL_NONE`. Override per build via PlatformIO flag, e.g. `-DLOG_LEVEL=LOG_LEVEL_INFO` for informational output or `LOG_LEVEL_DEBUG` for full tracing.
 - Heartbeat dots are guarded by `LOG_HEARTBEAT`; enable with `-DLOG_HEARTBEAT=1` when you want a periodic serial heartbeat, otherwise leave at `0` to avoid clutter.
 - Module-level verbosity toggles such as `LOG_RUN_VERBOSE`, `LOG_TIMER_VERBOSE`, `LOG_AUDIO_VERBOSE`, etc. gate the chattier traces. Define them as `1` (either in `platformio.ini` or a local header) when diagnosing that subsystem.
 - Use `PL()/PP()/PF()` helpers for INFO-level lines; `LOG_ERROR/LOG_WARN/LOG_INFO/LOG_DEBUG` remain available for formatted output.

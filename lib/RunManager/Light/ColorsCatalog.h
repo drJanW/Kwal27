@@ -1,14 +1,9 @@
 /**
  * @file ColorsCatalog.h
  * @brief LED color palette storage
- * @version 251231E
- * @date 2025-12-31
- *
- * Maintains and manages LED color palettes loaded from CSV configuration.
- * Provides color selection, CRUD operations for color sets, and JSON
- * serialization for web interface. Single source of truth for color data.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #pragma once
 
 #include <Arduino.h>

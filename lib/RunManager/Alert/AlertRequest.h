@@ -1,14 +1,9 @@
 /**
  * @file AlertRequest.h
  * @brief Hardware alert request enumeration
- * @version 251231G
- * @date 2025-12-31
- *
- * Defines the AlertRequest enum for all hardware status alerts.
- * Each component has an OK/FAIL pair for reporting initialization results.
- * Used by modules to report status to the alert coordinator.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 #include <stdint.h>

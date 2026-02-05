@@ -1,19 +1,9 @@
 /**
  * @file SDVoting.h
  * @brief Audio fragment voting system interface with score tracking per file
- * @version 251231E
- * @date 2025-12-31
- *
- * Defines the SDVoting namespace for managing audio file scores.
- * Provides functions for:
- * - getRandomFile: Weighted random selection based on file scores
- * - applyVote: Adjust file score by delta value
- * - banFile: Set file score to 0 (excluded from playback)
- * - deleteIndexedFile: Remove file from index
- * - getCurrentPlayable: Get currently playing file info
- * - attachVoteRoute: Register web API endpoint for voting
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 #include <Arduino.h>
 #include "SDController.h"

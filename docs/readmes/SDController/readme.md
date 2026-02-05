@@ -1,6 +1,6 @@
 # SDController - Complete Documentation & Usage Rules
 
-> Version: 251218A | Updated: 2025-12-17
+> Version: 260205D | Updated: 2026-02-05
 
 ## Overview
 SDController biedt een RAM-zuinige, snelle index-laag voor MP3-bestanden op SD-kaart, gericht op embedded systemen (ESP32 e.d.).

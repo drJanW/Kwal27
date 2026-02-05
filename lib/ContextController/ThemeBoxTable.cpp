@@ -1,16 +1,9 @@
 /**
  * @file ThemeBoxTable.cpp
  * @brief Audio theme box table implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements the ThemeBoxTable class for managing audio theme boxes.
- * Theme boxes define collections of audio content organized by theme,
- * loaded from CSV files on SD card. Handles theme box lookup by ID,
- * active theme tracking, and provides the audio system with themed
- * content directories and configurations.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include <Arduino.h>
 #include "ThemeBoxTable.h"
 

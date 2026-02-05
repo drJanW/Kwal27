@@ -1,15 +1,9 @@
 /**
  * @file RunManager.h
  * @brief Central coordinator header for all Kwal modules
- * @version 251231E
- * @date 2025-12-31
- *
- * Defines the RunManager class which serves as the main coordination layer.
- * Routes requests from the web interface to appropriate modules, manages
- * system lifecycle, and provides status queries for clock, OTA, and audio state.
- * All module coordination follows the Boot→Plan→Policy→Run pattern.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #pragma once
 #include <Arduino.h>
 #include "AudioManager.h"

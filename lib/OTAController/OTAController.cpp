@@ -1,18 +1,9 @@
 /**
  * @file OTAController.cpp
  * @brief Over-the-air firmware update handling
- * @version 251231E
- * @date 2025-12-31
- *
- * This implementation manages OTA firmware updates using ArduinoOTA. It provides
- * a safe two-phase update mechanism: first arm the OTA window via web interface,
- * then confirm to actually enter OTA mode. State is persisted in NVS to survive
- * reboots. When in OTA mode, the device connects to WiFi, initializes ArduinoOTA
- * with password protection, and waits for an upload. The OTA loop runs standalone
- * with explicit millis() timing to avoid scheduler conflicts during the critical
- * update window. Progress feedback is provided via serial output.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include <Preferences.h>
 #include <ArduinoOTA.h>

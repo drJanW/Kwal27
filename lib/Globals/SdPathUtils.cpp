@@ -1,16 +1,9 @@
 /**
  * @file SdPathUtils.cpp
  * @brief SD card path helper functions implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * This file implements helper functions for SD card path manipulation.
- * It provides path sanitization (adding leading slash, removing trailing
- * slashes, blocking directory traversal), parent path extraction, filename
- * extraction, and safe file/directory deletion. These utilities ensure
- * consistent and secure path handling throughout the SD card operations.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include "SdPathUtils.h"
 
 #include <SD.h>

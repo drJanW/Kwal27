@@ -1,15 +1,9 @@
 /**
  * @file AudioRoutes.cpp
  * @brief Audio API endpoint routes
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements HTTP routes for the /api/audio/* endpoints.
- * Provides routes to get/set audio volume level, skip to next track,
- * and retrieve current playback information. Integrates with AudioState
- * and RunManager for audio control operations.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include <Arduino.h>
 #include "AudioRoutes.h"
 #include "../WebGuiStatus.h"

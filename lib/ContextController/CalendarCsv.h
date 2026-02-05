@@ -1,15 +1,9 @@
 /**
  * @file CalendarCsv.h
  * @brief CSV file parsing for calendar data interface
- * @version 251231E
- * @date 2025-12-31
- *
- * Defines the CalendarCsvRow structure for parsed calendar CSV rows
- * and declares the parsing functions for calendar CSV files.
- * Used as an intermediate representation between raw CSV data
- * and the final CalendarEntry structures.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <Arduino.h>

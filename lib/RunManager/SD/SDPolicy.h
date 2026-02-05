@@ -1,14 +1,9 @@
 /**
  * @file SDPolicy.h
  * @brief SD card file operation business logic
- * @version 251231E
- * @date 2025-12-31
- *
- * Contains business logic for SD card file operations. Provides weighted
- * random fragment selection via AudioDirector, file deletion policy with
- * audio-busy checks, and diagnostic status reporting.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 #include <Arduino.h>
 #include "PlayFragment.h"   // for AudioFragment

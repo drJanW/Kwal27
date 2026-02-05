@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file SDBusyGuard.h
+ * @brief RAII guard for SD card locking
+ * @version 260201A
+ * @date 2026-02-01
+ */
 #include "SDController.h"
 
 /**

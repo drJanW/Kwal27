@@ -1,15 +1,9 @@
 /**
  * @file ColorsRoutes.cpp
  * @brief Colors API endpoint routes
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements HTTP routes for the /api/colors/* endpoints.
- * Provides routes to list available color schemes, navigate to
- * next/previous colors, and manage active color selection.
- * Integrates with LightRun and ColorsCatalog for color control.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include "ColorsRoutes.h"
 #include "../WebGuiStatus.h"
 #include "../WebUtils.h"

@@ -1,13 +1,9 @@
 /**
  * @file OTABoot.cpp
  * @brief OTA update one-time initialization implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements OTA boot sequence: configures OTAPolicy. OTA is not required
- * during boot sequence as updates are handled via OTAController separately.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #include "OTABoot.h"
 #include "Globals.h"
 #include "OTAPolicy.h"

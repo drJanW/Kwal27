@@ -1,6 +1,6 @@
 # Light Module
 
-> Version: 251218A | Updated: 2025-12-17
+> Version: 260205D | Updated: 2026-02-05
 
 Manages LED patterns and colors for the RGB ring display via `PatternCatalog` and `ColorsCatalog`.
 

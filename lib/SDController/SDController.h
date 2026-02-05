@@ -1,19 +1,9 @@
 /**
  * @file SDController.h
  * @brief SD card control interface with directory scanning and file indexing
- * @version 260128A
- * @date 2026-01-28
- *
- * Pure static SD card controller - no singleton, no instance() overhead.
- * Key features:
- * - SD card initialization (begin) with SPI configuration
- * - Ready/busy state management with atomic flags
- * - Reentrant lockSD()/unlockSD() for nested SD operations
- * - Directory entry (DirEntry) and file entry (FileEntry) structures for indexing
- * - Index building and file path resolution
- * - Support for up to SD_MAX_DIRS directories with SD_MAX_FILES_PER_SUBDIR files each
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 #include <Arduino.h>
 #include <SPI.h>

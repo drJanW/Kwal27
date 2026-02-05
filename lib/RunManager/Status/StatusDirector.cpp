@@ -1,14 +1,9 @@
 /**
  * @file StatusDirector.cpp
  * @brief Status display selection logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Stub implementation for status director. Future home for boot failure
- * monitoring, WiFi state tracking, OTA progress display, and error
- * condition handling.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #include "StatusDirector.h"
 
 #include "Globals.h"

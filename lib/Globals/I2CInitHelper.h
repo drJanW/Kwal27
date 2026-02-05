@@ -1,14 +1,9 @@
 /**
  * @file I2CInitHelper.h
  * @brief Generic I2C device initialization with growing retry interval
- * @version 0101F5A
- * @date 2026-01-01
- *
- * Provides unified initialization logic for I2C devices (RTC, sensors).
- * Each device gets retries with growing interval and AlertState updates.
- * Replaces duplicate init code in ClockPolicy and SensorController.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #pragma once
 
 #include <stdint.h>

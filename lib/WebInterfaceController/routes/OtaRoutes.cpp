@@ -1,32 +1,28 @@
 /**
  * @file OtaRoutes.cpp
  * @brief OTA update API endpoint routes
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements HTTP routes for the /ota/* endpoints.
- * Provides a two-step OTA update flow: arm (prepare for update)
- * and confirm (trigger reboot for update). Also supports a combined
- * start endpoint. Integrates with RunManager for OTA state control.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include "OtaRoutes.h"
 #include "Globals.h"
 #include "RunManager.h"
 
 namespace OtaRoutes {
 
+/// Route handler: arm OTA update window (300s)
 void routeArm(AsyncWebServerRequest *request)
 {
     RunManager::requestArmOTA(300);
     request->send(200, "text/plain", "OK");
 }
 
+/// Route handler: confirm OTA and prepare for reboot
 void routeConfirm(AsyncWebServerRequest *request)
 {
     if (RunManager::requestConfirmOTA()) {
         AsyncWebServerResponse *response = request->beginResponse(
-            200, "text/plain", "Reboot binnen 15s - druk Enter in ota.bat");
+            200, "text/plain", "Reboot within 15s - press Enter in ota.bat");
         response->addHeader("Connection", "close");
         request->send(response);
     } else {
@@ -34,16 +30,17 @@ void routeConfirm(AsyncWebServerRequest *request)
     }
 }
 
+/// Route handler: combined arm + confirm (single click start)
 void routeStart(AsyncWebServerRequest *request)
 {
     RunManager::requestArmOTA(300);
     if (RunManager::requestConfirmOTA()) {
         AsyncWebServerResponse *response = request->beginResponse(
-            200, "text/plain", "Reboot binnen 15s - druk Enter in ota.bat");
+            200, "text/plain", "Reboot within 15s - press Enter in ota.bat");
         response->addHeader("Connection", "close");
         request->send(response);
     } else {
-        request->send(500, "text/plain", "OTA start mislukt");
+        request->send(500, "text/plain", "OTA start failed");
     }
 }
 

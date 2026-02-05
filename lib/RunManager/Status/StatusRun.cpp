@@ -1,13 +1,9 @@
 /**
  * @file StatusRun.cpp
  * @brief Status display state management implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Stub implementation for status run. Future home for status display
- * state management.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #include "StatusRun.h"
 
 #include "Globals.h"

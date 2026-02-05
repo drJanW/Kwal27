@@ -1,16 +1,9 @@
 /**
  * @file BH1750.h
  * @brief Ambient light sensor driver interface
- * @version 251231E
- * @date 2025-12-31
- *
- * Header file for the BH1750 digital ambient light sensor driver.
- * The BH1750 measures illuminance (light intensity) in lux via I2C interface.
- * Supports multiple measurement presets: continuous high-resolution (1 lx),
- * high-resolution preset 2 (0.5 lx), and low-resolution (4 lx) presets.
- * Used to detect ambient lighting conditions for adaptive system behavior.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #pragma once
 #include <Arduino.h>
 #include <Wire.h>

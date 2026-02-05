@@ -1,14 +1,9 @@
 /**
  * @file SensorsBoot.h
  * @brief Sensor subsystem one-time initialization
- * @version 251231E
- * @date 2025-12-31
- *
- * Handles sensor initialization during boot. Starts sensor status monitoring
- * and reports sensor availability to notification system. Part of the
- * Boot→Plan→Policy→Run pattern for sensor coordination.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 class SensorsBoot {

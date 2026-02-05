@@ -1,16 +1,9 @@
 /**
  * @file StatusFlags.cpp
  * @brief Hardware failure bits and status tracking implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements status flag computation combining multiple status sources.
- * Computes unified bitmasks from time-of-day, season, weekday, weather,
- * and moon phase information. Provides individual category getters for
- * debugging and display purposes. Used for status-aware audio selection
- * and light pattern matching.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include <Arduino.h>
 #include "StatusFlags.h"
 #include "StatusBits.h"

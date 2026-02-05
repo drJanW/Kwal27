@@ -1,24 +1,9 @@
 /**
  * @file WebGuiStatus.h
  * @brief Centralized WebGUI state management
- * @version 260101A
- * @date 2026-01-01
- *
- * Single source of truth for all WebGUI-relevant state. All firmware
- * components update state through setters which trigger SSE pushes.
- * JavaScript receives updates via SSE events only - no polling.
- *
- * SSE state fields:
- * - brightness: webBrightness * 255 (user slider setting)
- * - brightnessFloor/Ceiling/Max: limits for slider grey zones
- * - audioLevel: webAudioLevel (user slider setting 0.0-1.0)
- * - audioFloor/Ceiling/Max: limits for slider grey zones
- * - fragment: current playing audio fragment
- *
- * Pattern/color IDs are NOT stored here - read from PatternCatalog/ColorsCatalog
- * directly when building SSE JSON.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <Arduino.h>

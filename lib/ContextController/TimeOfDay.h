@@ -1,15 +1,9 @@
 /**
  * @file TimeOfDay.h
  * @brief Time-of-day period detection interface
- * @version 251231E
- * @date 2025-12-31
- *
- * Declares the TimeOfDay namespace with functions for detecting
- * the current time-of-day period. Provides bitmask generation for
- * active time status flags and individual convenience functions
- * for checking specific periods (night, dawn, morning, etc.).
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <stdint.h>

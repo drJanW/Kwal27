@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file StatusBits.h
+ * @brief StatusBits implementation
+ * @version 260205A
+ * @date 2026-02-05
+ */
 #include <stdint.h>
 
 // Time-of-day and status flags (bit positions for uint64_t bitmask)

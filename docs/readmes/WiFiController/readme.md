@@ -1,5 +1,7 @@
 # WiFiController
 
+> Version: 260205D | Updated: 2026-02-05
+
 Manages WiFi connection with automatic retry and health monitoring.
 
 ## Architecture
@@ -18,8 +20,8 @@ bool isWiFiConnected();    // Query current connection state
 
 1. `bootWiFiConnect()` → `beginConnect()`
 2. Poll timer (250ms) checks `WiFi.status()` continuously
-3. Retry timer uses growing interval: starts 2s, grows 1.5x per retry, max 30s
-4. After 50 failed retries → gives up
+3. Retry timer uses growing interval: starts 2s, grows 1.5× per retry
+4. After configured retries → gives up
 5. On connect → cancel retries, start health check timer (5s)
 6. Health check detects disconnect → restarts connection sequence
 

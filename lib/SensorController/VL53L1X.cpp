@@ -1,16 +1,9 @@
 /**
  * @file VL53L1X.cpp
  * @brief Time-of-flight distance sensor driver implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Driver implementation for the VL53L1X time-of-flight laser ranging sensor.
- * This sensor measures distance using laser pulses and provides millimeter-accurate
- * readings. Used for proximity detection to trigger events when objects or people
- * approach the device. Supports configurable timing budget and short/long range settings.
- * Communicates via I2C interface using the SparkFun VL53L1X library.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include "VL53L1X.h"
 #include "Globals.h"

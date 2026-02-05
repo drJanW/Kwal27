@@ -1,14 +1,9 @@
 /**
  * @file CalendarPolicy.cpp
  * @brief Calendar business logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements calendar decision rules: parses theme entries, evaluates calendar
- * conditions, triggers sentence playback, and applies theme box configurations
- * based on calendar data.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include "CalendarPolicy.h"
 

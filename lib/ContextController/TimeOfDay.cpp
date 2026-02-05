@@ -1,16 +1,9 @@
 /**
  * @file TimeOfDay.cpp
  * @brief Time-of-day period detection implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements time-of-day period detection based on current clock time.
- * Defines time boundaries for periods like night, dawn, morning, day,
- * afternoon, dusk, and evening. Provides functions to check current
- * time period and generate bitmasks for context-aware behavior.
- * Time boundaries are configurable via constants.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include "TimeOfDay.h"
 #include "StatusBits.h"
 #include "PRTClock.h"

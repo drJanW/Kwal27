@@ -1,14 +1,9 @@
 /**
  * @file WiFiController.cpp
  * @brief WiFi station connection with growing retry interval and connection monitoring
- * @version 260129D
- * @date 2026-01-29
- *
- * Non-blocking WiFi station connect sequence using TimerManager with
- * a growing retry interval. A separate connection check timer verifies the link
- * and restarts the connection flow when WiFi drops.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include "WiFiController.h"
 #include <WiFi.h>

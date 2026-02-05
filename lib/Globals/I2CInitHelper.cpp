@@ -1,10 +1,9 @@
 /**
  * @file I2CInitHelper.cpp
  * @brief Generic I2C device initialization implementation
- * @version 251231E
- * @date 2025-12-31
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #include <Arduino.h>
 #include "I2CInitHelper.h"
 #include "TimerManager.h"

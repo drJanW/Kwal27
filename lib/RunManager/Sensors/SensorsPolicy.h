@@ -1,14 +1,9 @@
 /**
  * @file SensorsPolicy.h
  * @brief Sensor data policy
- * @version 251231E
- * @date 2025-12-31
- *
- * Contains business logic for sensor data normalization. Normalizes raw VL53L1X
- * distance readings, filters invalid values, and tracks freshness window
- * for distance data.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <Arduino.h>

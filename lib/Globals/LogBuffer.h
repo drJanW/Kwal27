@@ -1,4 +1,10 @@
 #pragma once
+/**
+ * @file LogBuffer.h
+ * @brief LogBuffer implementation
+ * @version 260202A
+ * @date 2026-02-02
+ */
 #include <cstddef>
 
 namespace LogBuffer {

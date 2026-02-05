@@ -1,6 +1,6 @@
-# Kwal26 - An Art Project (Jellyfish)
+# Kwal27 - An Art Project (Jellyfish)
 
-> Version: 260104M | Updated: 2026-01-04
+> Version: 260205D | Updated: 2026-02-05
 
 ## Project Overview
 Hoofdfunctionaliteiten:
@@ -15,7 +15,7 @@ Audio Systeem
 •       Gebruikt ESP8266Audio library met I2S output       
 •       Ondersteunt zowel lokale MP3 files als TTS via Voic
 eRSS API                                                   •       "Voting systeem" voor audiofragmenten (likes/dislik
-es)                                                        •       Random audio interval: 6-18 minuten tussen fragment
+es)                                                        •       Random audio interval: 6-48 minuten tussen fragment
 en (was: vast 10 min)                                      Licht Shows
 •       Complexe algoritmes voor cirkel-patronen, gradiente
 n, en animaties                                            •       Positie-gebaseerde LED mapping (x,y coördinaten van

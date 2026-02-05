@@ -1,23 +1,9 @@
 /**
  * @file AlertRGB.cpp
  * @brief RGB LED status flash coordination implementation
- * @version 260104M
- * @date 2026-01-04
- *
- * Implements status flash sequence for hardware errors.
- *
- * Flash burst timing: black(1s) + color(1-2s) + black(1s) ≈ 3-4s per component.
- * Boot sequence: 2× bursts immediately when error detected.
- * Reminders: Single flash at growing intervals (2, 20, 200, 2000... min).
- *
- * Hardware presence: Only components marked as present in HWconfig.h
- * (*_PRESENT=true) trigger flashes. Absent hardware is silently skipped.
- *
- * IMPORTANT: Uses TimerManager::restart() for sequence steps because the
- * same callback (cb_sequenceStep) is reused with different durations.
- * Using create() would fail silently since the timer already exists.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "AlertRGB.h"
 #include "AlertPolicy.h"

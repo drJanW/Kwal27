@@ -1,14 +1,9 @@
 /**
  * @file CalendarPolicy.h
  * @brief Calendar business logic
- * @version 251231E
- * @date 2025-12-31
- *
- * Contains business logic for calendar-driven decisions. Evaluates calendar
- * data to determine sentence intervals, theme box selections, and context
- * modifications. Pure logic with no state management.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 #include <Arduino.h>

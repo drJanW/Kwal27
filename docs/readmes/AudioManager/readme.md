@@ -1,6 +1,6 @@
 # Audio Subsystem
 
-> Version: 251218A | Updated: 2025-12-17
+> Version: 260205D | Updated: 2026-02-05
 
 This module describes the responsibilities and collaboration between AudioManager, PlayFragment, and PlaySentence. The design is optimized for reliable, non-blocking MP3 playback on ESP32, with fade support for fragments and sequential playback of individual words using a fixed word dictionary.
 

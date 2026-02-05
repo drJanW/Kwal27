@@ -1,14 +1,9 @@
 /**
  * @file SensorsPolicy.cpp
  * @brief Sensor data policy implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements sensor data normalization: validates distance range (40-3600mm),
- * tracks freshness with automatic expiration timer, and provides smoothed
- * distance values for downstream consumers.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include "SensorsPolicy.h"
 #include "Globals.h"
 #include "SensorController.h"

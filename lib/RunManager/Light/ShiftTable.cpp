@@ -1,14 +1,9 @@
 /**
  * @file ShiftTable.cpp
  * @brief LED parameter shift storage implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Loads color and pattern shifts from /colorsShifts.csv and /patternShifts.csv
- * on SD card. Parses status conditions and percentage shifts, calculates
- * aggregate multipliers based on current time-of-day status.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include <Arduino.h>
 #include "ShiftTable.h"
 #include "CsvUtils.h"

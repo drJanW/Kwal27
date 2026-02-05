@@ -1,16 +1,9 @@
 /**
  * @file CsvUtils.h
  * @brief CSV parsing utilities interface
- * @version 251231E
- * @date 2025-12-31
- *
- * This header declares CSV parsing utilities for reading and parsing
- * semicolon-delimited CSV files from the SD card. Provides a namespace-based
- * API for line reading, column splitting, and BOM handling. These utilities
- * are used by calendar, color, pattern, and shift tables to load their
- * configuration data from CSV files.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <Arduino.h>

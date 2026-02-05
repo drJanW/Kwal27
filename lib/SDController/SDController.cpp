@@ -1,19 +1,9 @@
 /**
  * @file SDController.cpp
  * @brief SD card control implementation with directory scanning and file indexing
- * @version 260128A
- * @date 2026-01-28
- *
- * Pure static implementation - no singleton pattern.
- * Provides functionality for:
- * - SD card initialization and status tracking
- * - Directory scanning and listing with callbacks
- * - Building and maintaining file indexes for media directories
- * - Reading/writing index files (.root_dirs, .files_dir)
- * - File path construction and size estimation
- * - Thread-safe busy state management via reentrant lock counter
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include "SDController.h"
 #include "SdPathUtils.h"

@@ -1,14 +1,9 @@
 /**
  * @file SDPolicy.cpp
  * @brief SD card file operation business logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements SD file operation rules: delegates fragment selection to
- * AudioDirector, enforces audio-idle requirement for file deletion, and
- * provides status logging for diagnostics.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #include "SDPolicy.h"
 #include "SDVoting.h"       // weighted voting/selection helpers
 #include "Globals.h"        // for PF/PL macros if needed

@@ -1,13 +1,9 @@
 /**
  * @file WiFiPolicy.cpp
  * @brief WiFi connection business logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Stub implementation for WiFi policy. WiFi connection rules are handled
- * by WiFiController FSM directly.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #include "WiFiPolicy.h"
 #include "Globals.h"
 

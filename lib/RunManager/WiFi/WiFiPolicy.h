@@ -1,13 +1,9 @@
 /**
  * @file WiFiPolicy.h
  * @brief WiFi connection business logic
- * @version 251231E
- * @date 2025-12-31
- *
- * Contains business logic for WiFi connection decisions. Currently a stub -
- * WiFi is managed via WiFiController FSM directly.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #pragma once
 
 namespace WiFiPolicy {

@@ -1,13 +1,9 @@
 /**
  * @file ClockRun.cpp
  * @brief RTC/NTP clock state management implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements clock state management: delegates RTC operations to ClockPolicy,
- * provides unified interface for clock seeding and synchronization operations.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include <Arduino.h>
 #include "ClockRun.h"
 

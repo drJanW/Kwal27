@@ -1,13 +1,9 @@
 /**
  * @file StatusPolicy.cpp
  * @brief Status display business logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Stub implementation for status policy. Future home for status LED pattern
- * configuration for boot, WiFi, SD, and OTA events.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #include "StatusPolicy.h"
 #include "Globals.h"
 

@@ -1,13 +1,9 @@
 /**
  * @file SensorsBoot.cpp
  * @brief Sensor subsystem one-time initialization implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Arms sensor init timers via SensorController. Each sensor's init callback
- * reports OK/FAIL directly via AlertRun - no polling required.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #include "SensorsBoot.h"
 #include "Globals.h"
 #include "SensorController.h"

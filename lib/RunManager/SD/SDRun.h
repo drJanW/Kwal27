@@ -1,13 +1,9 @@
 /**
  * @file SDRun.h
  * @brief SD card state management
- * @version 251231E
- * @date 2025-12-31
- *
- * Manages SD card operational state. Currently a stub - SD card management
- * is handled via SDBoot and SDPolicy. No periodic orchestration needed.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #pragma once
 
 #include <Arduino.h>

@@ -1,17 +1,9 @@
 /**
  * @file SseController.cpp
  * @brief Server-Sent Events (SSE) management
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements the SSE event source for real-time updates to web clients.
- * Uses WebGuiStatus for unified state push via "state", "patterns", "colors" events.
- * Events are broadcast to all connected clients via the /events endpoint.
- * 
- * CRITICAL: onConnect runs in async_tcp context - SSE sends must be deferred
- * to main loop via TimerManager to avoid watchdog timeout.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #include <Arduino.h>
 #include "SseController.h"
 #include "../WebGuiStatus.h"

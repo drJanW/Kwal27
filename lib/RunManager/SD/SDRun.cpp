@@ -1,13 +1,9 @@
 /**
  * @file SDRun.cpp
  * @brief SD card state management implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Stub implementation for SD run. SD card management is handled by
- * SDBoot (initialization) and SDPolicy (file operations).
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #include "SDRun.h"
 
 #include "Globals.h"

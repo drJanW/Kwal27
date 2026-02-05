@@ -1,13 +1,9 @@
 /**
  * @file LightPolicy.cpp
  * @brief LED show business logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements LED brightness calculation: exponential lux-to-brightness mapping,
- * brightness capping/flooring, and distance-to-animation parameter conversion.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #include <Arduino.h>
 #include <math.h>
 

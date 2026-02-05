@@ -1,13 +1,9 @@
 /**
  * @file LightDirector.cpp
  * @brief LED show selection logic implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Stub implementation for light show orchestration. Future home for
- * pattern/color selection logic based on context and calendar events.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #include "LightDirector.h"
 
 #include "Globals.h"

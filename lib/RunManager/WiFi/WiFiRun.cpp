@@ -1,13 +1,9 @@
 /**
  * @file WiFiRun.cpp
  * @brief WiFi connection state management implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Stub implementation for WiFi run. WiFi connection state is managed
- * by WiFiController FSM directly.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #include "WiFiRun.h"
 
 #include "Globals.h"

@@ -1,27 +1,10 @@
 /**
  * @file HWconfig.h
  * @brief Hardware pin definitions and configuration
- * @version 260104P
- * @date 2026-01-04
- *
- * This header defines all hardware pin assignments, feature toggles, and
- * fallback values for the ESP32-based system. Includes GPIO definitions
- * for LED, I2S audio, SD card, SPI, and I2C buses. Also defines hardware
- * status bits for graceful degradation, sensor fallback values, location
- * coordinates for sunrise calculations, and test flags for simulating
- * component failures during development.
- *
- * Hardware Presence (v260104+):
- *   *_PRESENT defines control whether hardware is expected to be present.
- *   Set to false for hardware that is physically absent - no init attempts,
- *   no error flashes, no reminders. Status shows '—' instead of '❌'.
- *   Defines: RTC_PRESENT, DISTANCE_SENSOR_PRESENT, LUX_SENSOR_PRESENT, SENSOR3_PRESENT
- *
- * NOTE: This file should not be changed by chatGPT/Copilot/DeepSeek/Claude/LeChat
+ * @version 260205A
+ * @date 2026-02-05
  */
-
-#ifndef HWCONFIG_H
-#define HWCONFIG_H
+#pragma once
 
 #include <Arduino.h>
 //#include "config_secrets.h"
@@ -80,7 +63,7 @@
 #define I2C_SCL 22
 
 // ======================= Static IP Configuration =======================
-#define USE_STATIC_IP true // zet op false voor DHCP
+#define USE_STATIC_IP true // set to false for DHCP
 
 // LAN prefix - single source of truth
 #define IP_LAN_STR "192.168.2."
@@ -178,5 +161,3 @@
 #define STATIC_GATEWAY_STR IP_LAN_STR "254"
 #define STATIC_SUBNET_STR  "255.255.255.0"
 #define STATIC_DNS_STR     "8.8.8.8"
-
-#endif // HWCONFIG_H

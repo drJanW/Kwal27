@@ -1,15 +1,9 @@
 /**
  * @file StatusFlags.h
  * @brief Hardware failure bits and status tracking interface
- * @version 251231E
- * @date 2025-12-31
- *
- * Declares the StatusFlags namespace with functions for computing
- * unified status bitmasks. Combines time-of-day, season, weekday,
- * weather, and moon phase into a single bitmask for status-aware
- * decision making throughout the application.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #pragma once
 
 #include <stdint.h>

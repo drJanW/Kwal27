@@ -1,15 +1,9 @@
 /**
  * @file LightPatternCatalog.h
  * @brief Pattern definitions from CSV interface
- * @version 251231E
- * @date 2025-12-31
- *
- * Defines the LightPatternCatalog class for managing light pattern definitions.
- * Provides interface for loading patterns from CSV, looking up patterns by ID,
- * accessing the currently active pattern, and clearing the pattern catalog.
- * Patterns define LED animation behavior and timing.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <Arduino.h>

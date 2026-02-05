@@ -1,14 +1,9 @@
 /**
  * @file AudioBoot.h
  * @brief Audio subsystem one-time initialization
- * @version 251231E
- * @date 2025-12-31
- *
- * Handles audio subsystem initialization during boot. Configures the audio
- * hardware, initializes AudioManager, and loads audio shift configurations
- * from SD card. Part of the Boot→Plan→Policy→Run pattern.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #pragma once
 
 #include <Arduino.h>

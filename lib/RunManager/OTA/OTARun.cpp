@@ -1,13 +1,9 @@
 /**
  * @file OTARun.cpp
  * @brief OTA update state management implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Stub implementation for OTA run. OTAController handles actual OTA logic.
- * managed via OTAController directly.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #include "OTARun.h"
 
 #include "Globals.h"

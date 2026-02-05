@@ -1,13 +1,9 @@
 /**
  * @file SpeakBoot.cpp
  * @brief TTS speech one-time initialization implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements speech boot sequence: configures SpeakPolicy for sentence
- * playback rules and priority handling.
+ * @version 260131A
+ * @date 2026-01-31
  */
-
 #include "SpeakBoot.h"
 #include "Globals.h"
 #include "SpeakPolicy.h"

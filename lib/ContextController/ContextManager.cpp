@@ -1,2 +1,8 @@
+/**
+ * @file ContextManager.cpp
+ * @brief ContextManager implementation
+ * @version 260202A
+ * @date 2026-02-02
+ */
 #include <Arduino.h>
 #include "ContextController.h"

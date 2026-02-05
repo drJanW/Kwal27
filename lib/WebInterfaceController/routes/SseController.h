@@ -1,14 +1,9 @@
 /**
  * @file SseController.h
  * @brief Server-Sent Events (SSE) management
- * @version 251231E
- * @date 2025-12-31
- *
- * Header for the SSE (Server-Sent Events) controller.
- * Sets up the /api/events endpoint and integrates with WebGuiStatus
- * for pushing state, patterns, and colors events to connected clients.
+ * @version 260202A
+ * @date 2026-02-02
  */
-
 #pragma once
 
 #include <ESPAsyncWebServer.h>

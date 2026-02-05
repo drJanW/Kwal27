@@ -1,17 +1,10 @@
 /**
  * @file BootMaster.h
  * @brief Master boot sequence coordinator
- * @version 251231E
- * @date 2025-12-31
- *
- * Coordinates the complete system boot sequence, coordinating initialization
- * of all subsystems in the correct order. Manages fallback timers to ensure
- * the system reaches a usable state even if some components fail. Tracks boot
- * progress and tracks timeout scenarios for clock seeding and system readiness.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
-#ifndef BOOTMASTER_H
-#define BOOTMASTER_H
+#pragma once
 
 class BootMaster {
 public:
@@ -43,5 +36,3 @@ private:
 };
 
 extern BootMaster bootMaster;
-
-#endif // BOOTMASTER_H

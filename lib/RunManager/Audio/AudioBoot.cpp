@@ -1,14 +1,9 @@
 /**
  * @file AudioBoot.cpp
  * @brief Audio subsystem one-time initialization implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Implements audio boot sequence: initializes AudioManager hardware interface,
- * loads audio shift parameters from SD card CSV, and reports audio hardware
- * status to the notification system.
+ * @version 260201A
+ * @date 2026-02-01
  */
-
 #include "AudioBoot.h"
 
 #include "Globals.h"

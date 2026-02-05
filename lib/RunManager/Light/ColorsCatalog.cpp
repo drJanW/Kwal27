@@ -1,14 +1,9 @@
 /**
  * @file ColorsCatalog.cpp
  * @brief LED color palette storage implementation
- * @version 251231E
- * @date 2025-12-31
- *
- * Loads color palettes from /light_colors.csv on SD card. Provides color
- * selection with persistence, CRUD operations with SD write-back, and
- * JSON building for web interface status display.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #include "ColorsCatalog.h"
 
 #include <algorithm>

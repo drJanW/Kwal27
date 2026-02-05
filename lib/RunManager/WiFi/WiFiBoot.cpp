@@ -1,14 +1,9 @@
 /**
  * @file WiFiBoot.cpp
  * @brief WiFi connection one-time initialization implementation
- * @version 251231G
- * @date 2025-12-31
- *
- * Implements WiFi boot sequence: waits for WiFi connection via WiFiController,
- * triggers NTP fetch via FetchController, monitors clock seeding, and reports
- * START_RUNTIME when all modules are ready.
+ * @version 260204A
+ * @date 2026-02-04
  */
-
 #include "WiFiBoot.h"
 #include "Globals.h"
 #include "WiFiController.h"

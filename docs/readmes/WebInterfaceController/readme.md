@@ -1,6 +1,6 @@
 # Web Interface Controller
 
-> Version: 251218A | Updated: 2025-12-17
+> Version: 260205D | Updated: 2026-02-05
 
 ## Purpose
 Serve a lightweight UI from the SD card so operators can monitor and steer the installation without reflashing firmware. The ESP32 hosts `index.html`, `styles.css`, and `kwal.js` directly from the SD root; updates only require copying new files and bumping the cache-buster query (`?v=`) in `index.html`.

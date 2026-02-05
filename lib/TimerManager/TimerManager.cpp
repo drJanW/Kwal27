@@ -1,11 +1,8 @@
-// =============================================
-// TimerManager.cpp
-// =============================================
 /**
  * @file TimerManager.cpp
  * @brief Non-blocking timer system implementation
- * @version 260127A
- * @date 2026-01-27
+ * @version 260205A
+ * @date 2026-02-05
  *
  * Manages a pool of 60 software timers checked each loop() iteration.
  * When a timer's interval elapses, its callback is invoked.

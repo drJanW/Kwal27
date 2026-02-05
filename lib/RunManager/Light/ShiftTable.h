@@ -1,14 +1,9 @@
 /**
  * @file ShiftTable.h
  * @brief LED parameter shift storage
- * @version 251231E
- * @date 2025-12-31
- *
- * Maintains and manages color/pattern parameter shifts loaded from CSV files.
- * Shifts modify brightness, speed, and other parameters based on time-of-day
- * context status. Provides computed multipliers for current context.
+ * @version 260205A
+ * @date 2026-02-05
  */
-
 #pragma once
 
 #include <Arduino.h>
