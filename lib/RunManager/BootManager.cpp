@@ -1,10 +1,10 @@
 /**
- * @file BootMaster.cpp
- * @brief Master boot sequence coordinator implementation
- * @version 260202A
- * @date 2026-02-02
+ * @file BootManager.cpp
+ * @brief Boot sequence coordinator implementation
+ * @version 260205A
+ * @date 2026-02-05
  */
-#include "BootMaster.h"
+#include "BootManager.h"
 #include "Globals.h"
 #include "TimerManager.h"
 #include "PRTClock.h"
@@ -12,7 +12,7 @@
 #include "Alert/AlertRun.h"
 #include "Alert/AlertState.h"
 
-BootMaster bootMaster;
+BootManager bootManager;
 
 namespace {
 
@@ -24,11 +24,11 @@ void cb_endOfBoot() {
 
 } // namespace
 
-bool BootMaster::begin() {
+bool BootManager::begin() {
     cancelFallbackTimer();
     fallback.resetFlags();
     if (!timers.create(Globals::clockBootstrapIntervalMs, 0, cb_bootstrapThunk)) {
-        PL("[Run] BootMaster failed to arm bootstrap timer");
+        PL("[Run] BootManager failed to arm bootstrap timer");
         return false;
     }
     // Boot timeout: force START_RUNTIME after bootPhaseMs regardless of clock
@@ -37,18 +37,18 @@ bool BootMaster::begin() {
     return true;
 }
 
-void BootMaster::restartBootTimer() {
+void BootManager::restartBootTimer() {
     if (!AlertState::isBootPhase()) return;  // already ended
     timers.cancel(cb_endOfBoot);
     timers.create(Globals::bootPhaseMs, 1, cb_endOfBoot);
     PF("[Boot] Timer restarted with bootPhaseMs=%u\n", Globals::bootPhaseMs);
 }
 
-void BootMaster::cb_bootstrapThunk() {
-    bootMaster.cb_bootstrap();
+void BootManager::cb_bootstrapThunk() {
+    bootManager.cb_bootstrap();
 }
 
-void BootMaster::cb_bootstrap() {
+void BootManager::cb_bootstrap() {
     if (prtClock.isTimeFetched()) {
         cancelFallbackTimer();
         fallback.resetFlags();
@@ -88,15 +88,15 @@ void BootMaster::cb_bootstrap() {
     timers.restart(Globals::ntpFallbackTimeoutMs, 1, cb_fallbackThunk);
 }
 
-void BootMaster::cb_fallbackThunk() {
-    bootMaster.fallbackTimeout();
+void BootManager::cb_fallbackThunk() {
+    bootManager.fallbackTimeout();
 }
 
-void BootMaster::cancelFallbackTimer() {
+void BootManager::cancelFallbackTimer() {
     timers.cancel(cb_fallbackThunk);
 }
 
-void BootMaster::fallbackTimeout() {
+void BootManager::fallbackTimeout() {
     if (prtClock.isTimeFetched()) {
         fallback.resetFlags();
         return;

@@ -8,7 +8,7 @@ Every subsystem that lives under `lib/RunManager/**` follows the same stack so w
 
 | Layer | Responsibility | Typical Files |
 | --- | --- | --- |
-| **Boot** | Register timers, seed caches, hand off any pointers that run/policy will need later. Boot files run exactly once during system bring-up. | `AudioBoot.*`, `LightBoot.*`, `BootMaster.*` |
+| **Boot** | Register timers, seed caches, hand off any pointers that run/policy will need later. Boot files run exactly once during system bring-up. | `AudioBoot.*`, `LightBoot.*`, `BootManager.*` |
 | **Run** | Coordinate requests. They own timer callbacks, subscribe to controller signals, and decide which director to invoke. Run code may _sequence_ work but must not invent behaviour. | `*Run.*`, `RunManager.*` |
 | **Director** | Translate context + storage into actionable requests. Directors query controllers (state, SD indices, calendar rows) and shape the payload that policies evaluate. They never touch hardware APIs directly. | `*Director.*` |
 | **Policy** | Enforce rules for a single domain (audio, light, OTA, etc.). Policies approve/deny requests, clamp levels, pick intervals, and expose helpers such as “distance playback volume”. They cannot schedule timers or manipulate global singletons. | `*Policy.*` |
@@ -25,7 +25,7 @@ Every subsystem that lives under `lib/RunManager/**` follows the same stack so w
 
 ## Boot Discipline
 
-- `BootMaster` coordinates shared start-up (clock seeding, fallback timers) and hands off once common modules are alive.
+- `BootManager` coordinates shared start-up (clock seeding, fallback timers) and hands off once common modules are alive.
 - Each subsystem boot (`AudioBoot`, `LightBoot`, etc.) is responsible for: registering timers with `TimerManager`, caching pointers (e.g. PCM clips), and logging readiness via `PL("[Run][Plan] ...")`.
 - Boot layers must never start behaviour directly. They only prepare the scaffolding so that `RunManager::update()` and the subsystem runners can run deterministically.
 

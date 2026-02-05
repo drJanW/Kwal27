@@ -14,7 +14,7 @@
 #include "System/SystemBoot.h"
 #include "Globals.h"
 #include "PRTClock.h"
-#include "BootMaster.h"
+#include "BootManager.h"
 #include "AudioManager.h"
 #include "AudioState.h"
 #include "Status/StatusBoot.h"
@@ -186,7 +186,7 @@ void RunManager::begin() {
     timers.create(Globals::timerStatusIntervalMs, 0, cb_showTimerStatus);
     timers.create(Globals::timeDisplayIntervalMs, 0, cb_timeDisplay);
     // Note: Periodic lux measurement is now handled by LightRun::plan()
-    bootMaster.begin();
+    bootManager.begin();
 
     PL("[Stage 1] Core modules...");
     ContextController::begin();
@@ -391,7 +391,7 @@ void RunManager::resumeAfterWiFiBoot() {
 
     PL("[Stage 1] CSV modules...");
     Globals::begin();
-    bootMaster.restartBootTimer();
+    bootManager.restartBootTimer();
     calendarBoot.plan();
     calendarRun.plan();
     lightBoot.plan();

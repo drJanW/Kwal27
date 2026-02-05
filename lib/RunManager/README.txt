@@ -21,7 +21,7 @@ FLOW OF CONTROL
 1. Input source generates a request
   (e.g. "play fragment", "say time", "silence for 2h", "arm OTA")
 
-2. **Boot layer** (BootMaster, *Boot.cpp)
+2. **Boot layer** (BootManager, *Boot.cpp)
    - Registers timers, seeds RNG/clock, hands pointers into runners.
    - Logs readiness using `PL("[Run][Plan] ...")`.
 

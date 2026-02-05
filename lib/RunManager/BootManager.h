@@ -1,12 +1,12 @@
 /**
- * @file BootMaster.h
- * @brief Master boot sequence coordinator
+ * @file BootManager.h
+ * @brief Boot sequence coordinator
  * @version 260205A
  * @date 2026-02-05
  */
 #pragma once
 
-class BootMaster {
+class BootManager {
 public:
     bool begin();
     void restartBootTimer();  // Call after globals.csv load
@@ -35,4 +35,4 @@ private:
     FallbackStatus fallback;
 };
 
-extern BootMaster bootMaster;
+extern BootManager bootManager;

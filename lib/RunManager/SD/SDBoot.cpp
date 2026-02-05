@@ -13,7 +13,7 @@
 #include "RunManager.h"
 #include "Alert/AlertRun.h"
 #include "Alert/AlertState.h"
-#include "BootMaster.h"
+#include "BootManager.h"
 #include <FastLED.h>
 
 namespace {
@@ -162,7 +162,7 @@ static void initSD() {
     Globals::begin();
     
     // Restart boot timer with potentially updated bootPhaseMs
-    bootMaster.restartBootTimer();
+    bootManager.restartBootTimer();
 }
 
 } // namespace

@@ -45,9 +45,9 @@ H4. Refactor WiFiController.cpp timer usage
     - Does not use timers correctly, superfluous state checking
     - Source: A56/WiFiController.cpp
 
-H5. Refactor BootMaster.cpp
+H5. Refactor BootManager.cpp
     - Clean up, check overlap with SystemBoot.cpp
-    - Source: A56/BootMaster.cpp
+    - Source: A56/BootManager.cpp
 
 H6. Review SDVoting.cpp file selection
     - Contains random file selection logic - belongs in Director?
