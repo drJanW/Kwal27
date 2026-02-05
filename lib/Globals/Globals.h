@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260101C
- * @date 2026-01-01
+ * @version 260205C
+ * @date 2026-02-05
  * 
  * Central configuration file containing:
  * - Firmware version string
@@ -32,7 +32,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260205A"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260205C"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000

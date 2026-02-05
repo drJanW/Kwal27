@@ -1,8 +1,8 @@
 /**
  * @file ClockBoot.cpp
  * @brief RTC/NTP clock one-time initialization implementation
- * @version 251231E
- * @date 2025-12-31
+ * @version 260205C
+ * @date 2026-02-05
  *
  * Implements clock boot sequence: initializes ClockPolicy and attempts to
  * seed the system clock from the DS3231 RTC module if available.
@@ -15,6 +15,7 @@
 #include "Globals.h"
 
 void ClockBoot::plan() {
+    prtClock.begin();
     if (RTC_PRESENT) {
         ClockPolicy::begin();
 

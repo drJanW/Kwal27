@@ -53,7 +53,7 @@ void routeSetLevel(AsyncWebServerRequest *request)
     // Calculate webShift: what multiplier on shiftedHi gives targetVolume?
     float shiftedHi = getVolumeShiftedHi();
     float webShift = (shiftedHi > 0.0f) ? (targetVolume / shiftedHi) : 1.0f;
-    setVolumeWebShift(webShift);
+    RunManager::requestSetAudioLevel(webShift);
     
     // Trigger SSE state push (value ignored - reads from getAudioSliderPct)
     WebGuiStatus::setAudioLevel(0.0f);
