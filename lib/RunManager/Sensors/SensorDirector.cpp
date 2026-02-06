@@ -9,5 +9,5 @@
 #include "Globals.h"
 
 void SensorDirector::plan() {
-    PL("[Run][Plan] TODO: move sensor orchestration here");
+    PL_BOOT("[Run][Plan] TODO: move sensor orchestration here");
 }

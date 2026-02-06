@@ -114,7 +114,7 @@ String buildTemperatureSentence(float tempC) {
 }
 
 void cb_sayTemperature() {
-    RUN_LOG_INFO("[Run] cb_sayTemperature fired\n");
+    RUN_LOG_INFO("[ClockRun] cb_sayTemperature\n");
     RunManager::requestSayTemperature();
     timers.restart(random(Globals::minTemperatureSpeakIntervalMs,
                           Globals::maxTemperatureSpeakIntervalMs + 1),
@@ -184,13 +184,10 @@ void RunManager::begin() {
     // First audio after random 6-18 min, then reschedules itself
     timers.create(random(Globals::minAudioIntervalMs, Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
     timers.create(Globals::timerStatusIntervalMs, 0, cb_showTimerStatus);
-    timers.create(Globals::timeDisplayIntervalMs, 0, cb_timeDisplay);
     // Note: Periodic lux measurement is now handled by LightRun::plan()
     bootManager.begin();
 
-    PL("[Stage 1] Core modules...");
     ContextController::begin();
-    PL("[Stage 1] Context controller started");
     heartbeatBoot.plan();
     heartbeatRun.plan();
     statusBoot.plan();
@@ -198,7 +195,6 @@ void RunManager::begin() {
     clockBoot.plan();
     clockRun.plan();
 
-    PL("[Stage 1] SD probe...");
     if (!sdBoot.plan()) {
         return;
     }
@@ -219,26 +215,26 @@ void RunManager::update() {
 }
 
 void RunManager::requestArmOTA(uint32_t window_s) {
-    RUN_LOG_INFO("[Run] requestArmOTA: window=%us\n", static_cast<unsigned>(window_s));
+    RUN_LOG_INFO("[OTARun] armOTA window=%us\n", static_cast<unsigned>(window_s));
     otaArm(window_s);
     audio.stop();
     lightController.showOtaPattern();
 }
 
 bool RunManager::requestConfirmOTA() {
-    RUN_LOG_INFO("[Run] requestConfirmOTA\n");
+    RUN_LOG_INFO("[OTARun] confirmOTA\n");
     return otaConfirmAndReboot();
 }
 
 void RunManager::requestPlayFragment() {
     AudioFragment fragment{};
     if (!AudioDirector::selectRandomFragment(fragment)) {
-        RUN_LOG_WARN("[Run] requestPlayFragment: no fragment available\n");
+        RUN_LOG_WARN("[AudioRun] no fragment available\n");
         return;
     }
 
     if (!AudioPolicy::requestFragment(fragment)) {
-        RUN_LOG_WARN("[Run] requestPlayFragment: playback rejected\n");
+        RUN_LOG_WARN("[AudioRun] playback rejected\n");
     }
 }
 
@@ -250,20 +246,20 @@ void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file) {
     if (file < 0) {
         DirEntry dirEntry{};
         if (!SDController::readDirEntry(dir, &dirEntry) || dirEntry.fileCount == 0) {
-            RUN_LOG_WARN("[Run] requestPlaySpecificFragment: dir %u not found or empty\n", dir);
+            RUN_LOG_WARN("[AudioRun] dir %u not found or empty\n", dir);
             return;
         }
         targetFile = random(0, dirEntry.fileCount);
     }
     
     if (!SDController::readFileEntry(dir, targetFile, &fileEntry)) {
-        RUN_LOG_WARN("[Run] requestPlaySpecificFragment: file %u/%u not found\n", dir, targetFile);
+        RUN_LOG_WARN("[AudioRun] file %u/%u not found\n", dir, targetFile);
         return;
     }
     
     const uint32_t rawDuration = static_cast<uint32_t>(fileEntry.sizeKb) * 1024UL / 24UL;  // BYTES_PER_MS approx
     if (rawDuration <= 200U) {
-        RUN_LOG_WARN("[Run] requestPlaySpecificFragment: file too short\n");
+        RUN_LOG_WARN("[AudioRun] file too short\n");
         return;
     }
     
@@ -276,7 +272,7 @@ void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file) {
     fragment.fadeMs     = 500U;  // Default fade
     
     if (!AudioPolicy::requestFragment(fragment)) {
-        RUN_LOG_WARN("[Run] requestPlaySpecificFragment: playback rejected\n");
+        RUN_LOG_WARN("[AudioRun] playback rejected\n");
     }
 }
 
@@ -294,7 +290,7 @@ void RunManager::triggerBootFragment() {
 void RunManager::requestSayTime(TimeStyle style) {
     const String sentence = prtClock.buildTimeSentence(style);
     if (sentence.isEmpty()) {
-        RUN_LOG_WARN("[Run] requestSayTime: clock sentence empty\n");
+        RUN_LOG_WARN("[ClockRun] sentence empty\n");
         return;
     }
     AudioPolicy::requestSentence(sentence);
@@ -303,7 +299,7 @@ void RunManager::requestSayTime(TimeStyle style) {
 void RunManager::requestSayTemperature() {
     const auto& ctx = ContextController::time();
     const float tempC = ctx.rtcTemperatureC;
-    RUN_LOG_INFO("[Run] requestSayTemperature: temp=%.2f\n", static_cast<double>(tempC));
+    RUN_LOG_INFO("[ClockRun] sayTemperature temp=%.1f\n", static_cast<double>(tempC));
     const String sentence = buildTemperatureSentence(tempC);
     if (sentence.isEmpty()) {
         return;
@@ -314,7 +310,7 @@ void RunManager::requestSayTemperature() {
 void RunManager::requestSetAudioLevel(float value) {
     // F9 pattern: webShift can be >1.0, no clamp
     audio.setVolumeWebShift(value);
-    RUN_LOG_INFO("[Run] requestSetAudioLevel: webShift=%.2f\n",
+    RUN_LOG_INFO("[AudioRun] webShift=%.2f\n",
                      static_cast<double>(value));
 }
 
@@ -329,7 +325,7 @@ bool RunManager::requestStartClockTick(bool fallbackEnabled) {
 
     bool wasRunning = clockRunning;
     if (!timers.create(SECONDS_TICK, 0, cb_clockUpdate)) {
-        RUN_LOG_ERROR("[Run] Failed to start clock tick (%s)\n", fallbackEnabled ? "fallback" : "normal");
+        RUN_LOG_ERROR("[ClockRun] Failed to start tick (%s)\n", fallbackEnabled ? "fallback" : "normal");
         if (wasRunning) {
             clockRunning = false;
         }
@@ -338,7 +334,7 @@ bool RunManager::requestStartClockTick(bool fallbackEnabled) {
 
     clockRunning = true;
     clockInFallback = fallbackEnabled;
-    RUN_LOG_INFO("[Run] Clock tick running (%s)\n", fallbackEnabled ? "fallback" : "normal");
+    RUN_LOG_INFO("[ClockRun] tick started (%s)\n", fallbackEnabled ? "fallback" : "normal");
     return true;
 }
 
@@ -365,7 +361,6 @@ void RunManager::resumeAfterSDBoot() {
 
     sdPostBootCompleted = true;
 
-    PL("[Stage 1] Post-SD modules...");
     sdRun.plan();
     wifiBoot.plan();
     wifiRun.plan();
@@ -378,8 +373,6 @@ void RunManager::resumeAfterSDBoot() {
     otaRun.plan();
     speakBoot.plan();
     speakRun.plan();
-    PL("[Stage 1] Waiting for CSV fetch");
-    // Stage 2 triggered per-component when OK reported (WIFI_OK, AUDIO_OK, etc.)
 }
 
 void RunManager::resumeAfterWiFiBoot() {
@@ -389,7 +382,6 @@ void RunManager::resumeAfterWiFiBoot() {
 
     wifiPostBootCompleted = true;
 
-    PL("[Stage 1] CSV modules...");
     Globals::begin();
     bootManager.restartBootTimer();
     calendarBoot.plan();
@@ -398,7 +390,6 @@ void RunManager::resumeAfterWiFiBoot() {
     lightRun.plan();
     audioBoot.plan();
     audioRun.plan();
-    PL("[Stage 1] Complete - Stage 2 actions via OK reports");
 }
 
 void RunManager::requestWebAudioNext(uint16_t fadeMs) {

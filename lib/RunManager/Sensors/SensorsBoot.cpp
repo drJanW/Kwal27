@@ -23,6 +23,6 @@ void SensorsBoot::plan() {
     if (LUX_SENSOR_PRESENT)      SensorController::beginLuxSensor();       // VEML7700 ambient light
     if (SENSOR3_PRESENT)         SensorController::beginSensor3();         // Board temp/voltage
     
-    PL("[SensorsBoot] Sensor init timers started");
+    PL_BOOT("[SensorsBoot] init timers started");
     SensorsPolicy::configure();
 }

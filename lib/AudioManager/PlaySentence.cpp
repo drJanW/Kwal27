@@ -312,7 +312,7 @@ void playNextSpeakItem() {
         
         startTTSInternal(sentence);
         durationMs = strlen(sentence) * TTS_CHAR_INTERVAL_MS + TTS_TAIL_INTERVAL_MS;
-        PF("[TTS] Started: %s (%ums)\n", sentence, durationMs);
+        PF("[TTS] %s (%ums)\n", sentence, durationMs);
         
         // T4: Timer-based completion
         timers.cancel(cb_ttsReady);
@@ -443,7 +443,6 @@ void addWords(const uint8_t* words) {
 void addTTS(const char* sentence) {
     bool wasEmpty = (speakQueueHead == speakQueueTail);
     enqueue(SpeakItemType::TTS_SENTENCE, sentence);
-    PF("[PlaySentence] Queued TTS: %s\n", sentence);
     
     if (wasEmpty && !isAudioBusy()) {
         playNextSpeakItem();

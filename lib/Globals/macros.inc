@@ -27,7 +27,7 @@
 // Set to 0 to reduce boot output while keeping errors/warnings
 // ─────────────────────────────────────────────────────────────
 #ifndef LOG_BOOT_SPAM
-#define LOG_BOOT_SPAM 1
+#define LOG_BOOT_SPAM 0
 #endif
 
 #define LOG_LEVEL_ERROR 0
@@ -56,8 +56,24 @@
 
 #define LOG_LEVEL_ACTIVE(lvl) ((lvl) <= LOCAL_LOG_LEVEL)
 
-#define LOG_PRINT(level, ...)   do { if (LOG_LEVEL_ACTIVE(level)) Serial.printf(__VA_ARGS__); } while (0)
-#define LOG_PRINTLN(level, msg) do { if (LOG_LEVEL_ACTIVE(level)) Serial.println(msg); } while (0)
+#define LOG_PRINT(level, ...)   do { \
+    if (LOG_LEVEL_ACTIVE(level)) { \
+        if (LOG_TIMESTAMP) { \
+            char __ts[12]; \
+            if (LogBuffer::getTimestamp(__ts, sizeof(__ts)) > 0) Serial.print(__ts); \
+        } \
+        Serial.printf(__VA_ARGS__); \
+    } \
+} while (0)
+#define LOG_PRINTLN(level, msg) do { \
+    if (LOG_LEVEL_ACTIVE(level)) { \
+        if (LOG_TIMESTAMP) { \
+            char __ts[12]; \
+            if (LogBuffer::getTimestamp(__ts, sizeof(__ts)) > 0) Serial.print(__ts); \
+        } \
+        Serial.println(msg); \
+    } \
+} while (0)
 #define LOG_WRITE(level, ch)    do { if (LOG_LEVEL_ACTIVE(level)) Serial.write(ch); } while (0)
 
 #define LOG_ERROR(...) LOG_PRINT(LOG_LEVEL_ERROR, __VA_ARGS__)
@@ -80,7 +96,7 @@
         } \
     } \
     LogBuffer::appendLine(x); \
-    LOG_INFO_LN(x); \
+    if (LOG_LEVEL_ACTIVE(LOG_LEVEL_INFO)) Serial.println(x); \
 } while(0)
 #define PF(...) do { \
     if (LOG_TIMESTAMP) { \
@@ -91,7 +107,7 @@
         } \
     } \
     LogBuffer::appendf(__VA_ARGS__); \
-    LOG_INFO(__VA_ARGS__); \
+    if (LOG_LEVEL_ACTIVE(LOG_LEVEL_INFO)) Serial.printf(__VA_ARGS__); \
 } while(0)
 
 // Boot spam macros - for verbose boot messages

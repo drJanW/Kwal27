@@ -92,7 +92,7 @@ void CalendarRun::plan() {
 
   if (!calendarSelector.isReady()) {
     if (!logFlags.controllerNotReady) {
-      PF("[CalendarRun] Calendar controller not ready, retrying\n");
+      PF_BOOT("[CalendarRun] waiting for CSV\n");
       logFlags.controllerNotReady = true;
     }
     timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar);
@@ -122,7 +122,7 @@ void CalendarRun::plan() {
 void CalendarRun::cb_loadCalendar() {
   if (!calendarSelector.isReady()) {
     if (!logFlags.controllerNotReady) {
-      PF("[CalendarRun] Calendar controller not ready, retrying\n");
+      PF_BOOT("[CalendarRun] waiting for controller\n");
       logFlags.controllerNotReady = true;
     }
     timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar);
@@ -167,7 +167,7 @@ void CalendarRun::cb_loadCalendar() {
     clearTodayStateRead();
     AlertState::setCalendarStatus(true);  // OK - no special day
     RunManager::triggerBootFragment();  // Theme box set, play first fragment
-    PL("[CalendarRun] No calendar data for today");
+    PL_BOOT("[CalendarRun] No calendar today");
     timers.restart(Globals::calendarRefreshIntervalMs, 0, CalendarRun::cb_loadCalendar);
     return;
   }

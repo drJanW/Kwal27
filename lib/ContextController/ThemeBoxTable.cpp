@@ -184,7 +184,7 @@ bool ThemeBoxTable::load() {
     }
 
     activeThemeBoxId_ = boxes_.front().id;
-    PF("[ThemeBoxTable] Loaded %u theme boxes\n", static_cast<unsigned>(loaded));
+    PF_BOOT("[ThemeBoxTable] %u boxes\n", static_cast<unsigned>(loaded));
     return true;
 }
 

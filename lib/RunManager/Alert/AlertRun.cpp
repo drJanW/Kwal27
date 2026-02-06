@@ -5,6 +5,7 @@
  * @date 2026-02-02
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
+#include <Arduino.h>
 #include "AlertRun.h"
 #include "AlertState.h"
 #include "AlertPolicy.h"
@@ -41,6 +42,22 @@ const char* requestName(AlertRequest request) {
     }
 }
 
+bool isFailure(AlertRequest request) {
+    switch (request) {
+        case AlertRequest::SD_FAIL:
+        case AlertRequest::WIFI_FAIL:
+        case AlertRequest::RTC_FAIL:
+        case AlertRequest::NTP_FAIL:
+        case AlertRequest::DISTANCE_SENSOR_FAIL:
+        case AlertRequest::LUX_SENSOR_FAIL:
+        case AlertRequest::SENSOR3_FAIL:
+        case AlertRequest::TTS_FAIL:
+            return true;
+        default:
+            return false;
+    }
+}
+
 void cb_statusReminder() {
     uint64_t failBits = StatusFlags::getHardwareFailBits();
     if (failBits == 0) return;
@@ -58,7 +75,7 @@ void cb_statusReminder() {
 }
 
 void cb_healthStatus() {
-    PF("\n[Health] Version %s\n", FIRMWARE_VERSION);
+    PF("[Health] Version %s\n", FIRMWARE_VERSION);
     PF("[Health] Timers %d/%d\n", timers.getActiveCount(), TimerManager::MAX_TIMERS);
     PL("[Health] Components:");
     
@@ -94,7 +111,6 @@ void cb_healthStatus() {
 } // namespace
 
 void AlertRun::plan() {
-    PL("[*Run] plan()");
     AlertPolicy::configure();
     AlertState::reset();
     
@@ -103,7 +119,11 @@ void AlertRun::plan() {
 }
 
 void AlertRun::report(AlertRequest request) {
-    PF("[*Run] %s\n", requestName(request));
+    if (isFailure(request)) {
+        PF("[Alert] %s\n", requestName(request));
+    } else {
+        PF_BOOT("[*Run] %s\n", requestName(request));
+    }
     
     switch (request) {
         case AlertRequest::SD_OK:       AlertState::setSdStatus(true); break;

@@ -35,7 +35,7 @@
 #include <WiFi.h>
 
 #ifndef WEBIF_LOG_LEVEL
-#define WEBIF_LOG_LEVEL 1
+#define WEBIF_LOG_LEVEL LOG_BOOT_SPAM
 #endif
 
 #if WEBIF_LOG_LEVEL
@@ -85,9 +85,9 @@ void routeFavicon(AsyncWebServerRequest *request)
         WEBIF_LOG("[Web] /favicon.ico 500 (empty)\n");
         return;
     }
-    request->send_P(200, "image/x-icon", faviconIco, sizeof(faviconIco));
-    WEBIF_LOG("[Web] /favicon.ico 200 (progmem, %u bytes)\n",
-              static_cast<unsigned>(sizeof(faviconIco)));
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "image/x-icon", faviconIco, sizeof(faviconIco));
+    response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
+    request->send(response);
 }
 
 void routeSetBrightness(AsyncWebServerRequest *request)

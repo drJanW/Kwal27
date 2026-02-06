@@ -56,7 +56,7 @@ void start(const I2CInitConfig& cfg, TimerCallback cb) {
     dev.ready = false;
     dev.failed = false;
     
-    PF("[I2CInit] %s starting, max %d retries with %.1fx growth\n", cfg.name, cfg.maxRetries, cfg.growth);
+    PF_BOOT("[I2CInit] %s starting, max %d retries\n", cfg.name, cfg.maxRetries);
     
     // Start timer with per-device callback
     timers.create(cfg.startDelayMs, cfg.maxRetries, cb, cfg.growth);
@@ -79,8 +79,8 @@ void tryInit(StatusComponent comp) {
     if (dev.cfg.probe()) {
         dev.ready = true;
         timers.cancel(dev.cb);
-        AlertRun::report(dev.cfg.okRequest);  // report() does setOk()
-        PF("[I2CInit] %s ready\n", dev.cfg.name);
+        AlertRun::report(dev.cfg.okRequest);
+        PF_BOOT("[I2CInit] %s ready\n", dev.cfg.name);
         return;
     }
     

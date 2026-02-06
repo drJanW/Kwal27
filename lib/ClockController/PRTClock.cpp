@@ -23,7 +23,12 @@ static std::atomic<bool>     _timeFetched{false};
 
 // Timestamp provider for logging macros (uses atomics directly to avoid recursion)
 static bool provideTimestamp(char* buf, size_t bufSize) {
-    if (bufSize < 10) return false;
+    if (bufSize < 12) return false;
+    if (!_timeFetched.load(std::memory_order_relaxed)) {
+        // Before clock sync: show millis (space-padded)
+        snprintf(buf, bufSize, "%7lums ", millis());
+        return true;
+    }
     snprintf(buf, bufSize, "%02u:%02u:%02u ", 
              _valHour.load(std::memory_order_relaxed),
              _valMinute.load(std::memory_order_relaxed),
@@ -33,21 +38,20 @@ static bool provideTimestamp(char* buf, size_t bufSize) {
 
 PRTClock prtClock;
 
+// Auto-register timestamp provider at static init
+static struct TimestampInit {
+    TimestampInit() { LogBuffer::setTimestampProvider(provideTimestamp); }
+} _tsInit;
+
 namespace {
-  bool timestampProviderSet = false;
-  void ensureTimestampProvider() {
-    if (!timestampProviderSet) {
-      LogBuffer::setTimestampProvider(provideTimestamp);
-      timestampProviderSet = true;
-    }
-  }
+  // ensureTimestampProvider no longer needed - auto-registered above
 }
 
 // ===================================================
 // Lifecycle
 // ===================================================
 void PRTClock::begin() {
-  ensureTimestampProvider();
+  // Timestamp provider auto-registered at static init
 }
 
 void PRTClock::update() {

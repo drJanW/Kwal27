@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260205D"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260205J"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -31,7 +31,7 @@
 #define MAX_THEME_DIRS 500
 
 // Debug flags
-#define SHOW_TIMER_STATUS false  // Set true to see timer usage in serial
+#define SHOW_TIMER_STATUS LOG_BOOT_SPAM  // Set true to see timer usage in serial
 
 // Growing interval cap (TimerManager)
 constexpr uint32_t MAX_GROWTH_INTERVAL_MS = MINUTES(1200);   // cap
@@ -186,10 +186,9 @@ struct Globals {
     inline static uint16_t fallbackYear            = 2026U;       // Fallback year
 
     // ─────────────────────────────────────────────────────────────
-    // DEBUG (3 params)
+    // DEBUG (2 params)
     // ─────────────────────────────────────────────────────────────
     inline static uint32_t timerStatusIntervalMs   = MINUTES(10);  // Timer pool status log interval
-    inline static uint32_t timeDisplayIntervalMs   = SECONDS(111);  // Current time log interval
     inline static uint32_t healthStatusIntervalMs  = SECONDS(300); // Health status log interval
 
     // Initialize: load CSV overrides (call after SD init)

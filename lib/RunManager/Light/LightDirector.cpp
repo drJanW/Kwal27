@@ -9,5 +9,5 @@
 #include "Globals.h"
 
 void LightDirector::plan() {//TODO: move light orchestration here
-    PL("[Run][Plan] TODO: move light orchestration here");
+    PL_BOOT("[Run][Plan] TODO: move light orchestration here");
 }

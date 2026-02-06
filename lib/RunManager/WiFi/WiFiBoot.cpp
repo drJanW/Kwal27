@@ -98,47 +98,41 @@ namespace {
         return renamed;
     }
 
-    bool downloadCsvFile(const char* filename) {
+    size_t downloadCsvFile(const char* filename) {
         if (!filename || !*filename) {
-            return false;
+            return 0;
         }
 
         if (!AlertState::isSdOk()) {
-            PF("[WiFiBoot] CSV download skipped (SD not ready): %s\n", filename);
-            return false;
+            return 0;
         }
 
         if (AlertState::isSdBusy()) {
-            PF("[WiFiBoot] CSV download skipped (SD busy): %s\n", filename);
-            return false;
+            return 0;
         }
 
         if (!ensureNasDirectory()) {
-            PF("[WiFiBoot] CSV download skipped (no /nas): %s\n", filename);
-            return false;
+            return 0;
         }
         String url = buildCsvUrl(filename);
         if (url.isEmpty()) {
-            PF("[WiFiBoot] CSV base URL empty, cannot fetch %s\n", filename);
             removeNasCsvFile(filename);
-            return false;
+            return 0;
         }
 
         HTTPClient http;
         WiFiClient client;
         http.setTimeout(Globals::csvHttpTimeoutMs);
         if (!http.begin(client, url)) {
-            PF("[WiFiBoot] CSV HTTP begin failed: %s\n", url.c_str());
             removeNasCsvFile(filename);
-            return false;
+            return 0;
         }
 
         int httpCode = http.GET();
         if (httpCode != HTTP_CODE_OK) {
-            PF("[WiFiBoot] CSV HTTP GET failed: %s (code %d)\n", url.c_str(), httpCode);
             http.end();
             removeNasCsvFile(filename);
-            return false;
+            return 0;
         }
 
         const String tempPath = buildCsvTempPath(filename);
@@ -146,10 +140,9 @@ namespace {
         SDController::deleteFile(tempPath.c_str());
         File file = SDController::openFileWrite(tempPath.c_str());
         if (!file) {
-            PF("[WiFiBoot] CSV open failed: %s\n", tempPath.c_str());
             http.end();
             removeNasCsvFile(filename);
-            return false;
+            return 0;
         }
 
         size_t written = http.writeToStream(&file);
@@ -157,34 +150,34 @@ namespace {
         http.end();
 
         if (written == 0) {
-            PF("[WiFiBoot] CSV download empty: %s\n", filename);
             SDController::deleteFile(tempPath.c_str());
             removeNasCsvFile(filename);
-            return false;
+            return 0;
         }
 
         if (!commitCsvTempFile(tempPath, finalPath)) {
-            PF("[WiFiBoot] CSV replace failed: %s\n", finalPath.c_str());
             removeNasCsvFile(filename);
-            return false;
+            return 0;
         }
 
-        PF("[WiFiBoot] CSV downloaded: %s -> %s (%u bytes)\n", filename, finalPath.c_str(), static_cast<unsigned>(written));
-        return true;
+        return written;
     }
 
     void downloadCsvFilesFromLan() {
-        bool anyOk = false;
+        uint8_t count = 0;
+        size_t totalBytes = 0;
         for (const char* filename : kCsvFiles) {
-            if (downloadCsvFile(filename)) {
-                anyOk = true;
+            size_t bytes = downloadCsvFile(filename);
+            if (bytes > 0) {
+                count++;
+                totalBytes += bytes;
             }
         }
 
-        if (anyOk) {
-            PL("[WiFiBoot] CSV download complete");
+        if (count > 0) {
+            PF("[WiFiBoot] %u CSVs (%uKB)\n", count, static_cast<unsigned>(totalBytes / 1024));
         } else {
-            PL("[WiFiBoot] CSV download failed, using SD fallback");
+            PL("[WiFiBoot] CSV fetch failed, using SD fallback");
         }
     }
 
@@ -226,7 +219,6 @@ namespace {
 
         bool wifiUp = AlertState::isWifiOk();
         if (wifiUp && !lastWiFiState) {
-            PF("[Main] WiFi connected: %s\n", WiFi.localIP().toString().c_str());
             hwStatus |= HW_WIFI;
             AlertRun::report(AlertRequest::WIFI_OK);
         } else if (!wifiUp && lastWiFiState) {
@@ -261,7 +253,7 @@ namespace {
                 if (bootFetchController()) {
                     timers.cancel(cb_wifiBootCheck);
                     fetchCreated = true;
-                    PL("[Main] Fetch timers running");
+                    PL_BOOT("[Main] fetch timers started");
                 } else {
                     PL("[Main] Fetch timers failed to start");
                 }
@@ -270,7 +262,7 @@ namespace {
             if (!moduleTimerStarted) {
                 if (timers.create(1000, 0, cb_moduleInit)) {
                     moduleTimerStarted = true;
-                    PL("[Main] Module monitor timer started");
+                    PL_BOOT("[Main] module timer started");
                 } else {
                     PL("[Main] Failed to start module timer");
                 }
@@ -287,6 +279,6 @@ void WiFiBoot::plan() {
         timers.create(Globals::csvFetchWaitMs, 1, cb_csvFetchTimeout);
     }
     bootWiFiConnect();
-    PL("[Run][Plan] WiFi connect sequence started");
+    PL_BOOT("[WiFiBoot] connect started");
     WiFiPolicy::configure();
 }

@@ -132,7 +132,7 @@ static void initSD() {
             SDController::setReady(false);
             return;  // Degraded path - no HALT
         } else {
-            PF("[SDBoot] SD version OK.\n");
+            PF_BOOT("[SDBoot] version OK\n");
         }
     } else {
         PF("[SDBoot] Version file missing.\n");
@@ -149,7 +149,7 @@ static void initSD() {
         PF("[SDBoot] Index rebuild pending (waiting for RTC/NTP)\n");
     } else {
         // Existing valid index - use it
-        PF("[SDBoot] Using existing valid index\n");
+        PF_BOOT("[SDBoot] index valid\n");
         SDController::updateHighestDirNum();
         if (!SDController::fileExists(WORDS_INDEX_FILE)) {
             // Words index can be rebuilt without timestamp concern
@@ -183,7 +183,7 @@ bool SDBoot::plan() {
 
     // Log once at start
     if (!loggedStart) {
-        PL("[Run][Plan] SD boot starting");
+        PL_BOOT("[SDBoot] starting");
         loggedStart = true;
     }
 

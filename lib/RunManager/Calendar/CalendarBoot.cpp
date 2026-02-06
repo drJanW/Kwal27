@@ -75,7 +75,7 @@ void CalendarBoot::plan() {
 
   if (!prtClock.hasValidDate()) {
     if (!loggedClockWait) {
-      PF("[CalendarBoot] Waiting for valid clock\n");
+      PF_BOOT("[CalendarBoot] Waiting for clock\n");
       loggedClockWait = true;
     }
     armRetry();
@@ -92,7 +92,7 @@ void CalendarBoot::plan() {
       return;
     }
     loggedInitFail = false;
-    PF("[CalendarBoot] Calendar selector initialised\n");
+    PF_BOOT("[CalendarBoot] selector ready\n");
   }
 
   if (!InitTodayState(SD)) {
@@ -105,7 +105,7 @@ void CalendarBoot::plan() {
   }
   loggedStateFail = false;
 
-  PF("[CalendarBoot] Today state initialised\n");
+  PF_BOOT("[CalendarBoot] today state ready\n");
   AlertState::setStatusOK(SC_CALENDAR);
   cancelRetry();
 }

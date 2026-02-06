@@ -63,7 +63,7 @@ void ColorsCatalog::begin() {
     if (!colors_.empty()) {
         size_t idx = random(0, colors_.size());
         activeColorId_ = colors_[idx].id;
-        PF("[ColorsCatalog] Boot random color: %s\n", activeColorId_.c_str());
+        PF_BOOT("[ColorsCatalog] Boot color: %s\n", activeColorId_.c_str());
     } else {
         activeColorId_.clear();
     }

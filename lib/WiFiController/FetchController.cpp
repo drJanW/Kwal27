@@ -31,7 +31,7 @@
 #define SUN_URL     "http://api.sunrise-sunset.org/json?lat=52.3702&lng=4.8952&formatted=0"
 #define WEATHER_URL "http://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.89&daily=temperature_2m_max,temperature_2m_min&timezone=auto"
 
-#define DEBUG_FETCH 1
+#define DEBUG_FETCH LOG_BOOT_SPAM
 
 // --- Timezone for Europe/Amsterdam ---
 TimeChangeRule CEST = {"CEST", Last, Sun, Mar, 2, 120};

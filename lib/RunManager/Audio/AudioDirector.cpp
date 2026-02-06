@@ -189,7 +189,7 @@ bool selectFile(const DirPick& dirPick, uint8_t& outFile) {
 } // namespace
 
 void AudioDirector::plan() {
-    PL("[Run][Plan] TODO: move audio orchestration here");
+    PL_BOOT("[Run][Plan] TODO: move audio orchestration here");
 }
 
 bool AudioDirector::selectRandomFragment(AudioFragment& outFrag) {

@@ -132,8 +132,6 @@ void LightRun::plan() {
     timers.create(Globals::luxMeasurementIntervalMs, 0, LightRun::cb_luxMeasure);
     
     // NOTE: Status flash handled by AlertRGB reminder system (61 min interval)
-    
-    PL("[Run][Plan] Light shift system initialized");
 }
 
 void LightRun::updateDistance(float distanceMm) {
@@ -171,7 +169,6 @@ void LightRun::cb_shiftTimer() {
     if (statusBits != lastStatusBits) {
         lastStatusBits = statusBits;
         applyToLights();
-        PF("[LightRun] Shifts updated (status=0x%llX)\n", statusBits);
     }
     
     scheduleShiftTimer();
@@ -461,7 +458,6 @@ void LightRun::applyPattern(uint8_t patternId) {
     if (patternId == 0) {
         // Calendar has no pattern - keep current pattern, don't clear
         // This preserves boot random or user-selected pattern
-        PF("[LightRun] Calendar: no pattern, keeping current\n");
     } else {
         // Calendar specifies pattern, select it
         if (catalog.select(String(patternId), errorMessage)) {
@@ -481,7 +477,6 @@ void LightRun::applyColor(uint8_t colorId) {
     if (colorId == 0) {
         // Calendar has no color - keep current (boot random or previous selection)
         colorSource = LightSource::CONTEXT;
-        PF("[LightRun] Calendar: no color, keeping current\n");
     } else {
         // Calendar specifies color, select it
         if (catalog.selectColor(String(colorId), errorMessage)) {
@@ -675,15 +670,6 @@ void LightRun::applyToLights() {
     
     params.RGB1 = colorA;
     params.RGB2 = colorB;
-
-    // Log and apply
-    String patternId = patternCatalog.activeId();
-    String colorId = colorsCatalog.getActiveColorId();
-    PF("[LightRun] Apply pattern=%s color=%s rgb1=%02X%02X%02X rgb2=%02X%02X%02X\n",
-       patternId.isEmpty() ? "<default>" : patternId.c_str(),
-       colorId.isEmpty() ? "<default>" : colorId.c_str(),
-       params.RGB1.r, params.RGB1.g, params.RGB1.b,
-       params.RGB2.r, params.RGB2.g, params.RGB2.b);
 
     PlayLightShow(params);
 }

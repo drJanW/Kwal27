@@ -78,7 +78,7 @@ void setThemeBox(const uint8_t* dirs, size_t count, const String& id) {
     themeBoxIsActive = themeDirCount > 0;
     themeId = id;
 
-    PF("[AudioPolicy] Theme box %s set with %u directories\n",
+    PF_BOOT("[AudioPolicy] Box %s: %u dirs\n",
        themeId.c_str(), static_cast<unsigned>(themeDirCount));
 }
 
@@ -118,7 +118,7 @@ size_t mergeThemeBoxDirs(const uint8_t* dirs, size_t count) {
     
     if (added > 0) {
         themeBoxIsActive = themeDirCount > 0;
-        PF("[AudioPolicy] Merged %u dirs (total=%u)\n",
+        PF_BOOT("[AudioPolicy] +%u dirs (total=%u)\n",
            static_cast<unsigned>(added), static_cast<unsigned>(themeDirCount));
     }
     return added;

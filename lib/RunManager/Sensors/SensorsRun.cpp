@@ -31,14 +31,13 @@ bool distancePlaybackEligible = false;
 cb_type cb_readRtcTemperature() {
     if (!RTCController::isAvailable()) {
         ContextController::clearRtcTemperature();
-        PF("[SensorsRun] RTC temperature unavailable\n");
         return;
     }
 
     float tempC = RTCController::getTemperature();
     if (isfinite(tempC)) {
         ContextController::updateRtcTemperature(tempC);
-        PF("[SensorsRun] RTC temperature %.1f C\n", static_cast<double>(tempC));
+        PF("[Status] temp=%.1fC\n", static_cast<double>(tempC));
         return;
     }
     ContextController::clearRtcTemperature();
@@ -108,5 +107,5 @@ void SensorsRun::plan() {
     timers.restart(SensorsPolicy::getPollingIntervalMs(), 0, cb_updateSensorEvents);
     cb_readRtcTemperature();
     timers.create(Globals::rtcTemperatureIntervalMs, 0, cb_readRtcTemperature);
-    PF("[Run][Plan] Sensor update scheduled\n");
+    PL_BOOT("[SensorsRun] update scheduled");
 }

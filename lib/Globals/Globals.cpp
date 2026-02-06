@@ -121,67 +121,67 @@ static void applyOverride(const char* key, char type, const char* value) {
     if (strcmp(key, "minAudioIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::minAudioIntervalMs = u32;
-            Serial.printf("[Globals] minAudioIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] minAudioIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "maxAudioIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::maxAudioIntervalMs = u32;
-            Serial.printf("[Globals] maxAudioIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] maxAudioIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "baseFadeMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::baseFadeMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] baseFadeMs = %u\n", Globals::baseFadeMs);
+            PF_BOOT("[Globals] baseFadeMs = %u\n", Globals::baseFadeMs);
         }
     }
     else if (strcmp(key, "webAudioNextFadeMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::webAudioNextFadeMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] webAudioNextFadeMs = %u\n", Globals::webAudioNextFadeMs);
+            PF_BOOT("[Globals] webAudioNextFadeMs = %u\n", Globals::webAudioNextFadeMs);
         }
     }
     else if (strcmp(key, "fragmentStartFraction") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 100) {
             Globals::fragmentStartFraction = static_cast<uint8_t>(u32);
-            Serial.printf("[Globals] fragmentStartFraction = %u\n", Globals::fragmentStartFraction);
+            PF_BOOT("[Globals] fragmentStartFraction = %u\n", Globals::fragmentStartFraction);
         }
     }
     else if (strcmp(key, "volumeLo") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::volumeLo = f32;
-            Serial.printf("[Globals] volumeLo = %.3f\n", f32);
+            PF_BOOT("[Globals] volumeLo = %.3f\n", f32);
         }
     }
     else if (strcmp(key, "basePlaybackVolume") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::basePlaybackVolume = f32;
-            Serial.printf("[Globals] basePlaybackVolume = %.3f\n", f32);
+            PF_BOOT("[Globals] basePlaybackVolume = %.3f\n", f32);
         }
     }
     else if (strcmp(key, "minDistanceVolume") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::minDistanceVolume = f32;
-            Serial.printf("[Globals] minDistanceVolume = %.3f\n", f32);
+            PF_BOOT("[Globals] minDistanceVolume = %.3f\n", f32);
         }
     }
     else if (strcmp(key, "pingVolumeMax") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::pingVolumeMax = f32;
-            Serial.printf("[Globals] pingVolumeMax = %.3f\n", f32);
+            PF_BOOT("[Globals] pingVolumeMax = %.3f\n", f32);
         }
     }
     else if (strcmp(key, "pingVolumeMin") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::pingVolumeMin = f32;
-            Serial.printf("[Globals] pingVolumeMin = %.3f\n", f32);
+            PF_BOOT("[Globals] pingVolumeMin = %.3f\n", f32);
         }
     }
     else if (strcmp(key, "busyRetryMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::busyRetryMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] busyRetryMs = %u\n", Globals::busyRetryMs);
+            PF_BOOT("[Globals] busyRetryMs = %u\n", Globals::busyRetryMs);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -190,25 +190,25 @@ static void applyOverride(const char* key, char type, const char* value) {
     else if (strcmp(key, "minSaytimeIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::minSaytimeIntervalMs = u32;
-            Serial.printf("[Globals] minSaytimeIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] minSaytimeIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "maxSaytimeIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::maxSaytimeIntervalMs = u32;
-            Serial.printf("[Globals] maxSaytimeIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] maxSaytimeIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "minTemperatureSpeakIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::minTemperatureSpeakIntervalMs = u32;
-            Serial.printf("[Globals] minTemperatureSpeakIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] minTemperatureSpeakIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "maxTemperatureSpeakIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::maxTemperatureSpeakIntervalMs = u32;
-            Serial.printf("[Globals] maxTemperatureSpeakIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] maxTemperatureSpeakIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -217,25 +217,25 @@ static void applyOverride(const char* key, char type, const char* value) {
     else if (strcmp(key, "lightFallbackIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::lightFallbackIntervalMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] lightFallbackIntervalMs = %u\n", Globals::lightFallbackIntervalMs);
+            PF_BOOT("[Globals] lightFallbackIntervalMs = %u\n", Globals::lightFallbackIntervalMs);
         }
     }
     else if (strcmp(key, "shiftCheckIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::shiftCheckIntervalMs = u32;
-            Serial.printf("[Globals] shiftCheckIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] shiftCheckIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "defaultFadeWidth") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::defaultFadeWidth = f32;
-            Serial.printf("[Globals] defaultFadeWidth = %.1f\n", f32);
+            PF_BOOT("[Globals] defaultFadeWidth = %.1f\n", f32);
         }
     }
     else if (strcmp(key, "maxBrightness") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 255) {
             Globals::maxBrightness = static_cast<uint8_t>(u32);
-            Serial.printf("[Globals] maxBrightness = %u\n", Globals::maxBrightness);
+            PF_BOOT("[Globals] maxBrightness = %u\n", Globals::maxBrightness);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -246,59 +246,59 @@ static void applyOverride(const char* key, char type, const char* value) {
     else if (strcmp(key, "luxMin") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::luxMin = f32;
-            Serial.printf("[Globals] luxMin = %.1f\n", f32);
+            PF_BOOT("[Globals] luxMin = %.1f\n", f32);
         }
     }
     else if (strcmp(key, "luxMax") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::luxMax = f32;
-            Serial.printf("[Globals] luxMax = %.1f\n", f32);
+            PF_BOOT("[Globals] luxMax = %.1f\n", f32);
         }
     }
     else if (strcmp(key, "brightnessLo") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 255) {
             Globals::brightnessLo = static_cast<uint8_t>(u32);
-            Serial.printf("[Globals] brightnessLo = %u\n", Globals::brightnessLo);
+            PF_BOOT("[Globals] brightnessLo = %u\n", Globals::brightnessLo);
         }
     }
     else if (strcmp(key, "brightnessHi") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 255) {
             Globals::brightnessHi = static_cast<uint8_t>(u32);
-            Serial.printf("[Globals] brightnessHi = %u\n", Globals::brightnessHi);
+            PF_BOOT("[Globals] brightnessHi = %u\n", Globals::brightnessHi);
         }
     }
     else if (strcmp(key, "luxShiftLo") == 0 && type == 'i') {
         int32_t i32;
         if (parseInt32(value, &i32) && i32 >= -100 && i32 <= 100) {
             Globals::luxShiftLo = static_cast<int8_t>(i32);
-            Serial.printf("[Globals] luxShiftLo = %d\n", Globals::luxShiftLo);
+            PF_BOOT("[Globals] luxShiftLo = %d\n", Globals::luxShiftLo);
         }
     }
     else if (strcmp(key, "luxShiftHi") == 0 && type == 'i') {
         int32_t i32;
         if (parseInt32(value, &i32) && i32 >= -100 && i32 <= 100) {
             Globals::luxShiftHi = static_cast<int8_t>(i32);
-            Serial.printf("[Globals] luxShiftHi = %d\n", Globals::luxShiftHi);
+            PF_BOOT("[Globals] luxShiftHi = %d\n", Globals::luxShiftHi);
         }
     }
     else if (strcmp(key, "calendarShiftLo") == 0 && type == 'i') {
         int32_t i32;
         if (parseInt32(value, &i32) && i32 >= -100 && i32 <= 100) {
             Globals::calendarShiftLo = static_cast<int8_t>(i32);
-            Serial.printf("[Globals] calendarShiftLo = %d\n", Globals::calendarShiftLo);
+            PF_BOOT("[Globals] calendarShiftLo = %d\n", Globals::calendarShiftLo);
         }
     }
     else if (strcmp(key, "calendarShiftHi") == 0 && type == 'i') {
         int32_t i32;
         if (parseInt32(value, &i32) && i32 >= -100 && i32 <= 100) {
             Globals::calendarShiftHi = static_cast<int8_t>(i32);
-            Serial.printf("[Globals] calendarShiftHi = %d\n", Globals::calendarShiftHi);
+            PF_BOOT("[Globals] calendarShiftHi = %d\n", Globals::calendarShiftHi);
         }
     }
     else if (strcmp(key, "maxMilliamps") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::maxMilliamps = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] maxMilliamps = %u\n", Globals::maxMilliamps);
+            PF_BOOT("[Globals] maxMilliamps = %u\n", Globals::maxMilliamps);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -307,97 +307,97 @@ static void applyOverride(const char* key, char type, const char* value) {
     else if (strcmp(key, "luxMeasurementDelayMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::luxMeasurementDelayMs = u32;
-            Serial.printf("[Globals] luxMeasurementDelayMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] luxMeasurementDelayMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "luxMeasurementIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::luxMeasurementIntervalMs = u32;
-            Serial.printf("[Globals] luxMeasurementIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] luxMeasurementIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "sensorBaseDefaultMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::sensorBaseDefaultMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] sensorBaseDefaultMs = %u\n", Globals::sensorBaseDefaultMs);
+            PF_BOOT("[Globals] sensorBaseDefaultMs = %u\n", Globals::sensorBaseDefaultMs);
         }
     }
     else if (strcmp(key, "sensorFastIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::sensorFastIntervalMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] sensorFastIntervalMs = %u\n", Globals::sensorFastIntervalMs);
+            PF_BOOT("[Globals] sensorFastIntervalMs = %u\n", Globals::sensorFastIntervalMs);
         }
     }
     else if (strcmp(key, "sensorFastDurationMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::sensorFastDurationMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] sensorFastDurationMs = %u\n", Globals::sensorFastDurationMs);
+            PF_BOOT("[Globals] sensorFastDurationMs = %u\n", Globals::sensorFastDurationMs);
         }
     }
     else if (strcmp(key, "sensorFastDeltaMm") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::sensorFastDeltaMm = f32;
-            Serial.printf("[Globals] sensorFastDeltaMm = %.1f\n", f32);
+            PF_BOOT("[Globals] sensorFastDeltaMm = %.1f\n", f32);
         }
     }
     else if (strcmp(key, "distanceNewWindowMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::distanceNewWindowMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] distanceNewWindowMs = %u\n", Globals::distanceNewWindowMs);
+            PF_BOOT("[Globals] distanceNewWindowMs = %u\n", Globals::distanceNewWindowMs);
         }
     }
     else if (strcmp(key, "distanceSensorDummyMm") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::distanceSensorDummyMm = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] distanceSensorDummyMm = %u\n", Globals::distanceSensorDummyMm);
+            PF_BOOT("[Globals] distanceSensorDummyMm = %u\n", Globals::distanceSensorDummyMm);
         }
     }
     else if (strcmp(key, "luxSensorDummyLux") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::luxSensorDummyLux = f32;
-            Serial.printf("[Globals] luxSensorDummyLux = %.2f\n", f32);
+            PF_BOOT("[Globals] luxSensorDummyLux = %.2f\n", f32);
         }
     }
     else if (strcmp(key, "sensor3DummyTemp") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::sensor3DummyTemp = f32;
-            Serial.printf("[Globals] sensor3DummyTemp = %.1f\n", f32);
+            PF_BOOT("[Globals] sensor3DummyTemp = %.1f\n", f32);
         }
     }
     else if (strcmp(key, "distanceSensorInitDelayMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::distanceSensorInitDelayMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] distanceSensorInitDelayMs = %u\n", Globals::distanceSensorInitDelayMs);
+            PF_BOOT("[Globals] distanceSensorInitDelayMs = %u\n", Globals::distanceSensorInitDelayMs);
         }
     }
     else if (strcmp(key, "distanceSensorInitGrowth") == 0 && type == 'f') {
         if (parseFloat(value, &f32) && f32 >= 1.0f) {
             Globals::distanceSensorInitGrowth = f32;
-            Serial.printf("[Globals] distanceSensorInitGrowth = %.2f\n", f32);
+            PF_BOOT("[Globals] distanceSensorInitGrowth = %.2f\n", f32);
         }
     }
     else if (strcmp(key, "luxSensorInitDelayMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::luxSensorInitDelayMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] luxSensorInitDelayMs = %u\n", Globals::luxSensorInitDelayMs);
+            PF_BOOT("[Globals] luxSensorInitDelayMs = %u\n", Globals::luxSensorInitDelayMs);
         }
     }
     else if (strcmp(key, "luxSensorInitGrowth") == 0 && type == 'f') {
         if (parseFloat(value, &f32) && f32 >= 1.0f) {
             Globals::luxSensorInitGrowth = f32;
-            Serial.printf("[Globals] luxSensorInitGrowth = %.2f\n", f32);
+            PF_BOOT("[Globals] luxSensorInitGrowth = %.2f\n", f32);
         }
     }
     else if (strcmp(key, "distanceMinMm") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::distanceMinMm = f32;
-            Serial.printf("[Globals] distanceMinMm = %.1f\n", f32);
+            PF_BOOT("[Globals] distanceMinMm = %.1f\n", f32);
         }
     }
     else if (strcmp(key, "distanceMaxMm") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::distanceMaxMm = f32;
-            Serial.printf("[Globals] distanceMaxMm = %.1f\n", f32);
+            PF_BOOT("[Globals] distanceMaxMm = %.1f\n", f32);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -406,19 +406,19 @@ static void applyOverride(const char* key, char type, const char* value) {
     else if (strcmp(key, "heartbeatMinMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::heartbeatMinMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] heartbeatMinMs = %u\n", Globals::heartbeatMinMs);
+            PF_BOOT("[Globals] heartbeatMinMs = %u\n", Globals::heartbeatMinMs);
         }
     }
     else if (strcmp(key, "heartbeatMaxMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::heartbeatMaxMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] heartbeatMaxMs = %u\n", Globals::heartbeatMaxMs);
+            PF_BOOT("[Globals] heartbeatMaxMs = %u\n", Globals::heartbeatMaxMs);
         }
     }
     else if (strcmp(key, "heartbeatDefaultMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::heartbeatDefaultMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] heartbeatDefaultMs = %u\n", Globals::heartbeatDefaultMs);
+            PF_BOOT("[Globals] heartbeatDefaultMs = %u\n", Globals::heartbeatDefaultMs);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -427,43 +427,43 @@ static void applyOverride(const char* key, char type, const char* value) {
     else if (strcmp(key, "flashBurstIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::flashBurstIntervalMs = u32;
-            Serial.printf("[Globals] flashBurstIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] flashBurstIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "flashBurstRepeats") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 255) {
             Globals::flashBurstRepeats = static_cast<uint8_t>(u32);
-            Serial.printf("[Globals] flashBurstRepeats = %u\n", Globals::flashBurstRepeats);
+            PF_BOOT("[Globals] flashBurstRepeats = %u\n", Globals::flashBurstRepeats);
         }
     }
     else if (strcmp(key, "flashBurstGrowth") == 0 && type == 'f') {
         if (parseFloat(value, &f32) && f32 >= 1.0f) {
             Globals::flashBurstGrowth = f32;
-            Serial.printf("[Globals] flashBurstGrowth = %.2f\n", f32);
+            PF_BOOT("[Globals] flashBurstGrowth = %.2f\n", f32);
         }
     }
     else if (strcmp(key, "reminderIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::reminderIntervalMs = u32;
-            Serial.printf("[Globals] reminderIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] reminderIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "reminderIntervalGrowth") == 0 && type == 'f') {
         if (parseFloat(value, &f32) && f32 >= 1.0f) {
             Globals::reminderIntervalGrowth = f32;
-            Serial.printf("[Globals] reminderIntervalGrowth = %.2f\n", f32);
+            PF_BOOT("[Globals] reminderIntervalGrowth = %.2f\n", f32);
         }
     }
     else if (strcmp(key, "flashCriticalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::flashCriticalMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] flashCriticalMs = %u\n", Globals::flashCriticalMs);
+            PF_BOOT("[Globals] flashCriticalMs = %u\n", Globals::flashCriticalMs);
         }
     }
     else if (strcmp(key, "flashNormalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 65535) {
             Globals::flashNormalMs = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] flashNormalMs = %u\n", Globals::flashNormalMs);
+            PF_BOOT("[Globals] flashNormalMs = %u\n", Globals::flashNormalMs);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -472,25 +472,25 @@ static void applyOverride(const char* key, char type, const char* value) {
     else if (strcmp(key, "clockBootstrapIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::clockBootstrapIntervalMs = u32;
-            Serial.printf("[Globals] clockBootstrapIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] clockBootstrapIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "ntpFallbackTimeoutMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::ntpFallbackTimeoutMs = u32;
-            Serial.printf("[Globals] ntpFallbackTimeoutMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] ntpFallbackTimeoutMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "bootPhaseMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::bootPhaseMs = u32;
-            Serial.printf("[Globals] bootPhaseMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] bootPhaseMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "rtcTemperatureIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::rtcTemperatureIntervalMs = u32;
-            Serial.printf("[Globals] rtcTemperatureIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] rtcTemperatureIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -499,19 +499,19 @@ static void applyOverride(const char* key, char type, const char* value) {
     else if (strcmp(key, "weatherRefreshIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::weatherRefreshIntervalMs = u32;
-            Serial.printf("[Globals] weatherRefreshIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] weatherRefreshIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "sunRefreshIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::sunRefreshIntervalMs = u32;
-            Serial.printf("[Globals] sunRefreshIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] sunRefreshIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "calendarRefreshIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::calendarRefreshIntervalMs = u32;
-            Serial.printf("[Globals] calendarRefreshIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] calendarRefreshIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -519,19 +519,19 @@ static void applyOverride(const char* key, char type, const char* value) {
     // ═══════════════════════════════════════════════════════════
     else if (strcmp(key, "csvBaseUrl") == 0 && type == 's') {
         if (setCsvBaseUrl(value)) {
-            Serial.printf("[Globals] csvBaseUrl = %s\n", Globals::csvBaseUrl);
+            PF_BOOT("[Globals] csvBaseUrl = %s\n", Globals::csvBaseUrl);
         }
     }
     else if (strcmp(key, "csvHttpTimeoutMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::csvHttpTimeoutMs = u32;
-            Serial.printf("[Globals] csvHttpTimeoutMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] csvHttpTimeoutMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "csvFetchWaitMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::csvFetchWaitMs = u32;
-            Serial.printf("[Globals] csvFetchWaitMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] csvFetchWaitMs = %lu\n", (unsigned long)u32);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -540,13 +540,13 @@ static void applyOverride(const char* key, char type, const char* value) {
     else if (strcmp(key, "locationLat") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::locationLat = f32;
-            Serial.printf("[Globals] locationLat = %.4f\n", f32);
+            PF_BOOT("[Globals] locationLat = %.4f\n", f32);
         }
     }
     else if (strcmp(key, "locationLon") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::locationLon = f32;
-            Serial.printf("[Globals] locationLon = %.4f\n", f32);
+            PF_BOOT("[Globals] locationLon = %.4f\n", f32);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -555,25 +555,25 @@ static void applyOverride(const char* key, char type, const char* value) {
     else if (strcmp(key, "fallbackMonth") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 >= 1 && u32 <= 12) {
             Globals::fallbackMonth = static_cast<uint8_t>(u32);
-            Serial.printf("[Globals] fallbackMonth = %u\n", Globals::fallbackMonth);
+            PF_BOOT("[Globals] fallbackMonth = %u\n", Globals::fallbackMonth);
         }
     }
     else if (strcmp(key, "fallbackDay") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 >= 1 && u32 <= 31) {
             Globals::fallbackDay = static_cast<uint8_t>(u32);
-            Serial.printf("[Globals] fallbackDay = %u\n", Globals::fallbackDay);
+            PF_BOOT("[Globals] fallbackDay = %u\n", Globals::fallbackDay);
         }
     }
     else if (strcmp(key, "fallbackHour") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 23) {
             Globals::fallbackHour = static_cast<uint8_t>(u32);
-            Serial.printf("[Globals] fallbackHour = %u\n", Globals::fallbackHour);
+            PF_BOOT("[Globals] fallbackHour = %u\n", Globals::fallbackHour);
         }
     }
     else if (strcmp(key, "fallbackYear") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 >= 2020 && u32 <= 2100) {
             Globals::fallbackYear = static_cast<uint16_t>(u32);
-            Serial.printf("[Globals] fallbackYear = %u\n", Globals::fallbackYear);
+            PF_BOOT("[Globals] fallbackYear = %u\n", Globals::fallbackYear);
         }
     }
     // ═══════════════════════════════════════════════════════════
@@ -582,13 +582,7 @@ static void applyOverride(const char* key, char type, const char* value) {
     else if (strcmp(key, "timerStatusIntervalMs") == 0 && type == 'u') {
         if (parseUint32(value, &u32)) {
             Globals::timerStatusIntervalMs = u32;
-            Serial.printf("[Globals] timerStatusIntervalMs = %lu\n", (unsigned long)u32);
-        }
-    }
-    else if (strcmp(key, "timeDisplayIntervalMs") == 0 && type == 'u') {
-        if (parseUint32(value, &u32)) {
-            Globals::timeDisplayIntervalMs = u32;
-            Serial.printf("[Globals] timeDisplayIntervalMs = %lu\n", (unsigned long)u32);
+            PF_BOOT("[Globals] timerStatusIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     // Unknown key: silently ignore (per spec)
@@ -615,11 +609,9 @@ void Globals::begin() {
     // Open file
     File file = SD.open(csvPath.c_str(), FILE_READ);
     if (!file) {
-        Serial.printf("[Globals] Failed to open %s\n", csvPath.c_str());
+        PF("[Globals] Failed to open %s\n", csvPath.c_str());
         return;
     }
-
-    Serial.printf("[Globals] Loading %s...\n", csvPath.c_str());
     
     char line[MAX_LINE_LEN];
     int lineNum = 0;
@@ -670,7 +662,7 @@ void Globals::begin() {
         extractField(p2, value, sizeof(value));
         
         if (strlen(key) == 0 || strlen(typeStr) != 1) {
-            Serial.printf("[Globals] Line %d: invalid key/type\n", lineNum);
+            PF("[Globals] Line %d: invalid key/type\n", lineNum);
             continue;
         }
         
@@ -678,7 +670,6 @@ void Globals::begin() {
     }
     
     file.close();
-    Serial.println("[Globals] CSV loading complete");
 }
 
 void bootRandomSeed() {

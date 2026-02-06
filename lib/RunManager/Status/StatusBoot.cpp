@@ -14,24 +14,11 @@
 StatusBoot statusBoot;
 
 void cb_timeDisplay() {
-
-    bool clockSeeded = prtClock.isTimeFetched() || prtClock.getYear() != 0 || prtClock.getHour() != 0 || prtClock.getMinute() != 0;
-    if (!clockSeeded) {
-        return;  // Silent - no spam
-    }
-
-    ContextController::refreshTimeRead();
-    const auto &timeState = ContextController::time();
-    const char *source = prtClock.isTimeFetched() ? "ntp" : "fallback";
-     PF("[Run] Time: %02u:%02u:%02u (%u-%02u-%02u, %s)\n",
-         timeState.hour, timeState.minute, timeState.second,
-         static_cast<unsigned>(timeState.year),
-         timeState.month, timeState.day,
-         source);
+    // Consolidated into cb_readRtcTemperature in SensorsRun
 }
 
 void StatusBoot::plan() {
-    PL("[Run][Plan] Status boot sequencing");
+    PL_BOOT("[StatusBoot] sequencing");
     StatusPolicy::configure();
     AlertRun::plan();
 }

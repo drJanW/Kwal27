@@ -52,8 +52,6 @@ namespace
         if (scaledVolume > MAX_VOLUME) scaledVolume = MAX_VOLUME;
         
         setVolumeShiftedHi(scaledVolume);
-        PF("[AudioRun] Volume shift: %.2f (eff=%.2f, status=0x%llX)\n",
-           static_cast<double>(scaledVolume), static_cast<double>(effectiveVolume), statusBits);
     }
 
     bool attemptDistancePlayback()
@@ -133,8 +131,6 @@ void AudioRun::plan()
     lastStatusBits = StatusFlags::getFullStatusBits();
     applyVolumeShift(lastStatusBits);
     timers.create(volumeShiftCheckMs, 1, AudioRun::cb_volumeShiftTimer);
-    
-    PF("[Run][Plan] Distance playback ready with clip %s\n", kDistanceClipId);
 }
 
 void AudioRun::startDistanceResponse(bool playImmediately)

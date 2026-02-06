@@ -159,8 +159,7 @@ void AudioShiftTable::begin() {
 
     SDController::closeFile(file);
     ready_ = true;
-
-    PF("[AudioShiftTable] Loaded %d audio shift entries\n", entries_.size());
+    PF_BOOT("[AudioShiftTable] %d entries\n", entries_.size());
 }
 
 void AudioShiftTable::computeMultipliers(uint64_t statusBits, float outMults[]) const {

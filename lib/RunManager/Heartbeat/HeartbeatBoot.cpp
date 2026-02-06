@@ -13,5 +13,5 @@ HeartbeatBoot heartbeatBoot;
 void HeartbeatBoot::plan() {
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LOW);
-    PL("[Run][Plan] Heartbeat LED initialized");
+    PL_BOOT("[HeartbeatBoot] LED ready");
 }

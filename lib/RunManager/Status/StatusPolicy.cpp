@@ -16,7 +16,6 @@ void configure() {
     // - WiFi failed: 3x rapid flash
     // - SD failed: constant ON
     // - OTA progress: pulsing pattern
-    PL("[StatusPolicy] TODO: configure status indicators");
 }
 
 }

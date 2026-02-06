@@ -14,5 +14,5 @@ void StatusDirector::plan() {
     // - Track WiFi connection state
     // - Display OTA progress
     // - Handle error conditions
-    PL("[Run][Plan] TODO: move status/diagnostic orchestration here");
+    PL_BOOT("[Run][Plan] TODO: move status/diagnostic orchestration here");
 }

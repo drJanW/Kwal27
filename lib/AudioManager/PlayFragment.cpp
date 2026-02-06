@@ -105,7 +105,6 @@ namespace PlayAudioFragment {
 
 bool start(const AudioFragment& fragment) {
     if (isAudioBusy()) {
-        LOG_WARN("[Audio] startFragment ignored: audio busy\n");
         return false;
     }
 

@@ -23,14 +23,12 @@ bool systemBootStage0() {
     }
     delay(50);         // Let hardware RNG settle BEFORE seeding
     bootRandomSeed();  // Seed RNG after hardware is ready
-    PF("\n[Stage 0] Version %s\n", FIRMWARE_VERSION);
+    PF("%s\n", FIRMWARE_VERSION);
     otaBootHandler();  // Check if OTA mode was requested
     return true;       // Stage 0 complete
 }
 
 bool systemBootStage1() {
-    PL("[Stage 1] Component probing");
-    
     // Initialize I2C bus
     bool wireOk = Wire.begin(I2C_SDA, I2C_SCL);
     if (wireOk) {

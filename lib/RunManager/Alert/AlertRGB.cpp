@@ -123,7 +123,7 @@ void cb_flash() {
     }
 
     flashing = true;
-    PF("[AlertRGB] flash burst start bits=0x%llX\n", cachedNotOkBits);
+    PF_BOOT("[AlertRGB] flash bits=0x%llX\n", cachedNotOkBits);
     
     buildSequence();
     scheduleNextStep();

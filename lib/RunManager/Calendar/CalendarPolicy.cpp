@@ -95,7 +95,7 @@ void applyThemeBox(const CalendarThemeBox& box) {
         entriesStr += String(defaultBox->entries[i]);
       }
       defaultCal.entries = entriesStr;
-      PF("[CalendarPolicy] No calendar entry, using default theme box %u\n", defaultBox->id);
+      PF_BOOT("[CalendarPolicy] default box %u\n", defaultBox->id);
       applyThemeBox(defaultCal);
       return;
     }
@@ -127,7 +127,7 @@ void applyThemeBox(const CalendarThemeBox& box) {
     }
   }
   if (skippedCount > 0) {
-    PF("[CalendarPolicy] Box %u: skipped %u empty dirs\n",
+    PF_BOOT("[CalendarPolicy] Box %u: skipped %u empty\n",
        static_cast<unsigned>(box.id), static_cast<unsigned>(skippedCount));
   }
 
@@ -138,7 +138,7 @@ void applyThemeBox(const CalendarThemeBox& box) {
   }
 
   AudioPolicy::setThemeBox(filtered, filteredCount, boxIdStr);
-  PF("[CalendarPolicy] Theme box %u applied with %u directories\n",
+  PF_BOOT("[CalendarPolicy] Box %u: %u dirs\n",
      static_cast<unsigned>(box.id), static_cast<unsigned>(filteredCount));
 }
 

@@ -47,7 +47,7 @@ void showStatus(bool forceLog) {
     lastReady = ready;
     lastBusy = busy;
 
-    PF("[SDPolicy] SD ready=%d busy=%d\n", ready, busy);
+    PF_BOOT("[SDPolicy] ready=%d busy=%d\n", ready, busy);
     // Could add more diagnostics here (e.g. number of indexed files)
 }
 

@@ -12,11 +12,7 @@
 #include "PRTClock.h"
 
 void ClockRun::plan() {
-    if (ClockPolicy::isRtcAvailable()) {
-        PL("[Run][Plan] RTC run ready (fallback + sync)");
-    } else {
-        PL("[Run][Plan] RTC hardware not detected");
-    }
+    // RTC status logged only on failure via I2CInitHelper
 }
 
 bool ClockRun::seedClockFromRtc(PRTClock &clock) {

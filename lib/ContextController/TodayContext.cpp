@@ -147,7 +147,7 @@ bool TodayStateLoader::init(fs::FS& sd, const char* rootPath) {
 
     ready_ = true;
     if (g_loaderLogState != LoaderLogState::Ready) {
-        PF("[TodayState] Loader initialised\n");
+        PF_BOOT("[TodayState] Loader ready\n");
         g_loaderLogState = LoaderLogState::Ready;
     }
     return true;
@@ -173,7 +173,7 @@ bool TodayStateLoader::loadToday(TodayState& state) {
     state = TodayState{};
     if (!ready_) {
         if (g_loaderLogState != LoaderLogState::NotReady) {
-            PF("[TodayState] Loader not ready\n");
+            PF_BOOT("[TodayState] Loader not ready\n");
             g_loaderLogState = LoaderLogState::NotReady;
         }
         return false;

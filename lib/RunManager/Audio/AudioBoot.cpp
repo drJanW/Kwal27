@@ -17,7 +17,7 @@
 
 void AudioBoot::plan() {
     if (!AlertState::isSdOk()) {
-        PL("[Run][Plan] Audio boot deferred: SD not ready");
+        PL_BOOT("[Run][Plan] Audio boot deferred: SD not ready");
         return;
     }
 
@@ -31,10 +31,9 @@ void AudioBoot::plan() {
         setDistanceClipPointer(clip);
         AudioRun::startDistanceResponse();
     } else {
-        PL("[Run][Plan] Distance ping clip unavailable");
+        PL_BOOT("[Run][Plan] Distance ping clip unavailable");
     }
 
     AlertState::setAudioStatus(true);
     PlaySentence::speakNext();  // Kickstart queue if items waiting
-    PL("[Run][Plan] AudioManager initialized");
 }

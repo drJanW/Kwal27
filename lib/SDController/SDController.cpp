@@ -249,7 +249,7 @@ void SDController::updateHighestDirNum() {
             totalFiles += e.fileCount;
         }
     }
-    PF("[SDController] Index: %u dirs, %lu files\n",
+    PF_BOOT("[SDController] %u dirs, %lu files\n",
        dirCount, static_cast<unsigned long>(totalFiles));
 }
 

@@ -32,7 +32,7 @@ bool ShiftTable::begin() {
     bool colorOk = loadColorShiftsFromSD();
     bool patternOk = loadPatternShiftsFromSD();
     
-    PF("[ShiftTable] Loaded %d color shifts, %d pattern shifts\n",
+    PF_BOOT("[ShiftTable] %d color shifts, %d pattern shifts\n",
        colorShifts_.size(), patternShifts_.size());
     
     ready_ = true;  // Mark ready even if files missing (will just have no shifts)
@@ -228,7 +228,6 @@ bool ShiftTable::loadPatternShiftsFromSD() {
         return false;
     }
     
-    PF("[ShiftTable] Loading %s...\n", csvPath.c_str());
     File file = SDController::openFileRead(csvPath.c_str());
     if (!file) {
         return false;

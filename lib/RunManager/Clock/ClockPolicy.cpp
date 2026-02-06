@@ -100,9 +100,7 @@ void syncRTCFromClock(const PRTClock &clock) {
         return;
     }
     RTCController::rtc.adjust(dt);
-    PF("[RTC] Synced hardware clock to %04d-%02d-%02d %02d:%02d:%02d\n",
-       dt.year(), dt.month(), dt.day(),
-       dt.hour(), dt.minute(), dt.second());
+    PF_BOOT("[RTC] synced to %04d-%02d-%02d\n", dt.year(), dt.month(), dt.day());
 }
 
 } // namespace ClockPolicy

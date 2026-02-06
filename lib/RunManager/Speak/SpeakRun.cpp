@@ -82,15 +82,12 @@ void SpeakRun::plan() {
 }
 
 void SpeakRun::speak(SpeakRequest request) {
-    PF("[SpeakRun] speak request %d\n", static_cast<int>(request));
-
     if (request == SpeakRequest::SAY_TIME) return;
 
     // TTS primary - requires WiFi
     if (AlertState::canPlayTTS()) {
         const char* sentence = getTtsSentence(request);
         if (sentence) {
-            PF("[SpeakRun] TTS: %s\n", sentence);
             PlaySentence::addTTS(sentence);
             return;
         }

@@ -57,7 +57,7 @@ void PatternCatalog::begin() {
     if (!patterns_.empty()) {
         size_t idx = random(0, patterns_.size());
         activePatternId_ = patterns_[idx].id;
-        PF("[PatternCatalog] Boot random pattern: %s\n", activePatternId_.c_str());
+        PF_BOOT("[PatternCatalog] Boot pattern: %s\n", activePatternId_.c_str());
     } else {
         activePatternId_.clear();
     }

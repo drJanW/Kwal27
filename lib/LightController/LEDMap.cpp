@@ -53,9 +53,9 @@ bool loadLEDMapFromSD(const char* path) {
     f.close();
     SDController::unlockSD();
     if (loaded != NUM_LEDS) {
-        PF("[LEDMap] Loaded %d entries from %s, fallback fills remainder\n", loaded, path);
+        PF("[LEDMap] Partial load: %d/%d entries\n", loaded, NUM_LEDS);
     } else {
-        PF("[LEDMap] Loaded %d entries from %s\n", loaded, path);
+        PF_BOOT("[LEDMap] %d entries\n", loaded);
     }
     return loaded == NUM_LEDS;
 }

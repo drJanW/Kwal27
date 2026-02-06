@@ -18,7 +18,7 @@ namespace {
 
 void cb_endOfBoot() {
     if (!AlertState::isBootPhase()) return;  // already ended
-    PL("[Boot] Timeout - forcing START_RUNTIME");
+    PL("[BootManager] Ready");
     AlertRun::report(AlertRequest::START_RUNTIME);
 }
 
@@ -28,7 +28,7 @@ bool BootManager::begin() {
     cancelFallbackTimer();
     fallback.resetFlags();
     if (!timers.create(Globals::clockBootstrapIntervalMs, 0, cb_bootstrapThunk)) {
-        PL("[Run] BootManager failed to arm bootstrap timer");
+        PL("[BootManager] Failed to arm bootstrap timer");
         return false;
     }
     // Boot timeout: force START_RUNTIME after bootPhaseMs regardless of clock
@@ -41,7 +41,7 @@ void BootManager::restartBootTimer() {
     if (!AlertState::isBootPhase()) return;  // already ended
     timers.cancel(cb_endOfBoot);
     timers.create(Globals::bootPhaseMs, 1, cb_endOfBoot);
-    PF("[Boot] Timer restarted with bootPhaseMs=%u\n", Globals::bootPhaseMs);
+    PF_BOOT("[BootManager] bootPhaseMs=%u\n", Globals::bootPhaseMs);
 }
 
 void BootManager::cb_bootstrapThunk() {
@@ -58,16 +58,14 @@ void BootManager::cb_bootstrap() {
             if (!wasRunning || wasFallback) {
             if (RunManager::requestStartClockTick(false)) {
                 if (!wasRunning) {
-                    PF("[Run] Clock tick started with NTP (%02u:%02u:%02u)\n",
-                       prtClock.getHour(), prtClock.getMinute(), prtClock.getSecond());
+                    PL("[Clock] NTP ready");
                     AlertRun::report(AlertRequest::NTP_OK);
                 } else if (wasFallback) {
-                    PF("[Run] Clock tick promoted to NTP (%02u:%02u:%02u)\n",
-                       prtClock.getHour(), prtClock.getMinute(), prtClock.getSecond());
+                    PF_BOOT("[Clock] promoted to NTP\n");
                     AlertRun::report(AlertRequest::NTP_OK);
                 }
             } else {
-                PL("[Run] Failed to start clock tick with NTP");
+                PL("[Clock] Failed to start tick");
             }
         }
         return;
@@ -79,7 +77,7 @@ void BootManager::cb_bootstrap() {
     if (isRunning && inFallback) {
         if (!fallback.stateAnnounced) {
             fallback.stateAnnounced = true;
-            PL("[Run] Modules running with fallback time");
+            PL("[Clock] fallback time active");
         }
         cancelFallbackTimer();
         return;
@@ -107,7 +105,7 @@ void BootManager::fallbackTimeout() {
         if (RunManager::requestSeedClockFromRtc()) {
             fallback.seededFromRtc = true;
             fallback.seededFromCache = false;
-            PL("[Run] Seeded clock from RTC snapshot");
+            PL("[Clock] seeded from RTC");
         } else {
             // Ultimate fallback: 20 april 04:00 (from Globals)
             prtClock.setTime(Globals::fallbackHour, 0, 0);
@@ -116,7 +114,7 @@ void BootManager::fallbackTimeout() {
             prtClock.setYear(Globals::fallbackYear - 2000);  // PRTClock uses 2-digit year
             fallback.seededFromCache = false;
             fallback.seededFromRtc = false;
-            PF("[Run] No time source - using fallback: %02d/%02d/%04d %02d:00\n",
+            PF("[Clock] fallback date %02d/%02d/%04d %02d:00\n",
                Globals::fallbackDay, Globals::fallbackMonth, Globals::fallbackYear, Globals::fallbackHour);
         }
     }
@@ -126,15 +124,15 @@ void BootManager::fallbackTimeout() {
         fallback.stateAnnounced = false;
         if (!wasFallback) {
             if (fallback.seededFromRtc) {
-                PL("[Run] Clock tick running in fallback path (RTC)");
+                PL("[Clock] fallback tick (rtc)");
             } else if (fallback.seededFromCache) {
-                PL("[Run] Clock tick running in fallback path (seeded)");
+                PL("[Clock] fallback tick (seeded)");
             } else {
-                PL("[Run] Clock tick running in fallback path");
+                PL("[Clock] fallback tick (default)");
             }
         }
     } else {
-        PL("[Run] Failed to start clock tick in fallback path");
+        PL("[Clock] failed to start fallback tick");
         fallback.seedAttempted = false;
         fallback.seededFromCache = false;
         timers.restart(Globals::ntpFallbackTimeoutMs, 1, cb_fallbackThunk);

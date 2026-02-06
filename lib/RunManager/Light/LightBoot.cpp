@@ -18,7 +18,6 @@ void cb_updateLightController() { updateLightController(); }
 
 // Initialize LED hardware and timers
 void initLight() {
-    PF("[LightBoot] init start\n");
     FastLED.addLeds<LED_TYPE, PIN_RGB, LED_RGB_ORDER>(leds, NUM_LEDS);
     FastLED.setMaxPowerInVoltsAndMilliamps(MAX_VOLTS, Globals::maxMilliamps);
     FastLED.setBrightness(Globals::maxBrightness);
@@ -31,7 +30,6 @@ void initLight() {
     timers.create(50, 0, cb_updateLightController);
     timers.create((10 * 1000UL) / 255UL, 0, cb_colorCycle);
     timers.create((10 * 1000UL) / 255UL, 0, cb_brightCycle);
-    PF("[LightBoot] init done\n");
 }
 
 } // namespace
@@ -43,5 +41,4 @@ void LightBoot::plan() {
     setBrightnessShiftedHi(100);    // Initially equal
     setWebShift(1.0f);              // F9: neutral multiplier
     WebGuiStatus::pushState();  // Push initial brightness to SSE
-    PL("[LightBoot] Light controller initialized");
 }

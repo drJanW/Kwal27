@@ -116,35 +116,37 @@ void reset() {
 void setSdStatus(bool status) {
     if (get(SC_SD) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_SD, status);
-    PF("[*State] SD: %s\n", status ? "OK" : "NOTOK");
-    if (!status) SpeakRun::speak(SpeakRequest::SD_FAIL);
+    if (status) { PL_BOOT("[*State] SD: OK"); }
+    else SpeakRun::speak(SpeakRequest::SD_FAIL);
 }
 
 void setWifiStatus(bool status) {
     if (get(SC_WIFI) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_WIFI, status);
-    PF("[*State] WiFi: %s\n", status ? "OK" : "NOTOK");
-    if (!status) SpeakRun::speak(SpeakRequest::WIFI_FAIL);
+    if (status) { PL_BOOT("[*State] WiFi: OK"); }
+    else SpeakRun::speak(SpeakRequest::WIFI_FAIL);
 }
 
 void setRtcStatus(bool status) {
     if (get(SC_RTC) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_RTC, status);
-    PF("[*State] RTC: %s\n", status ? "OK" : "NOTOK");
-    if (!status) SpeakRun::speak(SpeakRequest::RTC_FAIL);
+    if (status) { PL_BOOT("[*State] RTC: OK"); }
+    else {
+        PL("[RTC] Failed");
+        SpeakRun::speak(SpeakRequest::RTC_FAIL);
+    }
 }
 
 void setNtpStatus(bool status) {
     if (get(SC_NTP) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_NTP, status);
-    PF("[*State] NTP: %s\n", status ? "OK" : "NOTOK");
-    if (!status) SpeakRun::speak(SpeakRequest::NTP_FAIL);
+    if (status) { PL_BOOT("[*State] NTP: OK"); }
+    else SpeakRun::speak(SpeakRequest::NTP_FAIL);
 }
 
 void setDistanceSensorStatus(bool status) {
     if (get(SC_DIST) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_DIST, status);
-    PF("[*State] DistanceSensor: %s\n", status ? "OK" : "NOTOK");
     if (!status) {
         SpeakRun::speak(SpeakRequest::DISTANCE_SENSOR_FAIL);
         if (!bootPhase) AlertRGB::startFlashing();
@@ -154,7 +156,6 @@ void setDistanceSensorStatus(bool status) {
 void setLuxSensorStatus(bool status) {
     if (get(SC_LUX) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_LUX, status);
-    PF("[*State] LuxSensor: %s\n", status ? "OK" : "NOTOK");
     if (!status) {
         SpeakRun::speak(SpeakRequest::LUX_SENSOR_FAIL);
         if (!bootPhase) AlertRGB::startFlashing();
@@ -164,7 +165,6 @@ void setLuxSensorStatus(bool status) {
 void setSensor3Status(bool status) {
     if (get(SC_SENSOR3) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_SENSOR3, status);
-    PF("[*State] Sensor3: %s\n", status ? "OK" : "NOTOK");
     if (!status) {
         SpeakRun::speak(SpeakRequest::SENSOR3_FAIL);
         if (!bootPhase) AlertRGB::startFlashing();
@@ -174,33 +174,28 @@ void setSensor3Status(bool status) {
 void setAudioStatus(bool status) {
     if (get(SC_AUDIO) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_AUDIO, status);
-    PF("[*State] Audio: %s\n", status ? "OK" : "NOTOK");
 }
 
 void setWeatherStatus(bool status) {
     if (get(SC_WEATHER) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_WEATHER, status);
-    PF("[*State] Weather: %s\n", status ? "OK" : "NOTOK");
     if (!status) SpeakRun::speak(SpeakRequest::WEATHER_FAIL);
 }
 
 void setCalendarStatus(bool status) {
     if (get(SC_CALENDAR) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_CALENDAR, status);
-    PF("[*State] Calendar: %s\n", status ? "OK" : "NOTOK");
     if (!status) SpeakRun::speak(SpeakRequest::CALENDAR_FAIL);
 }
 
 void setTtsStatus(bool status) {
     if (get(SC_TTS) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_TTS, status);
-    PF("[*State] TTS: %s\n", status ? "OK" : "NOTOK");
 }
 
 void startRuntime() {
     if (!bootPhase) return;
     bootPhase = false;
-    PL("[*State] Runtime started");
     
     // Start flashing if any hardware NotOK during boot
     if (!isStatusOK(SC_SD) || !isStatusOK(SC_WIFI) || !isStatusOK(SC_RTC) || !isStatusOK(SC_NTP) ||
