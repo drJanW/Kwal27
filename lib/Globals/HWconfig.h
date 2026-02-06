@@ -142,6 +142,7 @@
 #define LUX_MIN_BASE 70       // Minimum base brightness (0-255)
 // ======================= Audio Configuration =======================
 #define MAX_VOLUME 0.47f // Maximum audio output volume
+#define MAX_GAIN   1.5f  // Boot greeting gain (>2.0 clips VoiceRSS audio)
 
 
 

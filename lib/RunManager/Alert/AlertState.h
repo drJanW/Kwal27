@@ -1,8 +1,8 @@
 /**
  * @file AlertState.h
  * @brief Hardware status state storage
- * @version 260205A
- * @date 2026-02-05
+ * @version 260206A
+ * @date 2026-02-06
  */
 #pragma once
 
@@ -41,7 +41,15 @@ constexpr uint8_t STATUS_NOTOK = 15;  // 0xF
 namespace AlertState {
     // ===== NEW API (v4) =====
     uint8_t get(StatusComponent c);
-    void set(StatusComponent c, uint8_t value);
+    void setRaw(StatusComponent c, uint8_t value);  // internal, use set() instead
+    
+    /// @brief Set component status (any integer type, abs + clamp to 0-15)
+    template<typename T>
+    void set(StatusComponent c, T value) {
+        int v = (value < 0) ? -value : value;
+        setRaw(c, (v > 15) ? 15 : static_cast<uint8_t>(v));
+    }
+    
     SC_Status getStatus(StatusComponent c);  // interpreted status
     bool isPresent(StatusComponent c);       // hardware present per HWconfig.h
     void setSdBusy(bool busy);

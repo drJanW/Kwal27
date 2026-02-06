@@ -1,8 +1,8 @@
 /**
  * @file WebInterfaceController.cpp
  * @brief Async web server setup, routes index.html and API endpoints
- * @version 260205A
- * @date 2026-02-05
+ * @version 260206A
+ * @date 2026-02-06
  */
 #include <Arduino.h>
 #include "WebInterfaceController.h"

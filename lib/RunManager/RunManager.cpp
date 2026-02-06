@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260204A
- * @date 2026-02-04
+ * @version 260206C
+ * @date 2026-02-06
  */
 #include <Arduino.h>
 #include <math.h>
@@ -128,7 +128,11 @@ void cb_playFragment() {
 }
 
 void cb_bootFragment() {
-    // Prerequisites guaranteed by stage 2 entry - no polling needed
+    // Wait for audio to be idle (TTS or previous fragment)
+    if (isSentencePlaying() || isFragmentPlaying()) {
+        return;  // Timer will fire again
+    }
+    timers.cancel(cb_bootFragment);  // Success — stop retrying
     RunManager::requestPlayFragment();
 }
 
@@ -284,7 +288,7 @@ void RunManager::triggerBootFragment() {
         return;  // Only once
     }
     bootFragmentTriggered = true;
-    timers.create(500, 1, cb_bootFragment);
+    timers.create(500, 30, cb_bootFragment);  // Poll until audio idle, self-cancels
 }
 
 void RunManager::requestSayTime(TimeStyle style) {

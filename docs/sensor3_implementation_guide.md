@@ -68,9 +68,8 @@ namespace {
     void cb_sensor3Init() {
         if (sensor3Ready || sensor3InitFailed) return;
         
-        int remaining = TimerManager::instance().getRepeatCount(cb_sensor3Init);
-        if (remaining != -1)
-            AlertState::set(COMP_SENSOR3, abs(remaining));
+        uint8_t remaining = timers.remaining();
+        AlertState::set(COMP_SENSOR3, remaining);
         
         if (sensor3.begin()) {
             sensor3Ready = true;

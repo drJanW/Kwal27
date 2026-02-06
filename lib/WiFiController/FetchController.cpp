@@ -1,8 +1,8 @@
 /**
  * @file FetchController.cpp
  * @brief HTTP fetch for weather/sunrise APIs and NTP time
- * @version 260202A
- * @date 2026-02-02
+ * @version 260206A
+ * @date 2026-02-06
  */
 #include <Arduino.h>
 #include "FetchController.h"
@@ -64,12 +64,11 @@ static void cb_fetchNTP() {
     }
 
     // Update boot status with remaining retries
-    int remaining = timers.getRepeatCount(cb_fetchNTP);
-    if (remaining != -1)
-        AlertState::set(SC_NTP, abs(remaining));
+    auto remaining = timers.remaining();
+    AlertState::set(SC_NTP, remaining);
 
-    // Check if last retry (abs(remaining) == 1 means final attempt)
-    bool lastRetry = (abs(remaining) == 1);
+    // Check if last retry (remaining == 1 means final attempt)
+    bool lastRetry = (remaining == 1);
     
     // Policy: defer fetch if audio is playing
     if (isSentencePlaying()) {
@@ -147,12 +146,11 @@ static void cb_fetchNTP() {
 
 static void cb_fetchWeather() {
     // Update boot status with remaining retries
-    int remaining = timers.getRepeatCount(cb_fetchWeather);
-    if (remaining != -1)
-        AlertState::set(SC_WEATHER, abs(remaining));
+    auto remaining = timers.remaining();
+    AlertState::set(SC_WEATHER, remaining);
 
-    // Check if last retry (abs(remaining) == 1 means final attempt)
-    bool lastRetry = (abs(remaining) == 1);
+    // Check if last retry (remaining == 1 means final attempt)
+    bool lastRetry = (remaining == 1);
 
     // Policy: defer fetch if audio is playing
     if (isSentencePlaying()) {
@@ -227,7 +225,7 @@ static void cb_fetchWeather() {
 
 static void cb_fetchSunrise() {
     // Update boot status with remaining retries
-    int remaining = timers.getRepeatCount(cb_fetchSunrise);
+    auto remaining = timers.remaining();
     (void)remaining;
 
     // Policy: defer fetch if audio is playing

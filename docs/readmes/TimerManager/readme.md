@@ -1,13 +1,14 @@
 # TimerManager Library
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260206A | Updated: 2026-02-06
 
 TimerManager is a lightweight timer system for Arduino-based ESP32 projects.
 It allocates up to 60 software timers that run callbacks at fixed or growing intervals.
 
 - **Non-blocking**: `update()` polls timers from `loop()` without delaying code.
 - **Flexible repeats**: run once, N times, or indefinitely.
-- **Growing interval**: negative repeat count enables retry-with-growing-interval pattern.
+- **Growing interval**: explicit `growth` parameter enables retry-with-backoff pattern.
+- **Callback context**: `remaining()` available inside callbacks — no polling needed.
 - **Callback-based**: timers invoke plain `void()` functions.
 - **Diagnostics**: inspect available timers or dump active timers for debugging.
 
@@ -31,12 +32,13 @@ extern TimerManager timers;
 ## API Overview
 
 ```cpp
-bool create(uint32_t intervalMs, int32_t repeat, TimerCallback cb);
-bool restart(uint32_t intervalMs, int32_t repeat, TimerCallback cb); // v260104+
-void cancel(TimerCallback cb);
+bool create(uint32_t intervalMs, uint8_t repeat, TimerCallback cb, float growth = 1.0f, uint8_t token = 1);
+bool restart(uint32_t intervalMs, uint8_t repeat, TimerCallback cb, float growth = 1.0f, uint8_t token = 1);
+void cancel(TimerCallback cb, uint8_t token = 1);
+bool isActive(TimerCallback cb, uint8_t token = 1) const;
+uint8_t remaining() const;  // valid inside callbacks: remaining repeat count
 void update();              // call frequently (usually once per loop)
 void showAvailableTimers(bool showAlways);
-void dump();                // detailed listing of active timers
 ```
 
 ### create() vs restart()
@@ -54,21 +56,27 @@ timers.restart(1000, 1, cb_sequenceStep);  // Always succeeds
 
 ### Parameters
 
-- `intervalMs`: interval period in milliseconds (initial interval for growing interval)
-- `repeat`: execution count with three repeat types:
-  - `0` = infinite repeats at fixed interval
-  - `>0` = exactly N repeats at fixed interval
-  - `<0` = |N| repeats with **growing interval** (interval grows 1.5× each time, capped at 20 hours)
+- `intervalMs`: interval in milliseconds (initial interval when using growth)
+- `repeat`: execution count:
+  - `0` = infinite repeats
+  - `1` = one-shot
+  - `2-255` = exactly N fires
 - `cb`: pointer to a function with signature `void callback();`
+- `growth`: interval multiplier per fire (default 1.0 = constant, >1.0 = backoff, capped at 20 hours)
+- `token`: identity token (default 1). Use different tokens for multiple timers with same callback.
+
+### remaining()
+
+Inside a timer callback, `timers.remaining()` returns the repeat count (0 = infinite, 1 = last fire, >1 = fires left). No need to poll with a callback pointer.
 
 ### Repeat Summary
 
-| repeat | Type | Interval | Use Case |
-|--------|------|----------|----------|
-| `0` | Infinite | Fixed | Heartbeat, polling |
-| `1` | One-shot | Fixed | Delayed action |
-| `N` | N times | Fixed | Limited repeats |
-| `-N` | N times | Growing | Retry with increasing delays |
+| repeat | growth | Type | Use Case |
+|--------|--------|------|----------|
+| `0` | `1.0` | Infinite fixed | Heartbeat, polling |
+| `1` | `1.0` | One-shot | Delayed action |
+| `N` | `1.0` | N times fixed | Limited repeats |
+| `N` | `>1.0` | N times growing | Retry with backoff |
 
 ## Examples
 

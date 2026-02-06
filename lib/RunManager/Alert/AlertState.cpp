@@ -1,8 +1,8 @@
 /**
  * @file AlertState.cpp
  * @brief Hardware status state storage implementation
- * @version 260131A
- * @date 2026-01-31
+ * @version 260206A
+ * @date 2026-02-06
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -48,7 +48,7 @@ uint8_t get(StatusComponent c) {
     return extractField(bootStatus, c);
 }
 
-void set(StatusComponent c, uint8_t value) {
+void setRaw(StatusComponent c, uint8_t value) {
     bootStatus = updateField(bootStatus, c, value);
 }
 

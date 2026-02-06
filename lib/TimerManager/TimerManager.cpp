@@ -1,8 +1,8 @@
 /**
  * @file TimerManager.cpp
  * @brief Non-blocking timer system implementation
- * @version 260205A
- * @date 2026-02-05
+ * @version 260206A
+ * @date 2026-02-06
  *
  * Manages a pool of 60 software timers checked each loop() iteration.
  * When a timer's interval elapses, its callback is invoked.
@@ -96,16 +96,6 @@ bool TimerManager::isActive(TimerCallback cb, uint8_t token) const {
     return false;
 }
 
-int16_t TimerManager::getRepeatCount(TimerCallback cb, uint8_t token) const {
-    if (!cb) return -1;
-    for (uint8_t i = 0; i < MAX_TIMERS; i++) {
-        if (timers[i].active && timers[i].cb == cb && timers[i].token == token) {
-            return timers[i].repeat;
-        }
-    }
-    return -1;
-}
-
 void TimerManager::update() {
     uint32_t now = millis();
     for (uint8_t i = 0; i < MAX_TIMERS; i++) {
@@ -113,6 +103,9 @@ void TimerManager::update() {
         if ((int32_t)(now - timers[i].nextTime) >= 0) {
             // run callback
             TimerCallback cb = timers[i].cb;
+
+            // Make repeat count available to callback via remaining()
+            _remaining = timers[i].repeat;
 
             // Buffer original values to detect if callback modified its own timer
             // (callbacks may call cancel/restart/create on themselves)

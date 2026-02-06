@@ -1,8 +1,8 @@
 /**
  * @file CalendarRun.cpp
  * @brief Calendar state management implementation
- * @version 260205A
- * @date 2026-02-05
+ * @version 260206C
+ * @date 2026-02-06
  */
 #include <Arduino.h>
 #include "CalendarRun.h"
@@ -17,11 +17,13 @@
 #include "TodayState.h"
 #include "Light/LightRun.h"
 #include "Alert/AlertState.h"
+#include "Alert/AlertRun.h"
 
 namespace {
 
 constexpr uint32_t retryStartMs      = 2UL * 1000UL;   // Start retry interval (grows)
-constexpr int32_t  retryCount        = -50;            // 50 retries with growing interval
+constexpr uint8_t  retryCount        = 50;             // 50 retries with growing interval
+constexpr float    retryGrowth       = 1.5f;           // Interval multiplier per retry
 constexpr uint32_t initialDelayMs    = 5UL * 1000UL;
 
 bool clockReady() {
@@ -95,13 +97,13 @@ void CalendarRun::plan() {
       PF_BOOT("[CalendarRun] waiting for CSV\n");
       logFlags.controllerNotReady = true;
     }
-    timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar);
+    timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar, retryGrowth);
     return;
   }
   logFlags.controllerNotReady = false;
 
   if (!clockReady()) {
-    timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar);
+    timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar, retryGrowth);
     return;
   }
 
@@ -125,13 +127,13 @@ void CalendarRun::cb_loadCalendar() {
       PF_BOOT("[CalendarRun] waiting for controller\n");
       logFlags.controllerNotReady = true;
     }
-    timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar);
+    timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar, retryGrowth);
     return;
   }
   logFlags.controllerNotReady = false;
 
   if (!clockReady()) {
-    timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar);
+    timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar, retryGrowth);
     return;
   }
 
@@ -139,7 +141,7 @@ void CalendarRun::cb_loadCalendar() {
   uint8_t month = 0;
   uint8_t day = 0;
   if (!getValidDate(year, month, day)) {
-    timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar);
+    timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar, retryGrowth);
     return;
   }
 
@@ -150,7 +152,7 @@ void CalendarRun::cb_loadCalendar() {
         PF("[CalendarRun] SD busy, retrying\n");
         logFlags.sdBusy = true;
       }
-      timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar);
+      timers.restart(retryStartMs, retryCount, CalendarRun::cb_loadCalendar, retryGrowth);
       return;
     }
     logFlags.sdBusy = false;
@@ -166,8 +168,9 @@ void CalendarRun::cb_loadCalendar() {
     LightRun::applyColor(0);
     clearTodayStateRead();
     AlertState::setCalendarStatus(true);  // OK - no special day
+    AlertRun::playWelcomeIfPending();
     RunManager::triggerBootFragment();  // Theme box set, play first fragment
-    PL_BOOT("[CalendarRun] No calendar today");
+    PF("[Calendar] No entry today\n");
     timers.restart(Globals::calendarRefreshIntervalMs, 0, CalendarRun::cb_loadCalendar);
     return;
   }
@@ -180,6 +183,7 @@ void CalendarRun::cb_loadCalendar() {
     LightRun::applyPattern(0);
     LightRun::applyColor(0);
     clearTodayStateRead();
+    AlertRun::playWelcomeIfPending();
     timers.restart(Globals::calendarRefreshIntervalMs, 0, CalendarRun::cb_loadCalendar);
     return;
   }
@@ -217,6 +221,7 @@ void CalendarRun::cb_loadCalendar() {
 
   refreshTodayStateRead();
   AlertState::setCalendarStatus(true);
+  AlertRun::playWelcomeIfPending();
   RunManager::triggerBootFragment();  // Theme box set, play first fragment
   PL("[CalendarRun] Calendar loaded");
   timers.restart(Globals::calendarRefreshIntervalMs, 0, CalendarRun::cb_loadCalendar);

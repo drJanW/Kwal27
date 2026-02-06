@@ -1,8 +1,8 @@
 /**
  * @file AlertRun.h
  * @brief Hardware failure alert state management
- * @version 260205A
- * @date 2026-02-05
+ * @version 260206C
+ * @date 2026-02-06
  */
 #pragma once
 
@@ -22,6 +22,12 @@ public:
     
     /// Report hardware status change (updates AlertState)
     static void report(AlertRequest request);
+
+    /// Mark welcome pending (clock ready, wait for calendar ready)
+    static void requestWelcome();
+
+    /// Play welcome if pending (called after calendar load)
+    static void playWelcomeIfPending();
     
     /// React to status: on LAST_TRY → set FAILED + speak
     static void speakOnFail(StatusComponent c);

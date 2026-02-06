@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260205A
- * @date 2026-02-05
+ * @version 260206C
+ * @date 2026-02-06
  */
 #pragma once
 
@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260205J"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260206C"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -154,7 +154,7 @@ struct Globals {
     inline static uint32_t wifiStatusCheckIntervalMs = 250UL;     // Connection status interval
     inline static uint32_t wifiConnectionCheckIntervalMs = 5000UL; // Connection check interval
     inline static uint32_t wifiRetryStartMs          = 2000UL;    // Retry start interval
-    inline static int32_t  wifiRetryCount            = -14;       // Retry count (negative = finite retries)
+    inline static uint8_t  wifiRetryCount            = 14;        // Retry count
     inline static float    wifiRetryGrowth           = 1.5f;      // Retry interval multiplier per attempt
 
     // ─────────────────────────────────────────────────────────────
@@ -188,7 +188,7 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     // DEBUG (2 params)
     // ─────────────────────────────────────────────────────────────
-    inline static uint32_t timerStatusIntervalMs   = MINUTES(10);  // Timer pool status log interval
+    inline static uint32_t timerStatusIntervalMs   = MINUTES(30);  // Timer pool status log interval
     inline static uint32_t healthStatusIntervalMs  = SECONDS(300); // Health status log interval
 
     // Initialize: load CSV overrides (call after SD init)

@@ -1,8 +1,8 @@
 /**
  * @file SpeakRun.cpp
  * @brief TTS speech state management implementation
- * @version 260205A
- * @date 2026-02-05
+ * @version 260206C
+ * @date 2026-02-06
  */
 #include "SpeakRun.h"
 #include "SpeakPolicy.h"
@@ -88,6 +88,7 @@ void SpeakRun::speak(SpeakRequest request) {
     if (AlertState::canPlayTTS()) {
         const char* sentence = getTtsSentence(request);
         if (sentence) {
+            if (request == SpeakRequest::WELCOME) PlaySentence::forceMaxVolume();
             PlaySentence::addTTS(sentence);
             return;
         }
@@ -102,11 +103,11 @@ void SpeakRun::speak(SpeakRequest request) {
     if (request == SpeakRequest::WELCOME) {
         // WELCOME uses time-based MP3
         uint8_t words[2] = { static_cast<uint8_t>(getWelcomeMp3()), MP3_END };
-        PF("[SpeakRun] MP3 fallback: welcome\n");
+        PlaySentence::forceMaxVolume();
         PlaySentence::addWords(words);
         return;
     }
-    
+
     const auto* phrase = findPhrase(request);
     if (!phrase) {
         PF("[SpeakRun] No phrase for request %d\n", static_cast<int>(request));

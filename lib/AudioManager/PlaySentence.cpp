@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.cpp
  * @brief TTS sentence playback with word dictionary and VoiceRSS API
- * @version 260205A
- * @date 2026-02-05
+ * @version 260206C
+ * @date 2026-02-06
  * 
  * Implements sequential word playback from /000/ directory.
  * Uses unified SpeakItem queue for mixing MP3 words and TTS sentences.
@@ -57,6 +57,10 @@ uint8_t speakQueueTail = 0;
 
 // Scratchpad for runtime MP3 arrays (sayTime)
 uint8_t mp3Scratchpad[8];
+
+// One-shot flag: next SetGain uses 1.0 (hardware max) then resets.
+// Safe because WELCOME only fires during boot (queue guaranteed empty).
+bool forceMax = false;
 
 constexpr uint16_t WORD_FALLBACK_MS = 800;
 constexpr uint16_t TTS_CHAR_INTERVAL_MS = 95;
@@ -269,7 +273,9 @@ void startTTSInternal(const char* text) {
     setWordPlaying(false);
     setCurrentWordId(PlaySentence::END_OF_SENTENCE);
 
-    audio.audioOutput.SetGain(MathUtils::clamp(getVolumeShiftedHi() * 1.8f, 0.0f, 1.0f));
+    float gain = forceMax ? MAX_GAIN : MathUtils::clamp(getVolumeShiftedHi() * 1.8f, 0.0f, 1.0f);
+    forceMax = false;
+    audio.audioOutput.SetGain(gain);
 
     String url = makeVoiceRSSUrl(text);
     {
@@ -378,7 +384,8 @@ void playWord() {
         audio.audioFile = nullptr;
     }
     
-    audio.audioOutput.SetGain(MathUtils::clamp(getVolumeShiftedHi() * 1.5f, 0.0f, 1.0f));
+    audio.audioOutput.SetGain(forceMax ? MAX_GAIN : MathUtils::clamp(getVolumeShiftedHi() * 1.5f, 0.0f, 1.0f));
+    forceMax = false;
     
     auto* sdFile = new AudioFileSourceSD(path);
     if (!sdFile->isOpen()) {
@@ -491,6 +498,10 @@ void speakNext() {
     if (speakQueueHead != speakQueueTail) {
         playNextSpeakItem();
     }
+}
+
+void forceMaxVolume() {
+    forceMax = true;
 }
 
 // Legacy API - for backwards compatibility

@@ -1,8 +1,8 @@
 /**
  * @file WiFiController.cpp
  * @brief WiFi station connection with growing retry interval and connection monitoring
- * @version 260202A
- * @date 2026-02-02
+ * @version 260206A
+ * @date 2026-02-06
  */
 #include <Arduino.h>
 #include "WiFiController.h"
@@ -57,7 +57,7 @@ static void cb_checkWiFiStatus() {
         // AlertState carries the public WiFi status for UI and /api/health,
         // so we flip it back to "not OK" on a confirmed disconnect.
         // Transition to disconnected state
-        AlertState::set(SC_WIFI, static_cast<uint8_t>(abs(Globals::wifiRetryCount)));
+        AlertState::set(SC_WIFI, Globals::wifiRetryCount);
         PL("[WiFi] Lost connection");
     }
 }
@@ -66,10 +66,10 @@ static void cb_checkWiFiStatus() {
 static void cb_retryConnect() {
     if (WiFi.status() == WL_CONNECTED && WiFi.localIP() != INADDR_NONE) return;
 
-    int remaining = timers.getRepeatCount(cb_retryConnect);
-    if (remaining != -1) AlertState::set(SC_WIFI, abs(remaining));
+    auto remaining = timers.remaining();
+    AlertState::set(SC_WIFI, remaining);
 
-    if (!timers.isActive(cb_retryConnect)) {
+    if (remaining == 1) {
         PL("[WiFi] Max retries reached — giving up");
         AlertState::setStatusOK(SC_WIFI, false);
         timers.cancel(cb_checkWiFiStatus);
@@ -87,7 +87,7 @@ static void cb_checkWiFiConnection() {
 
     PL("[WiFi] Connection check failed — restarting connection");
     timers.cancel(cb_checkWiFiConnection);
-    AlertState::set(SC_WIFI, static_cast<uint8_t>(abs(Globals::wifiRetryCount)));
+    AlertState::set(SC_WIFI, Globals::wifiRetryCount);
     bootWiFiConnect();
 }
 

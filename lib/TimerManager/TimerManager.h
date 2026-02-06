@@ -1,8 +1,8 @@
 /**
  * @file TimerManager.h
  * @brief Central non-blocking timer pool using callbacks (replaces scattered millis()/delay()).
- * @version 260201A
- * @date 2026-02-01
+ * @version 260206A
+ * @date 2026-02-06
  */
 #pragma once
 #include <Arduino.h>
@@ -75,10 +75,11 @@ public:
     bool isActive(TimerCallback cb, uint8_t token = 1) const;
 
     /**
-     * @brief Get remaining repeat count.
-     * @return 0 for infinite timers, >0 for remaining fires, -1 if not found.
+     * @brief Remaining repeat count of the currently executing callback.
+     * Set by update() before each callback invocation. Only valid inside a timer callback.
+     * @return 0 for infinite timers, >0 for remaining fires.
      */
-    int16_t getRepeatCount(TimerCallback cb, uint8_t token = 1) const;
+    uint8_t remaining() const { return _remaining; }
 
     /**
      * @brief Get the number of active timers.
@@ -94,6 +95,7 @@ public:
 
 private:
     Timer timers[MAX_TIMERS];
+    uint8_t _remaining = 0;  ///< Set before each callback invocation
 };
 
 /// @brief Global TimerManager instance - preferred access method

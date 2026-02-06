@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.h
  * @brief TTS sentence playback using word dictionary from SD card
- * @version 260205A
- * @date 2026-02-05
+ * @version 260206A
+ * @date 2026-02-06
  * 
  * Plays sequences of pre-recorded words from /000/ directory.
  * Words are played sequentially with configurable inter-word pause.
@@ -35,6 +35,9 @@ void addWords(const uint8_t* words);
 /// Add TTS sentence to queue (uses VoiceRSS API)
 /// @param sentence Text to speak
 void addTTS(const char* sentence);
+
+/// Force next TTS to play at hardware maximum volume (one-shot)
+void forceMaxVolume();
 
 /// Start TTS playback directly (legacy interface)
 void startTTS(const String& text);

@@ -1,8 +1,8 @@
 /**
  * @file I2CInitHelper.cpp
  * @brief Generic I2C device initialization implementation
- * @version 260131A
- * @date 2026-01-31
+ * @version 260206A
+ * @date 2026-02-06
  */
 #include <Arduino.h>
 #include "I2CInitHelper.h"
@@ -70,10 +70,8 @@ void tryInit(StatusComponent comp) {
     if (dev.ready || dev.failed) return;  // Guard: already done
     
     // Get remaining retries
-    int16_t remaining = timers.getRepeatCount(dev.cb);
-    if (remaining != -1) {
-        AlertState::set(dev.cfg.comp, static_cast<uint8_t>(remaining));
-    }
+    auto remaining = timers.remaining();
+    AlertState::set(dev.cfg.comp, remaining);
     
     // Try probe
     if (dev.cfg.probe()) {

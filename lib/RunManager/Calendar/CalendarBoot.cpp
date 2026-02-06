@@ -1,8 +1,8 @@
 /**
  * @file CalendarBoot.cpp
  * @brief Calendar subsystem one-time initialization implementation
- * @version 260202A
- * @date 2026-02-02
+ * @version 260206A
+ * @date 2026-02-06
  */
 #include <Arduino.h>
 #include "CalendarBoot.h"
@@ -21,7 +21,8 @@ CalendarBoot calendarBoot;
 namespace {
 
 constexpr uint32_t retryStartMs = 2UL * 1000UL;  // Start retry interval
-constexpr int32_t  retryCount   = -14;           // 14 retries with growing interval
+constexpr uint8_t  retryCount   = 14;            // 14 retries with growing interval
+constexpr float    retryGrowth  = 1.5f;          // Interval multiplier per retry
 
 // Log-once flags
 bool loggedSdWait = false;
@@ -34,12 +35,11 @@ void cancelRetry();
 
 void cb_retry() {
   // Update boot status with remaining retries
-  int remaining = timers.getRepeatCount(cb_retry);
-  if (remaining != -1)
-    AlertState::set(SC_CALENDAR, abs(remaining));
+  auto remaining = timers.remaining();
+  AlertState::set(SC_CALENDAR, remaining);
 
   // Check if timer exhausted
-  if (!timers.isActive(cb_retry)) {
+  if (remaining == 1) {
     AlertState::setStatusOK(SC_CALENDAR, false);
     PF("[CalendarBoot] Gave up after 14 retries\n");
     return;
@@ -51,7 +51,7 @@ void cb_retry() {
 void armRetry() {
   // Growing interval: starts at 2s, grows 1.5x each retry, max 30s
   // Use restart() because armRetry() can be called while timer is pending
-  if (!timers.restart(retryStartMs, retryCount, cb_retry)) {
+  if (!timers.restart(retryStartMs, retryCount, cb_retry, retryGrowth)) {
     PF("[CalendarBoot] Failed to create retry timer\n");
   }
 }

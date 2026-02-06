@@ -26,6 +26,10 @@ Controllers (hardware APIs)    Directors (context→requests)
 - Never ignore a direct request.
 - Never reverse a decision without asking first.
 
+### Engineering Discipline
+- Avoid quick fixes and patch chains. Prefer a structural solution based on the actual boot/run sequence.
+- Trace the flow end-to-end before editing when symptoms are timing/order related.
+
 ### Terminology Discipline
 - Never introduce new terms as synonyms. If a term exists, reuse it.
 - New terms must mean new concepts and require explicit approval.

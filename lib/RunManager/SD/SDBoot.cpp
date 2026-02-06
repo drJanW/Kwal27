@@ -1,8 +1,8 @@
 /**
  * @file SDBoot.cpp
  * @brief SD card one-time initialization implementation
- * @version 260202A
- * @date 2026-02-02
+ * @version 260206C
+ * @date 2026-02-06
  */
 #include <Arduino.h>
 #include "SDBoot.h"
@@ -18,7 +18,7 @@
 
 namespace {
 
-constexpr int32_t  retryCount   = 3;     // 3 retries for SD mount
+constexpr uint8_t  retryCount   = 3;     // 3 retries for SD mount
 constexpr uint32_t retryIntervalMs = 500;
 
 SDBoot* instance = nullptr;
@@ -205,9 +205,9 @@ bool SDBoot::plan() {
     }
 
     // Update retry status for WebGUI
-    int32_t remaining = timers.getRepeatCount(cb_retryBoot);
+    auto remaining = timers.remaining();
     if (remaining > 0) {
-        AlertState::set(SC_SD, static_cast<uint8_t>(remaining));
+        AlertState::set(SC_SD, remaining);
     }
 
     // Still waiting for retries?
@@ -236,4 +236,5 @@ void SDBoot::onTimeAvailable() {
     }
     rebuildPending = false;
     // Defer rebuild to avoid blocking NTP_OK event flow
-    timers.create(100, 1, cb_deferredRebuild);}
+    timers.create(100, 1, cb_deferredRebuild);
+}

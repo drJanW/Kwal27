@@ -1,8 +1,8 @@
 /**
  * @file AlertRun.cpp
  * @brief Hardware failure alert state management implementation
- * @version 260202A
- * @date 2026-02-02
+ * @version 260206C
+ * @date 2026-02-06
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -18,6 +18,8 @@
 #include "SD/SDBoot.h"
 
 namespace {
+
+bool welcomePending = false;
 
 const char* requestName(AlertRequest request) {
     switch (request) {
@@ -118,6 +120,18 @@ void AlertRun::plan() {
     timers.create(Globals::healthStatusIntervalMs, 0, cb_healthStatus);
 }
 
+void AlertRun::requestWelcome() {
+    welcomePending = true;
+}
+
+void AlertRun::playWelcomeIfPending() {
+    if (!welcomePending) {
+        return;
+    }
+    welcomePending = false;
+    SpeakRun::speak(SpeakRequest::WELCOME);
+}
+
 void AlertRun::report(AlertRequest request) {
     if (isFailure(request)) {
         PF("[Alert] %s\n", requestName(request));
@@ -135,20 +149,14 @@ void AlertRun::report(AlertRequest request) {
         case AlertRequest::WIFI_FAIL:   AlertState::setWifiStatus(false); break;
         case AlertRequest::RTC_OK:
             AlertState::setRtcStatus(true);
-            SDBoot::onTimeAvailable();  // Trigger deferred index rebuild
-            // Stage 2: Clock ready → queue welcome (if TTS ready)
-            if (AlertState::canPlayTTS()) {
-                SpeakRun::speak(SpeakRequest::WELCOME);
-            }
+            SDBoot::onTimeAvailable();
+            requestWelcome();
             break;
         case AlertRequest::RTC_FAIL:    AlertState::setRtcStatus(false); break;
         case AlertRequest::NTP_OK:
             AlertState::setNtpStatus(true);
-            SDBoot::onTimeAvailable();  // Trigger deferred index rebuild
-            // Stage 2: Clock ready → queue welcome (if TTS ready)
-            if (AlertState::canPlayTTS()) {
-                SpeakRun::speak(SpeakRequest::WELCOME);
-            }
+            SDBoot::onTimeAvailable();
+            requestWelcome();
             break;
         case AlertRequest::NTP_FAIL:    AlertState::setNtpStatus(false); break;
         case AlertRequest::DISTANCE_SENSOR_OK:  AlertState::setDistanceSensorStatus(true); break;
@@ -163,7 +171,7 @@ void AlertRun::report(AlertRequest request) {
             AlertState::startRuntime();
             // Start reminder timer for failure status flash (exponential backoff)
             timers.create(Globals::reminderIntervalMs, 0, cb_statusReminder, Globals::reminderIntervalGrowth);
-            // Welkom queued at WIFI_OK (stage 2), not here
+            // Welcome queued at clock ready, played after calendar is ready
             break;
     }
 }
