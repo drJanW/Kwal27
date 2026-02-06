@@ -1,7 +1,7 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260206C
+ * @version 260206K
  * @date 2026-02-06
  */
 #pragma once
@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260206C"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260206K"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000

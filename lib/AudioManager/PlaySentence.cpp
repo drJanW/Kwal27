@@ -1,7 +1,7 @@
 /**
  * @file PlaySentence.cpp
  * @brief TTS sentence playback with word dictionary and VoiceRSS API
- * @version 260206C
+ * @version 260206K
  * @date 2026-02-06
  * 
  * Implements sequential word playback from /000/ directory.
@@ -64,7 +64,33 @@ bool forceMax = false;
 
 constexpr uint16_t WORD_FALLBACK_MS = 800;
 constexpr uint16_t TTS_CHAR_INTERVAL_MS = 95;
-constexpr uint16_t TTS_TAIL_INTERVAL_MS = 900;
+constexpr uint16_t TTS_TAIL_INTERVAL_MS = 1800;
+
+uint16_t countWords(const char* sentence) {
+    if (!sentence) return 0;
+    uint16_t words = 0;
+    bool inWord = false;
+    for (size_t i = 0; sentence[i] != '\0'; ++i) {
+        char c = sentence[i];
+        bool separator = (c <= ' ' || c == '.' || c == ',' || c == ':' || c == ';');
+        if (separator) {
+            inWord = false;
+            continue;
+        }
+        if (!inWord) {
+            words++;
+            inWord = true;
+        }
+    }
+    return words;
+}
+
+uint32_t calcTtsDurationMs(const char* sentence) {
+    uint32_t charMs = strlen(sentence) * TTS_CHAR_INTERVAL_MS + TTS_TAIL_INTERVAL_MS;
+    uint16_t words = countWords(sentence);
+    uint32_t wordMs = static_cast<uint32_t>(words) * 420U + TTS_TAIL_INTERVAL_MS;
+    return (charMs > wordMs) ? charMs : wordMs;
+}
 
 uint16_t wordDurations[SD_MAX_FILES_PER_SUBDIR] = {0};
 bool wordDurationsLoaded = false;
@@ -317,7 +343,7 @@ void playNextSpeakItem() {
         const char* sentence = static_cast<const char*>(item.payload);
         
         startTTSInternal(sentence);
-        durationMs = strlen(sentence) * TTS_CHAR_INTERVAL_MS + TTS_TAIL_INTERVAL_MS;
+        durationMs = calcTtsDurationMs(sentence);
         PF("[TTS] %s (%ums)\n", sentence, durationMs);
         
         // T4: Timer-based completion
