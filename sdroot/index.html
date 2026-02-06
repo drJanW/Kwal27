@@ -106,9 +106,16 @@
   <div id="ota-modal" class="modal">
     <div class="modal-box">
       <h3>OTA Update</h3>
-      <p>Start OTA mode to upload firmware via PlatformIO.</p>
-      <button id="ota-start" class="btn-warn">Start OTA</button>
+      <p>Kies firmware .bin en upload via browser.</p>
+      <div style="margin:8px 0">
+        <input type="file" id="ota-file" accept=".bin">
+      </div>
+      <button id="ota-upload" class="btn-warn" disabled>Upload Firmware</button>
+      <progress id="ota-progress" max="100" value="0" style="display:none;width:100%;margin:8px 0"></progress>
       <div id="ota-status"></div>
+      <hr style="margin:12px 0">
+      <p style="font-size:0.85em;color:#888">Of gebruik PlatformIO OTA (legacy):</p>
+      <button id="ota-start" class="btn-warn" style="font-size:0.85em">Start OTA (legacy)</button>
       <button data-close data-return="dev-modal">Close</button>
     </div>
   </div>

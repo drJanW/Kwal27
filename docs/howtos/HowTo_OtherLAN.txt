@@ -1,4 +1,4 @@
-HowTo: Configure for a Different LAN / Router
+HowTo: Configure for a Different LAN / Router   (but Ziggo->KPN was so much more)
 ==============================================
 
 All WiFi/LAN settings are in: lib/Globals/HWconfig.h

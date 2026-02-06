@@ -73,30 +73,56 @@ if (-not $SkipSD) {
 # --- OTA mode warning for MARMER (after SD upload, before firmware build+upload) ---
 if ($Device -eq "marmer") {
     Write-Host ""
-    Write-Host "  MARMER must be in OTA mode for firmware upload!" -ForegroundColor Yellow
-    Write-Host "  Click 'start OTA' button in WebGUI" -ForegroundColor Gray
-    Write-Host ""
-    $confirm = Read-Host "Is MARMER OTA mode started? (y/N)"
-    if ($confirm -ne 'y' -and $confirm -ne 'Y') {
-        Write-Host "Aborted. Put MARMER in OTA mode first." -ForegroundColor Red
-        exit 1
-    }
+    Write-Host "  MARMER uses HTTP OTA (browser-style upload)" -ForegroundColor Gray
 }
 
-# --- Build and Upload firmware (combined - pio run -t upload does both) ---
+# --- Build and Upload firmware ---
 Write-Host ""
-if ($SkipBuild) {
-    Write-Host "[$step/$totalSteps] Uploading firmware to $deviceUpper ($targetIP) (skip build)..." -ForegroundColor Yellow
-    pio run -e $envName -t nobuild -t upload
+if ($Device -eq "marmer") {
+    # MARMER: Build only, then HTTP upload
+    if (-not $SkipBuild) {
+        Write-Host "[$step/$totalSteps] Building firmware for $deviceUpper..." -ForegroundColor Yellow
+        pio run -e $envName
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "  Build failed!" -ForegroundColor Red
+            exit $LASTEXITCODE
+        }
+        Write-Host "  Build complete" -ForegroundColor Green
+    }
+    $step++
+
+    $binPath = Join-Path $PSScriptRoot ".pio\build\marmer\firmware.bin"
+    if (-not (Test-Path $binPath)) {
+        Write-Host "  firmware.bin not found at $binPath" -ForegroundColor Red
+        exit 1
+    }
+    $binSize = (Get-Item $binPath).Length
+    Write-Host "[$step/$totalSteps] Uploading firmware via HTTP OTA ($([math]::Round($binSize/1024)) KB)..." -ForegroundColor Yellow
+    
+    $uploadUrl = "http://$targetIP/ota/upload"
+    $result = curl -X POST -F "firmware=@$binPath" $uploadUrl --silent --show-error --max-time 120 2>&1
+    
+    if ($result -match '"status"\s*:\s*"ok"') {
+        Write-Host "  HTTP OTA upload OK - device rebooting" -ForegroundColor Green
+    } else {
+        Write-Host "  HTTP OTA upload failed: $result" -ForegroundColor Red
+        exit 1
+    }
 } else {
-    Write-Host "[$step/$totalSteps] Building and uploading firmware to $deviceUpper ($targetIP)..." -ForegroundColor Yellow
-    pio run -e $envName -t upload
+    # HOUT: traditional USB upload
+    if ($SkipBuild) {
+        Write-Host "[$step/$totalSteps] Uploading firmware to $deviceUpper ($targetIP) (skip build)..." -ForegroundColor Yellow
+        pio run -e $envName -t nobuild -t upload
+    } else {
+        Write-Host "[$step/$totalSteps] Building and uploading firmware to $deviceUpper ($targetIP)..." -ForegroundColor Yellow
+        pio run -e $envName -t upload
+    }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "  Upload failed!" -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    Write-Host "  Upload complete" -ForegroundColor Green
 }
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "  Upload failed!" -ForegroundColor Red
-    exit $LASTEXITCODE
-}
-Write-Host "  Upload complete" -ForegroundColor Green
 $step++
 
 # --- Wait for reboot ---

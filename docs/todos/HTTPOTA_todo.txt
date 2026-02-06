@@ -1,0 +1,91 @@
+HTTP OTA — Firmware Upload via Browser
+=======================================
+Doel: firmware.bin uploaden via de WebGUI (PC → ESP32 HTTP POST).
+Vervangt ArduinoOTA reverse-connectie die geblokkeerd wordt door
+router client isolation.
+
+Waarom:
+- ArduinoOTA vereist dat ESP32 een TCP-verbinding TERUG opent naar de PC
+- Nieuwe router blokkeert device-naar-device verbindingen
+- HTTP OTA gaat dezelfde kant op als WebGUI, CSV uploads, SSE — altijd PC→ESP
+
+=== BESTAANDE BOUWBLOKKEN ===
+
+1. SdRoutes.cpp — multipart file upload template
+   - /api/sd/upload met routeUploadRequest + routeUploadData
+   - Per-chunk pattern: index==0 → open, chunks → write, final → close
+   - Exact hetzelfde patroon voor Update.write()
+
+2. OtaRoutes.cpp — huidige ArduinoOTA arm/confirm/start routes
+   - Blijft bestaan als fallback
+   - HTTP OTA route komt NAAST bestaande routes
+
+3. ota.js — huidige UI (Start OTA knop + countdown)
+   - Uitbreiden met file picker + upload progress
+
+4. index.html — OTA modal met start knop en status div
+   - Uitbreiden met <input type="file"> + progress bar
+
+5. Update.h — Arduino ESP32 API (nog niet gebruikt in project)
+   - Update.begin(size), Update.write(data, len), Update.end(true)
+   - ESP.restart() na succesvolle upload
+
+=== STAPPEN ===
+
+1. Firmware route toevoegen
+   - Nieuw: POST /ota/upload in OtaRoutes.cpp
+   - Multipart handler (zelfde patroon als SdRoutes)
+   - index==0 → Update.begin(contentLength)
+   - Per chunk → Update.write(data, len)
+   - final → Update.end(true), plan reboot via timer
+
+2. WebGUI uitbreiden
+   - ota.js: file picker, upload via fetch() met progress
+   - index.html: <input type="file" accept=".bin"> + progress bar
+   - Toon firmware grootte en upload % in status div
+
+3. Beveiliging
+   - Optioneel: wachtwoord check (OTA_PASSWORD)
+   - Controleer Content-Length vs flash partitie grootte
+   - Update.hasError() check na elke write
+
+4. Reboot na upload
+   - Na Update.end(true): one-shot timer 2s → ESP.restart()
+   - Status response sturen VOOR reboot start
+
+5. PowerShell script (optioneel)
+   - upload_firmware.ps1 — curl/Invoke-WebRequest naar /ota/upload
+   - Vervangt pio run voor remote upload
+
+=== ARCHITECTUUR ===
+
+Geen NVS arm/confirm cyclus nodig!
+HTTP OTA draait inline in de normale webserver — geen apart OTA mode.
+ArduinoOTA blijft als fallback voor als de webserver niet draait.
+
+Flow:
+  Browser → POST /ota/upload (multipart firmware.bin)
+      → OtaRoutes::routeOtaUploadData()
+          → Update.begin() / Update.write() / Update.end()
+      → JSON response {"status":"ok","size":1307872}
+      → Timer 2s → ESP.restart()
+
+=== IMPACT ===
+
+Bestanden te wijzigen:
+  lib/WebInterfaceController/routes/OtaRoutes.cpp  — nieuwe route
+  lib/WebInterfaceController/routes/OtaRoutes.h    — declaratie
+  sdroot/webgui-src/js/ota.js                      — file upload UI
+  sdroot/webgui-src/index.html of sdroot/index.html — file input
+
+Geen wijziging nodig in:
+  OTAController.cpp — ArduinoOTA blijft ongewijzigd
+  platformio.ini    — geen upload_protocol wijziging nodig
+
+=== NIET VERGETEN ===
+
+- Version bump VOOR code wijziging
+- JS version bump in build.ps1 als JS wijzigt
+- build.ps1 draaien na JS wijziging
+- Eerste upload via COM11 (want bestaande firmware heeft route nog niet)
+- Test met zowel browser upload als PowerShell script
