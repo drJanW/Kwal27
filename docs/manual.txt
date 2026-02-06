@@ -1,25 +1,179 @@
-KWAL HANDLEIDING
-================
+KWAL MANUAL
+===========
 
-RGB ALERT KLEUREN (foutmeldingen)
-----------------------------------
-Bij een hardware storing knippert de Kwal in een specifieke kleur.
-Tussen elke kleur zit een zwarte pauze (1 seconde).
+OVERVIEW
+--------
+Kwal is an ESP32-based ambient art installation (jellyfish sculpture) that combines:
+- LED light patterns and colors
+- Audio playback (ambient tracks and speech)
+- Web interface for live control
+- Sensor input (distance, lux, optional temperature)
+- SD card for configuration, audio assets, and CSV data
 
-Kritieke fouten (2 seconden):
-  ROOD        - SD-kaart fout
-  ORANJE      - WiFi niet verbonden
+ARCHITECTURE
+------------
+Boot → Plan → Policy → Run → Controller
 
-Normale fouten (1 seconde):
-  GEEL        - RTC klok fout
-  WIT         - NTP tijdsync fout
-  GROEN       - Afstandssensor fout
-  MAGENTA     - Lichtsensor fout
-  CYAAN       - Sensor 3 fout (optioneel)
+- Boot: one-time initialization, register timers, seed caches
+- Plan: arm timers for periodic work
+- Policy: rules/constraints (no side effects)
+- Run: executes timers, sequences work, raises requests
+- Controller: hardware drivers (FastLED, I2S, SPI)
 
-Volgorde: zwart → kleur → zwart → kleur → etc → herstel naar patroon
+All timing uses TimerManager (non-blocking).
 
-FIRMWARE VERSIES
-----------------
-Huidige versie: 251223J
-WebGUI versie: 1221A
+BOOT SEQUENCE (HIGH LEVEL)
+--------------------------
+1) SD boot: mount SD, validate index, load globals.csv
+2) WiFi boot: connect, start web interface
+3) Clock: RTC/NTP time ready
+4) Calendar: load today’s entry (if present)
+5) Welcome: spoken greeting (TTS-first, MP3 fallback)
+6) Boot fragment: first ambient audio fragment
+
+WELCOME is played after Calendar is ready to avoid SD/network contention.
+
+RUNTIME LOOP
+------------
+- TimerManager drives all periodic actions
+- RunManager orchestrates subsystem Run layers
+- Calendar may update theme box/pattern/color
+- Audio plays ambient fragments and speech
+
+WEB INTERFACE (OPTIONS)
+------------------------
+The Web UI provides live control of core functions. Typical controls include:
+- Audio: volume and next-track actions
+- Brightness: output scaling
+- Pattern and color selection
+- Status and health information
+- OTA trigger (firmware update)
+
+Exact labels and ranges are defined by the Web UI and globals.csv.
+
+CONFIGURATION FILES (SD CARD)
+------------------------------
+All CSV files live on the SD card (sdroot/) and are edited offline.
+
+Key files:
+- globals.csv            : runtime overrides (intervals, thresholds, limits)
+- audioShifts.csv        : audio shifts
+- calendar.csv           : day-based behavior
+- colorsShifts.csv       : color shifts
+- light_patterns.csv     : pattern definitions
+- light_colors.csv       : color definitions
+- patternShifts.csv      : pattern shifts
+- theme_boxes.csv        : theme box mapping
+
+Use upload_csv.ps1 to update SD from host.
+
+ALERT RGB COLORS (ERRORS)
+-------------------------
+On hardware failure the sculpture flashes specific colors.
+A black pause (1 second) is inserted between colors.
+
+Critical errors (2 seconds):
+  RED        - SD card failure
+  ORANGE     - WiFi not connected
+
+Normal errors (1 second):
+  YELLOW     - RTC clock failure
+  WHITE      - NTP time sync failure
+  GREEN      - Distance sensor failure
+  MAGENTA    - Lux sensor failure
+  CYAN       - Sensor 3 failure (optional)
+
+Sequence: black → color → black → color → ... → return to pattern
+
+AUDIO
+-----
+- Ambient audio is played from SD in fragments
+- Speech uses TTS (VoiceRSS) with MP3 fallback when needed
+- Welcome greeting speaks the firmware version
+
+SENSORS
+-------
+- Distance sensor: proximity-based behavior
+- Lux sensor: ambient light-based brightness adjustment
+- Optional temperature sensor (Sensor 3)
+
+MAINTENANCE & DEPLOYMENT
+------------------------
+Common scripts:
+- deploy.ps1 hout / marmer  : upload firmware
+- ota.ps1                   : standalone OTA
+- upload_web.ps1            : upload web assets to SD
+- upload_csv.ps1            : upload CSV configs to SD
+- download_csv.ps1          : download CSV configs
+
+REPOSITORY TREE (DIRECTORIES ONLY, EXCLUDES DOT DIRECTORIES)
+-----------------------------------------------------------
+Kwal27
+├─ docs
+│  ├─ _OLD_
+│  │  └─ A56
+│  └─ readmes
+│     ├─ AudioManager
+│     ├─ ClockController
+│     ├─ ContextController
+│     ├─ ffmpeg
+│     ├─ Globals
+│     ├─ lib
+│     ├─ LightController
+│     ├─ NAS
+│     ├─ NAS_Fallback
+│     ├─ OTAController
+│     ├─ RunManager
+│     ├─ RunManager_Audio
+│     ├─ RunManager_Light
+│     ├─ RunManager_Speak
+│     ├─ SDController
+│     ├─ sdroot
+│     ├─ SensorController
+│     ├─ TimerManager
+│     ├─ WebInterfaceController
+│     └─ WiFiController
+├─ excel
+├─ lib
+│  ├─ AudioManager
+│  ├─ ClockController
+│  ├─ ContextController
+│  ├─ Globals
+│  ├─ LightController
+│  ├─ OTAController
+│  ├─ RunManager
+│  │  ├─ Alert
+│  │  ├─ Audio
+│  │  ├─ Calendar
+│  │  ├─ Clock
+│  │  ├─ Heartbeat
+│  │  ├─ Light
+│  │  ├─ OTA
+│  │  ├─ SD
+│  │  ├─ Sensors
+│  │  ├─ Speak
+│  │  ├─ Status
+│  │  ├─ System
+│  │  ├─ Web
+│  │  └─ WiFi
+│  ├─ SDController
+│  ├─ SensorController
+│  ├─ TimerManager
+│  ├─ WebInterfaceController
+│  │  └─ routes
+│  └─ WiFiController
+├─ sdroot
+│  └─ webgui-src
+│     └─ js
+├─ src
+└─ tools
+  └─ ffmpeg
+
+OPTIONS CHECKLIST (TO CONFIRM)
+------------------------------
+Please confirm or correct these option areas so this manual can be completed:
+1) Web UI: exact control list and slider ranges
+2) Audio: which actions are exposed (next, skip, fade, etc.)
+3) Brightness: slider semantics (see glossary_slider_semantics.md)
+4) OTA: user-facing workflow details
+5) Calendar: which fields are user-editable and how they map to patterns/colors

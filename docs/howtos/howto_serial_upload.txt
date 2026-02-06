@@ -1,0 +1,73 @@
+============================================================
+HOW TO: Serial Firmware Upload (USB/COM poort)
+============================================================
+
+Wanneer nodig:
+- Device is niet op het WiFi netwerk (nieuw wachtwoord, ander LAN)
+- OTA werkt niet of is niet beschikbaar
+- Eerste keer firmware flashen
+
+=== STAPPEN ===
+
+1. Sluit ESP32 aan via USB kabel
+2. Controleer COM poort nummer:
+   - Windows: Apparaatbeheer → Poorten (COM & LPT)
+   - Of: in VS Code terminal: pio device list
+
+3. Sluit serial monitor als die draait op die COM poort
+   (Ctrl+C in trace terminal)
+
+4. Pas platformio.ini TIJDELIJK aan voor het device:
+   Voorbeeld voor [env:marmer]:
+
+   WAS (OTA):
+     upload_protocol = espota
+     upload_port = 192.168.2.188
+     upload_flags =
+       --host_ip=192.168.2.8
+       --host_port=22022
+       --timeout=30
+       --auth=KwalOTA_3732
+
+   WORDT (serial):
+     upload_protocol = esptool
+     upload_port = COM11
+     ; --- OTA (commented out for one-off serial upload) ---
+     ; upload_protocol = espota
+     ; upload_port = 192.168.2.188
+     ; upload_flags =
+     ;   --host_ip=192.168.2.8
+     ;   --host_port=22022
+     ;   --timeout=30
+     ;   --auth=KwalOTA_3732
+
+5. Build en upload:
+   pio run -e marmer -t upload
+
+6. BELANGRIJK: Herstel platformio.ini naar OTA na succesvolle upload!
+   (Draai de wijziging uit stap 4 terug)
+
+7. Controleer met serial monitor:
+   .\trace.ps1 11
+
+=== LET OP ===
+
+- Gebruik ALTIJD de juiste env (-e marmer of -e hout)
+  - hout  = KWAL=1, IP .189
+  - marmer = KWAL=2, IP .188
+  Verkeerde env → verkeerd IP en device-gedrag!
+
+- deploy.ps1 ondersteunt GEEN serial upload voor marmer
+  (alleen OTA). Gebruik pio run rechtstreeks.
+
+- PlatformIO CLI heeft GEEN command-line override voor
+  upload_protocol. De enige manier is platformio.ini aanpassen.
+
+=== ENGLISH SUMMARY ===
+
+For one-off serial upload when device is not on WiFi:
+1. Connect USB, find COM port
+2. Close serial monitor on that port
+3. In platformio.ini, temporarily change env to esptool + COMxx
+4. pio run -e <env> -t upload
+5. Revert platformio.ini back to OTA

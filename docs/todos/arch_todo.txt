@@ -3,11 +3,6 @@ ARCH TODO (status ownership)
 1) WiFi status reads: keep using AlertState (done in code), verify no new wrapper reappears.
    - Files to watch: lib/WiFiController/WiFiController.cpp, lib/WiFiController/WiFiController.h, lib/WiFiController/FetchController.cpp, lib/OTAController/OTAController.cpp, lib/ConductManager/WiFi/WiFiBoot.cpp
 
-2) DONE: SensorController readiness/failure reads moved to AlertState.
-   - Removed SensorController::isDistanceSensorReady(), isLuxSensorReady(), isSensor3Ready(), isDistanceSensorInitFailed(), isLuxSensorInitFailed()
-   - Call sites updated to AlertState::isLuxSensorOk()
-   - Files: lib/SensorController/SensorController.h, lib/SensorController/SensorController.cpp, lib/ConductManager/Light/LightRun.cpp
-
 3) SDController exposes readiness/busy status via controller APIs. Move reads to state layer.
    - Replace SDController::isReady() and SDController::isSDbusy() with state reads.
    - Ensure SDController only sets state, never owns reads.

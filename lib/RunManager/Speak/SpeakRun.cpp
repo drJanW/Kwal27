@@ -121,7 +121,7 @@ const char* getTtsSentence(SpeakRequest request) {
     switch (request) {
         case SpeakRequest::SD_FAIL:              return "Geheugenkaart werkt niet";
         case SpeakRequest::WIFI_FAIL:            return "WiFi werkt niet";
-        case SpeakRequest::RTC_FAIL:             return "Klok werkt niet";
+        case SpeakRequest::RTC_FAIL:             return "Temperatuur sensor werkt niet";
         case SpeakRequest::NTP_FAIL:             return "Tijd ophalen mislukt";
         case SpeakRequest::DISTANCE_SENSOR_FAIL: return "Afstandmeter werkt niet";
         case SpeakRequest::LUX_SENSOR_FAIL:      return "Lichtmeting werkt niet";

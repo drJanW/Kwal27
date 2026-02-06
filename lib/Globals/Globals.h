@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260206K"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260206L"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
