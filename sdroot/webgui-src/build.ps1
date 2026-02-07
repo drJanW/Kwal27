@@ -20,7 +20,7 @@ $modules = @(
 
 # Output ONLY to sdroot - NO local copy to prevent accidental editing
 $sdroot_output = "../kwal.js"
-$version = "260206M"
+$version = "260207C"
 
 # Header with DO NOT EDIT warning (in case Copilot is being a cunt)
 $header = @"
@@ -60,3 +60,12 @@ if (Test-Path "kwal.js") {
 }
 
 Write-Host "Built $sdroot_output ($((Get-Content $sdroot_output).Count) lines)" -ForegroundColor Green
+
+# Cache-bust: update kwal.js?v= in index.html
+$indexPath = "../index.html"
+if (Test-Path $indexPath) {
+    $html = Get-Content $indexPath -Raw
+    $html = $html -replace 'kwal\.js\?v=[^"]+', "kwal.js?v=$version"
+    Set-Content -Path $indexPath -Value $html -Encoding UTF8 -NoNewline
+    Write-Host "Updated index.html cache-bust to v=$version" -ForegroundColor Green
+}

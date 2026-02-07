@@ -1,13 +1,9 @@
 todo list
-Updated: 2026-02-02
+Updated: 2026-02-07
 
 REGEL: Geen "Completed" sectie. Succes = delete uit todo.
 
 === Active ===
-
-
-b9. Re-read calendar after midnight for new day
-
 
 
 b12. Replace linear lux formula with Stevens' power law
@@ -24,11 +20,6 @@ F1. Sensor + Speak architecture completion
     - Beide modules volledig Boot→Run→Policy→Director patroon
     - Zie: docs/plan_f1_sensor_speak.md
 
-F2. HTTP upload endpoint voor SD card
-    - Voeg POST /api/sd/upload endpoint toe aan WebInterface
-    - Multipart form-data voor file upload
-    - Werkt met browser en PowerShell scripts
-
 
 
 === Minor Bugs ===
@@ -41,40 +32,11 @@ H9. Normalize say → speak naming in time/temperature paths
     - Rename Globals keys (minSaytimeIntervalMs/maxSaytimeIntervalMs)
     - Update CSV parser keys in Globals.cpp
 
-H4. Refactor WiFiController.cpp timer usage
-    - Does not use timers correctly, superfluous state checking
-    - Source: A56/WiFiController.cpp
-
-H5. Refactor BootManager.cpp
-    - Clean up, check overlap with SystemBoot.cpp
-    - Source: A56/BootManager.cpp
-
-H6. Review SDVoting.cpp file selection
-    - Contains random file selection logic - belongs in Director?
-    - Source: A56/SDVoting.cpp
-
 H7. Review StatusPolicy.cpp stub
     - Determine if refactor needed or intentionally minimal
-    - Source: A56/StatusPolicy.cpp
-
-H8. Review TimerManager::instance() pattern
-    - Consider global `timers` reference vs singleton
-    - See A56/TodoSal.txt for DI architecture notes
-    - Pattern: std::atomic<float> webShift{1.0f}; met .load()/.store()
 
 === side lined ===
-B6. Brightness slider lux trigger met cooldown
-    - Slider change triggert lux herberekening met 60s cooldown
-    - baseBrightness wordt niet herberekend na slider change
-    - Zie: docs/plan_b6_brightness_cooldown.md
-    - FIX NEEDED: Replace millis() with boolean+timer pattern
-    - FIX NEEDED: pushState() after lux measurement for SSE update
 b10. Calibrating lux sensor
-
-b11. Rename luxBeta → luxOffset in Globals.h + Globals.cpp
-    - Variable meaning changed from "exponential steepness" to "linear offset"
-    - Name should match purpose
-    - Also update parser in Globals.cpp
 
 F3. Simplify brightness shifts: HSV V → FastLED
     - Verwijder colorA.value/colorB.value uit colorsShifts.csv
@@ -92,19 +54,6 @@ H1. Refactor codebase according to glossary terminology rules
     - brightness (not bright), volume (not gain except I2S)
     - Rename globalBrightness → brightnessHiShift in CSV
     - Zie: docs/glossary_slider_semantics.md
-
-H2. Refactor applyFinalBrightness() in LightController.cpp
-    - Rename to applyBrightness() (glossary: no "final")
-    - Audio mixing violates A1: direct AudioState access without Run
-    - Bad names: raw, n, adj → audioLevel, normalized, audioModifier
-    - Redundant: webModifier copied to brightnessModifier for no reason
-    - mapRange clamps modifier 0-1, blocks F9 override above hiPct
-    - Change to linear: brightness = Lo + (modifier × (Hi - Lo))
-    - Clamp result to unshiftedHi, not shiftedHi
-    - isWebInterfaceActive() check overbodig: reset webThumbPct=-1 bij disconnect
-    - shiftedLo berekening irrelevant voor F9: thumbPct moet direct naar brightness
-    - F9 fix: brightness = (thumbPct/100) × Globals::maxBrightness, clamp to unshiftedHi
-    - NOTE: mapping logic is fine, Copilot keeps breaking it with bad names/logic
 
 H3. Make webShift and brightnessShiftedHi atomic
     - LightController.cpp: webShift en brightnessShiftedHi zijn niet atomic

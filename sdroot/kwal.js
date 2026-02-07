@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260206M - Built 2026-02-06 22:40
+ * Kwal WebGUI v260207C - Built 2026-02-07 16:29
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260206M';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260207C';  // Injected by build.ps1
 
 
 // === js/state.js ===
@@ -490,7 +490,7 @@ Kwal.sd = (function() {
 Kwal.pattern = (function() {
   'use strict';
 
-  var listEl, activeId, patternsData;
+  var listEl, activeId, patternsData = [];
   var editingId = null;
   var originalLabel = null;
   var currentParams = null;
@@ -819,7 +819,7 @@ Kwal.pattern = (function() {
 Kwal.colors = (function() {
   'use strict';
 
-  var listEl, activeId, colorsData;
+  var listEl, activeId, colorsData = [];
   var editingId = null;
   var originalLabel = null;
   var editingColor = null; // 'a' or 'b'

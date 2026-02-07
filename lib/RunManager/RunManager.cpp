@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260206C
- * @date 2026-02-06
+ * @version 260207A
+ * @date 2026-02-07
  */
 #include <Arduino.h>
 #include <math.h>
@@ -82,7 +82,16 @@ void RunManager::requestLuxMeasurement() {
 namespace {
 
 void cb_clockUpdate() {
+    static uint8_t lastDay = 0;
     prtClock.update();
+
+    // Detect day change → reload calendar for new day
+    const uint8_t currentDay = prtClock.getDay();
+    if (lastDay != 0 && currentDay != lastDay) {
+        PF("[ClockRun] Day changed %u → %u, reloading calendar\n", lastDay, currentDay);
+        timers.restart(SECONDS(5), 1, CalendarRun::cb_loadCalendar);
+    }
+    lastDay = currentDay;
 }
 
 void cb_sayTime() {

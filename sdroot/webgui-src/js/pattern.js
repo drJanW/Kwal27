@@ -5,7 +5,7 @@
 Kwal.pattern = (function() {
   'use strict';
 
-  var listEl, activeId, patternsData;
+  var listEl, activeId, patternsData = [];
   var editingId = null;
   var originalLabel = null;
   var currentParams = null;

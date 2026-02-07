@@ -5,7 +5,7 @@
 Kwal.colors = (function() {
   'use strict';
 
-  var listEl, activeId, colorsData;
+  var listEl, activeId, colorsData = [];
   var editingId = null;
   var originalLabel = null;
   var editingColor = null; // 'a' or 'b'

@@ -1,8 +1,8 @@
 /**
  * @file WebGuiStatus.cpp
  * @brief Centralized WebGUI state management implementation
- * @version 260204A
- * @date 2026-02-04
+ * @version 260207B
+ * @date 2026-02-07
  */
 #include "WebGuiStatus.h"
 #include "Globals.h"
@@ -179,9 +179,9 @@ void pushColors() {
 }
 
 void pushAll() {
-    pushPatterns();
-    pushColors();
-    pushState();
+    pushState();      // First: smallest, most critical (fragment, brightness, volume)
+    pushPatterns();   // Large catalog — has HTTP fallback via load()
+    pushColors();     // Large catalog — has HTTP fallback via load()
 }
 
 // ============================================================================
