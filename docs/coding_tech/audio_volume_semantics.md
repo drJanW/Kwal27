@@ -1,16 +1,16 @@
-# Audio Gain Semantics
+# Audio Volume Semantics
 
-> Version: 260101A | Updated: 2026-01-01
+> Version: 260207F | Updated: 2026-02-07
 
-This document defines the exact meaning of every audio volume/gain value in the system.
+This document defines the exact meaning of every audio volume value in the system.
 
-## The Gain Chain
+## The Volume Chain
 
-Final output gain = `baseGain × webAudioLevel × fadeFraction`
+Final output volume = `baseVolume × webAudioLevel × fadeFraction`
 
 Where:
-- `baseGain` = system-controlled ceiling (shift-adjusted)
-- `webAudioLevel` = user's web slider modifier (0.0-1.0)
+- `baseVolume` = system-controlled ceiling (shift-adjusted)
+- `webAudioLevel` = user's web slider fraction (0.0-1.0)
 - `fadeFraction` = transient fade envelope (0.0-1.0)
 
 ## Value Definitions
@@ -26,15 +26,17 @@ Where:
 | Name | Location | Default | Meaning |
 |------|----------|---------|---------|
 | `Globals::maxAudioVolume` | Globals.h / globals.csv | 0.5f (code) or 0.37 (csv) | Master ceiling from config. Used by shift calculation. |
-| `Globals::baseGain` | Globals.h / globals.csv | 0.37f | Initial base gain before any shifts. |
+| `Globals::baseGain` | Globals.h / globals.csv | 0.37f | Initial base volume before any shifts. |
 | `Globals::audioLo` | Globals.h | 0.05f | Silence guard. Minimum playback level to avoid near-zero. |
 
 ### State Variables (AudioState.cpp)
 
 | Name | Getter/Setter | Meaning |
 |------|---------------|---------|
-| `g_baseGain` | `getBaseGain()` / `setBaseGain()` | Current ceiling after shift application. Initialized from `Globals::baseGain`, updated by `AudioRun::applyVolumeShift()`. |
-| `g_webAudioLevel` | `getWebAudioLevel()` / `setWebAudioLevel()` | User's modifier from web slider. 0.0 = muted, 1.0 = full (up to baseGain). |
+| `g_baseGain` | `getVolumeShiftedHi()` / `setVolumeShiftedHi()` | Current ceiling after shift application. Initialized from `Globals::baseGain`, updated by `AudioRun::applyVolumeShift()`. |
+| `g_webAudioLevel` | `getVolumeWebShift()` / `setVolumeWebShift()` | User's fraction from web slider. 0.0 = muted, 1.0 = full (up to baseVolume). |
+
+**Note:** Variable names `g_baseGain` and `g_webAudioLevel` are pending rename — see [glossary_slider_semantics.md](glossary_slider_semantics.md) Proposed Renames.
 
 ## Shift Application Flow
 
@@ -45,26 +47,26 @@ AudioShiftTable::getEffectiveVolume(statusBits)
 AudioRun::applyVolumeShift(statusBits)
     → scaledVolume = effectiveVolume × Globals::maxAudioVolume
     → clamp to [0, Globals::maxAudioVolume]
-    → setBaseGain(scaledVolume)
+    → setVolumeShiftedHi(scaledVolume)
 ```
 
 Log: `[AudioRun] Volume shift: 0.50 (eff=1.02, status=0x...)`
-- `0.50` = scaledVolume stored in baseGain
+- `0.50` = scaledVolume stored in volumeShiftedHi
 - `1.02` = raw effectiveVolume from shift (>1.0 means boost)
 
 ## WebGUI Slider Semantics
 
 The slider shows a percentage where:
 - **0%** = audioLo (silence guard)
-- **100%** = current baseGain (shift-adjusted ceiling)
+- **100%** = current volumeShiftedHi (shift-adjusted ceiling)
 
 ### SSE Fields Sent
 
 | Field | Formula | Meaning |
 |-------|---------|---------|
-| `userVolume` | `getWebAudioLevel()` | Current modifier 0.0-1.0 |
+| `userVolume` | `getVolumeWebShift()` | Current fraction 0.0-1.0 |
 | `audioLo` | `Globals::audioLo` | Left boundary (silence guard) |
-| `audioHi` | `getBaseGain()` | Right boundary (shift ceiling) |
+| `audioHi` | `getVolumeShiftedHi()` | Right boundary (shift ceiling) |
 | `audioMax` | `MAX_AUDIO_VOLUME` | Hardware max (for reference) |
 
 ### JS Calculation
@@ -79,7 +81,7 @@ hiPct = Math.round((audioHi / audioMax) * 100)   // e.g. (0.50 / 0.47) * 100 = 1
 When `audioHi > audioMax` (shift ceiling > hardware max), the calculation yields `hiPct > 100%`.
 
 **Why it happens:**
-- `getBaseGain()` returns 0.50 (from shift: 1.02 × 0.5 maxAudioVolume, clamped at 0.5)
+- `getVolumeShiftedHi()` returns 0.50 (from shift: 1.02 × 0.5 maxAudioVolume, clamped at 0.5)
 - `MAX_AUDIO_VOLUME` is 0.47
 - So audioHi (0.50) > audioMax (0.47)
 
@@ -99,7 +101,7 @@ Option B: Use `Globals::maxAudioVolume` for SSE audioMax
 - SSE sends the same value used for clamping
 - Consistent, but allows exceeding hardware max
 
-Option C: Clamp baseGain to `MAX_AUDIO_VOLUME` after shift
+Option C: Clamp volumeShiftedHi to `MAX_AUDIO_VOLUME` after shift
 - Keeps both values but enforces hardware limit
 
 ## Recommendation
