@@ -281,6 +281,12 @@ static void applyOverride(const char* key, char type, const char* value) {
             PF_BOOT("[Globals] luxShiftHi = %d\n", Globals::luxShiftHi);
         }
     }
+    else if (strcmp(key, "luxGamma") == 0 && type == 'f') {
+        if (parseFloat(value, &f32) && f32 > 0.0f && f32 <= 2.0f) {
+            Globals::luxGamma = f32;
+            PF_BOOT("[Globals] luxGamma = %.2f\n", static_cast<double>(f32));
+        }
+    }
     else if (strcmp(key, "calendarShiftLo") == 0 && type == 'i') {
         int32_t i32;
         if (parseInt32(value, &i32) && i32 >= -100 && i32 <= 100) {

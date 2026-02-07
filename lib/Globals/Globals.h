@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260207C"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260207D"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -94,6 +94,7 @@ struct Globals {
     inline static float    luxMax                  = 800.0f;      // Lux sensor maximum
     inline static int8_t   luxShiftLo              = -10;         // Lux shift at luxMin
     inline static int8_t   luxShiftHi              = +10;         // Lux shift at luxMax
+    inline static float    luxGamma                = 0.4f;        // Stevens' power law exponent (0.33-0.5)
     inline static int8_t   calendarShiftLo         = -20;         // Calendar shift minimum
     inline static int8_t   calendarShiftHi         = +20;         // Calendar shift maximum
     inline static uint16_t maxMilliamps            = 1200U;       // FastLED power limit

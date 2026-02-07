@@ -5,14 +5,6 @@ REGEL: Geen "Completed" sectie. Succes = delete uit todo.
 
 === Active ===
 
-
-b12. Replace linear lux formula with Stevens' power law
-    - Current: linear (luxFactor = offset + scale × lux/L_MAX)
-    - Target: power law (luxFactor = floor + (1-floor) × (lux/L_MAX)^gamma)
-    - Add luxGamma global (0.33-0.5 range, default 0.4)
-    - Matches human brightness perception
-    - More output change in low-lux range where eye is most sensitive
-
 === Future ===
 F1. Sensor + Speak architecture completion
     - Verplaats sensor orchestratie van SensorController naar SensorDirector
