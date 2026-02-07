@@ -55,7 +55,7 @@ bool TimerManager::create(uint32_t interval, uint8_t repeat, TimerCallback cb, f
             timers[i].nextTime = millis() + interval;
             timers[i].repeat = repeat;
             // Growth allowed for all timers; interval capped at MAX_GROWTH_INTERVAL_MS in update()
-            timers[i].growthFactor = growth;
+            timers[i].growthMultiplier = growth;
             return true;
         }
     }
@@ -72,7 +72,7 @@ void TimerManager::cancel(TimerCallback cb, uint8_t token) {
             timers[i].active = false;
             timers[i].cb = nullptr;
             timers[i].token = 1;
-            timers[i].growthFactor = 1.0f;
+            timers[i].growthMultiplier = 1.0f;
             return;
         }
     }
@@ -112,7 +112,7 @@ void TimerManager::update() {
             const uint8_t originalRepeat = timers[i].repeat;
             const uint32_t originalInterval = timers[i].interval;
             const uint32_t originalNextTime = timers[i].nextTime;
-            const float originalGrowthFactor = timers[i].growthFactor;
+            const float originalGrowthMultiplier = timers[i].growthMultiplier;
             const uint8_t originalToken = timers[i].token;
 
             // Execute callback (may modify this timer via cancel/restart)
@@ -132,7 +132,7 @@ void TimerManager::update() {
             if (timers[i].interval != originalInterval ||
                 timers[i].nextTime != originalNextTime ||
                 timers[i].repeat != originalRepeat ||
-                timers[i].growthFactor != originalGrowthFactor) {
+                timers[i].growthMultiplier != originalGrowthMultiplier) {
                 continue;
             }
 
@@ -141,16 +141,16 @@ void TimerManager::update() {
                 // Last repeat - deactivate
                 timers[i].active = false;
                 timers[i].cb = nullptr;
-                timers[i].growthFactor = 1.0f;
+                timers[i].growthMultiplier = 1.0f;
                 timers[i].token = 1;
             } else {
                 // Continuing timer: finite (repeat > 1) or infinite (repeat == 0)
                 if (originalRepeat > 1) {
                     timers[i].repeat--;
                 }
-                // Apply growth factor if > 1.0
-                if (timers[i].growthFactor > 1.0f) {
-                    uint32_t newInterval = (uint32_t)(timers[i].interval * timers[i].growthFactor);
+                // Apply growth multiplier if > 1.0
+                if (timers[i].growthMultiplier > 1.0f) {
+                    uint32_t newInterval = (uint32_t)(timers[i].interval * timers[i].growthMultiplier);
                     timers[i].interval = min(newInterval, MAX_GROWTH_INTERVAL_MS);
                 }
                 timers[i].nextTime += timers[i].interval;

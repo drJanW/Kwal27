@@ -230,7 +230,7 @@ bool AudioManager::isPCMClipActive() const
 // Public API
 //─────────────────────────────────────────────────────────────────────────────
 
-/// Initialize I2S output with configured pins and default gain
+/// Initialize I2S output with configured pins and default volume
 void AudioManager::begin()
 {
 	audioOutput.SetPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
@@ -278,15 +278,15 @@ void AudioManager::startTTS(const String& phrase) {
 	PlaySentence::startTTS(phrase);
 }
 
-/// Set web UI volume shift and recalculate gain
+/// Set web UI volume shift and recalculate volume
 void AudioManager::setVolumeWebShift(float value) {
 	::setVolumeWebShift(value);  // no clamp - F9 pattern allows >1.0
-	updateGain();
+	updateVolume();
 }
 
-/// Recalculate and apply gain from all volume sources
-void AudioManager::updateGain() {
-	PlayAudioFragment::updateGain();
+/// Recalculate and apply volume from all volume sources
+void AudioManager::updateVolume() {
+	PlayAudioFragment::updateVolume();
 	if (!isFragmentPlaying() && !isSentencePlaying() && !pcmPlayback_.active) {
 		audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebShift());
 	}

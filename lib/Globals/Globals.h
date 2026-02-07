@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260207D"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260207F"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -102,7 +102,7 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     // SENSORS (16 params)
     // ─────────────────────────────────────────────────────────────
-    // I2C init retry timing - first probe delay and growth factor for exponential backoff
+    // I2C init retry timing - first probe delay and growth multiplier for exponential backoff
     inline static uint16_t distanceSensorInitDelayMs = 500U;     // VL53L1X: first retry delay (ms)
     inline static float    distanceSensorInitGrowth  = 1.5f;      // VL53L1X: interval multiplier per retry (5000 -> 7500 -> 11250...)
     inline static uint16_t luxSensorInitDelayMs      = 1000U;     // VEML7700: first retry delay (ms)

@@ -135,7 +135,7 @@ namespace AlertRGB {
 
 void startFlashing() {
     // Flash burst: configurable via globals.csv
-    // Interval between bursts, repeats, and optional growth factor for exponential backoff
+    // Interval between bursts, repeats, and optional growth multiplier for exponential backoff
     // Only start if not already flashing (create fails if timer exists)
     if (timers.create(Globals::flashBurstIntervalMs, Globals::flashBurstRepeats, cb_flash, Globals::flashBurstGrowth)) {
         cb_flash();  // immediate first flash only if newly created

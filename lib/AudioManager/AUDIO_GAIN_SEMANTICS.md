@@ -6,12 +6,12 @@ This document defines the exact meaning of every audio volume/gain value in the 
 
 ## The Gain Chain
 
-Final output gain = `baseGain × webAudioLevel × fadeFactor`
+Final output gain = `baseGain × webAudioLevel × fadeFraction`
 
 Where:
 - `baseGain` = system-controlled ceiling (shift-adjusted)
 - `webAudioLevel` = user's web slider modifier (0.0-1.0)
-- `fadeFactor` = transient fade envelope (0.0-1.0)
+- `fadeFraction` = transient fade envelope (0.0-1.0)
 
 ## Value Definitions
 

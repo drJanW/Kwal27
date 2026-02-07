@@ -22,10 +22,10 @@ public:
         bool active = false;           ///< Timer slot in use?
         TimerCallback cb = nullptr;    ///< Callback function pointer
         uint8_t token = 1;             ///< Identity token (allows multiple timers per callback)
-        uint32_t interval = 0;         ///< Current interval in ms (may grow if growthFactor > 1.0)
+        uint32_t interval = 0;         ///< Current interval in ms (may grow if growthMultiplier > 1.0)
         uint32_t nextTime = 0;         ///< Absolute millis() timestamp for next fire
         uint8_t repeat = 0;            ///< Remaining fires: 0=infinite, 1=last, >1=countdown
-        float growthFactor = 1.0f;     ///< Interval multiplier per fire (1.0=constant, >1.0=backoff)
+        float growthMultiplier = 1.0f; ///< Interval multiplier per fire (1.0=constant, >1.0=backoff)
     };
 
     static const uint8_t MAX_TIMERS = 60;

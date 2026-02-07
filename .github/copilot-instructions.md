@@ -66,8 +66,8 @@ Every `.cpp` file: `#include <Arduino.h>` as FIRST include
 | Use | NOT |
 |-----|-----|
 | interval | cadence, period |
-| multiplier (0.0+) | modifier, fraction |
-| factor (0.0-1.0) | mult |
+| fraction (0.0-1.0) | factor, mult |
+| multiplier (0.0+) | modifier |
 | shift | offset |
 | brightness | bri, bright |
 | volume | gain (except I2S registers) |

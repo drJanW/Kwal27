@@ -48,6 +48,6 @@ namespace PlayAudioFragment {
   /// Abort playback immediately without fade
   void abortImmediate();
   
-  /// Recalculate and apply gain (call when volume changes)
-  void updateGain();
+  /// Recalculate and apply volume (call when volume changes)
+  void updateVolume();
 }

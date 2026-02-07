@@ -9,7 +9,7 @@
  * resources. Actual playback logic is delegated to PlayFragment and PlaySentence.
  * 
  * Key responsibilities:
- * - Initialize I2S output and gain settings
+ * - Initialize I2S output and volume settings
  * - Route update() calls to active playback module
  * - Manage shared resources (audioFile, decoder, helix)
  * - Prevent concurrent audio via status flags
@@ -59,7 +59,7 @@ class AudioManager {
 public:
   AudioManager();
 
-  /// Initialize I2S output and base gain (call once at boot)
+  /// Initialize I2S output and base volume (call once at boot)
   void begin();
   
   /// Stop all active playback and release resources
@@ -99,8 +99,8 @@ public:
   /// Set web UI volume adjustment (-1.0 to +1.0)
   void setVolumeWebShift(float value);
   
-  /// Recalculate and apply gain from all volume sources
-  void updateGain();
+  /// Recalculate and apply volume from all volume sources
+  void updateVolume();
 
   // Shared audio resources (public for PlayFragment/PlaySentence access)
   AudioOutputI2S_Metered audioOutput;       ///< I2S output with metering

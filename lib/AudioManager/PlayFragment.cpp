@@ -38,7 +38,7 @@ struct FadeState {
     uint8_t  inIndex = 0;
     uint8_t  outIndex = 0;
     uint8_t  lastCurveIndex = 0;
-    float    currentFactor = 0.0f;
+    float    currentFraction = 0.0f;
 };
 
 FadeState& fade() {
@@ -70,27 +70,27 @@ void initCurve() {
     state.curveReady = true;
 }
 
-inline void setFadeFactor(float value) {
-    fade().currentFactor = value;
+inline void setFadeFraction(float value) {
+    fade().currentFraction = value;
 }
 
-inline float fadeFactor() {
-    return fade().currentFactor;
+inline float fadeFraction() {
+    return fade().currentFraction;
 }
 
-inline float currentGain() {
-    return getVolumeShiftedHi() * fadeFactor() * getVolumeWebShift();
+inline float currentVolumeMultiplier() {
+    return getVolumeShiftedHi() * fadeFraction() * getVolumeWebShift();
 }
 
-inline void applyGain() {
-    audio.audioOutput.SetGain(currentGain());
+inline void applyVolume() {
+    audio.audioOutput.SetGain(currentVolumeMultiplier());
 }
 
 void resetFadeIndices() {
     fade().inIndex = 0;
     fade().outIndex = 0;
     fade().lastCurveIndex = 0;
-    fade().currentFactor = 0.0f;
+    fade().currentFraction = 0.0f;
 }
 
 void stopPlayback();
@@ -138,8 +138,8 @@ bool start(const AudioFragment& fragment) {
     }
     resetFadeIndices();
 
-    setFadeFactor(0.0f);
-    applyGain();
+    setFadeFraction(0.0f);
+    applyVolume();
 
     audio.audioFile = new AudioFileSourceSD(getMP3Path(fragment.dirIndex, fragment.fileIndex));
     if (!audio.audioFile) {
@@ -191,7 +191,7 @@ bool start(const AudioFragment& fragment) {
         LOG_WARN("[Audio] Failed to create fragment completion timer\n");
     }
 
-    PF("[audio][fragment] %02u - %02u playing (fade=%ums gain=%.2f)\n", 
+    PF("[audio][fragment] %02u - %02u playing (fade=%ums volume=%.2f)\n", 
        fragment.dirIndex, fragment.fileIndex, state.effectiveMs,
        static_cast<double>(getVolumeShiftedHi() * getVolumeWebShift()));
 
@@ -240,9 +240,9 @@ void stop(uint16_t fadeOutMs) {
     }
 }
 
-void updateGain() {
+void updateVolume() {
     if (!isAudioBusy()) return;
-    applyGain();
+    applyVolume();
 }
 
 } // namespace PlayAudioFragment
@@ -265,8 +265,8 @@ void stopPlayback() {
         audio.audioFile = nullptr;
     }
 
-    setFadeFactor(0.0f);
-    applyGain();
+    setFadeFraction(0.0f);
+    applyVolume();
 
     SDController::unlockSD();  // SD no longer busy
     setAudioBusy(false);
@@ -278,7 +278,7 @@ void stopPlayback() {
     fade().fadeOutDelayMs = 0;
     resetFadeIndices();
 
-    audio.updateGain();
+    audio.updateVolume();
 }
 
 void cb_fadeIn() {
@@ -290,8 +290,8 @@ void cb_fadeIn() {
     if (state.inIndex < kFadeSteps) {
         idx = state.inIndex;
     }
-    setFadeFactor(state.curve[idx]);
-    applyGain();
+    setFadeFraction(state.curve[idx]);
+    applyVolume();
     state.lastCurveIndex = idx;
 
     state.inIndex++;
@@ -307,8 +307,8 @@ void cb_fadeOut() {
     if (state.outIndex < kFadeSteps) {
         idx = static_cast<uint8_t>((kFadeSteps - 1U) - state.outIndex);
     }
-    setFadeFactor(state.curve[idx]);
-    applyGain();
+    setFadeFraction(state.curve[idx]);
+    applyVolume();
     state.lastCurveIndex = idx;
 
     state.outIndex++;

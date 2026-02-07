@@ -46,7 +46,7 @@ brightnessLo;u;10;LEDs never go darker than this value
 # ═══════════════════════════════════════════════════════════════════
 luxMeasurementDelayMs;u;200;LED blackout time before lux read
 #luxMeasurementIntervalMs;u;10000;how often to sample ambient light
-# I2C sensor init retry timing (first delay and growth factor for exponential backoff)
+# I2C sensor init retry timing (first delay and growth multiplier for exponential backoff)
 #distanceSensorInitDelayMs;u;500;VL53L1X first retry delay (ms)
 #distanceSensorInitGrowth;f;1.5;VL53L1X interval multiplier per retry
 #luxSensorInitDelayMs;u;1000;VEML7700 first retry delay (ms)

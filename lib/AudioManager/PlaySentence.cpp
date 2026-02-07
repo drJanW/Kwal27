@@ -58,7 +58,7 @@ uint8_t speakQueueTail = 0;
 // Scratchpad for runtime MP3 arrays (sayTime)
 uint8_t mp3Scratchpad[8];
 
-// One-shot flag: next SetGain uses 1.0 (hardware max) then resets.
+// One-shot flag: next SetGain uses MAX_SPEAK_VOLUME_MULTIPLIER then resets.
 // Safe because WELCOME only fires during boot (queue guaranteed empty).
 bool forceMax = false;
 
@@ -299,9 +299,9 @@ void startTTSInternal(const char* text) {
     setWordPlaying(false);
     setCurrentWordId(PlaySentence::END_OF_SENTENCE);
 
-    float gain = forceMax ? MAX_GAIN : MathUtils::clamp(getVolumeShiftedHi() * 1.8f, 0.0f, 1.0f);
+    float speakVolumeMultiplier = forceMax ? MAX_SPEAK_VOLUME_MULTIPLIER : MathUtils::clamp(getVolumeShiftedHi() * 1.8f, 0.0f, 1.0f);
     forceMax = false;
-    audio.audioOutput.SetGain(gain);
+    audio.audioOutput.SetGain(speakVolumeMultiplier);
 
     String url = makeVoiceRSSUrl(text);
     {
@@ -410,7 +410,7 @@ void playWord() {
         audio.audioFile = nullptr;
     }
     
-    audio.audioOutput.SetGain(forceMax ? MAX_GAIN : MathUtils::clamp(getVolumeShiftedHi() * 1.5f, 0.0f, 1.0f));
+    audio.audioOutput.SetGain(forceMax ? MAX_SPEAK_VOLUME_MULTIPLIER : MathUtils::clamp(getVolumeShiftedHi() * 1.5f, 0.0f, 1.0f));
     forceMax = false;
     
     auto* sdFile = new AudioFileSourceSD(path);

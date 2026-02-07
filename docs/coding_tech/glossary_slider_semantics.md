@@ -10,23 +10,23 @@
 | **Hi** | Current operational right boundary (varies by shift/sensor) | Lo-Max | varies |
 | **fraction** | Attenuation only (cannot amplify) | 0.0-1.0 | 0.5 = half, 1.0 = full |
 | **multiplier** | Can attenuate or amplify | 0.0+ (no upper limit) | 0.5 = half, 1.4 = 140% |
-| **shift** | Integer percentage verschuiving | any int | -5, +3 |
+| **shift** | Integer percentage adjustment | any int | -5, +3 |
 | **pct** | Percentage value (0-100) | 0-100 | sliderPct, loPct, hiPct |
-| **sliderPct** | Slider position as percentage | 0-100 | actuele brightness % |
+| **sliderPct** | Slider position as percentage | 0-100 | current brightness % |
 | **loPct** | Lo as percentage of Max | 0-100 | (Lo / Max) × 100 |
 | **hiPct** | Hi as percentage of Max | 0-100 | (Hi / Max) × 100 |
-| **webShift** | User brightness multiplier from slider | 0.0+ | can be >1.0 to override other shifts |
+| **webShift** | User brightness multiplier from slider | 0.0+ | can be >1.0 to compensate other shifts |
 
 ### Fraction vs Multiplier
 
 ```
-fraction:     0.0 .. 1.0  (alleen attenueren, nooit versterken)
-multiplier: 0.0 .. ∞    (kan attenueren OF versterken)
+fraction:     0.0 .. 1.0  (attenuate only, never amplify)
+multiplier:   0.0 .. ∞    (can attenuate OR amplify)
 
-Voorbeeld webShift als multiplier:
-- Andere shifts brengen brightness naar 70%
-- User wil 100% → webShift = 100/70 = 1.43
-- webShift > 1.0 compenseert andere shifts
+Example webShift as multiplier:
+- Other shifts bring brightness to 70%
+- User wants 100% → webShift = 100/70 = 1.43
+- webShift > 1.0 compensates other shifts
 ```
 
 ### Sensor Ranges (consistent Lo..Hi pairs)
@@ -59,10 +59,10 @@ lux=800 → luxShift=+10 → multiplier=1.10
 
 ### Banned synonyms (use the term above instead)
 - ~~mult~~ → use **multiplier**
-- ~~factor~~ → use **fraction** (if 0-1 only) or **multiplier** (if can exceed 1.0)
+- ~~factor~~ → use **fraction** (if 0.0-1.0) or **multiplier** (if can exceed 1.0)
 - ~~bright~~ → use **brightness** (full word)
 - ~~gain~~ → use **volume** (except for I2S hardware registers)
-- ~~offset~~ → use **shift** (for percentage offsets)
+- ~~offset~~ → use **shift** (for percentage adjustments)
 - ~~modifier~~ → use **fraction** or **multiplier** (be explicit about range)
 - ~~thumbPct~~ → use **sliderPct** (slider position percentage)
 
@@ -78,7 +78,7 @@ brightness = map(sliderPct, Globals::loPct, Globals::hiPct, Globals::brightnessL
 ### Brightness
 | Field | Type | Source |
 |-------|------|--------|
-| `userBrightness` | 0-255 | User's setting (modifier * 255) |
+| `userBrightness` | 0-255 | User's fraction × MAX_BRIGHTNESS |
 | `brightnessLo` | 0-255 | Globals::luxMinBase |
 | `brightnessHi` | 0-255 | No sensor: MAX_BRIGHTNESS, With sensor: lux-computed |
 | `brightnessMax` | 0-255 | MAX_BRIGHTNESS (250) |
@@ -86,7 +86,7 @@ brightness = map(sliderPct, Globals::loPct, Globals::hiPct, Globals::brightnessL
 ### Audio
 | Field | Type | Source |
 |-------|------|--------|
-| `userVolume` | 0.0-1.0 | User's modifier |
+| `userVolume` | 0.0-1.0 | User's volume fraction |
 | `audioLo` | 0.0-1.0 | Globals::audioLo |
 | `audioHi` | 0.0-1.0 | getBaseGain() (time-shifted) |
 | `audioMax` | 0.0-1.0 | MAX_AUDIO_VOLUME (0.47) |
@@ -97,8 +97,8 @@ brightness = map(sliderPct, Globals::loPct, Globals::hiPct, Globals::brightnessL
 |----------|---------|
 | `loPct` | Left grey zone boundary (%) |
 | `hiPct` | Right grey zone boundary (%) |
-| `modifier` | User's 0-1 multiplier |
-| `thumbPct` | Calculated slider position |
+| `modifier` | User's fraction (0.0-1.0) — pending rename, see Proposed Renames |
+| `thumbPct` | Slider position (%) — pending rename to `sliderPct`, see Proposed Renames |
 
 ## Visual
 
@@ -122,7 +122,9 @@ Audio:      [░░■■■■■■■■■■░░░░░░░░]
 | `g_baseGain` (state) | `g_volumeShiftedHi` | Hi boundary after shifts |
 | `getBaseGain()` | `getVolumeShiftedHi()` | Returns shifted Hi |
 | `setBaseGain()` | `setVolumeShiftedHi()` | Sets shifted Hi |
-| `g_webAudioLevel` | `g_volumeWebModifier` | User's modifier from web |
-| `getWebAudioLevel()` | `getVolumeWebModifier()` | Clear meaning |
-| `setWebAudioLevel()` | `setVolumeWebModifier()` | Clear meaning |
+| `g_webAudioLevel` | `g_volumeWebFraction` | User's volume fraction from web |
+| `getWebAudioLevel()` | `getVolumeWebFraction()` | Clear meaning |
+| `setWebAudioLevel()` | `setVolumeWebFraction()` | Clear meaning |
 | `gain` (general) | `volume` | Use "gain" only for I2S hardware |
+| `modifier` (JS) | `brightnessFraction` | Align with fraction terminology |
+| `thumbPct` (JS) | `sliderPct` | Align with sliderPct terminology |

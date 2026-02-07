@@ -210,8 +210,8 @@ void applyBrightness() {
   if (isAudioBusy()) {
     uint16_t audioLevel = getAudioLevelRaw();
     if (audioLevel) {
-      float audioFactor = MathUtils::clamp01(sqrtf(audioLevel / 32768.0f) * 1.2f);
-      brightness = static_cast<uint8_t>(brightness * audioFactor);
+      float audioFraction = MathUtils::clamp01(sqrtf(audioLevel / 32768.0f) * 1.2f);
+      brightness = static_cast<uint8_t>(brightness * audioFraction);
     }
   }
 
