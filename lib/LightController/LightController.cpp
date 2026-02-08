@@ -10,6 +10,7 @@
 #include <FastLED.h>
 //#include <math.h>
 #include "AudioState.h"
+#include "LightRun.h"
 #include "MathUtils.h"
 #include "SensorController.h"
 #include "TimerManager.h"
@@ -198,6 +199,9 @@ void PlayLightShow(const LightShowParams &p) {
 
 // === Brightness ===
 void applyBrightness() {
+  // Skip while fade callbacks own FastLED brightness (lux measurement cycle)
+  if (LightRun::isBrightnessFading()) return;
+
   // sliderPct is derived from shiftedHi, which already includes webShift
   int sliderPct = getSliderPct();
   

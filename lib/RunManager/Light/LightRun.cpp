@@ -21,12 +21,28 @@
 #include "WebGuiStatus.h"
 #include <FastLED.h>
 
+// True while fade callbacks own FastLED brightness
+static bool brightnessFading = false;
+
+bool LightRun::isBrightnessFading() { return brightnessFading; }
+
 namespace {
 
 // Lux measurement state
 bool luxMeasureActive = false;
 bool luxRequestPending = false;      // Slider requested measurement (B6)
 bool luxInCooldown = false;          // 100ms cooldown active (B6)
+
+// Brightness fade state — uses shared Globals::fadeCurve (15-step sine²)
+constexpr uint16_t brightnessFadeMs = 400;
+constexpr uint16_t brightnessStepMs = brightnessFadeMs / Globals::fadeStepCount;  // ~26ms
+uint8_t  fadeStep = 0;
+uint8_t  fadeStartBrightness = 0;
+
+void applyFadeBrightness(uint8_t bri) {
+    FastLED.setBrightness(bri);
+    FastLED.show();
+}
 
 uint32_t currentIntervalMs = 0;
 float currentIntensity = 0.0f;
@@ -177,23 +193,24 @@ void LightRun::cb_shiftTimer() {
 void LightRun::cb_luxMeasure() {
     // Skip if no lux sensor present (preserves boot default brightness)
     if (!AlertState::isLuxSensorOk()) return;
+    if (brightnessFading) return;  // Guard: fade already in progress
     
-    // Step 1: Enter measurement enable (LEDs off for accurate sensor read)
-    lightController.setMeasurementEnabled(true);
     luxMeasureActive = true;
-    // Step 2: Schedule delayed read after LEDs settle
-    timers.create(Globals::luxMeasurementDelayMs, 1, LightRun::cb_luxMeasureRead);
+    fadeStartBrightness = getBrightnessShiftedHi();
+    fadeStep = 0;
+    brightnessFading = true;
+    timers.create(brightnessStepMs, Globals::fadeStepCount, LightRun::cb_fadeBrightnessOut);
 }
 
-void LightRun::cb_luxMeasureRead() {
+void LightRun::cb_measureLux() {
     if (!luxMeasureActive) return;  // Guard: measurement was cancelled
     luxMeasureActive = false;
     
-    // Step 3: Read sensor
+    // LEDs are now at 0 brightness — read sensor
     SensorController::performLuxMeasurement();
     float lux = SensorController::ambientLux();
     
-    // Step 4: Get calendar brightness shift and compute shiftedHi in one formula
+    // Compute new brightness from lux + calendar shift + web shift
 #ifndef DISABLE_SHIFTS
     uint64_t statusBits = StatusFlags::getFullStatusBits();
     float colorMults[COLOR_PARAM_COUNT];
@@ -208,21 +225,52 @@ void LightRun::cb_luxMeasureRead() {
     
     PF("[LightRun] Lux=%.1f calShift=%d webShift=%.2f → shiftedHi=%u\n", lux, calendarShift, getWebShift(), shiftedHi);
     
-    // Step 5: Apply pattern/color shifts (brightness already done above)
+    // Repaint LED buffer with current pattern/colors, but keep brightness at 0
+    // The fader will ramp up to shiftedHi smoothly
     applyToLights();
-    lightController.setMeasurementEnabled(false);
     WebGuiStatus::pushState();
     
-    // B6: Start cooldown, check for pending slider request
+    // Fade in smoothly to new brightness (400ms sine² curve)
+    fadeStartBrightness = getBrightnessShiftedHi();
+    fadeStep = 0;
+    brightnessFading = true;
+    timers.create(brightnessStepMs, Globals::fadeStepCount, LightRun::cb_fadeBrightnessIn);
+    
+    // Cooldown, check for pending slider request
     luxInCooldown = true;
     timers.create(100, 1, LightRun::cb_cooldownExpired);
     if (luxRequestPending) {
-        timers.create(100, 1, LightRun::cb_tryLuxMeasure);
+        // Schedule retry after fade-in completes (~400ms) + cooldown (100ms)
+        timers.create(500, 1, LightRun::cb_tryLuxMeasure);
     }
 }
 
 void LightRun::cb_cooldownExpired() {
     luxInCooldown = false;
+}
+
+void LightRun::cb_fadeBrightnessOut() {
+    if (!brightnessFading) return;
+    uint8_t idx = (Globals::fadeStepCount - 1) - fadeStep;
+    uint8_t bri = static_cast<uint8_t>(fadeStartBrightness * Globals::fadeCurve[idx]);
+    applyFadeBrightness(bri);
+    fadeStep++;
+    if (fadeStep >= Globals::fadeStepCount) {
+        applyFadeBrightness(0);
+        brightnessFading = false;
+        cb_measureLux();   // LEDs dark → read sensor
+    }
+}
+
+void LightRun::cb_fadeBrightnessIn() {
+    if (!brightnessFading) return;
+    uint8_t bri = static_cast<uint8_t>(fadeStartBrightness * Globals::fadeCurve[fadeStep]);
+    applyFadeBrightness(bri);
+    fadeStep++;
+    if (fadeStep >= Globals::fadeStepCount) {
+        applyFadeBrightness(fadeStartBrightness);
+        brightnessFading = false;
+    }
 }
 
 // B6: Slider-triggered lux measurement with debounce + 100ms cooldown
@@ -659,7 +707,7 @@ void LightRun::applyToLights() {
         }
         
         // Brightness shift: only apply if not already computed by calcShiftedHi
-        // When called from cb_luxMeasureRead, brightness is already set
+        // When called from cb_measureLux, brightness is already set
         // When called from other places (pattern change etc), apply it here
         if (getBrightnessShiftedHi() == getBrightnessUnshiftedHi()) {
             // Not yet shifted, apply now

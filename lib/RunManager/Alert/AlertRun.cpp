@@ -79,7 +79,7 @@ void cb_statusReminder() {
 void cb_healthStatus() {
     PF("[Health] Version %s\n", FIRMWARE_VERSION);
     PF("[Health] Timers %d/%d\n", timers.getActiveCount(), TimerManager::MAX_TIMERS);
-    PL("[Health] Components:");
+    //PL("[Health] Components:");
     
     struct { StatusComponent c; const char* name; const char* icon; } items[] = {
         { SC_SD,       "SD",       "💾" },

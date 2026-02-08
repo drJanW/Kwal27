@@ -30,9 +30,14 @@ public:
     static void cb_animation();
     static void cb_shiftTimer();
     static void cb_luxMeasure();
-    static void cb_luxMeasureRead();
+    static void cb_measureLux();
+    static void cb_fadeBrightnessOut();
+    static void cb_fadeBrightnessIn();
     static void cb_tryLuxMeasure();
     static void cb_cooldownExpired();
+
+    /// True while brightness fade is in progress (lux measurement cycle)
+    static bool isBrightnessFading();
 
     // Slider-triggered lux measurement (B6: debounce + 100ms cooldown)
     static void requestLuxMeasurement();

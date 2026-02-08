@@ -10,6 +10,7 @@
 #include "Alert/AlertState.h"
 #include "SdPathUtils.h"
 #include <esp_system.h>
+#include <math.h>
 
 // Hardware status register (graceful degradation)
 uint16_t hwStatus = 0;
@@ -597,6 +598,18 @@ static void applyOverride(const char* key, char type, const char* value) {
 // ─────────────────────────────────────────────────────────────
 // Globals::begin() - Load CSV overrides
 // ─────────────────────────────────────────────────────────────
+
+// Sine² fade curve: curve[i] = sin²(π/2 × i/(N-1)), i = 0…14
+// Called once from SystemBoot stage 0
+float Globals::fadeCurve[Globals::fadeStepCount] = {};
+
+void Globals::fillFadeCurve() {
+    for (uint8_t i = 0; i < fadeStepCount; ++i) {
+        float x = static_cast<float>(i) / static_cast<float>(fadeStepCount - 1);
+        float s = sinf(1.5707963f * x);
+        fadeCurve[i] = s * s;
+    }
+}
 
 void Globals::begin() {
     // Check SD availability

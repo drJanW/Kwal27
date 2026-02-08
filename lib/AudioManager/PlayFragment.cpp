@@ -4,11 +4,10 @@
  * @version 260205A
  * @date 2026-02-05
  * 
- * Implements fade-in/fade-out using precomputed sine-power curve.
+ * Implements fade-in/fade-out using shared Globals::fadeCurve (sine² curve).
  * Timer-driven: no polling, no loop() dependency.
  * 
- * Fade curve: curve[i] = pow(sin(π/2 * i/(N-1)), FADE_POWER)
- * Default FADE_POWER = 2.0 gives smooth perceptual fade.
+ * Fade curve: Globals::fadeCurve[i] = sin²(π/2 × i/(N-1)), precomputed at boot.
  */
 #include "PlayFragment.h"
 #include "Globals.h"
@@ -17,21 +16,12 @@
 #include "TimerManager.h"
 #include "SDController.h"
 #include "WebGuiStatus.h"
-#include <math.h>
 
 extern const char* getMP3Path(uint8_t dirIdx, uint8_t fileIdx);
 
-#ifndef FADE_POWER
-#define FADE_POWER 2.0f
-#endif
-
 namespace {
 
-constexpr uint8_t kFadeSteps = 15;
-
 struct FadeState {
-    bool     curveReady = false;
-    float    curve[kFadeSteps];
     uint16_t effectiveMs = 0;
     uint16_t stepMs = 1;
     uint32_t fadeOutDelayMs = 0;
@@ -44,30 +34,6 @@ struct FadeState {
 FadeState& fade() {
     static FadeState state;
     return state;
-}
-
-void initCurve() {
-    auto& state = fade();
-    if (state.curveReady) return;
-    float power = FADE_POWER;
-    if (power < 1.0f) {
-        power = 1.0f;
-    }
-    for (uint8_t i = 0; i < kFadeSteps; ++i) {
-        const float numerator = static_cast<float>(i);
-        uint8_t stepCount = 1U;
-        if (kFadeSteps > 1U) {
-            stepCount = static_cast<uint8_t>(kFadeSteps - 1U);
-        }
-        const float denominator = static_cast<float>(stepCount);
-        float x = 1.0f;
-        if (kFadeSteps > 1U) {
-            x = numerator / denominator;
-        }
-        const float s = sinf(1.5707963f * x);
-        state.curve[i] = powf(s, power);
-    }
-    state.curveReady = true;
 }
 
 inline void setFadeFraction(float value) {
@@ -108,8 +74,6 @@ bool start(const AudioFragment& fragment) {
         return false;
     }
 
-    initCurve();
-
     auto& state = fade();
 
     SDController::lockSD();  // SD busy while streaming MP3
@@ -128,7 +92,7 @@ bool start(const AudioFragment& fragment) {
     if (state.effectiveMs == 0) {
         state.stepMs = 1;
     } else {
-        state.stepMs = static_cast<uint16_t>(state.effectiveMs / kFadeSteps);
+        state.stepMs = static_cast<uint16_t>(state.effectiveMs / Globals::fadeStepCount);
     }
     if (state.stepMs == 0) state.stepMs = 1;
     if (fragment.durationMs > static_cast<uint32_t>(state.effectiveMs) * 2U) {
@@ -171,12 +135,12 @@ bool start(const AudioFragment& fragment) {
     timers.cancel(cb_fadeIn);
     timers.cancel(cb_fadeOut);
 
-    if (!timers.create(state.stepMs, kFadeSteps, cb_fadeIn)) {
+    if (!timers.create(state.stepMs, Globals::fadeStepCount, cb_fadeIn)) {
         LOG_WARN("[Fade] Failed to start fade-in timer\n");
     }
 
     if (state.fadeOutDelayMs == 0) {
-        if (!timers.create(state.stepMs, kFadeSteps, cb_fadeOut)) {
+        if (!timers.create(state.stepMs, Globals::fadeStepCount, cb_fadeOut)) {
             LOG_WARN("[Fade] Failed to start fade-out timer\n");
         }
     } else {
@@ -216,25 +180,25 @@ void stop(uint16_t fadeOutMs) {
         effective = state.effectiveMs;
     }
 
-    if (effective <= kFadeMinMs || kFadeSteps == 0U) {
+    if (effective <= kFadeMinMs || Globals::fadeStepCount == 0U) {
         stopPlayback();
         return;
     }
 
     state.effectiveMs = effective;
     state.fadeOutDelayMs = 0;
-    state.stepMs = static_cast<uint16_t>(effective / kFadeSteps);
+    state.stepMs = static_cast<uint16_t>(effective / Globals::fadeStepCount);
     if (state.stepMs == 0) {
         state.stepMs = 1;
     }
 
     uint8_t startOffset = 0;
-    if (kFadeSteps > 0U) {
-        startOffset = static_cast<uint8_t>((kFadeSteps - 1U) - state.lastCurveIndex);
+    if (Globals::fadeStepCount > 0U) {
+        startOffset = static_cast<uint8_t>((Globals::fadeStepCount - 1U) - state.lastCurveIndex);
     }
     state.outIndex = startOffset;
 
-    if (!timers.create(state.stepMs, kFadeSteps, cb_fadeOut)) {
+    if (!timers.create(state.stepMs, Globals::fadeStepCount, cb_fadeOut)) {
         LOG_WARN("[Fade] Failed to create stop() fade-out timer\n");
         stopPlayback();
     }
@@ -284,18 +248,18 @@ void stopPlayback() {
 void cb_fadeIn() {
     auto& state = fade();
     uint8_t idx = 0;
-    if (kFadeSteps > 0U) {
-        idx = static_cast<uint8_t>(kFadeSteps - 1U);
+    if (Globals::fadeStepCount > 0U) {
+        idx = static_cast<uint8_t>(Globals::fadeStepCount - 1U);
     }
-    if (state.inIndex < kFadeSteps) {
+    if (state.inIndex < Globals::fadeStepCount) {
         idx = state.inIndex;
     }
-    setFadeFraction(state.curve[idx]);
+    setFadeFraction(Globals::fadeCurve[idx]);
     applyVolume();
     state.lastCurveIndex = idx;
 
     state.inIndex++;
-    if (state.inIndex >= kFadeSteps) {
+    if (state.inIndex >= Globals::fadeStepCount) {
         timers.cancel(cb_fadeIn);
         state.inIndex = 0;
     }
@@ -304,15 +268,15 @@ void cb_fadeIn() {
 void cb_fadeOut() {
     auto& state = fade();
     uint8_t idx = 0;
-    if (state.outIndex < kFadeSteps) {
-        idx = static_cast<uint8_t>((kFadeSteps - 1U) - state.outIndex);
+    if (state.outIndex < Globals::fadeStepCount) {
+        idx = static_cast<uint8_t>((Globals::fadeStepCount - 1U) - state.outIndex);
     }
-    setFadeFraction(state.curve[idx]);
+    setFadeFraction(Globals::fadeCurve[idx]);
     applyVolume();
     state.lastCurveIndex = idx;
 
     state.outIndex++;
-    if (state.outIndex >= kFadeSteps) {
+    if (state.outIndex >= Globals::fadeStepCount) {
         timers.cancel(cb_fadeOut);
         state.outIndex = 0;
         stopPlayback();
@@ -322,8 +286,8 @@ void cb_fadeOut() {
 void cb_beginFadeOut() {
     auto& state = fade();
     uint8_t startOffset = 0;
-    if (kFadeSteps > 0U) {
-        startOffset = static_cast<uint8_t>((kFadeSteps - 1U) - state.lastCurveIndex);
+    if (Globals::fadeStepCount > 0U) {
+        startOffset = static_cast<uint8_t>((Globals::fadeStepCount - 1U) - state.lastCurveIndex);
     }
     state.outIndex = startOffset;
     timers.cancel(cb_fadeOut);
@@ -331,7 +295,7 @@ void cb_beginFadeOut() {
     if (step == 0) {
         step = 1;
     }
-    if (!timers.create(step, kFadeSteps, cb_fadeOut)) {
+    if (!timers.create(step, Globals::fadeStepCount, cb_fadeOut)) {
         LOG_WARN("[Fade] Failed to launch delayed fade-out timer\n");
         stopPlayback();
     }

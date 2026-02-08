@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260208B"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260208D"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -191,6 +191,14 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     inline static uint32_t timerStatusIntervalMs   = MINUTES(30);  // Timer pool status log interval
     inline static uint32_t healthStatusIntervalMs  = SECONDS(300); // Health status log interval
+
+    // ─────────────────────────────────────────────────────────────
+    // FADE CURVE — shared sine² curve, computed once at boot
+    // Used by audio fade (PlayFragment) and brightness fade (LightRun)
+    // ─────────────────────────────────────────────────────────────
+    static constexpr uint8_t fadeStepCount = 15;
+    static float fadeCurve[fadeStepCount];
+    static void fillFadeCurve();
 
     // Initialize: load CSV overrides (call after SD init)
     static void begin();

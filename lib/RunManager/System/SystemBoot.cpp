@@ -23,6 +23,7 @@ bool systemBootStage0() {
     }
     delay(50);         // Let hardware RNG settle BEFORE seeding
     bootRandomSeed();  // Seed RNG after hardware is ready
+    Globals::fillFadeCurve();  // Precompute shared sine² fade curve
     PF("%s\n", FIRMWARE_VERSION);
     otaBootHandler();  // Check if OTA mode was requested
     return true;       // Stage 0 complete
