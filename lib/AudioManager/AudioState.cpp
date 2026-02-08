@@ -49,9 +49,8 @@ int getAudioSliderPct() {
     float effectiveHi = shiftedHi * webShift;
     // Map to slider percentage using Globals (like brightness)
     return static_cast<int>(MathUtils::mapRange(
-        effectiveHi,
-        Globals::volumeLo, Globals::volumeHi,
-        static_cast<float>(Globals::loPct), static_cast<float>(Globals::hiPct)));
+        effectiveHi, Globals::volumeLo, Globals::volumeHi,
+        Globals::loPct, Globals::hiPct));
 }
 
 void setAudioLevelRaw(int16_t value) {

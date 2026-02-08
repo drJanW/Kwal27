@@ -40,8 +40,7 @@ void routeSetLevel(AsyncWebServerRequest *request)
     
     // Map sliderPct to target volume using Globals (like brightness)
     float targetVolume = MathUtils::mapRange(
-        static_cast<float>(sliderPct),
-        static_cast<float>(Globals::loPct), static_cast<float>(Globals::hiPct),
+        sliderPct, Globals::loPct, Globals::hiPct,
         Globals::volumeLo, Globals::volumeHi);
     
     // Calculate webShift: what multiplier on shiftedHi gives targetVolume?

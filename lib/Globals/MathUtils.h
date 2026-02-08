@@ -37,31 +37,26 @@ inline T maxVal(T a, T b) {
     return (a > b) ? a : b;
 }
 
-template <typename T,
-          typename std::enable_if<detail::IsArithmetic<T>::value, int>::type = 0>
-inline T clamp(T value, T minValue, T maxValue) {
-    if (minValue > maxValue) {
-        const T tmp = minValue;
-        minValue = maxValue;
-        maxValue = tmp;
-    }
-    if (value < minValue) {
-        return minValue;
-    }
-    if (value > maxValue) {
-        return maxValue;
-    }
-    return value;
+template <typename T1, typename T2, typename T3>
+inline auto clamp(T1 value, T2 minValue, T3 maxValue)
+    -> typename std::common_type<T1, T2, T3>::type {
+    using R = typename std::common_type<T1, T2, T3>::type;
+    R lo = static_cast<R>(minValue);
+    R hi = static_cast<R>(maxValue);
+    if (lo > hi) { R tmp = lo; lo = hi; hi = tmp; }
+    R v = static_cast<R>(value);
+    if (v < lo) return lo;
+    if (v > hi) return hi;
+    return v;
 }
 
-template <typename T,
-          typename std::enable_if<detail::IsArithmetic<T>::value, int>::type = 0>
-inline T map(T value, T inMin, T inMax, T outMin, T outMax) {
-    if (inMin == inMax) {
-        return outMin;
-    }
-    const T t = (value - inMin) / (inMax - inMin);
-    return outMin + t * (outMax - outMin);
+template <typename T1, typename T2, typename T3, typename T4, typename T5>
+inline float map(T1 value, T2 inMin, T3 inMax, T4 outMin, T5 outMax) {
+    float fInMin = static_cast<float>(inMin);
+    float fInMax = static_cast<float>(inMax);
+    if (fInMin == fInMax) return static_cast<float>(outMin);
+    float t = (static_cast<float>(value) - fInMin) / (fInMax - fInMin);
+    return static_cast<float>(outMin) + t * (static_cast<float>(outMax) - static_cast<float>(outMin));
 }
 
 inline float clamp01(float value) {
@@ -107,13 +102,10 @@ inline float inverseLerp(float a, float b, float value) {
     return clamp01((value - a) / (b - a));
 }
 
-inline float mapRange(float value,
-                      float inMin,
-                      float inMax,
-                      float outMin,
-                      float outMax) {
-    const float t = inverseLerp(inMin, inMax, value);
-    return lerp(outMin, outMax, t);
+template <typename T1, typename T2, typename T3, typename T4, typename T5>
+inline float mapRange(T1 value, T2 inMin, T3 inMax, T4 outMin, T5 outMax) {
+    const float t = inverseLerp(static_cast<float>(inMin), static_cast<float>(inMax), static_cast<float>(value));
+    return lerp(static_cast<float>(outMin), static_cast<float>(outMax), t);
 }
 
 inline bool nearlyEqual(float a, float b, float epsilon = 1e-5f) {

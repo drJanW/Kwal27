@@ -13,7 +13,7 @@
 namespace LightPolicy {
 
 float applyBrightnessRules(float requested) {
-    return clamp(requested, 0.0f, static_cast<float>(Globals::maxBrightness));
+    return clamp(requested, 0.0f, Globals::maxBrightness);
 }
 
 uint8_t calcShiftedHi(float lux, int8_t calendarShift, float webShift) {
@@ -23,20 +23,18 @@ uint8_t calcShiftedHi(float lux, int8_t calendarShift, float webShift) {
     // Low lux → large shift change, high lux → compressed (matches human perception)
     float normalizedLux = clamp(lux, Globals::luxMin, Globals::luxMax) / Globals::luxMax;
     float luxT = powf(normalizedLux, Globals::luxGamma);
-    float luxShift = static_cast<float>(Globals::luxShiftLo) + 
-        (static_cast<float>(Globals::luxShiftHi) - static_cast<float>(Globals::luxShiftLo)) * luxT;
+    float luxShift = Globals::luxShiftLo +
+        (Globals::luxShiftHi - Globals::luxShiftLo) * luxT;
     
     // Combined multiplier (webShift can be >1.0 to override other shifts)
     float combinedMultiplier = 
         (1.0f + (luxShift / 100.0f)) * 
-        (1.0f + (static_cast<float>(calendarShift) / 100.0f)) *
+        (1.0f + (calendarShift / 100.0f)) *
         webShift;
     
     // Map directly to brightness range, clamp to valid bounds
-    float brightness = static_cast<float>(Globals::brightnessHi) * combinedMultiplier;
-    return static_cast<uint8_t>(clamp(brightness, 
-        static_cast<float>(Globals::brightnessLo), 
-        static_cast<float>(Globals::brightnessHi)));
+    float brightness = Globals::brightnessHi * combinedMultiplier;
+    return static_cast<uint8_t>(clamp(brightness, Globals::brightnessLo, Globals::brightnessHi));
 }
 
 bool distanceAnimationFor(float distanceMm,

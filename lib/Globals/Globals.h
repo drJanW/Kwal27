@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260208D"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260208E"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -199,6 +199,12 @@ struct Globals {
     static constexpr uint8_t fadeStepCount = 15;
     static float fadeCurve[fadeStepCount];
     static void fillFadeCurve();
+
+    // Guards applyBrightness() during lux fade: both the 50ms repaint timer
+    // and the 26ms fade callbacks call FastLED.setBrightness(). Without this
+    // flag the repaint would stomp the fade curve mid-step. Set by LightRun,
+    // read by LightController. Lives in Globals for cross-library visibility.
+    inline static bool brightnessFading = false;
 
     // Initialize: load CSV overrides (call after SD init)
     static void begin();

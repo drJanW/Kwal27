@@ -113,13 +113,12 @@ void routeSetBrightness(AsyncWebServerRequest *request)
     
     // 3. Calculate target brightness from slider percentage
     float targetBrightness = MathUtils::map(
-        static_cast<float>(sliderPct),
-        static_cast<float>(Globals::loPct), static_cast<float>(Globals::hiPct),
-        static_cast<float>(Globals::brightnessLo), static_cast<float>(Globals::brightnessHi));
+        sliderPct, Globals::loPct, Globals::hiPct,
+        Globals::brightnessLo, Globals::brightnessHi);
     
     // 4. Calculate webShift: what would shiftedHi be with webShift=1.0?
     uint8_t baseShiftedHi = LightPolicy::calcShiftedHi(lux, calendarShift, 1.0f);
-    float webShift = (baseShiftedHi > 0) ? (targetBrightness / static_cast<float>(baseShiftedHi)) : 1.0f;
+    float webShift = (baseShiftedHi > 0) ? (targetBrightness / baseShiftedHi) : 1.0f;
     setWebShift(webShift);
     
     // 5. Recalculate shiftedHi with new webShift

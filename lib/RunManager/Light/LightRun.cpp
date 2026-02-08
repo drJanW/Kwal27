@@ -21,10 +21,8 @@
 #include "WebGuiStatus.h"
 #include <FastLED.h>
 
-// True while fade callbacks own FastLED brightness
-static bool brightnessFading = false;
-
-bool LightRun::isBrightnessFading() { return brightnessFading; }
+// Alias for readability — Globals::brightnessFading
+static inline bool& brightnessFading = Globals::brightnessFading;
 
 namespace {
 

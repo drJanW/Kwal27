@@ -22,13 +22,9 @@ constexpr uint32_t HEARTBEAT_JITTER_MS = 10;    // minimum delta before updating
 uint32_t distanceToHeartbeat(float mm) {
 	float clamped = clamp(mm, Globals::distanceMinMm, Globals::distanceMaxMm);
 	float mapped = map(clamped,
-		Globals::distanceMinMm,
-		Globals::distanceMaxMm,
-		static_cast<float>(Globals::heartbeatMinMs),
-		static_cast<float>(Globals::heartbeatMaxMs));
-	float bounded = clamp(mapped,
-		static_cast<float>(Globals::heartbeatMinMs),
-		static_cast<float>(Globals::heartbeatMaxMs));
+		Globals::distanceMinMm, Globals::distanceMaxMm,
+		Globals::heartbeatMinMs, Globals::heartbeatMaxMs);
+	float bounded = clamp(mapped, Globals::heartbeatMinMs, Globals::heartbeatMaxMs);
 	return static_cast<uint32_t>(bounded + 0.5f);
 }
 

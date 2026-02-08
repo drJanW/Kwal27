@@ -17,12 +17,7 @@ public:
 
   void showOtaPattern();
 
-  // Measurement enable API
-  void setMeasurementEnabled(bool enable);
-  bool isMeasurementEnabled() const;
-
 private:
-  bool measurementEnabled = false;
   LightController(const LightController&) = delete;
   LightController& operator=(const LightController&) = delete;
 };

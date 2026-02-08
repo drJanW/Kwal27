@@ -10,33 +10,11 @@
 #include <FastLED.h>
 //#include <math.h>
 #include "AudioState.h"
-#include "LightRun.h"
 #include "MathUtils.h"
 #include "SensorController.h"
 #include "TimerManager.h"
 
 LightController lightController;
-
-// === Measurement Enable ===
-// When enabled, all LEDs are forced off for sensor measurement
-// RunManager will coordinate this
-void LightController::setMeasurementEnabled(bool enable) {
-  measurementEnabled = enable;
-  if (enable) {
-    // Turn off all LEDs for measurement
-    fill_solid(leds, NUM_LEDS, CRGB::Black);
-    FastLED.setBrightness(0);
-    FastLED.show();
-  } else {
-    // Restore previous brightness and state
-    FastLED.setBrightness(getBrightnessShiftedHi());
-    updateLightController();
-  }
-}
-
-bool LightController::isMeasurementEnabled() const {
-  return measurementEnabled;
-}
 
 namespace {
 
@@ -64,9 +42,9 @@ void setWebShift(float value) {
 // SliderPct: current shiftedHi as percentage of Lo..Hi range
 int getSliderPct() {
   return static_cast<int>(MathUtils::mapRange(
-    static_cast<float>(brightnessShiftedHi),
-    static_cast<float>(Globals::brightnessLo), static_cast<float>(Globals::brightnessHi),
-    static_cast<float>(Globals::loPct), static_cast<float>(Globals::hiPct)));
+    brightnessShiftedHi,
+    Globals::brightnessLo, Globals::brightnessHi,
+    Globals::loPct, Globals::hiPct));
 }
 
 uint8_t getBrightnessShiftedHi() {
@@ -200,15 +178,14 @@ void PlayLightShow(const LightShowParams &p) {
 // === Brightness ===
 void applyBrightness() {
   // Skip while fade callbacks own FastLED brightness (lux measurement cycle)
-  if (LightRun::isBrightnessFading()) return;
+  if (Globals::brightnessFading) return;
 
   // sliderPct is derived from shiftedHi, which already includes webShift
   int sliderPct = getSliderPct();
   
   uint8_t brightness = static_cast<uint8_t>(MathUtils::mapRange(
-    static_cast<float>(sliderPct),
-    static_cast<float>(Globals::loPct), static_cast<float>(Globals::hiPct),
-    static_cast<float>(Globals::brightnessLo), static_cast<float>(Globals::brightnessHi)));
+    sliderPct, Globals::loPct, Globals::hiPct,
+    Globals::brightnessLo, Globals::brightnessHi));
   
   // Audio modulation (only attenuates)
   if (isAudioBusy()) {

@@ -4,6 +4,7 @@
  * @version 260205A
  * @date 2026-02-05
  */
+#define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "ColorsCatalog.h"
 
 #include <algorithm>
@@ -205,7 +206,7 @@ bool ColorsCatalog::selectNextColor(String& errorMessage) {
     // Advance to next (wrap)
     size_t nextIdx = (currentIdx + 1) % colors_.size();
     activeColorId_ = colors_[nextIdx].id;
-    PF("[ColorsCatalog] Color next -> %s\n", activeColorId_.c_str());
+    LOG_DEBUG("[ColorsCatalog] Color next -> %s\n", activeColorId_.c_str());
     return true;
 }
 
@@ -229,7 +230,7 @@ bool ColorsCatalog::selectPrevColor(String& errorMessage) {
     // Go to previous (wrap)
     size_t prevIdx = (currentIdx == 0) ? colors_.size() - 1 : currentIdx - 1;
     activeColorId_ = colors_[prevIdx].id;
-    PF("[ColorsCatalog] Color prev -> %s\n", activeColorId_.c_str());
+    LOG_DEBUG("[ColorsCatalog] Color prev -> %s\n", activeColorId_.c_str());
     return true;
 }
 

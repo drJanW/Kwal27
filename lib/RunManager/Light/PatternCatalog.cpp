@@ -4,6 +4,7 @@
  * @version 260204A
  * @date 2026-02-04
  */
+#define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "PatternCatalog.h"
 
 #include <algorithm>
@@ -160,7 +161,7 @@ bool PatternCatalog::selectNext(String& errorMessage) {
     // Advance to next (wrap)
     size_t nextIdx = (currentIdx + 1) % patterns_.size();
     activePatternId_ = patterns_[nextIdx].id;
-    PF("[PatternCatalog] Pattern next -> %s\n", activePatternId_.c_str());
+    LOG_DEBUG("[PatternCatalog] Pattern next -> %s\n", activePatternId_.c_str());
     return true;
 }
 
@@ -184,7 +185,7 @@ bool PatternCatalog::selectPrev(String& errorMessage) {
     // Go to previous (wrap)
     size_t prevIdx = (currentIdx == 0) ? patterns_.size() - 1 : currentIdx - 1;
     activePatternId_ = patterns_[prevIdx].id;
-    PF("[PatternCatalog] Pattern prev -> %s\n", activePatternId_.c_str());
+    LOG_DEBUG("[PatternCatalog] Pattern prev -> %s\n", activePatternId_.c_str());
     return true;
 }
 
