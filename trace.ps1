@@ -1,5 +1,5 @@
 param(
-    [string]$ComPort = "6"
+    [string]$ComPort = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,5 +8,9 @@ if (-not (Test-Path -LiteralPath $pio)) {
     throw "PlatformIO executable not found: $pio"
 }
 
-$portArg = "COM$ComPort"
-& $pio device monitor --port $portArg --baud 115200 --filter default
+$args = @("device", "monitor", "--baud", "115200", "--filter", "default")
+if ($ComPort -ne "") {
+    $args += @("--port", "COM$ComPort")
+}
+
+& $pio @args

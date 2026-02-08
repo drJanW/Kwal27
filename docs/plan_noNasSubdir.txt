@@ -1,0 +1,78 @@
+Plan: Remove /nas/ subdirectory — download NAS CSVs straight to SD root
+======================================================================
+Date: 2026-02-08
+
+WHY
+---
+The /nas/ subdir exists only to distinguish "downloaded from NAS" from
+"uploaded via web." This distinction adds complexity but no real value:
+- chooseCsvPath() checks /nas/ first, falls back to / — but downloading
+  directly to / gives the same end result (NAS version wins).
+- Stale /nas/ files can shadow root files, causing hard-to-debug issues.
+- Every CSV loader must call chooseCsvPath() instead of a simple path.
+- On NAS failure the code deletes the /nas/ file anyway, so there is no
+  reliable "rollback to SD root" — the download is trusted or discarded.
+
+WHAT CHANGES
+------------
+1. WiFiBoot.cpp — download to root
+   - buildCsvPath()      : return "/<filename>"  (was "/nas/<filename>")
+   - buildCsvTempPath()   : return "/<filename>.tmp"  (was "/nas/<filename>.tmp")
+   - DELETE ensureNasDirectory()  — no subdir to create
+   - DELETE removeNasCsvFile()    — no /nas/ files to clean up
+   - DELETE removeAllNasCsvFiles()
+   - downloadCsvFile(): remove ensureNasDirectory() call,
+     remove all removeNasCsvFile() calls (on failure the .tmp is already
+     deleted; the root file stays as-is which IS the fallback)
+   - cb_csvFetchTimeout(): remove removeAllNasCsvFiles() call
+     (nothing to clean — root files remain untouched if fetch didn't finish)
+
+2. SdPathUtils.cpp / .h — remove chooseCsvPath()
+   - DELETE chooseCsvPath() function and its declaration
+
+3. All CSV loaders — replace chooseCsvPath() with direct path
+   Replace:  SdPathUtils::chooseCsvPath("X.csv")
+   With:     String("/<filename>")   or a local constant
+
+   Files (8 call sites):
+   - lib/Globals/Globals.cpp                     ("globals.csv")
+   - lib/ContextController/Calendar.cpp           (sanitizedFile)
+   - lib/ContextController/ThemeBoxTable.cpp       (sanitizedFile)
+   - lib/ContextController/LightPatternCatalog.cpp (sanitizedFile)
+   - lib/ContextController/LightColorCatalog.cpp   (sanitizedFile)
+   - lib/RunManager/Light/PatternCatalog.cpp       (kPatternPath)
+   - lib/RunManager/Light/ColorsCatalog.cpp        (kColorPath)
+   - lib/RunManager/Light/ShiftTable.cpp           (x2: kColorShiftPath, kPatternShiftPath)
+   - lib/RunManager/Audio/AudioShiftTable.cpp      (kAudioShiftPath)
+
+   NOTE: The ContextController loaders use sanitizedFile which already
+   includes leading slash. Verify each call site uses "/" + baseName.
+
+4. Docs — update or remove
+   - docs/readmes/NAS_Fallback/readme.md  : rewrite (no more /nas/ or chooseCsvPath)
+   - docs/readmes/NAS/readme.md           : remove /nas/ references
+
+WHAT STAYS
+----------
+- csvBaseUrl, downloadCsvFilesFromLan(), the HTTP fetch logic — unchanged
+- commitCsvTempFile() — still used (atomic write via .tmp → rename)
+- SD root files — they ARE the target now, no separate fallback layer
+
+RISK
+----
+Low. The only behavioral change: if NAS returns a corrupt CSV, it
+overwrites the root copy. Previously it would have overwritten the
+/nas/ copy (same problem, different path). The .tmp→rename pattern
+already protects against partial writes.
+
+COMMIT
+------
+Single commit. Version bump first.
+Message:
+  Remove /nas/ subdirectory — NAS CSVs download to SD root
+
+  - WiFiBoot: download CSVs to / instead of /nas/
+  - Remove chooseCsvPath() from SdPathUtils
+  - All CSV loaders use direct "/" paths
+  - Remove ensureNasDirectory, removeNasCsvFile, removeAllNasCsvFiles
+  - Update NAS docs

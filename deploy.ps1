@@ -143,3 +143,10 @@ Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host " $deviceUpper deployment complete!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
+
+# --- Auto-start serial monitor for HOUT ---
+if ($Device -eq "hout") {
+    Write-Host ""
+    Write-Host "Starting serial monitor..." -ForegroundColor Yellow
+    & "$PSScriptRoot\trace.ps1"
+}

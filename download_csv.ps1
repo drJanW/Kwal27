@@ -1,12 +1,32 @@
 # Download CSV files from ESP32 SD card
-# Usage: .\download_csv.ps1 [-ip "192.168.2.188"] [-dest ".\downloads"]
+# Usage: .\download_csv.ps1 [marmer|hout] [-dest ".\sd_downloads"]
+# API: GET /api/sd/file?path=/<filename>
 
 param(
-    [string]$ip = "192.168.2.188",
+    [string]$device = "marmer",
     [string]$dest = ".\sd_downloads"
 )
 
+$ips = @{ marmer = "192.168.2.188"; hout = "192.168.2.189" }
+$ip = $ips[$device.ToLower()]
+if (-not $ip) {
+    Write-Host "Unknown device '$device'. Use 'marmer' or 'hout'." -ForegroundColor Red
+    exit 1
+}
+
 $baseUrl = "http://$ip"
+
+# Known CSV files on the SD card
+$knownFiles = @(
+    "audioShifts.csv",
+    "calendar.csv",
+    "colorsShifts.csv",
+    "globals.csv",
+    "light_colors.csv",
+    "light_patterns.csv",
+    "patternShifts.csv",
+    "theme_boxes.csv"
+)
 
 # Create destination folder
 if (!(Test-Path $dest)) {
@@ -14,71 +34,43 @@ if (!(Test-Path $dest)) {
     Write-Host "Created folder: $dest"
 }
 
-Write-Host "Fetching file list from $baseUrl/api/sd/list?path=/"
-
+# Check SD status first
+Write-Host "Checking SD status on $ip ..."
 try {
-    # Get root directory listing
-    $response = Invoke-RestMethod -Uri "$baseUrl/api/sd/list?path=/" -TimeoutSec 30
-    
-    # Filter for .csv files
-    $csvFiles = $response | Where-Object { $_.name -like "*.csv" }
-    
-    if ($csvFiles.Count -eq 0) {
-        Write-Host "No CSV files found in root directory"
-        exit
+    $status = Invoke-RestMethod -Uri "$baseUrl/api/sd/status" -TimeoutSec 10
+    if (-not $status.ready) {
+        Write-Host "SD card not ready!" -ForegroundColor Red
+        exit 1
     }
-    
-    Write-Host "Found $($csvFiles.Count) CSV file(s):"
-    $csvFiles | ForEach-Object { Write-Host "  - $($_.name)" }
-    Write-Host ""
-    
-    # Download each file
-    foreach ($file in $csvFiles) {
-        $fileName = $file.name
-        $downloadUrl = "$baseUrl/api/sd/download?path=/$fileName"
-        $localPath = Join-Path $dest $fileName
-        
-        Write-Host "Downloading $fileName ... " -NoNewline
-        try {
-            Invoke-WebRequest -Uri $downloadUrl -OutFile $localPath -TimeoutSec 60
-            $size = (Get-Item $localPath).Length
-            Write-Host "OK ($size bytes)"
-        }
-        catch {
-            Write-Host "FAILED: $($_.Exception.Message)" -ForegroundColor Red
-        }
+    if ($status.busy) {
+        Write-Host "SD card is busy, try again later" -ForegroundColor Yellow
+        exit 1
     }
-    
-    Write-Host "`nDone! Files saved to: $dest"
+    Write-Host "SD ready" -ForegroundColor Green
 }
 catch {
-    Write-Host "Error fetching file list: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Fallback: Trying known CSV files directly..."
-    
-    # Known CSV files on the SD card
-    $knownFiles = @(
-        "audioShifts.csv",
-        "calendar.csv",
-        "colorsShifts.csv",
-        "light_colors.csv",
-        "light_patterns.csv",
-        "patternShifts.csv",
-        "theme_boxes.csv"
-    )
-    
-    foreach ($fileName in $knownFiles) {
-        $downloadUrl = "$baseUrl/api/sd/download?path=/$fileName"
-        $localPath = Join-Path $dest $fileName
-        
-        Write-Host "Downloading $fileName ... " -NoNewline
-        try {
-            Invoke-WebRequest -Uri $downloadUrl -OutFile $localPath -TimeoutSec 60
-            $size = (Get-Item $localPath).Length
-            Write-Host "OK ($size bytes)"
-        }
-        catch {
-            Write-Host "FAILED" -ForegroundColor Yellow
-        }
+    Write-Host "Cannot reach device at $ip : $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+$ok = 0
+$fail = 0
+
+foreach ($fileName in $knownFiles) {
+    $downloadUrl = "$baseUrl/api/sd/file?path=/$fileName"
+    $localPath = Join-Path $dest $fileName
+
+    Write-Host "Downloading $fileName ... " -NoNewline
+    try {
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $localPath -TimeoutSec 60
+        $size = (Get-Item $localPath).Length
+        Write-Host "OK ($size bytes)" -ForegroundColor Green
+        $ok++
+    }
+    catch {
+        Write-Host "FAILED" -ForegroundColor Yellow
+        $fail++
     }
 }
+
+Write-Host "`nDone: $ok downloaded, $fail skipped. Files in: $dest"

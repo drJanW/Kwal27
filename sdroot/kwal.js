@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260207C - Built 2026-02-07 16:29
+ * Kwal WebGUI v260208A - Built 2026-02-08 08:27
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260207C';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260208A';  // Injected by build.ps1
 
 
 // === js/state.js ===
@@ -888,15 +888,8 @@ Kwal.colors = (function() {
       var displayA = (c.id === editingId && currentA) ? currentA : c.colorA_hex;
       var displayB = (c.id === editingId && currentB) ? currentB : c.colorB_hex;
       
-      var swatchA = document.createElement('span');
-      swatchA.className = 'color-swatch-box';
-      swatchA.style.background = displayA;
-      swatchA.onclick = function(e) { e.stopPropagation(); openPicker(c, 'a'); };
-      
-      var swatchB = document.createElement('span');
-      swatchB.className = 'color-swatch-box';
-      swatchB.style.background = displayB;
-      swatchB.onclick = function(e) { e.stopPropagation(); openPicker(c, 'b'); };
+      var swatchA = createSwatchBox(c, 'a', displayA);
+      var swatchB = createSwatchBox(c, 'b', displayB);
       
       var swatchDiv = document.createElement('div');
       swatchDiv.className = 'color-swatch';
@@ -970,53 +963,45 @@ Kwal.colors = (function() {
       .catch(function() {});
   }
 
-  var pickerOpen = false;
+  /**
+   * Create a swatch box with an embedded <input type="color"> overlay.
+   * The input covers the swatch so the user's real tap/click opens the
+   * native color picker directly - no programmatic .click() needed.
+   * This fixes mobile browsers that block programmatic color-picker opens.
+   */
+  function createSwatchBox(colorSet, which, displayColor) {
+    var box = document.createElement('span');
+    box.className = 'color-swatch-box';
+    box.style.background = displayColor;
+    box.style.position = 'relative';
+    box.style.overflow = 'hidden';
 
-  function openPicker(colorSet, which) {
-    // Lock backdrop FIRST before anything else
-    pickerOpen = true;
-    if (Kwal.modal.lockBackdrop) Kwal.modal.lockBackdrop();
-    
-    // First select this color set (only if different)
-    if (editingId !== colorSet.id) {
-      editingId = colorSet.id;
-      originalLabel = colorSet.label;
-      currentA = colorSet.colorA_hex;
-      currentB = colorSet.colorB_hex;
-      
-      // Store original for revert
-      if (Kwal.state && !Kwal.state.isColorsModified()) {
-        Kwal.state.setColorsModified(false, currentA, currentB, editingId);
-      }
-      
-      // Select and display
-      fetch('/api/colors/select', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: editingId })
-      }).then(function() {
-        activeId = editingId;
-        renderList();
-        // Status labels come from SSE state event
-      });
-    }
-    
-    // Create color input
-    editingColor = which;
-    var picker = document.createElement('input');
-    picker.type = 'color';
-    picker.value = (which === 'a') ? currentA : currentB;
-    picker.style.position = 'absolute';
-    picker.style.opacity = '0';
-    picker.style.pointerEvents = 'none';
-    document.body.appendChild(picker);
-    
-    picker.oninput = function() {
+    var inp = document.createElement('input');
+    inp.type = 'color';
+    inp.value = displayColor;
+    inp.style.position = 'absolute';
+    inp.style.top = '0';
+    inp.style.left = '0';
+    inp.style.width = '100%';
+    inp.style.height = '100%';
+    inp.style.opacity = '0';
+    inp.style.cursor = 'pointer';
+    inp.style.border = 'none';
+    inp.style.padding = '0';
+
+    inp.onclick = function(e) {
+      e.stopPropagation();
+      activateEditing(colorSet);
+      editingColor = which;
+    };
+
+    inp.oninput = function() {
       if (which === 'a') {
-        currentA = picker.value;
+        currentA = inp.value;
       } else {
-        currentB = picker.value;
+        currentB = inp.value;
       }
+      box.style.background = inp.value;
       schedulePreview();
       // Mark as modified
       if (Kwal.state) {
@@ -1024,20 +1009,37 @@ Kwal.colors = (function() {
         Kwal.state.setColorsModified(true, orig.a, orig.b, orig.id);
       }
     };
-    
-    picker.onchange = function() {
-      document.body.removeChild(picker);
+
+    inp.onchange = function() {
       renderList();
-      pickerOpen = false;
-      // Delay unlock to avoid click-through
-      setTimeout(function() {
-        if (!pickerOpen && Kwal.modal.unlockBackdrop) {
-          Kwal.modal.unlockBackdrop();
-        }
-      }, 200);
     };
-    
-    picker.click();
+
+    box.appendChild(inp);
+    return box;
+  }
+
+  function activateEditing(colorSet) {
+    if (editingId === colorSet.id) return;
+    editingId = colorSet.id;
+    originalLabel = colorSet.label;
+    currentA = colorSet.colorA_hex;
+    currentB = colorSet.colorB_hex;
+
+    // Store original for revert
+    if (Kwal.state && !Kwal.state.isColorsModified()) {
+      Kwal.state.setColorsModified(false, currentA, currentB, editingId);
+    }
+
+    // Select and display
+    fetch('/api/colors/select', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: editingId })
+    }).then(function() {
+      activeId = editingId;
+      renderList();
+      // Status labels come from SSE state event
+    });
   }
 
   function schedulePreview() {
