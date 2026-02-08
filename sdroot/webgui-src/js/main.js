@@ -11,6 +11,7 @@
     Kwal.modal.init();
     Kwal.sd.init();
     Kwal.pattern.init();
+    Kwal.colorpicker.init();
     Kwal.colors.init();
     Kwal.ota.init();
     Kwal.status.init();

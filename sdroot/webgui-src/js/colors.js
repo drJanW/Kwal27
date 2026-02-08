@@ -150,57 +150,35 @@ Kwal.colors = (function() {
   }
 
   /**
-   * Create a swatch box with an embedded <input type="color"> overlay.
-   * The input covers the swatch so the user's real tap/click opens the
-   * native color picker directly - no programmatic .click() needed.
-   * This fixes mobile browsers that block programmatic color-picker opens.
+   * Create a swatch box that opens the custom canvas color picker on tap.
+   * Works on all browsers (no <input type="color"> dependency).
    */
   function createSwatchBox(colorSet, which, displayColor) {
     var box = document.createElement('span');
     box.className = 'color-swatch-box';
     box.style.background = displayColor;
-    box.style.position = 'relative';
-    box.style.overflow = 'hidden';
 
-    var inp = document.createElement('input');
-    inp.type = 'color';
-    inp.value = displayColor;
-    inp.style.position = 'absolute';
-    inp.style.top = '0';
-    inp.style.left = '0';
-    inp.style.width = '100%';
-    inp.style.height = '100%';
-    inp.style.opacity = '0';
-    inp.style.cursor = 'pointer';
-    inp.style.border = 'none';
-    inp.style.padding = '0';
-
-    inp.onclick = function(e) {
+    box.onclick = function(e) {
       e.stopPropagation();
       activateEditing(colorSet);
       editingColor = which;
+      var startHex = (which === 'a') ? currentA : currentB;
+      Kwal.colorpicker.open(startHex, function(hex) {
+        if (which === 'a') {
+          currentA = hex;
+        } else {
+          currentB = hex;
+        }
+        schedulePreview();
+        renderList();
+        // Mark as modified
+        if (Kwal.state) {
+          var orig = Kwal.state.getOriginalColors();
+          Kwal.state.setColorsModified(true, orig.a, orig.b, orig.id);
+        }
+      });
     };
 
-    inp.oninput = function() {
-      if (which === 'a') {
-        currentA = inp.value;
-      } else {
-        currentB = inp.value;
-      }
-      box.style.background = inp.value;
-      schedulePreview();
-      // Mark as modified
-      if (Kwal.state) {
-        var orig = Kwal.state.getOriginalColors();
-        Kwal.state.setColorsModified(true, orig.a, orig.b, orig.id);
-      }
-    };
-
-    inp.onchange = function() {
-      renderList();
-    };
-
-    box.appendChild(inp);
     return box;
   }
 
