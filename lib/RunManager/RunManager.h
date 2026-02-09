@@ -28,7 +28,7 @@ public:
     static void requestWebAudioNext(uint16_t fadeMs);
     static void triggerBootFragment();  // Called by CalendarRun after theme box set
     static void requestSayTime(TimeStyle style = TimeStyle::NORMAL);
-    static void requestSayTemperature();
+    static void requestSayRTCtemperature();
     static void requestSetAudioLevel(float value);
     static void requestArmOTA(uint32_t window_s);
     static bool requestConfirmOTA();

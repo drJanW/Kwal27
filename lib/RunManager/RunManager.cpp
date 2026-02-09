@@ -122,12 +122,12 @@ String buildTemperatureSentence(float tempC) {
     return sentence;
 }
 
-void cb_sayTemperature() {
-    RUN_LOG_INFO("[ClockRun] cb_sayTemperature\n");
-    RunManager::requestSayTemperature();
+void cb_sayRTCtemperature() {
+    RUN_LOG_INFO("[ClockRun] cb_sayRTCtemperature\n");
+    RunManager::requestSayRTCtemperature();
     timers.restart(random(Globals::minTemperatureSpeakIntervalMs,
                           Globals::maxTemperatureSpeakIntervalMs + 1),
-                   1, cb_sayTemperature);
+                   1, cb_sayRTCtemperature);
 }
 
 void cb_playFragment() {
@@ -193,7 +193,7 @@ void RunManager::begin() {
     // First sayTime after random 45-145 min, then reschedules itself
     timers.create(random(Globals::minSaytimeIntervalMs, Globals::maxSaytimeIntervalMs + 1), 1, cb_sayTime);
     timers.create(random(Globals::minTemperatureSpeakIntervalMs, Globals::maxTemperatureSpeakIntervalMs + 1),
-                  1, cb_sayTemperature);
+                  1, cb_sayRTCtemperature);
     // First audio after random 6-18 min, then reschedules itself
     timers.create(random(Globals::minAudioIntervalMs, Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
     timers.create(Globals::timerStatusIntervalMs, 0, cb_showTimerStatus);
@@ -309,10 +309,12 @@ void RunManager::requestSayTime(TimeStyle style) {
     AudioPolicy::requestSentence(sentence);
 }
 
-void RunManager::requestSayTemperature() {
+void RunManager::requestSayRTCtemperature() {
     const auto& ctx = ContextController::time();
+    if (!ctx.hasRtcTemperature) return;
     const float tempC = ctx.rtcTemperatureC;
-    RUN_LOG_INFO("[ClockRun] sayTemperature temp=%.1f\n", static_cast<double>(tempC));
+    if (tempC < 75.0f) return;  // Only speak when overheating
+    RUN_LOG_INFO("[ClockRun] sayRTCtemperature temp=%.1f\n", static_cast<double>(tempC));
     const String sentence = buildTemperatureSentence(tempC);
     if (sentence.isEmpty()) {
         return;

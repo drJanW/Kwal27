@@ -97,6 +97,14 @@ Kwal.health = (function() {
         var ok = (healthBits & (1 << f.bit)) !== 0;
         status = ok ? '✅' : '❌';
       }
+      // Append RTC temperature after RTC status
+      if (f.name === 'RTC' && data.rtcTempC !== undefined) {
+        status += ' ' + data.rtcTempC.toFixed(1) + '°';
+      }
+      // Append calendar date after Calendar status
+      if (f.name === 'Calendar' && data.calendarDate) {
+        status += ' ' + data.calendarDate;
+      }
       html += '<tr><td>' + f.icon + ' ' + f.name + '</td><td>' + status + '</td></tr>';
     }
 

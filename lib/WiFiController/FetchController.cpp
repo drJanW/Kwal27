@@ -143,6 +143,7 @@ static void cb_fetchNTP() {
 // ===================================================
 // Weather fetch
 // ===================================================
+static bool weatherFetched = false;
 
 static void cb_fetchWeather() {
     // Update boot status with remaining retries
@@ -161,7 +162,7 @@ static void cb_fetchWeather() {
         if (DEBUG_FETCH) {
             PL("[Fetch] No WiFi, skipping weather");
         }
-        ContextController::clearWeather();
+        if (!weatherFetched) ContextController::clearWeather();
         if (lastRetry) {
             AlertState::setWeatherStatus(false);
             PL("[Fetch] Weather gave up after retries (no WiFi)");
@@ -172,7 +173,7 @@ static void cb_fetchWeather() {
         if (DEBUG_FETCH) {
             PL("[Fetch] No NTP/time, skipping weather");
         }
-        ContextController::clearWeather();
+        if (!weatherFetched) ContextController::clearWeather();
         if (lastRetry) {
             AlertState::setWeatherStatus(false);
             PL("[Fetch] Weather gave up after retries (no time)");
@@ -182,7 +183,7 @@ static void cb_fetchWeather() {
 
     String response;
     if (!fetchUrlToString(WEATHER_URL, response)) {
-        ContextController::clearWeather();
+        if (!weatherFetched) ContextController::clearWeather();
         if (lastRetry) {
             AlertState::setWeatherStatus(false);
             PL("[Fetch] Weather gave up after retries");
@@ -195,7 +196,7 @@ static void cb_fetchWeather() {
     int idxMin = response.indexOf("\"temperature_2m_min\":[");
     int idxMax = response.indexOf("\"temperature_2m_max\":[");
     if (idxMin == -1 || idxMax == -1) {
-        ContextController::clearWeather();
+        if (!weatherFetched) ContextController::clearWeather();
         return;
     }
 
@@ -204,7 +205,7 @@ static void cb_fetchWeather() {
     int maxStart = response.indexOf("[", idxMax);
     int maxEnd   = response.indexOf("]", idxMax);
     if (minStart == -1 || minEnd == -1 || maxStart == -1 || maxEnd == -1) {
-        ContextController::clearWeather();
+        if (!weatherFetched) ContextController::clearWeather();
         return;
     }
 
@@ -214,7 +215,14 @@ static void cb_fetchWeather() {
     ContextController::updateWeather(tMin, tMax);
     AlertState::setWeatherStatus(true);
 
-    if (DEBUG_FETCH) {
+    if (!weatherFetched) {
+        weatherFetched = true;
+        // Switch from boot retries to periodic refresh
+        timers.cancel(cb_fetchWeather);
+        timers.create(Globals::weatherRefreshIntervalMs, 0, cb_fetchWeather);
+        PF("[Fetch] Weather bootstrapped, switching to %lu ms refresh\n",
+           (unsigned long)Globals::weatherRefreshIntervalMs);
+    } else if (DEBUG_FETCH) {
         PF("[Fetch] Weather updated: min=%.1f max=%.1f\n", tMin, tMax);
     }
 }
@@ -495,8 +503,9 @@ bool bootFetchController() {
 
     // NTP retry timer
     timers.create(Globals::clockBootstrapIntervalMs, Globals::wifiRetryCount, cb_fetchNTP, Globals::wifiRetryGrowth);
-    // Weather fetch timer (starts after NTP success)
-    timers.create(Globals::weatherRefreshIntervalMs, 0, cb_fetchWeather);
+    // Weather: boot retries with growing intervals, switches to periodic on success
+    weatherFetched = false;
+    timers.create(Globals::weatherBootstrapIntervalMs, Globals::wifiRetryCount, cb_fetchWeather, Globals::wifiRetryGrowth);
     // Sunrise/sunset fetch timer (starts after NTP success)
     timers.create(Globals::sunRefreshIntervalMs, 0, cb_fetchSunrise);
 

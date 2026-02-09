@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260208E"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260209B"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -161,7 +161,8 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     // NETWORK/FETCH (3 params)
     // ─────────────────────────────────────────────────────────────
-    inline static uint32_t weatherRefreshIntervalMs  = HOURS(1);  // Weather API refresh
+    inline static uint32_t weatherBootstrapIntervalMs = SECONDS(5); // Weather boot retry interval
+    inline static uint32_t weatherRefreshIntervalMs  = HOURS(1);  // Weather API periodic refresh
     inline static uint32_t sunRefreshIntervalMs      = HOURS(2);  // Sunrise/sunset refresh
     inline static uint32_t calendarRefreshIntervalMs = HOURS(1);  // Calendar CSV refresh
 

@@ -9,6 +9,9 @@
 #include "Globals.h"
 #include "Alert/AlertState.h"
 #include "TimerManager.h"
+#include "ContextController.h"
+#include "Calendar/CalendarRun.h"
+#include "TodayModels.h"
 #include <ESP.h>
 
 namespace HealthRoutes {
@@ -22,6 +25,21 @@ void routeHealth(AsyncWebServerRequest *request) {
     json += "\"absent\":" + String(AlertState::getAbsentBits()) + ",";
     json += "\"timers\":" + String(timers.getActiveCount()) + ",";
     json += "\"maxTimers\":" + String(TimerManager::MAX_TIMERS);
+
+    const auto& ts = ContextController::time();
+    if (ts.hasRtcTemperature) {
+        json += ",\"rtcTempC\":" + String(ts.rtcTemperatureC, 1);
+    }
+
+    TodayState today;
+    if (calendarRun.todayRead(today) && today.entry.valid) {
+        char dateBuf[6]; // "dd-mm\0"
+        snprintf(dateBuf, sizeof(dateBuf), "%02u-%02u",
+                 static_cast<unsigned>(today.entry.day),
+                 static_cast<unsigned>(today.entry.month));
+        json += ",\"calendarDate\":\"" + String(dateBuf) + "\"";
+    }
+
     json += "}";
     
     request->send(200, "application/json", json);

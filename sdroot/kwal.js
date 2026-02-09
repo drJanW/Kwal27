@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260208B - Built 2026-02-08 14:58
+ * Kwal WebGUI v260209B - Built 2026-02-09 10:09
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260208B';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260209B';  // Injected by build.ps1
 
 
 // === js/state.js ===
@@ -1660,6 +1660,14 @@ Kwal.health = (function() {
       } else {
         var ok = (healthBits & (1 << f.bit)) !== 0;
         status = ok ? '✅' : '❌';
+      }
+      // Append RTC temperature after RTC status
+      if (f.name === 'RTC' && data.rtcTempC !== undefined) {
+        status += ' ' + data.rtcTempC.toFixed(1) + '°';
+      }
+      // Append calendar date after Calendar status
+      if (f.name === 'Calendar' && data.calendarDate) {
+        status += ' ' + data.calendarDate;
       }
       html += '<tr><td>' + f.icon + ' ' + f.name + '</td><td>' + status + '</td></tr>';
     }
