@@ -37,7 +37,6 @@ cb_type cb_readRtcTemperature() {
     float tempC = RTCController::getTemperature();
     if (isfinite(tempC)) {
         ContextController::updateRtcTemperature(tempC);
-        PF("[Status] temp=%.1fC\n", static_cast<double>(tempC));
         return;
     }
     ContextController::clearRtcTemperature();
@@ -108,4 +107,8 @@ void SensorsRun::plan() {
     cb_readRtcTemperature();
     timers.create(Globals::rtcTemperatureIntervalMs, 0, cb_readRtcTemperature);
     PL_BOOT("[SensorsRun] update scheduled");
+}
+
+void SensorsRun::readRtcTemperature() {
+    cb_readRtcTemperature();
 }

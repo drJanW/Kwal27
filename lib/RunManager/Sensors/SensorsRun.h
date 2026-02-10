@@ -11,4 +11,5 @@
 class SensorsRun {
 public:
     void plan();
+    static void readRtcTemperature();
 };

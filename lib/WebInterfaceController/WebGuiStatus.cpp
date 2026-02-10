@@ -15,7 +15,7 @@
 #include <ESPAsyncWebServer.h>
 
 #ifndef WEBIF_LOG_LEVEL
-#define WEBIF_LOG_LEVEL LOG_BOOT_SPAM
+#define WEBIF_LOG_LEVEL 0
 #endif
 
 #if WEBIF_LOG_LEVEL

@@ -15,6 +15,7 @@
 #include "TimerManager.h"
 #include "StatusFlags.h"
 #include "Globals.h"
+#include "ContextController.h"
 #include "SD/SDBoot.h"
 
 namespace {
@@ -101,7 +102,12 @@ void cb_healthStatus() {
         if (s == SC_Status::ABSENT) {
             PF("  %s %-10s —\n", item.icon, item.name);
         } else if (s == SC_Status::OK) {
-            PF("  %s %-10s ✅\n", item.icon, item.name);
+            if (item.c == SC_RTC && ContextController::time().hasRtcTemperature) {
+                PF("  %s %-10s ✅ %.1f°C\n", item.icon, item.name,
+                   static_cast<double>(ContextController::time().rtcTemperatureC));
+            } else {
+                PF("  %s %-10s ✅\n", item.icon, item.name);
+            }
         } else if (s == SC_Status::FAILED) {
             PF("  %s %-10s ❌\n", item.icon, item.name);
         } else {

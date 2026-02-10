@@ -149,6 +149,13 @@ void cb_showTimerStatus() {
     RunManager::requestShowTimerStatus();
 }
 
+void cb_logTimeDate() {
+    PF("[Status] %02u:%02u %02u-%02u-%u\n",
+       prtClock.getHour(), prtClock.getMinute(),
+       prtClock.getDay(), prtClock.getMonth(),
+       2000 + prtClock.getYear());
+}
+
 static uint16_t webAudioNextFadeMs = 957U;  // local cache for callback
 
 void cb_playNextFragment() {
@@ -197,6 +204,7 @@ void RunManager::begin() {
     // First audio after random 6-18 min, then reschedules itself
     timers.create(random(Globals::minAudioIntervalMs, Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
     timers.create(Globals::timerStatusIntervalMs, 0, cb_showTimerStatus);
+    timers.create(MINUTES(30), 0, cb_logTimeDate);
     // Note: Periodic lux measurement is now handled by LightRun::plan()
     bootManager.begin();
 

@@ -11,6 +11,7 @@
 #include "RunManager.h"
 #include "Alert/AlertRun.h"
 #include "Alert/AlertState.h"
+#include "Sensors/SensorsRun.h"
 
 BootManager bootManager;
 
@@ -18,6 +19,7 @@ namespace {
 
 void cb_endOfBoot() {
     if (!AlertState::isBootPhase()) return;  // already ended
+    SensorsRun::readRtcTemperature();
     PL("[BootManager] Ready");
     AlertRun::report(AlertRequest::START_RUNTIME);
 }

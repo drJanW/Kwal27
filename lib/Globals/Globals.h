@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260209B"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260210A"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -190,7 +190,7 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     // DEBUG (2 params)
     // ─────────────────────────────────────────────────────────────
-    inline static uint32_t timerStatusIntervalMs   = MINUTES(30);  // Timer pool status log interval
+    inline static uint32_t timerStatusIntervalMs   = MINUTES(45);  // Timer pool status log interval
     inline static uint32_t healthStatusIntervalMs  = SECONDS(300); // Health status log interval
 
     // ─────────────────────────────────────────────────────────────

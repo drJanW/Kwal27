@@ -34,16 +34,14 @@ Write-Host " Target: $targetIP" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# --- Serial port warning for HOUT ---
+# --- Auto-close serial monitor for HOUT ---
 if ($Device -eq "hout") {
-    Write-Host "  Close serial monitor (Ctrl+C in trace terminal)" -ForegroundColor Yellow
-    Write-Host ""
-    $confirm = Read-Host "Is COM port free? (y/N)"
-    if ($confirm -ne 'y' -and $confirm -ne 'Y') {
-        Write-Host "Aborted. Free serial port first." -ForegroundColor Red
-        exit 1
+    $monitors = Get-Process -Name "platformio" -ErrorAction SilentlyContinue
+    if ($monitors) {
+        Write-Host "  Closing serial monitor..." -ForegroundColor Yellow
+        $monitors | Stop-Process -Force
+        Start-Sleep -Seconds 1
     }
-    Write-Host ""
 }
 
 $step = 1

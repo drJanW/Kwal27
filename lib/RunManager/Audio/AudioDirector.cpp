@@ -6,7 +6,10 @@
  */
 #include "AudioDirector.h"
 
-#define LOCAL_LOG_LEVEL LOG_LEVEL_NONE
+#ifndef LOG_AUDIO_DIRECTOR_VERBOSE
+#define LOG_AUDIO_DIRECTOR_VERBOSE 0
+#endif
+
 #include "Globals.h"
 #include "SDController.h"
 #include "AudioPolicy.h"
@@ -98,20 +101,26 @@ bool selectDirectory(DirPick& outDir, const uint8_t* allowList = nullptr, size_t
         return false;
     }
 
+#if LOG_AUDIO_DIRECTOR_VERBOSE
     PF("[AudioDirector] dir pool count=%u totalScore=%lu\n",
        static_cast<unsigned>(scoredCount),
        static_cast<unsigned long>(totalScore));
+#endif
 
     DirScore ticket = static_cast<DirScore>(random((long)totalScore)) + 1U;
+#if LOG_AUDIO_DIRECTOR_VERBOSE
     PF("[AudioDirector] dir ticket=%lu\n", static_cast<unsigned long>(ticket));
+#endif
     DirScore cumulative = 0;
     for (uint8_t i = 0; i < scoredCount; ++i) {
         cumulative += static_cast<DirScore>(scored[i].entry.totalScore);
         if (ticket <= cumulative) {
+#if LOG_AUDIO_DIRECTOR_VERBOSE
             PF("[AudioDirector] dir pick=%03u score=%u cumulative=%lu\n",
                scored[i].id,
                static_cast<unsigned>(scored[i].entry.totalScore),
                static_cast<unsigned long>(cumulative));
+#endif
             outDir = scored[i];
             return true;
         }
@@ -152,13 +161,17 @@ bool selectFile(const DirPick& dirPick, uint8_t& outFile) {
         return false;
     }
 
+#if LOG_AUDIO_DIRECTOR_VERBOSE
     PF("[AudioDirector] file pool dir=%03u count=%u totalScore=%lu\n",
        dirPick.id,
        static_cast<unsigned>(candidateCount),
        static_cast<unsigned long>(totalScore));
+#endif
 
     const FileScore target = static_cast<FileScore>(random((long)totalScore)) + 1U;
+#if LOG_AUDIO_DIRECTOR_VERBOSE
     PF("[AudioDirector] file ticket=%lu\n", static_cast<unsigned long>(target));
+#endif
     filesIndex.seek(0);
     FileScore cumulative = 0;
     for (uint16_t fileNum = 1; fileNum <= SD_MAX_FILES_PER_SUBDIR; ++fileNum) {
@@ -172,10 +185,12 @@ bool selectFile(const DirPick& dirPick, uint8_t& outFile) {
         cumulative += static_cast<FileScore>(entry.score);
         if (target <= cumulative) {
             SDController::closeFile(filesIndex);
+#if LOG_AUDIO_DIRECTOR_VERBOSE
             PF("[AudioDirector] file pick=%03u score=%u cumulative=%lu\n",
                static_cast<unsigned>(fileNum),
                static_cast<unsigned>(entry.score),
                static_cast<unsigned long>(cumulative));
+#endif
             outFile = static_cast<uint8_t>(fileNum);
             return true;
         }
@@ -284,12 +299,14 @@ bool AudioDirector::selectRandomFragment(AudioFragment& outFrag) {
                 outFrag.durationMs = static_cast<uint16_t>((durationMs > 0xFFFF) ? 0xFFFF : durationMs);
                 outFrag.fadeMs     = fadeMs;
 
+#if LOG_AUDIO_DIRECTOR_VERBOSE
                 PF("[AudioDirector] pick %03u/%03u start=%u dur=%u fade=%u (raw=%lu)\n",
                    outFrag.dirIndex, outFrag.fileIndex,
                    static_cast<unsigned>(outFrag.startMs),
                    static_cast<unsigned>(outFrag.durationMs),
                    static_cast<unsigned>(outFrag.fadeMs),
                    static_cast<unsigned long>(rawDuration));
+#endif
 
                 return true;
             }
