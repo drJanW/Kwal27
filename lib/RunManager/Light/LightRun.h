@@ -35,6 +35,8 @@ public:
     static void cb_fadeBrightnessIn();
     static void cb_tryLuxMeasure();
     static void cb_cooldownExpired();
+    static void cb_changeColor();
+    static void cb_changePattern();
 
 
 

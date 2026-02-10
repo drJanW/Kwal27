@@ -71,6 +71,16 @@ void ColorsCatalog::begin() {
     ready_ = true;
 }
 
+bool ColorsCatalog::selectRandomColor() {
+    if (colors_.empty()) {
+        return false;
+    }
+    size_t idx = random(0, colors_.size());
+    activeColorId_ = colors_[idx].id;
+    PF("[ColorsCatalog] Random color: %s\n", activeColorId_.c_str());
+    return true;
+}
+
 bool ColorsCatalog::isReady() const {
     return ready_;
 }

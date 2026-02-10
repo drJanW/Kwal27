@@ -20,6 +20,7 @@ public:
 
     void begin();
     bool isReady() const { return ready_; }
+    bool selectRandom();
 
     String buildJson(const char* source = "context") const;
 

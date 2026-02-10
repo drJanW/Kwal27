@@ -65,6 +65,16 @@ void PatternCatalog::begin() {
     ready_ = true;
 }
 
+bool PatternCatalog::selectRandom() {
+    if (patterns_.empty()) {
+        return false;
+    }
+    size_t idx = random(0, patterns_.size());
+    activePatternId_ = patterns_[idx].id;
+    PF("[PatternCatalog] Random pattern: %s\n", activePatternId_.c_str());
+    return true;
+}
+
 String PatternCatalog::buildJson(const char* source) const {
     // Stream JSON directly - no ArduinoJson tree needed
     String out;

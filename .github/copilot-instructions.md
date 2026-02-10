@@ -35,9 +35,12 @@ Controllers (hardware APIs)    Directors (context→requests)
 - New terms must mean new concepts and require explicit approval.
 
 ### Timing
-- **ONLY use TimerManager** - never `millis()`, `delay()`, or local timing
+- **ONLY use TimerManager** — this is the project's own timer API (`timers.create()`, `timers.restart()`, `timers.cancel()`)
+- **NEVER** use Arduino/ESP timers, `millis()`, `delay()`, `esp_timer`, `Ticker`, or any other timing mechanism
 - Callbacks: prefix with `cb_`, execute actions, NO polling or "if ready" checks
 - `create()` = new timer, `restart()` = reuse existing with same callback
+- For repeating work use `create(interval, 0, cb)` — repeat count 0 = infinite
+- **Never self-reschedule** inside a callback (no `restart()` at end of `cb_*`)
 
 ### Version Bumping (BEFORE any code change)
 - Firmware: [lib/Globals/Globals.h](../lib/Globals/Globals.h) → `FIRMWARE_VERSION`

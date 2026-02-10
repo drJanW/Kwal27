@@ -19,6 +19,7 @@ public:
 
     void begin();
     bool isReady() const;
+    bool selectRandomColor();
 
     String buildColorsJson(const char* source = "context") const;
 

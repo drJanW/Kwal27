@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260210A"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260210C"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -75,11 +75,13 @@ struct Globals {
     inline static uint32_t maxTemperatureSpeakIntervalMs = MINUTES(140); // Max wait between temperature announcements
 
     // ─────────────────────────────────────────────────────────────
-    // LIGHT/PATTERN (3 params)
+    // LIGHT/PATTERN (5 params)
     // ─────────────────────────────────────────────────────────────
     inline static uint16_t lightFallbackIntervalMs = 300U;        // Pattern update interval
     inline static uint32_t shiftCheckIntervalMs    = MINUTES(1);  // Check CSV shifts interval
     inline static float    defaultFadeWidth        = 64.0f;       // LED color fade smoothness
+    inline static uint32_t colorChangeIntervalMs   = 20880000UL;  // Random color change (5.8h)
+    inline static uint32_t patternChangeIntervalMs  = 17640000UL;  // Random pattern change (4.9h)
 
     // ─────────────────────────────────────────────────────────────
     // BRIGHTNESS/LUX (10 params)
@@ -191,7 +193,7 @@ struct Globals {
     // DEBUG (2 params)
     // ─────────────────────────────────────────────────────────────
     inline static uint32_t timerStatusIntervalMs   = MINUTES(45);  // Timer pool status log interval
-    inline static uint32_t healthStatusIntervalMs  = SECONDS(300); // Health status log interval
+    inline static uint32_t healthStatusIntervalMs  = MINUTES(40);  // Health status log interval
 
     // ─────────────────────────────────────────────────────────────
     // FADE CURVE — shared sine² curve, computed once at boot

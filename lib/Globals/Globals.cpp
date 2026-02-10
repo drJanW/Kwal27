@@ -233,6 +233,18 @@ static void applyOverride(const char* key, char type, const char* value) {
             PF_BOOT("[Globals] defaultFadeWidth = %.1f\n", f32);
         }
     }
+    else if (strcmp(key, "colorChangeIntervalMs") == 0 && type == 'u') {
+        if (parseUint32(value, &u32)) {
+            Globals::colorChangeIntervalMs = u32;
+            PF_BOOT("[Globals] colorChangeIntervalMs = %lu\n", (unsigned long)u32);
+        }
+    }
+    else if (strcmp(key, "patternChangeIntervalMs") == 0 && type == 'u') {
+        if (parseUint32(value, &u32)) {
+            Globals::patternChangeIntervalMs = u32;
+            PF_BOOT("[Globals] patternChangeIntervalMs = %lu\n", (unsigned long)u32);
+        }
+    }
     else if (strcmp(key, "maxBrightness") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 255) {
             Globals::maxBrightness = static_cast<uint8_t>(u32);

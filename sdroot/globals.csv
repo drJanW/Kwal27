@@ -31,6 +31,8 @@
 #lightFallbackIntervalMs;u;300;animation step when no distance trigger
 #shiftCheckIntervalMs;u;60000;how often to check shift CSVs for changes
 #defaultFadeWidth;f;64.0;LED gradient softness, higher=more blur
+colorChangeIntervalMs;u;20880000;pick new random color (5.8 hours)
+patternChangeIntervalMs;u;17640000;pick new random pattern (4.9 hours)
 #maxBrightness;u;242;cap to prevent eye strain, 255=full blast
 
 # ═══════════════════════════════════════════════════════════════════

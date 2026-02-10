@@ -145,6 +145,10 @@ void LightRun::plan() {
     // Periodic lux measurement (Light's responsibility)
     timers.create(Globals::luxMeasurementIntervalMs, 0, LightRun::cb_luxMeasure);
     
+    // Periodic random color/pattern changes (independent timers)
+    timers.create(Globals::colorChangeIntervalMs, 0, LightRun::cb_changeColor);
+    timers.create(Globals::patternChangeIntervalMs, 0, LightRun::cb_changePattern);
+    
     // NOTE: Status flash handled by AlertRGB reminder system (61 min interval)
 }
 
@@ -722,4 +726,28 @@ void LightRun::applyToLights() {
 
 void LightRun::reapplyCurrentShow() {
     applyToLights();
+}
+
+void LightRun::cb_changeColor() {
+    if (colorSource != LightSource::MANUAL) {
+        ColorsCatalog& colCat = getColorsCatalog();
+        if (colCat.selectRandomColor()) {
+            colorSource = LightSource::CONTEXT;
+            lastStatusBits = 0;
+            applyToLights();
+            PL("[LightRun] Timer: new random color");
+        }
+    }
+}
+
+void LightRun::cb_changePattern() {
+    if (patternSource != LightSource::MANUAL) {
+        PatternCatalog& patCat = getPatternCatalog();
+        if (patCat.selectRandom()) {
+            patternSource = LightSource::CONTEXT;
+            lastStatusBits = 0;
+            applyToLights();
+            PL("[LightRun] Timer: new random pattern");
+        }
+    }
 }
