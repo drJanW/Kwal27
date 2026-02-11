@@ -98,12 +98,20 @@ void formatVersionSpoken(const char* version, char* out, size_t outSize) {
     appendWord(prefix);
 
     if (dLen >= 2) {
-        uint8_t firstPair = static_cast<uint8_t>((digits[0] - '0') * 10 + (digits[1] - '0'));
-        appendWord(numberWord(firstPair));
-        for (uint8_t i = 2; i < dLen; ++i) {
-            uint8_t d = static_cast<uint8_t>(digits[i] - '0');
-            if (d == 0) continue;
-            appendWord(digitWord(d));
+        // Process all digits in pairs (YYMMDD → 26 02 10)
+        for (uint8_t i = 0; i + 1 < dLen; i += 2) {
+            if (digits[i] == '0') {
+                // Leading zero → speak "nul" + digit (02 → "nul twee")
+                appendWord("nul");
+                appendWord(digitWord(static_cast<uint8_t>(digits[i + 1] - '0')));
+            } else {
+                uint8_t pair = static_cast<uint8_t>((digits[i] - '0') * 10 + (digits[i + 1] - '0'));
+                appendWord(numberWord(pair));
+            }
+        }
+        // Odd trailing digit
+        if (dLen % 2 != 0) {
+            appendWord(digitWord(static_cast<uint8_t>(digits[dLen - 1] - '0')));
         }
     } else if (dLen == 1) {
         appendWord(digitWord(static_cast<uint8_t>(digits[0] - '0')));

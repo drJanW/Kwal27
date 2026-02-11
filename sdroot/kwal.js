@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260209B - Built 2026-02-09 10:09
+ * Kwal WebGUI v260210B - Built 2026-02-10 18:01
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,29 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260209B';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260210B';  // Injected by build.ps1
+
+/**
+ * Logarithmic slider mapping (power curve).
+ * Gives fine control at the low end, coarser at the high end.
+ * Exponent 2 (quadratic) — perceptually natural for brightness, volume, speed.
+ *
+ * sliderToValue(pos, min, max) — slider position → real value
+ * valueToSlider(val, min, max) — real value → slider position (for SSE updates)
+ */
+Kwal.LOG_EXP = 2;
+
+Kwal.sliderToValue = function(pos, min, max) {
+  var fraction = (pos - min) / (max - min);       // 0..1
+  var curved = Math.pow(fraction, Kwal.LOG_EXP);   // apply curve
+  return min + curved * (max - min);
+};
+
+Kwal.valueToSlider = function(val, min, max) {
+  var fraction = (val - min) / (max - min);         // 0..1
+  var linear = Math.pow(fraction, 1 / Kwal.LOG_EXP); // invert curve
+  return min + linear * (max - min);
+};
 
 
 // === js/state.js ===
@@ -142,17 +164,19 @@ Kwal.audio = (function() {
     
     if (slider && label) {
       slider.oninput = function() {
-        var val = clamp(parseInt(slider.value, 10));
-        slider.value = val;
-        label.textContent = val + '%';
+        var pos = clamp(parseInt(slider.value, 10));
+        slider.value = pos;
+        var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
+        label.textContent = real + '%';
       };
 
       slider.onchange = function() {
-        var sliderPct = clamp(parseInt(slider.value, 10));
-        slider.value = sliderPct;
-        label.textContent = sliderPct + '%';
-        // Send sliderPct directly - firmware calculates webShift
-        fetch('/setWebAudioLevel?value=' + sliderPct, { method: 'POST' }).catch(function() {});
+        var pos = clamp(parseInt(slider.value, 10));
+        slider.value = pos;
+        var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
+        label.textContent = real + '%';
+        // Send real value - firmware calculates webShift
+        fetch('/setWebAudioLevel?value=' + real, { method: 'POST' }).catch(function() {});
       };
       
       updateGradient();
@@ -235,9 +259,9 @@ Kwal.audio = (function() {
     if (typeof hiPercent === 'number') hiPct = hiPercent;
     updateGradient();
     if (slider && label && typeof sliderPct === 'number') {
-      var pct = clamp(Math.round(sliderPct));
-      slider.value = pct;
-      label.textContent = pct + '%';
+      var pos = clamp(Math.round(Kwal.valueToSlider(sliderPct, 0, 100)));
+      slider.value = pos;
+      label.textContent = Math.round(sliderPct) + '%';
     }
   }
 
@@ -317,16 +341,18 @@ Kwal.brightness = (function() {
     if (!slider || !label) return;
 
     slider.oninput = function() {
-      var val = clamp(parseInt(slider.value, 10));
-      slider.value = val;
-      label.textContent = val + '%';
+      var pos = clamp(parseInt(slider.value, 10));
+      slider.value = pos;
+      var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
+      label.textContent = real + '%';
     };
 
     slider.onchange = function() {
-      var sliderPct = clamp(parseInt(slider.value, 10));
-      slider.value = sliderPct;
-      label.textContent = sliderPct + '%';
-      fetch('/setBrightness?value=' + sliderPct, { method: 'POST' }).catch(function() {});
+      var pos = clamp(parseInt(slider.value, 10));
+      slider.value = pos;
+      var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
+      label.textContent = real + '%';
+      fetch('/setBrightness?value=' + real, { method: 'POST' }).catch(function() {});
     };
     
     updateGradient();
@@ -343,9 +369,9 @@ Kwal.brightness = (function() {
     if (typeof hiPercent === 'number') hiPct = hiPercent;
     updateGradient();
     if (slider && label && typeof sliderPct === 'number') {
-      var pct = clamp(Math.round(sliderPct));
-      slider.value = pct;
-      label.textContent = pct + '%';
+      var pos = clamp(Math.round(Kwal.valueToSlider(sliderPct, 0, 100)));
+      slider.value = pos;
+      label.textContent = Math.round(sliderPct) + '%';
     }
   }
 
@@ -700,20 +726,32 @@ Kwal.pattern = (function() {
       var lbl = document.createElement('label');
       lbl.textContent = def.label;
       
+      var isLog = (def.key !== 'gradient_speed');
+      var realValue = params[def.key] || def.min;
+      
       var slider = document.createElement('input');
       slider.type = 'range';
       slider.min = def.min;
       slider.max = def.max;
       slider.step = def.step;
-      slider.value = params[def.key] || def.min;
+      slider.value = isLog ? Kwal.valueToSlider(realValue, def.min, def.max) : realValue;
       
       var val = document.createElement('span');
       val.className = 'slider-val';
-      val.textContent = slider.value;
+      
+      function formatValue(v) {
+        return (def.step < 1) ? Number(v.toFixed(2)) : Math.round(v);
+      }
+      val.textContent = formatValue(realValue);
       
       slider.oninput = function() {
-        val.textContent = slider.value;
-        currentParams[def.key] = parseFloat(slider.value);
+        var pos = parseFloat(slider.value);
+        var real = isLog ? Kwal.sliderToValue(pos, def.min, def.max) : pos;
+        // Snap to step
+        real = Math.round(real / def.step) * def.step;
+        real = Math.max(def.min, Math.min(def.max, real));
+        val.textContent = formatValue(real);
+        currentParams[def.key] = parseFloat(formatValue(real));
         schedulePreview();
         
         // Mark as modified

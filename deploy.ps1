@@ -54,15 +54,18 @@ if (-not $SkipSD) {
     
     # Build JS first
     Write-Host "  Building kwal.js..." -ForegroundColor Gray
-    & "$PSScriptRoot\build_js.ps1" 2>$null
+    & "$PSScriptRoot\build_js.ps1"
+    if ($LASTEXITCODE -ne 0) { Write-Host "  WARNING: JS build failed!" -ForegroundColor Red }
     
     # Upload CSV files
     Write-Host "  Uploading CSV files..." -ForegroundColor Gray
-    & "$PSScriptRoot\upload_csv.ps1" -ip $targetIP 2>$null
+    & "$PSScriptRoot\upload_csv.ps1" -ip $targetIP
+    if ($LASTEXITCODE -ne 0) { Write-Host "  WARNING: CSV upload failed!" -ForegroundColor Red }
     
     # Upload web files
     Write-Host "  Uploading web files..." -ForegroundColor Gray
-    & "$PSScriptRoot\upload_web.ps1" -ip $targetIP 2>$null
+    & "$PSScriptRoot\upload_web.ps1" -ip $targetIP
+    if ($LASTEXITCODE -ne 0) { Write-Host "  WARNING: Web upload failed!" -ForegroundColor Red }
     
     Write-Host "  SD upload complete" -ForegroundColor Green
     $step++

@@ -19,6 +19,7 @@
 #include "Alert/AlertRGB.h"
 #include "Alert/AlertState.h"
 #include "WebGuiStatus.h"
+#include "NasBackup.h"
 #include <FastLED.h>
 
 // Alias for readability — Globals::brightnessFading
@@ -370,6 +371,7 @@ bool LightRun::updatePattern(JsonVariantConst body, String &affectedId, String &
     }
     // Update doesn't change source
     applyToLights();
+    NasBackup::requestPush("light_patterns.csv");
     return true;
 }
 
@@ -383,6 +385,7 @@ bool LightRun::deletePattern(JsonVariantConst body, String &affectedId, String &
         patternSource = LightSource::CONTEXT;
     }
     applyToLights();
+    NasBackup::requestPush("light_patterns.csv");
     return true;
 }
 
@@ -422,6 +425,7 @@ bool LightRun::updateColor(JsonVariantConst body, String &affectedId, String &er
     }
     // Update doesn't change source
     applyToLights();
+    NasBackup::requestPush("light_colors.csv");
     return true;
 }
 
@@ -434,6 +438,7 @@ bool LightRun::deleteColorSet(JsonVariantConst body, String &affectedId, String 
         colorSource = LightSource::CONTEXT;
     }
     applyToLights();
+    NasBackup::requestPush("light_colors.csv");
     return true;
 }
 

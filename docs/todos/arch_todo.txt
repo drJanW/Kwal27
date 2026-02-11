@@ -11,3 +11,10 @@ ARCH TODO (status ownership)
 4) Audit other *Controller classes for is* or ready/busy accessors that leak status reads.
    - Only controllers should touch hardware and set status; reads should come from State/Context.
    - Target files: lib/*Controller/*.h, lib/*Controller/*.cpp
+
+5) WiFiController has timer callbacks that belong in a WiFiRun layer.
+   - cb_checkWiFiStatus, cb_checkWiFiConnection, cb_retryConnect own timers + AlertState transitions.
+   - WiFiController should be hardware API only: connect(), disconnect(), isConnected(), getIP().
+   - Timer orchestration, retry logic, and the consecutive-failure counter move to WiFiRun.
+   - Files: lib/WiFiController/WiFiController.cpp → split into lib/RunManager/WiFi/WiFiRun.cpp
+   - Risk: touches WiFi boot sequence; USB-only recovery if broken. Do on a calm day.

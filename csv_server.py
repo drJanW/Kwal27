@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
+from datetime import datetime
 import os
 import shutil
 
 BASE_DIR = "/shares/Public/Kwal/csv"
 DONE_DIR = "/shares/Public/Kwal/csv/done"
+HISTORY_DIR = "/shares/Public/Kwal/csv/history"
+
+# Files that ESP32 is allowed to push back
+ALLOWED_FILES = {
+    "light_patterns.csv",
+    "light_colors.csv",
+}
 
 class Handler(SimpleHTTPRequestHandler):
     def serve_file(self, file_path):
@@ -24,6 +32,64 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         with open(file_path, "rb") as handle:
             shutil.copyfileobj(handle, self.wfile)
+
+    def do_POST(self):
+        parsed = urlparse(self.path)
+
+        if parsed.path == "/api/upload":
+            qs = parse_qs(parsed.query)
+            fname = qs.get("file", [""])[0]
+
+            # Validate filename
+            if not fname or "/" in fname or ".." in fname:
+                self.send_response(400); self.end_headers()
+                self.wfile.write(b"bad filename")
+                return
+
+            if fname not in ALLOWED_FILES:
+                self.send_response(403); self.end_headers()
+                self.wfile.write(b"file not allowed")
+                return
+
+            # Read body
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length == 0 or content_length > 1_000_000:
+                self.send_response(400); self.end_headers()
+                self.wfile.write(b"bad content length")
+                return
+            body = self.rfile.read(content_length)
+
+            dest = os.path.join(BASE_DIR, fname)
+
+            # Compare with existing — skip if identical
+            if os.path.isfile(dest):
+                with open(dest, "rb") as f:
+                    existing = f.read()
+                if existing == body:
+                    self.send_response(200); self.end_headers()
+                    self.wfile.write(b"unchanged")
+                    print(f"[upload] {fname}: unchanged, skipped", flush=True)
+                    return
+
+                # Archive existing version before overwriting
+                os.makedirs(HISTORY_DIR, exist_ok=True)
+                stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                base, ext = os.path.splitext(fname)
+                archive_name = f"{base}_{stamp}{ext}"
+                shutil.copy2(dest, os.path.join(HISTORY_DIR, archive_name))
+                print(f"[upload] {fname}: archived as {archive_name}", flush=True)
+
+            # Write new version
+            with open(dest, "wb") as f:
+                f.write(body)
+
+            print(f"[upload] {fname}: saved ({len(body)} bytes)", flush=True)
+            self.send_response(200); self.end_headers()
+            self.wfile.write(b"saved")
+            return
+
+        self.send_response(404); self.end_headers()
+        self.wfile.write(b"not found")
 
     def do_GET(self):
         parsed = urlparse(self.path)

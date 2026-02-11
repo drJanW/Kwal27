@@ -14,6 +14,7 @@
 
 static bool stationConfigured = false;  // Guard: only set station config once
 static bool loggedStart = false;     // Log connect start once per attempt
+static uint8_t connCheckFails = 0;   // Consecutive connection check failures
 
 static void cb_checkWiFiStatus();
 static void cb_checkWiFiConnection();
@@ -81,11 +82,18 @@ static void cb_retryConnect() {
 }
 
 // Connection check timer: lightweight check after a successful connection.
-// On failure, it restarts the full connect sequence.
+// Requires 2 consecutive failures before restarting (ESP32 WiFi.status()
+// returns transient false negatives under CPU/IO load).
 static void cb_checkWiFiConnection() {
-    if (WiFi.status() == WL_CONNECTED && WiFi.localIP() != INADDR_NONE) return;
+    if (WiFi.status() == WL_CONNECTED && WiFi.localIP() != INADDR_NONE) {
+        connCheckFails = 0;
+        return;
+    }
+    connCheckFails++;
+    if (connCheckFails < 2) return;  // Ignore single transient failure
 
     PL("[WiFi] Connection check failed — restarting connection");
+    connCheckFails = 0;
     timers.cancel(cb_checkWiFiConnection);
     AlertState::set(SC_WIFI, Globals::wifiRetryCount);
     bootWiFiConnect();

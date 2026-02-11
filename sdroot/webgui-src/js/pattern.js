@@ -215,20 +215,32 @@ Kwal.pattern = (function() {
       var lbl = document.createElement('label');
       lbl.textContent = def.label;
       
+      var isLog = (def.key !== 'gradient_speed');
+      var realValue = params[def.key] || def.min;
+      
       var slider = document.createElement('input');
       slider.type = 'range';
       slider.min = def.min;
       slider.max = def.max;
       slider.step = def.step;
-      slider.value = params[def.key] || def.min;
+      slider.value = isLog ? Kwal.valueToSlider(realValue, def.min, def.max) : realValue;
       
       var val = document.createElement('span');
       val.className = 'slider-val';
-      val.textContent = slider.value;
+      
+      function formatValue(v) {
+        return (def.step < 1) ? Number(v.toFixed(2)) : Math.round(v);
+      }
+      val.textContent = formatValue(realValue);
       
       slider.oninput = function() {
-        val.textContent = slider.value;
-        currentParams[def.key] = parseFloat(slider.value);
+        var pos = parseFloat(slider.value);
+        var real = isLog ? Kwal.sliderToValue(pos, def.min, def.max) : pos;
+        // Snap to step
+        real = Math.round(real / def.step) * def.step;
+        real = Math.max(def.min, Math.min(def.max, real));
+        val.textContent = formatValue(real);
+        currentParams[def.key] = parseFloat(formatValue(real));
         schedulePreview();
         
         // Mark as modified

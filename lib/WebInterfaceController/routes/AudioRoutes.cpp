@@ -98,7 +98,11 @@ void routePlay(AsyncWebServerRequest *request)
     }
     RunManager::requestPlaySpecificFragment(dir, file);
     request->send(200, "text/plain", "OK");
-    WEBIF_LOG("[Web] Play %u/%d triggered\n", dir, file);
+    if (file >= 0) {
+        PF("[Web] Replay %u/%d requested\n", dir, file);
+    } else {
+        PF("[Web] Play random from dir %u requested\n", dir);
+    }
 }
 
 void attachRoutes(AsyncWebServer &server)

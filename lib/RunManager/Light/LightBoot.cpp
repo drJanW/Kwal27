@@ -40,5 +40,5 @@ void LightBoot::plan() {
     setBrightnessUnshiftedHi(150);  // Boot default (before shifts)
     setBrightnessShiftedHi(100);    // Initially equal
     setWebShift(1.0f);              // F9: neutral multiplier
-    WebGuiStatus::pushState();  // Push initial brightness to SSE
+    WebGuiStatus::pushState();  // Push initial brightness
 }

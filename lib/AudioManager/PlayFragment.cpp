@@ -15,6 +15,7 @@
 #include "AudioManager.h"
 #include "TimerManager.h"
 #include "SDController.h"
+#include "SDVoting.h"
 #include "WebGuiStatus.h"
 
 extern const char* getMP3Path(uint8_t dirIdx, uint8_t fileIdx);
@@ -235,6 +236,7 @@ void stopPlayback() {
     SDController::unlockSD();  // SD no longer busy
     setAudioBusy(false);
     setFragmentPlaying(false);
+    SDVoting::saveAccumulatedVotes();  // Write accumulated votes now that SD is free
     setSentencePlaying(false);
 
     fade().effectiveMs = 0;

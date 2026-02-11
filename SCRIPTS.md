@@ -68,6 +68,21 @@ Create full project ZIP archive (respects .gitignore) one level up from project.
 .\zip.ps1
 ```
 
+### Automatic NAS Backup (firmware)
+When a pattern or color set is created, updated, or deleted via the web interface,
+the ESP32 automatically pushes the updated CSV to `csv_server.py` on the NAS
+(`http://192.168.2.23:8081/api/upload`). The push is deferred by 1.5 seconds so it
+does not block the web response. Rapid saves are coalesced into one push.
+
+The NAS server checks:
+- **Identical content** → skipped (no disk write)
+- **Changed content** → archives previous version in `history/` before saving
+
+Backed-up files: `light_patterns.csv`, `light_colors.csv`.
+History lives at `/shares/Public/Kwal/csv/history/`.
+
+**Requires:** `csv_server.py` running on the NAS (`.\nasstart.ps1`).
+
 ## Git Sync (NAS & GitHub)
 
 ### `opstart.ps1`

@@ -51,17 +51,19 @@ Kwal.audio = (function() {
     
     if (slider && label) {
       slider.oninput = function() {
-        var val = clamp(parseInt(slider.value, 10));
-        slider.value = val;
-        label.textContent = val + '%';
+        var pos = clamp(parseInt(slider.value, 10));
+        slider.value = pos;
+        var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
+        label.textContent = real + '%';
       };
 
       slider.onchange = function() {
-        var sliderPct = clamp(parseInt(slider.value, 10));
-        slider.value = sliderPct;
-        label.textContent = sliderPct + '%';
-        // Send sliderPct directly - firmware calculates webShift
-        fetch('/setWebAudioLevel?value=' + sliderPct, { method: 'POST' }).catch(function() {});
+        var pos = clamp(parseInt(slider.value, 10));
+        slider.value = pos;
+        var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
+        label.textContent = real + '%';
+        // Send real value - firmware calculates webShift
+        fetch('/setWebAudioLevel?value=' + real, { method: 'POST' }).catch(function() {});
       };
       
       updateGradient();
@@ -144,9 +146,9 @@ Kwal.audio = (function() {
     if (typeof hiPercent === 'number') hiPct = hiPercent;
     updateGradient();
     if (slider && label && typeof sliderPct === 'number') {
-      var pct = clamp(Math.round(sliderPct));
-      slider.value = pct;
-      label.textContent = pct + '%';
+      var pos = clamp(Math.round(Kwal.valueToSlider(sliderPct, 0, 100)));
+      slider.value = pos;
+      label.textContent = Math.round(sliderPct) + '%';
     }
   }
 

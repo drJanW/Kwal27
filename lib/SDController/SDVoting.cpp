@@ -31,6 +31,8 @@
 
 namespace {
 
+int16_t totalVote = 0;   // Accumulated vote delta, saved to SD when free
+
 bool readCurrentScore(uint8_t dir, uint8_t file, uint8_t& scoreOut) {
   if (AlertState::isSdBusy()) {
     PF("[SDVoting] Busy while reading score %03u/%03u\n", dir, file);
@@ -97,21 +99,21 @@ uint8_t SDVoting::getRandomFile(uint8_t dir_num) {
 }
 
 uint8_t SDVoting::applyVote(uint8_t dir_num, uint8_t file_num, int8_t delta) {
-  // NOTE: Don't check isSdBusy() here - voting should work during playback
-  // The SD card can handle interleaved small reads/writes during MP3 streaming
+  SDController::lockSD();
 
   FileEntry fe; DirEntry dir;
   if (!SDController::readFileEntry(dir_num, file_num, &fe)) {
+    SDController::unlockSD();
     return 0;
   }
   if (!SDController::readDirEntry(dir_num, &dir)) {
+    SDController::unlockSD();
     return 0;
   }
   if (fe.score == 0) {
+    SDController::unlockSD();
     return 0;
   }
-
-  delta = MathUtils::clamp(delta, (int8_t)-10, (int8_t)10);
 
   int16_t ns = static_cast<int16_t>(fe.score) + static_cast<int16_t>(delta);
   ns = MathUtils::clamp(ns, static_cast<int16_t>(1), static_cast<int16_t>(200));
@@ -122,7 +124,8 @@ uint8_t SDVoting::applyVote(uint8_t dir_num, uint8_t file_num, int8_t delta) {
   SDController::writeFileEntry(dir_num, file_num, &fe);
   SDController::writeDirEntry(dir_num, &dir);
   
-  return fe.score;  // Return the new score
+  SDController::unlockSD();
+  return fe.score;
 }
 
 void SDVoting::banFile(uint8_t dir_num, uint8_t file_num) {
@@ -189,6 +192,18 @@ bool SDVoting::getCurrentPlayable(uint8_t& d, uint8_t& f) {
   return getCurrentDirFile(d, f, s);
 }
 
+void SDVoting::saveAccumulatedVotes() {
+  if (totalVote == 0) return;
+  uint8_t d = 0, f = 0, s = 0;
+  if (!getCurrentDirFile(d, f, s)) { totalVote = 0; return; }
+  int8_t clamped = static_cast<int8_t>(MathUtils::clamp(static_cast<int16_t>(totalVote), static_cast<int16_t>(-100), static_cast<int16_t>(100)));
+  uint8_t newScore = applyVote(d, f, clamped);
+  totalVote = 0;
+  if (newScore > 0) {
+    WebGuiStatus::setFragmentScore(newScore);
+  }
+}
+
 void SDVoting::attachVoteRoute(AsyncWebServer& server) {
   server.on("/vote", HTTP_ANY, [](AsyncWebServerRequest* req) {
     const bool doDel =
@@ -236,20 +251,22 @@ void SDVoting::attachVoteRoute(AsyncWebServer& server) {
       return;
     }
 
-    PF("[WEB] VOTE requested dir=%u file=%u delta=%d\n", dir, file, delta);
-    
     if (delta != 0) {
-      // Apply vote directly (bypasses ContextController queue for immediate response)
-      uint8_t newScore = SDVoting::applyVote(dir, file, delta);
-      if (newScore > 0) {
-        WebGuiStatus::setFragmentScore(newScore);
+      totalVote += delta;
+
+      // Try to save now if SD is free, otherwise it waits for saveAccumulatedVotes()
+      if (!AlertState::isSdBusy()) {
+        saveAccumulatedVotes();
       }
-      char b3[80]; 
-      if (newScore > 0) {
-        snprintf(b3, sizeof(b3), "VOTE applied dir=%u file=%u delta=%d score=%u", dir, file, delta, newScore);
-      } else {
-        snprintf(b3, sizeof(b3), "VOTE failed dir=%u file=%u delta=%d score=?", dir, file, delta);
-      }
+
+      // Respond with predicted score
+      uint8_t d2, f2, baseScore;
+      getCurrentDirFile(d2, f2, baseScore);
+      int16_t predicted = MathUtils::clamp(
+          static_cast<int16_t>(baseScore) + static_cast<int16_t>(totalVote),
+          static_cast<int16_t>(1), static_cast<int16_t>(200));
+      char b3[80];
+      snprintf(b3, sizeof(b3), "VOTE dir=%u file=%u delta=%d score=%u", dir, file, delta, static_cast<uint8_t>(predicted));
       req->send(200, "text/plain", b3);
     } else {
       // Score query only (delta=0): read score, indicate if unavailable
