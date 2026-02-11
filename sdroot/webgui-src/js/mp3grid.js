@@ -8,13 +8,13 @@ Kwal.mp3grid = (function() {
 
   var COLS = 101;   // file 1-100 (column 0 unused)
   var ROWS = 200;   // dir 1-199
-  var CELL = 3;
+  var CELL = 5;
   var W = COLS * CELL;
   var H = ROWS * CELL;
 
   var canvas, ctx, wrap;
   var dirSlider, fileSlider, dirVal, fileVal;
-  var catpill, catlabel, playBtn;
+  var catpill, catlabel, closeBtn;
 
   var selRow = 0, selCol = 0;
   var loaded = false;
@@ -144,7 +144,7 @@ Kwal.mp3grid = (function() {
     fileVal = document.getElementById('mg-file-val');
     catpill = document.getElementById('mg-catpill');
     catlabel = document.getElementById('mg-catlabel');
-    playBtn = document.getElementById('mg-play');
+    closeBtn = document.getElementById('mg-close');
 
     if (!canvas || !wrap) return;
 
@@ -173,20 +173,49 @@ Kwal.mp3grid = (function() {
       setSelection(Math.floor(y / CELL), Math.floor(x / CELL), true);
     });
 
+    // Canvas double-tap: play file if tapped on file column, set dir theme if tapped on dir label
+    canvas.addEventListener('dblclick', function(e) {
+      e.preventDefault();
+      if (selRow > 0 && selCol > 0) {
+        fetch('/api/audio/play?dir=' + selRow + '&file=' + selCol).catch(function() {});
+      }
+    });
+
     // Steppers
     bindStepper(document.getElementById('mg-dir-dec'), -1, 0);
     bindStepper(document.getElementById('mg-dir-inc'), 1, 0);
     bindStepper(document.getElementById('mg-file-dec'), 0, -1);
     bindStepper(document.getElementById('mg-file-inc'), 0, 1);
 
-    // Play button
-    if (playBtn) {
-      playBtn.onclick = function() {
-        fetch('/api/audio/play?dir=' + selRow + '&file=' + selCol).catch(function() {});
-        playBtn.style.background = 'rgba(255,255,255,.10)';
-        setTimeout(function() { playBtn.style.background = ''; }, 120);
-      };
-    }
+    // DIR label + value click: set single-dir theme_box
+    var dirLabel = document.getElementById('mg-dir-label');
+    var dirClickTargets = [dirVal, dirLabel];
+    dirClickTargets.forEach(function(el) {
+      if (!el) return;
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (selRow > 0) {
+          fetch('/api/audio/themebox?dir=' + selRow).catch(function() {});
+          if (dirVal) { dirVal.style.color = '#2ee88a'; setTimeout(function() { dirVal.style.color = ''; }, 400); }
+        }
+      });
+    });
+
+    // FILE label + value click: play that file
+    var fileLabel = document.getElementById('mg-file-label');
+    var fileClickTargets = [fileVal, fileLabel];
+    fileClickTargets.forEach(function(el) {
+      if (!el) return;
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (selRow > 0 && selCol > 0) {
+          fetch('/api/audio/play?dir=' + selRow + '&file=' + selCol).catch(function() {});
+          if (fileVal) { fileVal.style.color = '#e8c72e'; setTimeout(function() { fileVal.style.color = ''; }, 400); }
+        }
+      });
+    });
   }
 
   function load() {

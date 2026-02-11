@@ -18,7 +18,7 @@
 
     <section class="panel">
       <div class="row audio-header-row">
-        <h2>Audio</h2>
+        <h2 id="audio-box-label" class="audio-box-label">Audio</h2>
         <span class="fragment-id"><span id="audio-dir" class="clickable">---</span>/<span id="audio-file"
             class="clickable">---</span></span>
         <button id="audio-next" class="btn-icon">⏭</button>
@@ -187,23 +187,22 @@
 
   <div id="mp3grid-modal" class="modal">
     <div class="modal-box wide">
-      <h3>MP3 Grid</h3>
       <div class="mg-card">
         <div class="mg-hdr">
           <div class="mg-toprow">
             <div id="mg-catpill" class="mg-catpill"></div>
             <div id="mg-catlabel" class="mg-catlabel">-</div>
-            <div id="mg-play" class="mg-playbtn" title="Play">▶</div>
+            <div id="mg-close" class="mg-playbtn" data-close data-return="dev-modal" title="Close">✕</div>
           </div>
           <div class="mg-sliderrow">
-            <label for="mg-dir">DIR</label>
+            <label id="mg-dir-label" for="mg-dir">DIR</label>
             <button class="mg-stepbtn" id="mg-dir-dec" type="button">◀</button>
             <input id="mg-dir" type="range" min="0" max="199" value="0">
             <button class="mg-stepbtn" id="mg-dir-inc" type="button">▶</button>
             <div id="mg-dir-val" class="mg-val">000</div>
           </div>
           <div class="mg-sliderrow">
-            <label for="mg-file">FILE</label>
+            <label id="mg-file-label" for="mg-file">FILE</label>
             <button class="mg-stepbtn" id="mg-file-dec" type="button">◀</button>
             <input id="mg-file" type="range" min="0" max="100" value="0">
             <button class="mg-stepbtn" id="mg-file-inc" type="button">▶</button>
@@ -216,11 +215,10 @@
           </div>
         </div>
       </div>
-      <button data-close data-return="dev-modal">Close</button>
     </div>
   </div>
 
-  <script src="kwal.js?v=260211E"></script>
+  <script src="kwal.js?v=260211J"></script>
 </body>
 
 </html>

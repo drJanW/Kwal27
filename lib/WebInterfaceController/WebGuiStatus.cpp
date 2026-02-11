@@ -1,8 +1,8 @@
 /**
  * @file WebGuiStatus.cpp
  * @brief Centralized WebGUI state management implementation
- * @version 260207B
- * @date 2026-02-07
+ * @version 260211A
+ * @date 2026-02-11
  */
 #include "WebGuiStatus.h"
 #include "Globals.h"
@@ -12,6 +12,7 @@
 #include "LightController.h"
 #include "AudioState.h"
 #include "SensorController.h"
+#include "TodayState.h"
 #include <ESPAsyncWebServer.h>
 
 #ifndef WEBIF_LOG_LEVEL
@@ -156,7 +157,22 @@ void pushState() {
     json += score;
     json += F(",\"durationMs\":");
     json += fragmentDurationMs_.load(std::memory_order_relaxed);
-    json += F("}}");
+    // Look up theme box name for this dir
+    String boxName;
+    const auto& boxes = GetAllThemeBoxes();
+    uint16_t bestSize = 0xFFFF;
+    for (const auto& box : boxes) {
+        uint16_t sz = static_cast<uint16_t>(box.entries.size());
+        for (uint16_t d : box.entries) {
+            if (d == dir && sz < bestSize) {
+                boxName = box.name;
+                bestSize = sz;
+            }
+        }
+    }
+    json += F(",\"boxName\":\"");
+    json += boxName;
+    json += F("\"}}");
     
     eventsPtr_->send(json.c_str(), "state", millis());
     WEBIF_LOG("[SSE] state sliderPct=%d audio=%d pat=%s col=%s\n", sliderPct, audioSliderPct, patternId.c_str(), colorId.c_str());

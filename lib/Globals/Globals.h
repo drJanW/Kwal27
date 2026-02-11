@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260206K
- * @date 2026-02-06
+ * @version 260211Q
+ * @date 2026-02-11
  */
 #pragma once
 
@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260211K"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260211Q"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -55,6 +55,8 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     inline static uint32_t minAudioIntervalMs     = MINUTES(6);   // Min wait between ambient audio
     inline static uint32_t maxAudioIntervalMs     = MINUTES(48);  // Max wait between ambient audio
+    inline static uint32_t singleDirMinIntervalMs  = MINUTES(1);   // Min wait during single-dir theme box
+    inline static uint32_t singleDirMaxIntervalMs  = MINUTES(5);   // Max wait during single-dir theme box
     inline static uint16_t baseFadeMs             = SECONDS(5);   // Default fade duration
     inline static uint16_t webAudioNextFadeMs     = 957U;         // Fade when web UI skips track
     inline static uint8_t  fragmentStartFraction  = 50U;          // Start position % into file (0-100)
@@ -166,7 +168,7 @@ struct Globals {
     inline static uint32_t weatherBootstrapIntervalMs = SECONDS(5); // Weather boot retry interval
     inline static uint32_t weatherRefreshIntervalMs  = HOURS(1);  // Weather API periodic refresh
     inline static uint32_t sunRefreshIntervalMs      = HOURS(2);  // Sunrise/sunset refresh
-    inline static uint32_t calendarRefreshIntervalMs = HOURS(1);  // Calendar CSV refresh
+    inline static uint32_t calendarRefreshIntervalMs = HOURS(6);  // Calendar CSV refresh
 
     // ─────────────────────────────────────────────────────────────
     // CSV HTTP (3 params)

@@ -90,7 +90,7 @@
       }
       // Fragment info
       if (data.fragment) {
-        Kwal.audio.updateFragment(data.fragment.dir, data.fragment.file, data.fragment.score, data.fragment.durationMs);
+        Kwal.audio.updateFragment(data.fragment.dir, data.fragment.file, data.fragment.score, data.fragment.durationMs, data.fragment.boxName);
         if (Kwal.mp3grid.setSelection) {
           Kwal.mp3grid.setSelection(data.fragment.dir, data.fragment.file, false);
         }

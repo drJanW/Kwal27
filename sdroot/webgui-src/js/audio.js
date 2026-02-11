@@ -12,7 +12,7 @@
 Kwal.audio = (function() {
   'use strict';
 
-  var slider, label, nextBtn, dirEl, fileEl;
+  var slider, label, nextBtn, dirEl, fileEl, boxLabelEl;
   var voteUpBtn, voteDownBtn, voteScoreEl;
   var currentDir = null, currentFile = null;
   var isPlaying = false;
@@ -45,6 +45,7 @@ Kwal.audio = (function() {
     nextBtn = document.getElementById('audio-next');
     dirEl = document.getElementById('audio-dir');
     fileEl = document.getElementById('audio-file');
+    boxLabelEl = document.getElementById('audio-box-label');
     voteUpBtn = document.getElementById('vote-up');
     voteDownBtn = document.getElementById('vote-down');
     voteScoreEl = document.getElementById('vote-score');
@@ -159,7 +160,7 @@ Kwal.audio = (function() {
    * @param {number} score
    * @param {number} durationMs Fragment duration in ms (0 = use default)
    */
-  function updateFragment(dir, file, score, durationMs) {
+  function updateFragment(dir, file, score, durationMs, boxName) {
     var isFirstLoad = (currentDir === null);
     var isNewFragment = (dir !== currentDir || file !== currentFile);
     currentDir = dir;
@@ -182,6 +183,9 @@ Kwal.audio = (function() {
     }
     if (typeof score === 'number' && voteScoreEl) {
       voteScoreEl.textContent = score;
+    }
+    if (boxLabelEl && typeof boxName === 'string' && boxName.length > 0) {
+      boxLabelEl.textContent = boxName;
     }
   }
 

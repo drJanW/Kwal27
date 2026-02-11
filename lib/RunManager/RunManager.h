@@ -1,8 +1,8 @@
 /**
  * @file RunManager.h
  * @brief Central coordinator header for all Kwal modules
- * @version 260204A
- * @date 2026-02-04
+ * @version 260211A
+ * @date 2026-02-11
  */
 #pragma once
 #include <Arduino.h>
@@ -25,6 +25,7 @@ public:
     // Requests (external inputs)
     static void requestPlayFragment();
     static void requestPlaySpecificFragment(uint8_t dir, int8_t file);  // file=-1 for random from dir
+    static void requestSetSingleDirThemeBox(uint8_t dir);
     static void requestWebAudioNext(uint16_t fadeMs);
     static void triggerBootFragment();  // Called by CalendarRun after theme box set
     static void requestSayTime(TimeStyle style = TimeStyle::NORMAL);

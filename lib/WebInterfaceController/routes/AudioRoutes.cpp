@@ -1,7 +1,7 @@
 /**
  * @file AudioRoutes.cpp
  * @brief Audio API endpoint routes
- * @version 260211C
+ * @version 260211L
  * @date 2026-02-11
  */
 #include <Arduino.h>
@@ -108,6 +108,17 @@ void routePlay(AsyncWebServerRequest *request)
     }
 }
 
+void routeThemeBox(AsyncWebServerRequest *request)
+{
+    if (!request->hasParam("dir")) {
+        request->send(400, "text/plain", "Missing ?dir");
+        return;
+    }
+    uint8_t dir = static_cast<uint8_t>(request->getParam("dir")->value().toInt());
+    RunManager::requestSetSingleDirThemeBox(dir);
+    request->send(200, "text/plain", "OK");
+}
+
 void attachRoutes(AsyncWebServer &server)
 {
     server.on("/setWebAudioLevel", HTTP_GET, routeSetLevel);
@@ -116,6 +127,7 @@ void attachRoutes(AsyncWebServer &server)
     server.on("/api/audio/next", HTTP_POST, routeNext);
     server.on("/api/audio/current", HTTP_GET, routeCurrent);
     server.on("/api/audio/play", HTTP_GET, routePlay);
+    server.on("/api/audio/themebox", HTTP_GET, routeThemeBox);
     server.on("/api/audio/grid", HTTP_GET, routeGrid);
 }
 

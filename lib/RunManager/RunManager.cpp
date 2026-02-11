@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260207A
- * @date 2026-02-07
+ * @version 260211A
+ * @date 2026-02-11
  */
 #include <Arduino.h>
 #include <math.h>
@@ -132,8 +132,14 @@ void cb_sayRTCtemperature() {
 
 void cb_playFragment() {
     RunManager::requestPlayFragment();
-    // Schedule next with fresh random interval - the creature breathes
-    timers.restart(random(Globals::minAudioIntervalMs, Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
+    // Schedule next: shorter intervals during single-dir web override
+    uint32_t lo = Globals::minAudioIntervalMs;
+    uint32_t hi = Globals::maxAudioIntervalMs;
+    if (AudioPolicy::themeBoxId().startsWith("web-")) {
+        lo = Globals::singleDirMinIntervalMs;
+        hi = Globals::singleDirMaxIntervalMs;
+    }
+    timers.restart(random(lo, hi + 1), 1, cb_playFragment);
 }
 
 void cb_bootFragment() {
@@ -260,6 +266,7 @@ void RunManager::requestPlayFragment() {
 }
 
 void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file) {
+    AudioPolicy::resetToBaseThemeBox();  // Clear any single-dir override
     FileEntry fileEntry{};
     uint8_t targetFile = static_cast<uint8_t>(file);
     
@@ -295,6 +302,14 @@ void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file) {
     if (!AudioPolicy::requestFragment(fragment)) {
         RUN_LOG_WARN("[AudioRun] playback rejected\n");
     }
+}
+
+void RunManager::requestSetSingleDirThemeBox(uint8_t dir) {
+    AudioPolicy::setThemeBox(&dir, 1, "web-" + String(dir));
+    PF("[RunManager] Single-dir theme box set: dir %u\n", dir);
+    requestPlaySpecificFragment(dir, -1);  // Play random file from that dir immediately
+    // Reschedule next automatic play with shorter interval
+    timers.restart(random(Globals::singleDirMinIntervalMs, Globals::singleDirMaxIntervalMs + 1), 1, cb_playFragment);
 }
 
 // Static flag to ensure boot fragment only plays once
@@ -416,6 +431,7 @@ void RunManager::resumeAfterWiFiBoot() {
 }
 
 void RunManager::requestWebAudioNext(uint16_t fadeMs) {
+    AudioPolicy::resetToBaseThemeBox();  // Clear any single-dir override
     webAudioNextFadeMs = fadeMs;
     timers.cancel(cb_webAudioStopThenNext);
     timers.create(1, 1, cb_webAudioStopThenNext);

@@ -1,8 +1,8 @@
 /**
  * @file Globals.cpp
  * @brief CSV override loader for Globals
- * @version 260204A
- * @date 2026-02-04
+ * @version 260211A
+ * @date 2026-02-11
  */
 #include "Arduino.h"
 #include "Globals.h"
@@ -129,6 +129,18 @@ static void applyOverride(const char* key, char type, const char* value) {
         if (parseUint32(value, &u32)) {
             Globals::maxAudioIntervalMs = u32;
             PF_BOOT("[Globals] maxAudioIntervalMs = %lu\n", (unsigned long)u32);
+        }
+    }
+    else if (strcmp(key, "singleDirMinIntervalMs") == 0 && type == 'u') {
+        if (parseUint32(value, &u32)) {
+            Globals::singleDirMinIntervalMs = u32;
+            PF_BOOT("[Globals] singleDirMinIntervalMs = %lu\n", (unsigned long)u32);
+        }
+    }
+    else if (strcmp(key, "singleDirMaxIntervalMs") == 0 && type == 'u') {
+        if (parseUint32(value, &u32)) {
+            Globals::singleDirMaxIntervalMs = u32;
+            PF_BOOT("[Globals] singleDirMaxIntervalMs = %lu\n", (unsigned long)u32);
         }
     }
     else if (strcmp(key, "baseFadeMs") == 0 && type == 'u') {
