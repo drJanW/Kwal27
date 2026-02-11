@@ -62,6 +62,9 @@ enum TimeStatus : uint8_t {
     STATUS_LUX_SENSOR_OK,
     STATUS_SENSOR3_OK,
 
+    // NAS server reachability
+    STATUS_NAS_OK,
+
     // Temperature shift flag (RTC temperature-based)
     STATUS_TEMPERATURE_SHIFT,
     

@@ -1,12 +1,18 @@
 /**
  * @file NasBackup.cpp
  * @brief Push pattern/color CSVs to NAS csv_server.py after save
- * @version 260210J
- * @date 2026-02-10
+ * @version 260211A
+ * @date 2026-02-11
  *
- * Flow: requestPush(filename) sets a pending flag and schedules a one-shot
- * timer. The timer callback reads the file from SD and POSTs it to the NAS.
- * This avoids blocking the web response that triggered the save.
+ * Safe push design:
+ *   requestPush(filename) sets a pending bool and starts a repeating timer.
+ *   Each tick the timer checks: WiFi ok, NAS ok, SD free, audio idle.
+ *   If safe → read file from SD, POST to NAS (short timeout).
+ *   On success → clear pending; if nothing pending → cancel timer.
+ *
+ * Health check:
+ *   checkHealth() probes GET /api/health with a 1.5s timeout.
+ *   Called once from WiFiBoot after connect, then every 57 minutes.
  */
 #include <Arduino.h>
 
@@ -15,48 +21,43 @@
 #include "TimerManager.h"
 #include "SDController.h"
 #include "Alert/AlertState.h"
+#include "AudioState.h"
 #include <HTTPClient.h>
 #include <WiFiClient.h>
 
 extern TimerManager timers;
 
-// ─────────────────────────────────────────────────────────────
-// Pending push queue (patterns + colors can both be dirty)
-// ─────────────────────────────────────────────────────────────
 namespace {
-    bool pendingPatterns = false;
-    bool pendingColors   = false;
-    constexpr uint32_t PUSH_DELAY_MS = 1500;   // deferred push interval
-}
+
+bool pendingPatterns = false;
+bool pendingColors   = false;
+constexpr uint32_t PUSH_INTERVAL_MS  = 10000;  // retry every 10s
+constexpr uint32_t HEALTH_INTERVAL_MS = 57UL * 60UL * 1000UL;  // 57 minutes
+constexpr uint32_t NAS_TIMEOUT_MS    = 1500;   // short timeout
 
 // ─────────────────────────────────────────────────────────────
-// Build upload URL from csvBaseUrl (strip trailing "/csv/" → append "/api/upload")
-// csvBaseUrl = "http://192.168.2.23:8081/csv/"
-// upload URL = "http://192.168.2.23:8081/api/upload?file=<name>"
+// Build server root from csvBaseUrl (strip "/csv/" suffix)
 // ─────────────────────────────────────────────────────────────
-static String buildUploadUrl(const char* filename) {
+String serverRoot() {
     String base(Globals::csvBaseUrl);
-    // Strip "/csv/" or "/csv" suffix to get server root
     int csvIdx = base.indexOf("/csv");
-    if (csvIdx > 0) {
-        base = base.substring(0, csvIdx);
-    }
-    base += "/api/upload?file=";
-    base += filename;
+    if (csvIdx > 0) base = base.substring(0, csvIdx);
     return base;
 }
 
 // ─────────────────────────────────────────────────────────────
-// Read file from SD into a String
+// Read file from SD into a String (caller must ensure SD is free)
 // ─────────────────────────────────────────────────────────────
-static bool readFileFromSD(const char* path, String& content) {
+bool readFileFromSD(const char* path, String& content) {
     if (!AlertState::isSdOk()) return false;
+    SDController::lockSD();
     File file = SDController::openFileRead(path);
-    if (!file) return false;
+    if (!file) { SDController::unlockSD(); return false; }
 
     size_t fileSize = file.size();
-    if (fileSize == 0 || fileSize > 500000) {
+    if (fileSize == 0 || fileSize > 65536) {
         SDController::closeFile(file);
+        SDController::unlockSD();
         return false;
     }
 
@@ -65,67 +66,91 @@ static bool readFileFromSD(const char* path, String& content) {
         content += (char)file.read();
     }
     SDController::closeFile(file);
+    SDController::unlockSD();
     return true;
 }
 
 // ─────────────────────────────────────────────────────────────
 // POST file content to NAS csv_server.py
 // ─────────────────────────────────────────────────────────────
-static bool postToNas(const char* filename, const String& content) {
-    if (!AlertState::isWifiOk()) {
-        PF("[NasBackup] WiFi not connected, skipping push for %s\n", filename);
-        return false;
-    }
-
-    String url = buildUploadUrl(filename);
-    PF("[NasBackup] POST %s (%d bytes)\n", url.c_str(), content.length());
+bool postToNas(const char* filename, const String& content) {
+    String url = serverRoot();
+    url += "/api/upload?file=";
+    url += filename;
 
     HTTPClient http;
     WiFiClient client;
     http.begin(client, url);
     http.addHeader("Content-Type", "text/csv");
-    http.setTimeout(Globals::csvHttpTimeoutMs);
+    http.setTimeout(NAS_TIMEOUT_MS);
 
     int httpCode = http.POST(content);
-    String response = http.getString();
     http.end();
 
     if (httpCode == 200) {
-        PF("[NasBackup] %s → %s\n", filename, response.c_str());
+        PF("[NasBackup] %s pushed OK\n", filename);
         return true;
     }
-
-    PF("[NasBackup] %s failed: HTTP %d %s\n", filename, httpCode, response.c_str());
+    PF("[NasBackup] %s push failed: HTTP %d\n", filename, httpCode);
     return false;
 }
 
 // ─────────────────────────────────────────────────────────────
-// Timer callback — push all pending files
+// Push one pending file if safe. Returns true if it pushed.
 // ─────────────────────────────────────────────────────────────
-static void cb_pushToNas() {
-    if (pendingPatterns) {
-        pendingPatterns = false;
-        String content;
-        if (readFileFromSD("/light_patterns.csv", content)) {
-            postToNas("light_patterns.csv", content);
-        } else {
-            PF("[NasBackup] failed to read light_patterns.csv from SD\n");
-        }
-    }
+bool pushOnePending() {
+    const char* filename = nullptr;
+    const char* sdPath   = nullptr;
+    bool* flag           = nullptr;
 
-    if (pendingColors) {
-        pendingColors = false;
-        String content;
-        if (readFileFromSD("/light_colors.csv", content)) {
-            postToNas("light_colors.csv", content);
-        } else {
-            PF("[NasBackup] failed to read light_colors.csv from SD\n");
-        }
+    if (pendingPatterns) {
+        filename = "light_patterns.csv";
+        sdPath   = "/light_patterns.csv";
+        flag     = &pendingPatterns;
+    } else if (pendingColors) {
+        filename = "light_colors.csv";
+        sdPath   = "/light_colors.csv";
+        flag     = &pendingColors;
+    }
+    if (!flag) return false;
+
+    String content;
+    if (!readFileFromSD(sdPath, content)) return false;
+    if (postToNas(filename, content)) {
+        *flag = false;
+        return true;
+    }
+    return false;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Timer callback — retry push when safe
+// ─────────────────────────────────────────────────────────────
+void cb_pushToNas() {
+    if (!AlertState::isWifiOk()) return;
+    if (!AlertState::isNasOk())  return;
+    if (AlertState::isSdBusy())  return;
+    if (isAudioBusy())           return;
+
+    pushOnePending();
+
+    // If nothing pending, cancel timer
+    if (!pendingPatterns && !pendingColors) {
+        timers.cancel(cb_pushToNas);
     }
 }
 
 // ─────────────────────────────────────────────────────────────
-// Public API — called from LightRun after successful save
+// Timer callback — periodic NAS health probe
+// ─────────────────────────────────────────────────────────────
+void cb_checkNasHealth() {
+    NasBackup::checkHealth();
+}
+
+} // namespace
+
+// ─────────────────────────────────────────────────────────────
+// Public API
 // ─────────────────────────────────────────────────────────────
 void NasBackup::requestPush(const char* filename) {
     if (strcmp(filename, "light_patterns.csv") == 0) {
@@ -133,9 +158,34 @@ void NasBackup::requestPush(const char* filename) {
     } else if (strcmp(filename, "light_colors.csv") == 0) {
         pendingColors = true;
     } else {
-        PF("[NasBackup] unknown file: %s\n", filename);
         return;
     }
-    // Restart (not create): coalesces rapid saves into one push
-    timers.restart(PUSH_DELAY_MS, 1, cb_pushToNas);
+    // Start repeating timer if not already running
+    timers.create(PUSH_INTERVAL_MS, 0, cb_pushToNas);
+}
+
+void NasBackup::checkHealth() {
+    if (!AlertState::isWifiOk()) return;
+
+    String url = serverRoot();
+    url += "/api/health";
+
+    HTTPClient http;
+    WiFiClient client;
+    http.begin(client, url);
+    http.setTimeout(NAS_TIMEOUT_MS);
+
+    int httpCode = http.GET();
+    http.end();
+
+    bool ok = (httpCode == 200);
+    AlertState::setNasStatus(ok);
+    if (ok) {
+        PL("[NasBackup] NAS reachable");
+    } else {
+        PF("[NasBackup] NAS unreachable (HTTP %d)\n", httpCode);
+    }
+
+    // Start periodic recheck (57 min) if not already running
+    timers.create(HEALTH_INTERVAL_MS, 0, cb_checkNasHealth);
 }

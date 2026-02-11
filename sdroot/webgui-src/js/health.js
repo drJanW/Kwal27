@@ -19,7 +19,8 @@ Kwal.health = (function() {
     { bit: 7, name: 'NTP',      icon: '⏰' },
     { bit: 8, name: 'Weather',  icon: '🌤️' },
     { bit: 9, name: 'Calendar', icon: '📅' },
-    { bit: 10, name: 'TTS',     icon: '🗣️' }
+    { bit: 10, name: 'TTS',     icon: '🗣️' },
+    { bit: 11, name: 'NAS',     icon: '🗄️' }
   ];
 
   // Status values for 4-bit fields (must match AlertState.h)

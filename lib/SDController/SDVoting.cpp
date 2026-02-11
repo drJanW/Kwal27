@@ -11,6 +11,7 @@
 #include "AudioState.h"
 #include "ContextController.h"
 #include "SDController.h"
+#include "TimerManager.h"
 #include "WebGuiStatus.h"
 #include "Alert/AlertState.h"
 
@@ -32,6 +33,13 @@
 namespace {
 
 int16_t totalVote = 0;   // Accumulated vote delta, saved to SD when free
+
+static void cb_saveVotes() {
+  if (totalVote == 0) { timers.cancel(cb_saveVotes); return; }
+  if (AlertState::isSdBusy()) return;
+  SDVoting::saveAccumulatedVotes();
+  timers.cancel(cb_saveVotes);
+}
 
 bool readCurrentScore(uint8_t dir, uint8_t file, uint8_t& scoreOut) {
   if (AlertState::isSdBusy()) {
@@ -99,6 +107,7 @@ uint8_t SDVoting::getRandomFile(uint8_t dir_num) {
 }
 
 uint8_t SDVoting::applyVote(uint8_t dir_num, uint8_t file_num, int8_t delta) {
+  if (AlertState::isSdBusy()) return 0;
   SDController::lockSD();
 
   FileEntry fe; DirEntry dir;
@@ -198,6 +207,7 @@ void SDVoting::saveAccumulatedVotes() {
   if (!getCurrentDirFile(d, f, s)) { totalVote = 0; return; }
   int8_t clamped = static_cast<int8_t>(MathUtils::clamp(static_cast<int16_t>(totalVote), static_cast<int16_t>(-100), static_cast<int16_t>(100)));
   uint8_t newScore = applyVote(d, f, clamped);
+  PF("[Vote] %+d \u2192 score %u (%03u/%03u)\n", clamped, newScore, d, f);
   totalVote = 0;
   if (newScore > 0) {
     WebGuiStatus::setFragmentScore(newScore);
@@ -253,11 +263,7 @@ void SDVoting::attachVoteRoute(AsyncWebServer& server) {
 
     if (delta != 0) {
       totalVote += delta;
-
-      // Try to save now if SD is free, otherwise it waits for saveAccumulatedVotes()
-      if (!AlertState::isSdBusy()) {
-        saveAccumulatedVotes();
-      }
+      timers.create(2000, 0, cb_saveVotes);
 
       // Respond with predicted score
       uint8_t d2, f2, baseScore;

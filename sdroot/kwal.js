@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260210B - Built 2026-02-10 18:01
+ * Kwal WebGUI v260211A - Built 2026-02-11 12:17
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260210B';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260211A';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -1621,7 +1621,8 @@ Kwal.health = (function() {
     { bit: 7, name: 'NTP',      icon: '⏰' },
     { bit: 8, name: 'Weather',  icon: '🌤️' },
     { bit: 9, name: 'Calendar', icon: '📅' },
-    { bit: 10, name: 'TTS',     icon: '🗣️' }
+    { bit: 10, name: 'TTS',     icon: '🗣️' },
+    { bit: 11, name: 'NAS',     icon: '🗄️' }
   ];
 
   // Status values for 4-bit fields (must match AlertState.h)

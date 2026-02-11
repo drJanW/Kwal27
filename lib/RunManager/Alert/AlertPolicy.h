@@ -29,4 +29,5 @@ namespace AlertPolicy {
     constexpr uint32_t COLOR_DISTANCE_SENSOR = 0x00FF00;  // Groen
     constexpr uint32_t COLOR_LUX_SENSOR = 0xFF00FF;  // Magenta
     constexpr uint32_t COLOR_SENSOR3 = 0x00FFFF;  // Cyaan
+    constexpr uint32_t COLOR_NAS     = 0x8000FF;  // Paars
 }

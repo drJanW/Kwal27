@@ -178,6 +178,7 @@ uint64_t getHardwareFailBits() {
     if (DISTANCE_SENSOR_PRESENT && !AlertState::isDistanceSensorOk()) bits |= (1ULL << STATUS_DISTANCE_SENSOR_OK);
     if (LUX_SENSOR_PRESENT && !AlertState::isLuxSensorOk())           bits |= (1ULL << STATUS_LUX_SENSOR_OK);
     if (SENSOR3_PRESENT && !AlertState::isSensor3Ok())                bits |= (1ULL << STATUS_SENSOR3_OK);
+    if (!AlertState::isNasOk())                                       bits |= (1ULL << STATUS_NAS_OK);
     return bits;
 }
 

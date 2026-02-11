@@ -22,7 +22,8 @@ enum StatusComponent {
     SC_WEATHER,
     SC_CALENDAR,
     SC_TTS,
-    SC_COUNT  // = 11 (StatusComponent count)
+    SC_NAS,
+    SC_COUNT  // = 12 (StatusComponent count)
 };
 
 // Status interpretation (4-bit value → logical status)
@@ -73,6 +74,7 @@ namespace AlertState {
     void setWeatherStatus(bool status);
     void setCalendarStatus(bool status);
     void setTtsStatus(bool status);
+    void setNasStatus(bool status);
     void startRuntime();
     
     // Status getters - for Policy and other modules
@@ -87,6 +89,7 @@ namespace AlertState {
     bool isWeatherOk();
     bool isCalendarOk();
     bool isTtsOk();
+    bool isNasOk();
     bool isBootPhase();
     
     // Gating functions - check prerequisites for specific operations
@@ -97,7 +100,7 @@ namespace AlertState {
     bool canFetch();           // SC_WIFI
     
     // Health bits aggregate (for /api/health endpoint)
-    // Bit 0:SD 1:WiFi 2:RTC 3:Audio 4:Dist 5:Lux 6:Sensor3 7:NTP 8:Weather 9:Calendar 10:TTS
+    // Bit 0:SD 1:WiFi 2:RTC 3:Audio 4:Dist 5:Lux 6:Sensor3 7:NTP 8:Weather 9:Calendar 10:TTS 11:NAS
     uint16_t getHealthBits();
     uint16_t getAbsentBits();  // Bits set for hardware not present per HWconfig
     

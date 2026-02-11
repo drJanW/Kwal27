@@ -108,6 +108,7 @@ void reset() {
     setStatusOK(SC_AUDIO, false);    // Not yet initialized
     setStatusOK(SC_WEATHER, false);  // Not yet fetched
     setStatusOK(SC_CALENDAR, false); // Not yet loaded
+    setStatusOK(SC_NAS, false);      // Not yet checked
     setStatusOK(SC_TTS, false);      // Not yet spoken
     bootPhase = true;
     setSdBusy(false);
@@ -193,6 +194,12 @@ void setTtsStatus(bool status) {
     setStatusOK(SC_TTS, status);
 }
 
+void setNasStatus(bool status) {
+    if (get(SC_NAS) == (status ? STATUS_OK : STATUS_NOTOK)) return;
+    setStatusOK(SC_NAS, status);
+    if (!status && !bootPhase) AlertRGB::startFlashing();
+}
+
 void startRuntime() {
     if (!bootPhase) return;
     bootPhase = false;
@@ -255,6 +262,7 @@ bool isAudioOk() { return isStatusOK(SC_AUDIO); }
 bool isWeatherOk() { return isStatusOK(SC_WEATHER); }
 bool isCalendarOk() { return isStatusOK(SC_CALENDAR); }
 bool isTtsOk() { return isStatusOK(SC_TTS); }
+bool isNasOk() { return isStatusOK(SC_NAS); }
 
 // Gating functions - check prerequisites for specific operations
 bool canPlayHeartbeat() {

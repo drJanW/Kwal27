@@ -94,6 +94,11 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
 
+        if parsed.path == "/api/health":
+            self.send_response(200); self.end_headers()
+            self.wfile.write(b"ok")
+            return
+
         if parsed.path.startswith("/api/move"):
             qs = parse_qs(parsed.query)
             fname = qs.get("file", [""])[0]

@@ -14,6 +14,7 @@
 #include "Alert/AlertRun.h"
 #include "Alert/AlertState.h"
 #include "SDController.h"
+#include "NasBackup.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <WiFiClient.h>
@@ -246,6 +247,10 @@ namespace {
                 downloadCsvFilesFromLan();
                 csvFetchCompleted = true;
                 timers.cancel(cb_csvFetchTimeout);
+                // Defer NAS health check — WiFi CSV downloads leave TCP connections
+                // in TIME_WAIT (~120s), each holding ~6-11KB heap. Adding another
+                // HTTP connection here causes OOM during audio+webserver.
+                timers.create(30000, 1, []() { NasBackup::checkHealth(); });
                 RunManager::resumeAfterWiFiBoot();
             }
 

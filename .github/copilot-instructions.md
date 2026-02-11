@@ -109,6 +109,24 @@ Every `.cpp` file: `#include <Arduino.h>` as FIRST include
 3. **Read glossary** if touching brightness/slider logic
 4. **Grep for guards** if values don't propagate: `#ifdef|DISABLE|SKIP|return;`
 
+### Network & I/O in Callbacks
+- **Never block** in a timer callback — no HTTP calls with long timeouts, no synchronous SD writes that can stall
+- HTTP timeouts in callbacks: **max 1.5 seconds** — the main loop must keep running
+- Always guard network calls: check WiFi connected, target reachable, SD free, audio idle BEFORE starting I/O
+- If a network target is unreachable, **fail fast and retry later** — never spin or wait
+
+### Responsibility Separation
+- **Web handlers** ONLY set state in memory (variables, flags). NEVER do SD I/O or network I/O from a web handler.
+- SD writes happen ONLY in timer callbacks (`cb_*`) that check `isSdBusy()` first
+- A subsystem must NOT call into an unrelated subsystem (e.g., audio must not call voting, lighting must not call audio)
+- If two subsystems need coordination, they communicate through shared state or RunManager — not direct calls
+
+### Implementation Discipline
+- Start minimal. Add complexity only when a real problem demands it.
+- No speculative guards, no "just in case" logging, no defensive wrappers around already-validated data
+- One feature = one responsibility. If a function touches two domains, split it.
+- When adding a new feature, write the **smallest possible version first**, deploy, test, then iterate
+
 ## What NOT to Do
 
 - Never run `pio` commands directly - say "Nu compileren" and wait
@@ -116,3 +134,6 @@ Every `.cpp` file: `#include <Arduino.h>` as FIRST include
 - Never add "safety" guards that duplicate upstream validation
 - Never use generic verbs (handle, process, do) - be specific (report, speak, update)
 - Never skip version bump before code changes
+- Never put SD/network I/O in a web request handler — defer to a timer callback
+- Never make blocking HTTP calls from timer callbacks — use short timeouts and fail fast
+- Never call across unrelated subsystems directly (audio↔voting, lighting↔network)

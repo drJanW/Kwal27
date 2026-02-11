@@ -79,7 +79,10 @@ void cb_statusReminder() {
 
 void cb_healthStatus() {
     PF("[Health] Version %s\n", FIRMWARE_VERSION);
-    PF("[Health] Timers %d/%d\n", timers.getActiveCount(), TimerManager::MAX_TIMERS);
+    PF("[Health] Timers %d/%d  Heap %uKB (min %uKB)\n",
+       timers.getActiveCount(), TimerManager::MAX_TIMERS,
+       static_cast<unsigned>(ESP.getFreeHeap() / 1024),
+       static_cast<unsigned>(ESP.getMinFreeHeap() / 1024));
     //PL("[Health] Components:");
     
     struct { StatusComponent c; const char* name; const char* icon; } items[] = {
@@ -94,6 +97,7 @@ void cb_healthStatus() {
         { SC_WEATHER,  "Weather",  "🌤️" },
         { SC_CALENDAR, "Calendar", "📅" },
         { SC_TTS,      "TTS",      "🗣️" },
+        { SC_NAS,      "NAS",      "🗄️" },
     };
     
     for (const auto& item : items) {
