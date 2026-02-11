@@ -2,7 +2,7 @@
  * @file StatusRun.cpp
  * @brief Status display state management implementation
  * @version 260131A
- * @date 2026-01-31
+ $12026-02-05
  */
 #include "StatusRun.h"
 

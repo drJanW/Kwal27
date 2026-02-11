@@ -1,13 +1,11 @@
 /**
  * @file RTCController.h
  * @brief RTCController implementation
- * @version 260204A
- * @date 2026-02-04
+ * @version 260211A
+ * @date 2026-02-11
  */
 // RTCController.h - Hardware RTC (DS3231) control
 // Only this module talks to I2C/RTC hardware
-// @version 251231E
-// @date 2025-12-31
 #pragma once
 
 #include <Arduino.h>

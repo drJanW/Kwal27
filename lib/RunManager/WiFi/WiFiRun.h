@@ -2,7 +2,7 @@
  * @file WiFiRun.h
  * @brief WiFi connection state management
  * @version 260201A
- * @date 2026-02-01
+ $12026-02-05
  */
 #pragma once
 

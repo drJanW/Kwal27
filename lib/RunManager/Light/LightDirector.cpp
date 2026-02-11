@@ -2,7 +2,7 @@
  * @file LightDirector.cpp
  * @brief LED show selection logic implementation
  * @version 260131A
- * @date 2026-01-31
+ $12026-02-06
  */
 #include "LightDirector.h"
 

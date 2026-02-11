@@ -2,7 +2,7 @@
  * @file PatternsRoutes.cpp
  * @brief Patterns API endpoint routes
  * @version 260202A
- * @date 2026-02-02
+ $12026-02-10
  */
 #include "PatternsRoutes.h"
 #include "../WebGuiStatus.h"

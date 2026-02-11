@@ -2,7 +2,7 @@
  * @file Calendar.cpp
  * @brief Calendar day structure and parsing implementation
  * @version 260204A
- * @date 2026-02-04
+ $12026-02-05
  */
 #include <Arduino.h>
 #include "Calendar.h"

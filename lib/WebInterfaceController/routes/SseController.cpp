@@ -2,7 +2,7 @@
  * @file SseController.cpp
  * @brief Server-Sent Events (SSE) management
  * @version 260202A
- * @date 2026-02-02
+ $12026-02-06
  */
 #include <Arduino.h>
 #include "SseController.h"

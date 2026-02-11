@@ -2,7 +2,7 @@
  * @file TodayState.h
  * @brief Today's state management interface
  * @version 260202A
- * @date 2026-02-02
+ $12026-02-11
  */
 #pragma once
 

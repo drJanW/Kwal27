@@ -2,7 +2,7 @@
  * @file LightBoot.cpp
  * @brief LED show one-time initialization implementation
  * @version 260201A
- * @date 2026-02-01
+ $12026-02-10
  */
 #include "LightBoot.h"
 #include "LightController.h"

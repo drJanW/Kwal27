@@ -2,7 +2,7 @@
  * @file HWconfig.h
  * @brief Hardware pin definitions and configuration
  * @version 260205A
- * @date 2026-02-05
+ $12026-02-07
  */
 #pragma once
 

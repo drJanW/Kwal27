@@ -2,7 +2,7 @@
  * @file AudioManager.h
  * @brief Main audio playback coordinator for ESP32 I2S output
  * @version 260205A
- * @date 2026-02-05
+ $12026-02-07
  * 
  * AudioManager coordinates all audio output: MP3 fragments, TTS sentences,
  * and PCM clips (ping sounds). It owns the I2S hardware and shared decoder

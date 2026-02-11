@@ -2,7 +2,7 @@
  * @file LightPolicy.cpp
  * @brief LED show business logic implementation
  * @version 260207D
- * @date 2026-02-07
+ $12026-02-09
  */
 #include <Arduino.h>
 #include <math.h>

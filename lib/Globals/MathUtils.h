@@ -2,7 +2,7 @@
  * @file MathUtils.h
  * @brief Math utility functions (clamp, map, min/max)
  * @version 260127A
- * @date 2026-01-27
+ $12026-02-09
  */
 #pragma once
 

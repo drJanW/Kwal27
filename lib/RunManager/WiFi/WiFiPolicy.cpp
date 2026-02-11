@@ -2,7 +2,7 @@
  * @file WiFiPolicy.cpp
  * @brief WiFi connection business logic implementation
  * @version 260201A
- * @date 2026-02-01
+ $12026-02-05
  */
 #include "WiFiPolicy.h"
 #include "Globals.h"

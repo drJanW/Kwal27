@@ -2,7 +2,7 @@
  * @file PRTClock.cpp
  * @brief Real-time clock management with DS3231 RTC and NTP synchronization
  * @version 260202A
- * @date 2026-02-02
+ $12026-02-05
  */
 #include <Arduino.h>
 #include <atomic>

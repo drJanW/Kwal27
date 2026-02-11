@@ -2,7 +2,7 @@
  * @file LightPatternCatalog.cpp
  * @brief Pattern definitions from CSV implementation
  * @version 260204A
- * @date 2026-02-04
+ $12026-02-05
  */
 #include "LightPatternCatalog.h"
 

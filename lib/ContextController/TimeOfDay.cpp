@@ -2,7 +2,7 @@
  * @file TimeOfDay.cpp
  * @brief Time-of-day period detection implementation
  * @version 260202A
- * @date 2026-02-02
+ $12026-02-05
  */
 #include "TimeOfDay.h"
 #include "StatusBits.h"

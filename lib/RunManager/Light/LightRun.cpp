@@ -2,7 +2,7 @@
  * @file LightRun.cpp
  * @brief LED show state management implementation
  * @version 260205A
- * @date 2026-02-05
+ $12026-02-10
  */
 #include "LightRun.h"
 

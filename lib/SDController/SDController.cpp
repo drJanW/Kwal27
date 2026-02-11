@@ -2,7 +2,7 @@
  * @file SDController.cpp
  * @brief SD card control implementation with directory scanning and file indexing
  * @version 260202A
- * @date 2026-02-02
+ $12026-02-05
  */
 #include <Arduino.h>
 #include "SDController.h"

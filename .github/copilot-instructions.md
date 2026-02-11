@@ -45,6 +45,7 @@ Controllers (hardware APIs)    Directors (context→requests)
 ### Version Bumping (BEFORE any code change)
 - Firmware: [lib/Globals/Globals.h](../lib/Globals/Globals.h) → `FIRMWARE_VERSION`
 - WebGUI JS: [sdroot/webgui-src/build.ps1](../sdroot/webgui-src/build.ps1) → `$version` **ONLY when WebGUI sources change**
+- **Per-file headers**: When editing any `.h` or `.cpp` file, update its `@version` and `@date` in the file's Doxygen header to today's date
 
 ### WebGUI Pipeline (JS is NOT auto-built)
 ```powershell

@@ -2,7 +2,7 @@
  * @file ContextController.h
  * @brief Central context coordination and TodayState management interface
  * @version 260204A
- * @date 2026-02-04
+ $12026-02-10
  */
 #pragma once
 #include <Arduino.h>

@@ -2,7 +2,7 @@
  * @file BootManager.cpp
  * @brief Boot sequence coordinator implementation
  * @version 260205A
- * @date 2026-02-05
+ $12026-02-10
  */
 #include "BootManager.h"
 #include "Globals.h"

@@ -2,7 +2,7 @@
  * @file ColorsCatalog.h
  * @brief LED color palette storage
  * @version 260201A
- * @date 2026-02-01
+ $12026-02-10
  */
 #pragma once
 

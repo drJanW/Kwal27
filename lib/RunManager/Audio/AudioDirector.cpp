@@ -2,7 +2,7 @@
  * @file AudioDirector.cpp
  * @brief Audio fragment selection logic implementation
  * @version 260202A
- * @date 2026-02-02
+ $12026-02-10
  */
 #include "AudioDirector.h"
 

@@ -2,7 +2,7 @@
  * @file AsyncJsonCompat.cpp
  * @brief JSON handling compatibility layer
  * @version 260202A
- * @date 2026-02-02
+ $12026-02-05
  */
 #include <AsyncJson.h>
 #include <cstring>

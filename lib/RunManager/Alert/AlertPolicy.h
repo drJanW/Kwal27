@@ -2,7 +2,7 @@
  * @file AlertPolicy.h
  * @brief Hardware failure alert business logic
  * @version 260131A
- * @date 2026-01-31
+ $12026-02-11
  */
 #pragma once
 

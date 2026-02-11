@@ -2,7 +2,7 @@
  * @file LightDirector.h
  * @brief LED show selection logic
  * @version 260131A
- * @date 2026-01-31
+ $12026-02-05
  */
 #pragma once
 

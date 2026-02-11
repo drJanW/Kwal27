@@ -2,7 +2,7 @@
  * @file SpeakRun.cpp
  * @brief TTS speech state management implementation
  * @version 260206K
- * @date 2026-02-06
+ $12026-02-10
  */
 #include "SpeakRun.h"
 #include "SpeakPolicy.h"

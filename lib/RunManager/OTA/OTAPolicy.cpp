@@ -2,7 +2,7 @@
  * @file OTAPolicy.cpp
  * @brief OTA update business logic implementation
  * @version 260201A
- * @date 2026-02-01
+ $12026-02-05
  */
 #include "OTAPolicy.h"
 #include "Globals.h"

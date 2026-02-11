@@ -2,7 +2,7 @@
  * @file PlayFragment.cpp
  * @brief MP3 fragment playback with sine-power fade curves
  * @version 260205A
- * @date 2026-02-05
+ $12026-02-11
  * 
  * Implements fade-in/fade-out using shared Globals::fadeCurve (sine² curve).
  * Timer-driven: no polling, no loop() dependency.

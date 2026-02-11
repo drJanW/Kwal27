@@ -2,7 +2,7 @@
  * @file SDPolicy.h
  * @brief SD card file operation business logic
  * @version 260131A
- * @date 2026-01-31
+ $12026-02-05
  */
 #pragma once
 #include <Arduino.h>

@@ -2,7 +2,7 @@
  * @file LightColorCatalog.h
  * @brief Color set management from CSV interface
  * @version 260202A
- * @date 2026-02-02
+ $12026-02-05
  */
 #pragma once
 

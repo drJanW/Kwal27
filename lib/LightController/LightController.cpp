@@ -2,7 +2,7 @@
  * @file LightController.cpp
  * @brief LED control implementation via FastLED library
  * @version 260202A
- * @date 2026-02-02
+ $12026-02-08
  */
 #include <Arduino.h>
 #include "Globals.h"

@@ -2,7 +2,7 @@
  * @file SensorController.cpp
  * @brief Sensor initialization and reading for distance (VL53L1X) and lux (BH1750/VEML7700)
  * @version 260202A
- * @date 2026-02-02
+ $12026-02-05
  */
 // lib/SensorController20251004/SensorController.cpp
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO

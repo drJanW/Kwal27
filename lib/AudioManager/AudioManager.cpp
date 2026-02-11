@@ -2,7 +2,7 @@
  * @file AudioManager.cpp
  * @brief Main audio playback coordinator for ESP32 I2S output
  * @version 260205A
- * @date 2026-02-05
+ $12026-02-07
  * 
  * Implements AudioManager and AudioOutputI2S_Metered classes.
  * Handles I2S initialization, PCM clip playback, and resource management.

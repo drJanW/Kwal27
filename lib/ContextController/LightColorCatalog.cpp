@@ -2,7 +2,7 @@
  * @file LightColorCatalog.cpp
  * @brief Color set management from CSV implementation
  * @version 260204A
- * @date 2026-02-04
+ $12026-02-05
  */
 #include "LightColorCatalog.h"
 

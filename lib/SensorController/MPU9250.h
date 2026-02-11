@@ -3,7 +3,7 @@
  * @file MPU9250.h
  * @brief MPU9250 implementation
  * @version 260202A
- * @date 2026-02-02
+ $12026-02-05
  */
 #include "SensorController.h"
 #include <I2Cdev.h>

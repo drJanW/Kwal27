@@ -2,7 +2,7 @@
  * @file AudioPolicy.cpp
  * @brief Audio playback business logic implementation
  * @version 260131A
- * @date 2026-01-31
+ $12026-02-05
  */
 #include "AudioPolicy.h"
 #include "AudioState.h"  // isAudioBusy, isSentencePlaying

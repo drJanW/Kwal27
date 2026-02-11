@@ -2,7 +2,7 @@
  * @file ClockRun.cpp
  * @brief RTC/NTP clock state management implementation
  * @version 260204A
- * @date 2026-02-04
+ $12026-02-05
  */
 #include <Arduino.h>
 #include "ClockRun.h"

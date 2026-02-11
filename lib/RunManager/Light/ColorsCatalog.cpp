@@ -2,7 +2,7 @@
  * @file ColorsCatalog.cpp
  * @brief LED color palette storage implementation
  * @version 260205A
- * @date 2026-02-05
+ $12026-02-10
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "ColorsCatalog.h"

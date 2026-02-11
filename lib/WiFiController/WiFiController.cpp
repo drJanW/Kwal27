@@ -2,7 +2,7 @@
  * @file WiFiController.cpp
  * @brief WiFi station connection with growing retry interval and connection monitoring
  * @version 260206A
- * @date 2026-02-06
+ $12026-02-10
  */
 #include <Arduino.h>
 #include "WiFiController.h"
