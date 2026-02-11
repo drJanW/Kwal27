@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260211J - Built 2026-02-11 18:04
+ * Kwal WebGUI v260211K - Built 2026-02-11 23:37
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260211J';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260211K';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -167,17 +167,15 @@ Kwal.audio = (function() {
       slider.oninput = function() {
         var pos = clamp(parseInt(slider.value, 10));
         slider.value = pos;
-        var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
-        label.textContent = real + '%';
+        label.textContent = pos + '%';
       };
 
       slider.onchange = function() {
         var pos = clamp(parseInt(slider.value, 10));
         slider.value = pos;
-        var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
-        label.textContent = real + '%';
-        // Send real value - firmware calculates webShift
-        fetch('/setWebAudioLevel?value=' + real, { method: 'POST' }).catch(function() {});
+        label.textContent = pos + '%';
+        // Send linear value - firmware calculates webShift
+        fetch('/setWebAudioLevel?value=' + pos, { method: 'POST' }).catch(function() {});
       };
       
       updateGradient();
@@ -260,9 +258,9 @@ Kwal.audio = (function() {
     if (typeof hiPercent === 'number') hiPct = hiPercent;
     updateGradient();
     if (slider && label && typeof sliderPct === 'number') {
-      var pos = clamp(Math.round(Kwal.valueToSlider(sliderPct, 0, 100)));
+      var pos = clamp(Math.round(sliderPct));
       slider.value = pos;
-      label.textContent = Math.round(sliderPct) + '%';
+      label.textContent = pos + '%';
     }
   }
 
@@ -347,16 +345,14 @@ Kwal.brightness = (function() {
     slider.oninput = function() {
       var pos = clamp(parseInt(slider.value, 10));
       slider.value = pos;
-      var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
-      label.textContent = real + '%';
+      label.textContent = pos + '%';
     };
 
     slider.onchange = function() {
       var pos = clamp(parseInt(slider.value, 10));
       slider.value = pos;
-      var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
-      label.textContent = real + '%';
-      fetch('/setBrightness?value=' + real, { method: 'POST' }).catch(function() {});
+      label.textContent = pos + '%';
+      fetch('/setBrightness?value=' + pos, { method: 'POST' }).catch(function() {});
     };
     
     updateGradient();
@@ -373,9 +369,9 @@ Kwal.brightness = (function() {
     if (typeof hiPercent === 'number') hiPct = hiPercent;
     updateGradient();
     if (slider && label && typeof sliderPct === 'number') {
-      var pos = clamp(Math.round(Kwal.valueToSlider(sliderPct, 0, 100)));
+      var pos = clamp(Math.round(sliderPct));
       slider.value = pos;
-      label.textContent = Math.round(sliderPct) + '%';
+      label.textContent = pos + '%';
     }
   }
 

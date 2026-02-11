@@ -54,17 +54,15 @@ Kwal.audio = (function() {
       slider.oninput = function() {
         var pos = clamp(parseInt(slider.value, 10));
         slider.value = pos;
-        var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
-        label.textContent = real + '%';
+        label.textContent = pos + '%';
       };
 
       slider.onchange = function() {
         var pos = clamp(parseInt(slider.value, 10));
         slider.value = pos;
-        var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
-        label.textContent = real + '%';
-        // Send real value - firmware calculates webShift
-        fetch('/setWebAudioLevel?value=' + real, { method: 'POST' }).catch(function() {});
+        label.textContent = pos + '%';
+        // Send linear value - firmware calculates webShift
+        fetch('/setWebAudioLevel?value=' + pos, { method: 'POST' }).catch(function() {});
       };
       
       updateGradient();
@@ -147,9 +145,9 @@ Kwal.audio = (function() {
     if (typeof hiPercent === 'number') hiPct = hiPercent;
     updateGradient();
     if (slider && label && typeof sliderPct === 'number') {
-      var pos = clamp(Math.round(Kwal.valueToSlider(sliderPct, 0, 100)));
+      var pos = clamp(Math.round(sliderPct));
       slider.value = pos;
-      label.textContent = Math.round(sliderPct) + '%';
+      label.textContent = pos + '%';
     }
   }
 

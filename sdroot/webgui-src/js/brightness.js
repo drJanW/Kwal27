@@ -38,16 +38,14 @@ Kwal.brightness = (function() {
     slider.oninput = function() {
       var pos = clamp(parseInt(slider.value, 10));
       slider.value = pos;
-      var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
-      label.textContent = real + '%';
+      label.textContent = pos + '%';
     };
 
     slider.onchange = function() {
       var pos = clamp(parseInt(slider.value, 10));
       slider.value = pos;
-      var real = Math.round(Kwal.sliderToValue(pos, 0, 100));
-      label.textContent = real + '%';
-      fetch('/setBrightness?value=' + real, { method: 'POST' }).catch(function() {});
+      label.textContent = pos + '%';
+      fetch('/setBrightness?value=' + pos, { method: 'POST' }).catch(function() {});
     };
     
     updateGradient();
@@ -64,9 +62,9 @@ Kwal.brightness = (function() {
     if (typeof hiPercent === 'number') hiPct = hiPercent;
     updateGradient();
     if (slider && label && typeof sliderPct === 'number') {
-      var pos = clamp(Math.round(Kwal.valueToSlider(sliderPct, 0, 100)));
+      var pos = clamp(Math.round(sliderPct));
       slider.value = pos;
-      label.textContent = Math.round(sliderPct) + '%';
+      label.textContent = pos + '%';
     }
   }
 
