@@ -154,7 +154,7 @@ bool ThemeBoxTable::load() {
         }
 
         csv::splitColumns(line, columns);
-        if (columns.size() < 3) {
+        if (columns.size() < 4) {
             continue;
         }
 
@@ -165,8 +165,12 @@ bool ThemeBoxTable::load() {
 
         ThemeBox box;
         box.id = id;
-        box.name = columns[1];
-        parseEntries(columns[2], box.entries);
+        // Column order: id;color;name;entries
+        String col = columns[1];
+        col.trim();
+        if (!col.isEmpty()) box.color = col;
+        box.name = columns[2];
+        parseEntries(columns[3], box.entries);
         if (box.entries.empty()) {
             continue;
         }

@@ -1,8 +1,8 @@
 /**
  * @file AudioRoutes.cpp
  * @brief Audio API endpoint routes
- * @version 260205A
- * @date 2026-02-05
+ * @version 260211C
+ * @date 2026-02-11
  */
 #include <Arduino.h>
 #include "AudioRoutes.h"
@@ -12,6 +12,9 @@
 #include "MathUtils.h"
 #include "RunManager.h"
 #include "AudioState.h"
+#include "SDController.h"
+#include "SDSettings.h"
+#include "TodayState.h"
 
 #ifndef WEBIF_LOG_LEVEL
 #define WEBIF_LOG_LEVEL LOG_BOOT_SPAM
@@ -113,6 +116,70 @@ void attachRoutes(AsyncWebServer &server)
     server.on("/api/audio/next", HTTP_POST, routeNext);
     server.on("/api/audio/current", HTTP_GET, routeCurrent);
     server.on("/api/audio/play", HTTP_GET, routePlay);
+    server.on("/api/audio/grid", HTTP_GET, routeGrid);
+}
+
+void routeGrid(AsyncWebServerRequest *request)
+{
+    const auto& boxes = GetAllThemeBoxes();
+
+    // Reverse map: dir → most-specific box (fewest entries)
+    uint8_t dirBoxMap[SD_MAX_DIRS + 1];
+    uint16_t dirBoxSize[SD_MAX_DIRS + 1];
+    memset(dirBoxMap, 0, sizeof(dirBoxMap));
+    memset(dirBoxSize, 0xFF, sizeof(dirBoxSize));
+
+    for (const auto& box : boxes) {
+        uint16_t sz = static_cast<uint16_t>(box.entries.size());
+        for (uint16_t dir : box.entries) {
+            if (dir <= SD_MAX_DIRS && sz < dirBoxSize[dir]) {
+                dirBoxMap[dir] = box.id;
+                dirBoxSize[dir] = sz;
+            }
+        }
+    }
+
+    uint8_t highest = SDController::getHighestDirNum();
+
+    String json;
+    json.reserve(2048);
+
+    json += F("{\"highest\":");
+    json += String(highest);
+
+    // Theme boxes with colors
+    json += F(",\"boxes\":[");
+    for (size_t i = 0; i < boxes.size(); i++) {
+        if (i) json += ',';
+        json += F("{\"id\":");
+        json += String(boxes[i].id);
+        json += F(",\"name\":\"");
+        json += boxes[i].name;
+        json += F("\",\"color\":\"");
+        json += boxes[i].color;
+        json += F("\"}");
+    }
+    json += ']';
+
+    // Dirs: existence + fileCount from root_dirs only
+    json += F(",\"dirs\":[");
+    bool firstDir = true;
+    DirEntry de;
+    for (uint8_t d = 1; d <= highest; d++) {
+        if (!SDController::readDirEntry(d, &de) || de.fileCount == 0) continue;
+        if (!firstDir) json += ',';
+        firstDir = false;
+        json += F("{\"d\":");
+        json += String(d);
+        json += F(",\"b\":");
+        json += String(dirBoxMap[d]);
+        json += F(",\"n\":");
+        json += String(de.fileCount);
+        json += '}';
+    }
+    json += F("]}");
+
+    request->send(200, "application/json", json);
 }
 
 } // namespace AudioRoutes

@@ -74,6 +74,7 @@
       <button data-open="colors-modal">Colors</button>
       <button data-open="health-modal">Status</button>
       <button data-open="log-modal">View Log</button>
+      <button data-open="mp3grid-modal">MP3 Grid</button>
       <button data-close>Close</button>
     </div>
   </div>
@@ -136,6 +137,22 @@
     </div>
   </div>
 
+  <div id="colorpicker-modal" class="modal">
+    <div class="modal-box cp-box">
+      <h3>Pick Color</h3>
+      <canvas id="cp-sv" class="cp-sv"></canvas>
+      <canvas id="cp-hue" class="cp-hue"></canvas>
+      <div class="cp-row">
+        <div id="cp-preview" class="cp-preview"></div>
+        <input type="text" id="cp-hex" maxlength="7" class="cp-hex" spellcheck="false">
+      </div>
+      <div class="cp-buttons">
+        <button id="cp-ok" class="btn-ok">OK</button>
+        <button id="cp-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div id="save-pattern-modal" class="modal">
     <div class="modal-box">
       <h3>Save Pattern</h3>
@@ -168,7 +185,42 @@
     </div>
   </div>
 
-  <script src="kwal.js"></script>
+  <div id="mp3grid-modal" class="modal">
+    <div class="modal-box wide">
+      <h3>MP3 Grid</h3>
+      <div class="mg-card">
+        <div class="mg-hdr">
+          <div class="mg-toprow">
+            <div id="mg-catpill" class="mg-catpill"></div>
+            <div id="mg-catlabel" class="mg-catlabel">-</div>
+            <div id="mg-play" class="mg-playbtn" title="Play">▶</div>
+          </div>
+          <div class="mg-sliderrow">
+            <label for="mg-dir">DIR</label>
+            <button class="mg-stepbtn" id="mg-dir-dec" type="button">◀</button>
+            <input id="mg-dir" type="range" min="0" max="199" value="0">
+            <button class="mg-stepbtn" id="mg-dir-inc" type="button">▶</button>
+            <div id="mg-dir-val" class="mg-val">000</div>
+          </div>
+          <div class="mg-sliderrow">
+            <label for="mg-file">FILE</label>
+            <button class="mg-stepbtn" id="mg-file-dec" type="button">◀</button>
+            <input id="mg-file" type="range" min="0" max="100" value="0">
+            <button class="mg-stepbtn" id="mg-file-inc" type="button">▶</button>
+            <div id="mg-file-val" class="mg-val">000</div>
+          </div>
+        </div>
+        <div id="mg-wrap" class="mg-wrap">
+          <div class="mg-frame">
+            <canvas id="mg-grid"></canvas>
+          </div>
+        </div>
+      </div>
+      <button data-close data-return="dev-modal">Close</button>
+    </div>
+  </div>
+
+  <script src="kwal.js?v=260211E"></script>
 </body>
 
 </html>

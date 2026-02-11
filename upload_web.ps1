@@ -3,12 +3,16 @@
 # Usage: .\upload_web.ps1 [lastOctet]  or  .\upload_web.ps1 -ip <full-ip>
 
 param(
-    [int]$lastOctet = 188,
+    [string]$target = "hout",
     [string]$ip = ""
 )
 
 if ($ip -eq "") {
-    $ip = "192.168.2.$lastOctet"
+    if ($target -eq "marmer") {
+        $ip = "192.168.2.188"
+    } else {
+        $ip = "192.168.2.189"
+    }
 }
 $ESP32_IP = $ip
 $UPLOAD_URL = "http://$ESP32_IP/api/sd/upload"

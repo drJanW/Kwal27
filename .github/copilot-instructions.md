@@ -86,6 +86,7 @@ Every `.cpp` file: `#include <Arduino.h>` as FIRST include
 | `lib/Globals/` | Shared config, `Globals.h`, `HWconfig.h`, `macros.inc` |
 | `sdroot/` | SD card content: web assets, CSV configs |
 | `sdroot/webgui-src/js/` | JS source modules → built to `kwal.js` |
+| `sdroot/webgui-src/build.ps1` | JS build script only — does NOT touch HTML or CSS |
 | `A56/` | Staging area for work-in-progress refactors |
 | `docs/` | Design docs, `glossary_slider_semantics.md` (read before brightness work) |
 
@@ -127,10 +128,23 @@ Every `.cpp` file: `#include <Arduino.h>` as FIRST include
 - One feature = one responsibility. If a function touches two domains, split it.
 - When adding a new feature, write the **smallest possible version first**, deploy, test, then iterate
 
+### WebGUI File Discipline
+- **Deployed files** = `sdroot/index.html`, `sdroot/styles.css` — edit THESE directly
+- **Never edit** `webgui-src/index.html` or `webgui-src/styles.css` — they are reference copies, NOT used by the build
+- `build.ps1` only processes `webgui-src/js/*.js` → `sdroot/kwal.js` (and updates cache-bust in `sdroot/index.html`)
+
+### CSS Specificity in Modals
+- Before adding component styles inside `.modal-box`, **check existing global selectors** that will override them
+- Known traps: `.modal-box button` (0,1,1) overrides any class-only button selector (0,1,0) — sets `display:block; width:100%`
+- Known traps: global `input[type="range"]` pseudo-elements override scoped slider styles
+- Fix: use `!important` on critical properties, or prefix with ancestor class (`.mg-card .mg-sliderrow input[type="range"]`) for higher specificity
+- **Never invent alternative layouts** when reference/mock code exists — copy the exact structure and fix specificity conflicts
+
 ## What NOT to Do
 
 - Never run `pio` commands directly - say "Nu compileren" and wait
 - Never edit `sdroot/kwal.js` - edit `sdroot/webgui-src/js/*.js` sources
+- Never edit `sdroot/webgui-src/index.html` or `sdroot/webgui-src/styles.css` — they are NOT build inputs
 - Never add "safety" guards that duplicate upstream validation
 - Never use generic verbs (handle, process, do) - be specific (report, speak, update)
 - Never skip version bump before code changes

@@ -15,6 +15,7 @@ struct ThemeBox {
     bool valid{false};
     uint8_t id{0};
     String name;
+    String color{"#888888"};
     std::vector<uint16_t> entries;
 };
 

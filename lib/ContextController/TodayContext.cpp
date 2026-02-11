@@ -99,6 +99,7 @@ public:
     bool loadToday(TodayState& state);
     const ThemeBox* findThemeBox(uint8_t id) const { return themeBoxes_.find(id); }
     const ThemeBox* getDefaultThemeBox() const { return themeBoxes_.active(); }
+    const std::vector<ThemeBox>& getAllThemeBoxes() const { return themeBoxes_.boxes(); }
 
 private:
     bool resolveDate(uint16_t& year, uint8_t& month, uint8_t& day) const;
@@ -322,4 +323,13 @@ const ThemeBox* GetDefaultThemeBox() {
         return nullptr;
     }
     return g_loader.getDefaultThemeBox();
+}
+
+static const std::vector<ThemeBox> emptyBoxes_;
+
+const std::vector<ThemeBox>& GetAllThemeBoxes() {
+    if (!g_loader.ready()) {
+        return emptyBoxes_;
+    }
+    return g_loader.getAllThemeBoxes();
 }

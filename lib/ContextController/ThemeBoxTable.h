@@ -18,6 +18,7 @@ public:
     bool ready() const;
     const ThemeBox* find(uint8_t id) const;
     const ThemeBox* active() const;
+    const std::vector<ThemeBox>& boxes() const { return boxes_; }
     void clear();
 
 private:

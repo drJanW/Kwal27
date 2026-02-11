@@ -16,6 +16,7 @@
     Kwal.ota.init();
     Kwal.status.init();
     Kwal.health.init();
+    Kwal.mp3grid.init();
     
     // Health modal: load on open, refresh button
     var healthModal = document.getElementById('health-modal');
@@ -33,6 +34,19 @@
     }
     if (healthRefresh) {
       healthRefresh.onclick = function() { Kwal.health.load(); };
+    }
+    
+    // MP3 Grid modal: load on first open
+    var mp3gridModal = document.getElementById('mp3grid-modal');
+    if (mp3gridModal) {
+      var mp3gridObserver = new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+          if (m.attributeName === 'class' && mp3gridModal.classList.contains('open')) {
+            Kwal.mp3grid.load();
+          }
+        });
+      });
+      mp3gridObserver.observe(mp3gridModal, { attributes: true });
     }
     
     // Initialize SSE and wire up live update listeners
@@ -77,6 +91,9 @@
       // Fragment info
       if (data.fragment) {
         Kwal.audio.updateFragment(data.fragment.dir, data.fragment.file, data.fragment.score, data.fragment.durationMs);
+        if (Kwal.mp3grid.setSelection) {
+          Kwal.mp3grid.setSelection(data.fragment.dir, data.fragment.file, false);
+        }
       }
     });
     

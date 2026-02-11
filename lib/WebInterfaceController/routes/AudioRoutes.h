@@ -1,8 +1,8 @@
 /**
  * @file AudioRoutes.h
  * @brief Audio API endpoint routes
- * @version 260202A
- * @date 2026-02-02
+ * @version 260211C
+ * @date 2026-02-11
  */
 #pragma once
 
@@ -15,6 +15,7 @@ void routeGetLevel(AsyncWebServerRequest *request);
 void routeNext(AsyncWebServerRequest *request);
 void routeCurrent(AsyncWebServerRequest *request);
 void routePlay(AsyncWebServerRequest *request);
+void routeGrid(AsyncWebServerRequest *request);
 
 void attachRoutes(AsyncWebServer &server);
 

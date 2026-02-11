@@ -18,3 +18,4 @@ bool TodayStateReady();
 bool LoadTodayState(TodayState& state);
 const ThemeBox* FindThemeBox(uint8_t id);
 const ThemeBox* GetDefaultThemeBox();
+const std::vector<ThemeBox>& GetAllThemeBoxes();
