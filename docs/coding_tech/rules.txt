@@ -170,7 +170,7 @@ S4. Numbered lists. MANDATORY.
 
 S5. Naming Consistency. MANDATORY.
 - Use glossary terms: Lo, Hi, Max, modifier, multiplier, pct, shift
-- Use repo style for functions: verbNoun (calcUnshiftedHi, applyBrightnessRules)
+- Use repo style for functions: verbNoun (calcBaseHi, applyBrightnessRules)
 - No poetry, no external style imports — THIS REPO's patterns only
 - When in doubt, grep existing code for patterns before naming
 - Never introduce new terms as synonyms. New terms must mean new concepts and require approval.

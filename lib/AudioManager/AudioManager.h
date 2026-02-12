@@ -1,8 +1,8 @@
 /**
  * @file AudioManager.h
  * @brief Main audio playback coordinator for ESP32 I2S output
- * @version 260205A
- $12026-02-07
+ * @version 260212C
+ * @date 2026-02-12
  * 
  * AudioManager coordinates all audio output: MP3 fragments, TTS sentences,
  * and PCM clips (ping sounds). It owns the I2S hardware and shared decoder
@@ -96,8 +96,8 @@ public:
   /// Check if PCM clip is currently playing
   bool isPCMClipActive() const;
 
-  /// Set web UI volume adjustment (-1.0 to +1.0)
-  void setVolumeWebShift(float value);
+  /// Set web UI volume multiplier
+  void setVolumeWebMultiplier(float value);
   
   /// Recalculate and apply volume from all volume sources
   void updateVolume();

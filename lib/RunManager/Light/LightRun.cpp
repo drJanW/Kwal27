@@ -1,8 +1,8 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260205A
- $12026-02-10
+ * @version 260212C
+ * @date 2026-02-12
  */
 #include "LightRun.h"
 
@@ -223,10 +223,10 @@ void LightRun::cb_measureLux() {
     int8_t calendarShift = 0;
 #endif
     
-    uint8_t shiftedHi = LightPolicy::calcShiftedHi(lux, calendarShift, getWebShift());
+    uint8_t shiftedHi = LightPolicy::calcShiftedHi(lux, calendarShift, getWebMultiplier());
     setBrightnessShiftedHi(shiftedHi);
     
-    PF("[LightRun] Lux=%.1f calShift=%d webShift=%.2f → shiftedHi=%u\n", lux, calendarShift, getWebShift(), shiftedHi);
+    PF("[LightRun] Lux=%.1f calShift=%d webMultiplier=%.2f → shiftedHi=%u\n", lux, calendarShift, getWebMultiplier(), shiftedHi);
     
     // Repaint LED buffer with current pattern/colors, but keep brightness at 0
     // The fader will ramp up to shiftedHi smoothly
@@ -282,9 +282,9 @@ void LightRun::requestLuxMeasurement() {
     cb_tryLuxMeasure();
 }
 
-// F9: Route webShift through Run to LightController
+// F9: Route webMultiplier through Run to LightController
 void LightRun::setWebBrightnessModifier(float multiplier) {
-    setWebShift(multiplier);
+    setWebMultiplier(multiplier);
 }
 
 void LightRun::cb_tryLuxMeasure() {
@@ -716,9 +716,9 @@ void LightRun::applyToLights() {
         // Brightness shift: only apply if not already computed by calcShiftedHi
         // When called from cb_measureLux, brightness is already set
         // When called from other places (pattern change etc), apply it here
-        if (getBrightnessShiftedHi() == getBrightnessUnshiftedHi()) {
+        if (getBrightnessShiftedHi() == getBrightnessBaseHi()) {
             // Not yet shifted, apply now
-            setBrightnessShiftedHi(getBrightnessUnshiftedHi() * colorMults[GLOBAL_BRIGHTNESS]);
+            setBrightnessShiftedHi(getBrightnessBaseHi() * colorMults[GLOBAL_BRIGHTNESS]);
         }
     }
 #endif

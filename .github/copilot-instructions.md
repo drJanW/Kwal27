@@ -63,7 +63,7 @@ Every `.cpp` file: `#include <Arduino.h>` as FIRST include
 
 - **camelCase** for all identifiers (never snake_case)
 - Callbacks: `cb_verbNoun()` pattern
-- Functions: `verbNoun()` (e.g., `calcUnshiftedHi`, `applyBrightnessRules`)
+- Functions: `verbNoun()` (e.g., `calcBaseHi`, `applyBrightnessRules`)
 - **English only** in all `.cpp`, `.h`, `.md` files and code comments
 
 ### Terminology (use these exact terms)
@@ -72,6 +72,7 @@ Every `.cpp` file: `#include <Arduino.h>` as FIRST include
 | interval | cadence, period |
 | fraction (0.0-1.0) | factor, mult |
 | multiplier (0.0+) | modifier |
+| swing (-1.0 to +1.0) | scale, strength |
 | shift | offset |
 | brightness | bri, bright |
 | volume | gain (except I2S registers) |

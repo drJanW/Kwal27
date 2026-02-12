@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260211K - Built 2026-02-11 23:37
+ * Kwal WebGUI v260211K - Built 2026-02-12 09:10
  */
 
 // === js/namespace.js ===
@@ -174,7 +174,7 @@ Kwal.audio = (function() {
         var pos = clamp(parseInt(slider.value, 10));
         slider.value = pos;
         label.textContent = pos + '%';
-        // Send linear value - firmware calculates webShift
+        // Send linear value - firmware calculates webMultiplier
         fetch('/setWebAudioLevel?value=' + pos, { method: 'POST' }).catch(function() {});
       };
       

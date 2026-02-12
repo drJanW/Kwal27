@@ -47,9 +47,9 @@ H1. Refactor codebase according to glossary terminology rules
     - Rename globalBrightness → brightnessHiShift in CSV
     - Zie: docs/glossary_slider_semantics.md
 
-H3. Make webShift and brightnessShiftedHi atomic
-    - LightController.cpp: webShift en brightnessShiftedHi zijn niet atomic
-    - AudioState.cpp gebruikt WEL std::atomic voor g_volumeShiftedHi, g_volumeWebModifier
+H3. Make webMultiplier and brightnessShiftedHi atomic
+    - LightController.cpp: webMultiplier en brightnessShiftedHi zijn niet atomic
+    - AudioState.cpp gebruikt WEL std::atomic voor g_volumeShiftedHi, g_volumeWebMultiplier
     - Voor consistentie en thread-safety: maak ze atomic
 
 ### not ordered new issues/ideas

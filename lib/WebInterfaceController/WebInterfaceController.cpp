@@ -1,8 +1,8 @@
 /**
  * @file WebInterfaceController.cpp
  * @brief Async web server setup, routes index.html and API endpoints
- * @version 260206A
- $12026-02-09
+ * @version 260212C
+ * @date 2026-02-12
  */
 #include <Arduino.h>
 #include "WebInterfaceController.h"
@@ -116,16 +116,16 @@ void routeSetBrightness(AsyncWebServerRequest *request)
         sliderPct, Globals::loPct, Globals::hiPct,
         Globals::brightnessLo, Globals::brightnessHi);
     
-    // 4. Calculate webShift: what would shiftedHi be with webShift=1.0?
+    // 4. Calculate webMultiplier: what would shiftedHi be with webMultiplier=1.0?
     uint8_t baseShiftedHi = LightPolicy::calcShiftedHi(lux, calendarShift, 1.0f);
-    float webShift = (baseShiftedHi > 0) ? (targetBrightness / baseShiftedHi) : 1.0f;
-    setWebShift(webShift);
+    float webMultiplier = (baseShiftedHi > 0) ? (targetBrightness / baseShiftedHi) : 1.0f;
+    setWebMultiplier(webMultiplier);
     
-    // 5. Recalculate shiftedHi with new webShift
-    uint8_t shiftedHi = LightPolicy::calcShiftedHi(lux, calendarShift, webShift);
+    // 5. Recalculate shiftedHi with new webMultiplier
+    uint8_t shiftedHi = LightPolicy::calcShiftedHi(lux, calendarShift, webMultiplier);
     setBrightnessShiftedHi(shiftedHi);
     
-    WEBIF_LOG("[Web] sliderPct=%d → webShift=%.2f shiftedHi=%u\n", sliderPct, webShift, shiftedHi);
+    WEBIF_LOG("[Web] sliderPct=%d → webMultiplier=%.2f shiftedHi=%u\n", sliderPct, webMultiplier, shiftedHi);
     
     request->send(200, "text/plain", "OK");
 }

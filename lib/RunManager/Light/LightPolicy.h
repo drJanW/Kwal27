@@ -1,8 +1,8 @@
 /**
  * @file LightPolicy.h
  * @brief LED show business logic
- * @version 260131A
- $12026-02-05
+ * @version 260212C
+ * @date 2026-02-12
  */
 #pragma once
 #include <Arduino.h>
@@ -13,9 +13,9 @@ namespace LightPolicy {
     float applyBrightnessRules(float requested);
 
     // Calculate shiftedHi from ambient lux, calendar shift, and web shift
-    // webShift can be >1.0 to override other shifts
+    // webMultiplier can be >1.0 to override other shifts
     // Returns uint8_t Hi value (fully shifted, ready for slider mapping)
-    uint8_t calcShiftedHi(float lux, int8_t calendarShift, float webShift);
+    uint8_t calcShiftedHi(float lux, int8_t calendarShift, float webMultiplier);
 
     // Placeholder: distance-driven light show adjustment
     bool distanceAnimationFor(float distanceMm,

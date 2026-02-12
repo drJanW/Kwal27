@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260211A
- * @date 2026-02-11
+ * @version 260212C
+ * @date 2026-02-12
  */
 #include <Arduino.h>
 #include <math.h>
@@ -346,9 +346,9 @@ void RunManager::requestSayRTCtemperature() {
 }
 
 void RunManager::requestSetAudioLevel(float value) {
-    // F9 pattern: webShift can be >1.0, no clamp
-    audio.setVolumeWebShift(value);
-    RUN_LOG_INFO("[AudioRun] webShift=%.2f\n",
+    // F9 pattern: webMultiplier can be >1.0, no clamp
+    audio.setVolumeWebMultiplier(value);
+    RUN_LOG_INFO("[AudioRun] webMultiplier=%.2f\n",
                      static_cast<double>(value));
 }
 

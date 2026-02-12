@@ -1,8 +1,8 @@
 /**
  * @file LightController.h
  * @brief LED control interface via FastLED library
- * @version 260202A
- $12026-02-08
+ * @version 260212C
+ * @date 2026-02-12
  */
 #pragma once
 
@@ -74,16 +74,16 @@ struct LightShowParams {
 extern CRGB leds[];
 
 // ===== API =====
-// WebShift: user brightness multiplier (can be >1.0 to override other shifts)
-float getWebShift();
-void setWebShift(float value);
+// WebMultiplier: user brightness multiplier (can be >1.0 to override other shifts)
+float getWebMultiplier();
+void setWebMultiplier(float value);
 // SliderPct: current brightness as percentage of Lo..Hi range
 int getSliderPct();
 // Brightness boundaries
 uint8_t getBrightnessShiftedHi();
 void setBrightnessShiftedHi(float value);
-uint8_t getBrightnessUnshiftedHi();
-void setBrightnessUnshiftedHi(uint8_t value);
+uint8_t getBrightnessBaseHi();
+void setBrightnessBaseHi(uint8_t value);
 
 void updateLightController();
 void PlayLightShow(const LightShowParams&);

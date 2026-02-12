@@ -1,8 +1,8 @@
 /**
  * @file AudioRoutes.cpp
  * @brief Audio API endpoint routes
- * @version 260211L
- * @date 2026-02-11
+ * @version 260212C
+ * @date 2026-02-12
  */
 #include <Arduino.h>
 #include "AudioRoutes.h"
@@ -46,16 +46,16 @@ void routeSetLevel(AsyncWebServerRequest *request)
         sliderPct, Globals::loPct, Globals::hiPct,
         Globals::volumeLo, Globals::volumeHi);
     
-    // Calculate webShift: what multiplier on shiftedHi gives targetVolume?
+    // Calculate webMultiplier: what multiplier on shiftedHi gives targetVolume?
     float shiftedHi = getVolumeShiftedHi();
-    float webShift = (shiftedHi > 0.0f) ? (targetVolume / shiftedHi) : 1.0f;
-    RunManager::requestSetAudioLevel(webShift);
+    float webMultiplier = (shiftedHi > 0.0f) ? (targetVolume / shiftedHi) : 1.0f;
+    RunManager::requestSetAudioLevel(webMultiplier);
     
     // Trigger SSE state push (value ignored - reads from getAudioSliderPct)
     WebGuiStatus::setAudioLevel(0.0f);
     
-    WEBIF_LOG("[Web] Audio sliderPct=%d → targetVol=%.2f webShift=%.2f shiftedHi=%.2f\n", 
-              sliderPct, targetVolume, webShift, shiftedHi);
+    WEBIF_LOG("[Web] Audio sliderPct=%d → targetVol=%.2f webMultiplier=%.2f shiftedHi=%.2f\n", 
+              sliderPct, targetVolume, webMultiplier, shiftedHi);
     
     request->send(200, "text/plain", "OK");
 }

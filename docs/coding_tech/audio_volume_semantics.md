@@ -33,10 +33,10 @@ Where:
 
 | Name | Getter/Setter | Meaning |
 |------|---------------|---------|
-| `g_baseGain` | `getVolumeShiftedHi()` / `setVolumeShiftedHi()` | Current ceiling after shift application. Initialized from `Globals::baseGain`, updated by `AudioRun::applyVolumeShift()`. |
-| `g_webAudioLevel` | `getVolumeWebShift()` / `setVolumeWebShift()` | User's fraction from web slider. 0.0 = muted, 1.0 = full (up to baseVolume). |
+| `g_baseGain` | `getVolumeShiftedHi()` / `setVolumeShiftedHi()` | Current ceiling after shift application. Initialized from `Globals::volumeBaseHi`, updated by `AudioRun::applyVolumeShift()`. |
+| `g_webAudioLevel` | `getVolumeWebMultiplier()` / `setVolumeWebMultiplier()` | User's multiplier from web slider. 1.0 = neutral, can be >1.0 to compensate shifts. |
 
-**Note:** Variable names `g_baseGain` and `g_webAudioLevel` are pending rename — see [glossary_slider_semantics.md](glossary_slider_semantics.md) Proposed Renames.
+**Note:** Internal variable names `g_baseGain` and `g_webAudioLevel` have been renamed to `g_volumeShiftedHi` and `g_volumeWebMultiplier`. Getter/setter names are current. `Globals::baseGain` pending rename to `Globals::volumeBaseHi` — see [glossary_slider_semantics.md](glossary_slider_semantics.md) Proposed Renames.
 
 ## Shift Application Flow
 
@@ -64,7 +64,7 @@ The slider shows a percentage where:
 
 | Field | Formula | Meaning |
 |-------|---------|---------|
-| `userVolume` | `getVolumeWebShift()` | Current fraction 0.0-1.0 |
+| `userVolume` | `getVolumeWebMultiplier()` | Current multiplier (1.0 = neutral) |
 | `audioLo` | `Globals::audioLo` | Left boundary (silence guard) |
 | `audioHi` | `getVolumeShiftedHi()` | Right boundary (shift ceiling) |
 | `audioMax` | `MAX_AUDIO_VOLUME` | Hardware max (for reference) |

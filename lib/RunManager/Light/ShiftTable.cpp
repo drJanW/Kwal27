@@ -1,8 +1,8 @@
 /**
  * @file ShiftTable.cpp
  * @brief LED parameter shift storage implementation
- * @version 260205A
- * @date 2026-02-05
+ * @version 260212A
+ * @date 2026-02-12
  */
 #include <Arduino.h>
 #include "ShiftTable.h"
@@ -315,14 +315,14 @@ void ShiftTable::computeColorMultipliers(uint64_t activeStatusBits, float* outMu
 
     const uint8_t temperatureShiftStatus = STATUS_TEMPERATURE_SHIFT;
     const bool temperatureShiftActive = (activeStatusBits & (1ULL << temperatureShiftStatus)) != 0;
-    const float temperatureShiftScale = temperatureShiftActive ? StatusFlags::getTemperatureShiftScale() : 0.0f;
+    const float temperatureSwing = temperatureShiftActive ? StatusFlags::getTemperatureSwing() : 0.0f;
     
     // Multiply in all active shifts
     for (const auto& entry : colorShifts_) {
         if (activeStatusBits & (1ULL << entry.statusId)) {
             float multiplier = entry.multiplier;
             if (entry.statusId == temperatureShiftStatus) {
-                multiplier = 1.0f + (entry.multiplier - 1.0f) * temperatureShiftScale;
+                multiplier = 1.0f + (entry.multiplier - 1.0f) * temperatureSwing;
             }
             outMultipliers[entry.paramId] *= multiplier;
         }
@@ -337,14 +337,14 @@ void ShiftTable::computePatternMultipliers(uint64_t activeStatusBits, float* out
 
     const uint8_t temperatureShiftStatus = STATUS_TEMPERATURE_SHIFT;
     const bool temperatureShiftActive = (activeStatusBits & (1ULL << temperatureShiftStatus)) != 0;
-    const float temperatureShiftScale = temperatureShiftActive ? StatusFlags::getTemperatureShiftScale() : 0.0f;
+    const float temperatureSwing = temperatureShiftActive ? StatusFlags::getTemperatureSwing() : 0.0f;
     
     // Multiply in all active shifts
     for (const auto& entry : patternShifts_) {
         if (activeStatusBits & (1ULL << entry.statusId)) {
             float multiplier = entry.multiplier;
             if (entry.statusId == temperatureShiftStatus) {
-                multiplier = 1.0f + (entry.multiplier - 1.0f) * temperatureShiftScale;
+                multiplier = 1.0f + (entry.multiplier - 1.0f) * temperatureSwing;
             }
             outMultipliers[entry.paramId] *= multiplier;
         }

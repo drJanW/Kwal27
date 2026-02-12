@@ -1,11 +1,11 @@
 /**
  * @file AudioState.h
  * @brief Thread-safe audio state accessors shared between playback modules
- * @version 260205A
- * @date 2026-02-05
+ * @version 260212C
+ * @date 2026-02-12
  * 
  * Provides atomic getters/setters for audio state shared across modules:
- * - Volume levels (shiftedHi, webShift)
+ * - Volume levels (shiftedHi, webMultiplier)
  * - Playback status (fragment, sentence, TTS, PCM)
  * - Current track info (dir, file, score)
  * - Audio meter level
@@ -19,11 +19,11 @@
 /// Check if TTS (Text-to-Speech) is currently active
 bool isTtsActive();
 
-/// Get web UI volume shift multiplier (can be >1.0)
-float getVolumeWebShift();
+/// Get web UI volume multiplier (can be >1.0)
+float getVolumeWebMultiplier();
 
-/// Set web UI volume shift multiplier
-void setVolumeWebShift(float value);
+/// Set web UI volume multiplier
+void setVolumeWebMultiplier(float value);
 
 /// Get current volume as slider percentage (0-100)
 int getAudioSliderPct();

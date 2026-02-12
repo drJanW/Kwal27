@@ -10,12 +10,13 @@
 | **Hi** | Current operational right boundary (varies by shift/sensor) | Lo-Max | varies |
 | **fraction** | Attenuation only (cannot amplify) | 0.0-1.0 | 0.5 = half, 1.0 = full |
 | **multiplier** | Can attenuate or amplify | 0.0+ (no upper limit) | 0.5 = half, 1.4 = 140% |
+| **swing** | Bipolar proportional value (centered on 0) | -1.0 to +1.0 | temperatureSwing: -1.0 = full reverse, 0.0 = neutral, +1.0 = full forward |
 | **shift** | Integer percentage adjustment | any int | -5, +3 |
 | **pct** | Percentage value (0-100) | 0-100 | sliderPct, loPct, hiPct |
 | **sliderPct** | Slider position as percentage | 0-100 | current brightness % |
 | **loPct** | Lo as percentage of Max | 0-100 | (Lo / Max) × 100 |
 | **hiPct** | Hi as percentage of Max | 0-100 | (Hi / Max) × 100 |
-| **webShift** | User brightness multiplier from slider | 0.0+ | can be >1.0 to compensate other shifts |
+| **webMultiplier** | User brightness/volume multiplier from slider | 0.0+ | can be >1.0 to compensate other shifts |
 
 ### Fraction vs Multiplier
 
@@ -23,10 +24,10 @@
 fraction:     0.0 .. 1.0  (attenuate only, never amplify)
 multiplier:   0.0 .. ∞    (can attenuate OR amplify)
 
-Example webShift as multiplier:
+Example webMultiplier as multiplier:
 - Other shifts bring brightness to 70%
-- User wants 100% → webShift = 100/70 = 1.43
-- webShift > 1.0 compensates other shifts
+- User wants 100% → webMultiplier = 100/70 = 1.43
+- webMultiplier > 1.0 compensates other shifts
 ```
 
 ### Sensor Ranges (consistent Lo..Hi pairs)
@@ -117,14 +118,14 @@ Audio:      [░░■■■■■■■■■■░░░░░░░░]
 | Current | Proposed | Reason |
 |---------|----------|--------|
 | `MAX_AUDIO_VOLUME` | `MAX_VOLUME` | Consistent with volume terminology |
-| `Globals::baseGain` | `Globals::volumeUnshiftedHi` | Hi value before shifts |
+| `Globals::baseGain` | `Globals::volumeBaseHi` | Hi value before shifts |
 | `Globals::maxAudioVolume` | **REMOVE** | Use `MAX_VOLUME` only |
 | `g_baseGain` (state) | `g_volumeShiftedHi` | Hi boundary after shifts |
 | `getBaseGain()` | `getVolumeShiftedHi()` | Returns shifted Hi |
 | `setBaseGain()` | `setVolumeShiftedHi()` | Sets shifted Hi |
-| `g_webAudioLevel` | `g_volumeWebFraction` | User's volume fraction from web |
-| `getWebAudioLevel()` | `getVolumeWebFraction()` | Clear meaning |
-| `setWebAudioLevel()` | `setVolumeWebFraction()` | Clear meaning |
+| `g_webAudioLevel` | `g_volumeWebMultiplier` | User's volume multiplier from web — **DONE** |
+| `getWebAudioLevel()` | `getVolumeWebMultiplier()` | Clear meaning — **DONE** |
+| `setWebAudioLevel()` | `setVolumeWebMultiplier()` | Clear meaning — **DONE** |
 | `gain` (general) | `volume` | Use "gain" only for I2S hardware |
 | `modifier` (JS) | `brightnessFraction` | Align with fraction terminology |
 | `thumbPct` (JS) | `sliderPct` | Align with sliderPct terminology |

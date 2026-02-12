@@ -1,8 +1,8 @@
 /**
  * @file AudioShiftTable.cpp
  * @brief Audio parameter shift storage implementation
- * @version 260205A
- * @date 2026-02-05
+ * @version 260212A
+ * @date 2026-02-12
  */
 #include "AudioShiftTable.h"
 #include "CsvUtils.h"
@@ -170,7 +170,7 @@ void AudioShiftTable::computeMultipliers(uint64_t statusBits, float outMults[]) 
 
     const uint64_t temperatureShiftBit = (1ULL << STATUS_TEMPERATURE_SHIFT);
     const bool temperatureShiftActive = (statusBits & temperatureShiftBit) != 0;
-    const float temperatureShiftScale = temperatureShiftActive ? StatusFlags::getTemperatureShiftScale() : 0.0f;
+    const float temperatureSwing = temperatureShiftActive ? StatusFlags::getTemperatureSwing() : 0.0f;
 
     // Multiply in all active shifts
     for (const auto& entry : entries_) {
@@ -178,7 +178,7 @@ void AudioShiftTable::computeMultipliers(uint64_t statusBits, float outMults[]) 
             for (int i = 0; i < AUDIO_PARAM_COUNT; i++) {
                 float shiftPct = entry.shifts[i];
                 if (entry.statusBit == temperatureShiftBit) {
-                    shiftPct *= temperatureShiftScale;
+                    shiftPct *= temperatureSwing;
                 }
                 outMults[i] *= (1.0f + shiftPct / 100.0f);
             }

@@ -1,8 +1,8 @@
 /**
  * @file LightBoot.cpp
  * @brief LED show one-time initialization implementation
- * @version 260201A
- $12026-02-10
+ * @version 260212C
+ * @date 2026-02-12
  */
 #include "LightBoot.h"
 #include "LightController.h"
@@ -37,8 +37,8 @@ void initLight() {
 void LightBoot::plan() {
     initLight();
     hwStatus |= HW_RGB;
-    setBrightnessUnshiftedHi(150);  // Boot default (before shifts)
+    setBrightnessBaseHi(150);  // Boot default (before shifts)
     setBrightnessShiftedHi(100);    // Initially equal
-    setWebShift(1.0f);              // F9: neutral multiplier
+    setWebMultiplier(1.0f);              // F9: neutral multiplier
     WebGuiStatus::pushState();  // Push initial brightness
 }

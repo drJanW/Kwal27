@@ -1,8 +1,8 @@
 /**
  * @file LightPolicy.cpp
  * @brief LED show business logic implementation
- * @version 260207D
- $12026-02-09
+ * @version 260212C
+ * @date 2026-02-12
  */
 #include <Arduino.h>
 #include <math.h>
@@ -16,8 +16,8 @@ float applyBrightnessRules(float requested) {
     return clamp(requested, 0.0f, Globals::maxBrightness);
 }
 
-uint8_t calcShiftedHi(float lux, int8_t calendarShift, float webShift) {
-    // Combined lux + calendar + web shift → shiftedHi
+uint8_t calcShiftedHi(float lux, int8_t calendarShift, float webMultiplier) {
+    // Combined lux + calendar + web multiplier → shiftedHi
     
     // luxShift from lux using Stevens' power law
     // Low lux → large shift change, high lux → compressed (matches human perception)
@@ -26,11 +26,11 @@ uint8_t calcShiftedHi(float lux, int8_t calendarShift, float webShift) {
     float luxShift = Globals::luxShiftLo +
         (Globals::luxShiftHi - Globals::luxShiftLo) * luxT;
     
-    // Combined multiplier (webShift can be >1.0 to override other shifts)
+    // Combined multiplier (webMultiplier can be >1.0 to override other shifts)
     float combinedMultiplier = 
         (1.0f + (luxShift / 100.0f)) * 
         (1.0f + (calendarShift / 100.0f)) *
-        webShift;
+        webMultiplier;
     
     // Map directly to brightness range, clamp to valid bounds
     float brightness = Globals::brightnessHi * combinedMultiplier;

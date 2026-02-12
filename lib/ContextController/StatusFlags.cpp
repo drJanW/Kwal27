@@ -1,8 +1,8 @@
 /**
  * @file StatusFlags.cpp
  * @brief Hardware failure bits and status tracking implementation
- * @version 260204A
- $12026-02-11
+ * @version 260212A
+ * @date 2026-02-12
  */
 #include <Arduino.h>
 #include "StatusFlags.h"
@@ -114,7 +114,7 @@ uint64_t getTemperatureShiftBits() {
     return (1ULL << STATUS_TEMPERATURE_SHIFT);
 }
 
-float getTemperatureShiftScale() {
+float getTemperatureSwing() {
     const auto& ctx = ContextController::time();
     if (!ctx.hasRtcTemperature) {
         return 0.0f;

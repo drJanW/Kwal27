@@ -1,8 +1,8 @@
 /**
  * @file AudioState.cpp
  * @brief Thread-safe audio state storage using atomics
- * @version 260205A
- $12026-02-08
+ * @version 260212C
+ * @date 2026-02-12
  * 
  * All state is stored in std::atomic variables with relaxed ordering
  * for safe cross-core access on ESP32 dual-core architecture.
@@ -15,7 +15,7 @@
 
 namespace {
 std::atomic<float> g_volumeShiftedHi{0.37f};  // Hi boundary after shifts applied
-std::atomic<float> g_volumeWebShift{1.0f};     // User's web slider multiplier (can be >1.0)
+std::atomic<float> g_volumeWebMultiplier{1.0f};     // User's web slider multiplier (can be >1.0)
 std::atomic<int16_t> g_audioLevelRaw{0};
 std::atomic<bool> g_audioBusy{false};
 std::atomic<uint8_t> g_currentDir{0};
@@ -33,20 +33,20 @@ bool isTtsActive() {
     return g_ttsActive.load(std::memory_order_relaxed);
 }
 
-float getVolumeWebShift() {
-    return g_volumeWebShift.load(std::memory_order_relaxed);
+float getVolumeWebMultiplier() {
+    return g_volumeWebMultiplier.load(std::memory_order_relaxed);
 }
 
-void setVolumeWebShift(float value) {
+void setVolumeWebMultiplier(float value) {
     // No clamp - can be >1.0 to compensate other shifts
-    g_volumeWebShift.store(value, std::memory_order_relaxed);
+    g_volumeWebMultiplier.store(value, std::memory_order_relaxed);
 }
 
 int getAudioSliderPct() {
-    // effectiveHi = shiftedHi * webShift (webShift is separate multiplier)
+    // effectiveHi = shiftedHi * webMultiplier (webMultiplier is separate multiplier)
     float shiftedHi = g_volumeShiftedHi.load(std::memory_order_relaxed);
-    float webShift = g_volumeWebShift.load(std::memory_order_relaxed);
-    float effectiveHi = shiftedHi * webShift;
+    float webMultiplier = g_volumeWebMultiplier.load(std::memory_order_relaxed);
+    float effectiveHi = shiftedHi * webMultiplier;
     // Map to slider percentage using Globals (like brightness)
     return static_cast<int>(MathUtils::mapRange(
         effectiveHi, Globals::volumeLo, Globals::volumeHi,

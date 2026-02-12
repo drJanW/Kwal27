@@ -61,7 +61,7 @@ Kwal.audio = (function() {
         var pos = clamp(parseInt(slider.value, 10));
         slider.value = pos;
         label.textContent = pos + '%';
-        // Send linear value - firmware calculates webShift
+        // Send linear value - firmware calculates webMultiplier
         fetch('/setWebAudioLevel?value=' + pos, { method: 'POST' }).catch(function() {});
       };
       

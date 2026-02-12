@@ -1,8 +1,8 @@
 /**
  * @file PlayFragment.cpp
  * @brief MP3 fragment playback with sine-power fade curves
- * @version 260205A
- $12026-02-11
+ * @version 260212C
+ * @date 2026-02-12
  * 
  * Implements fade-in/fade-out using shared Globals::fadeCurve (sine² curve).
  * Timer-driven: no polling, no loop() dependency.
@@ -45,7 +45,7 @@ inline float fadeFraction() {
 }
 
 inline float currentVolumeMultiplier() {
-    return getVolumeShiftedHi() * fadeFraction() * getVolumeWebShift();
+    return getVolumeShiftedHi() * fadeFraction() * getVolumeWebMultiplier();
 }
 
 inline void applyVolume() {
@@ -157,7 +157,7 @@ bool start(const AudioFragment& fragment) {
 
     PF("[audio][fragment] %02u - %02u playing (fade=%ums volume=%.2f)\n", 
        fragment.dirIndex, fragment.fileIndex, state.effectiveMs,
-       static_cast<double>(getVolumeShiftedHi() * getVolumeWebShift()));
+       static_cast<double>(getVolumeShiftedHi() * getVolumeWebMultiplier()));
 
     return true;
 }

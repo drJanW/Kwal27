@@ -1,8 +1,8 @@
 /**
  * @file AudioManager.cpp
  * @brief Main audio playback coordinator for ESP32 I2S output
- * @version 260205A
- $12026-02-07
+ * @version 260212C
+ * @date 2026-02-12
  * 
  * Implements AudioManager and AudioOutputI2S_Metered classes.
  * Handles I2S initialization, PCM clip playback, and resource management.
@@ -146,7 +146,7 @@ void AudioManager::finalizePlayback()
 	releaseSource();
 
 	setAudioLevelRaw(0);
-	audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebShift());
+	audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebMultiplier());
 	setAudioBusy(false);
 	setFragmentPlaying(false);
 	setSentencePlaying(false);
@@ -193,7 +193,7 @@ bool AudioManager::playPCMClip(const PCMClipDesc& clip, float amplitude)
 	audioOutput.SetBitsPerSample(16);
 	audioOutput.SetChannels(2);
 	audioOutput.begin();
-	audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebShift());
+	audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebMultiplier());
 
 	AUDIO_LOG_DEBUG("[Audio] PCM playback start: samples=%lu sr=%lu amp=%.2f\n",
 		static_cast<unsigned long>(pcmPlayback_.totalSamples),
@@ -216,7 +216,7 @@ void AudioManager::stopPCMClip()
 		setFragmentPlaying(false);
 		setSentencePlaying(false);
 		setAudioLevelRaw(0);
-		audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebShift());
+		audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebMultiplier());
 	}
 }
 
@@ -235,7 +235,7 @@ void AudioManager::begin()
 {
 	audioOutput.SetPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
 	audioOutput.begin();
-	audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebShift());
+	audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebMultiplier());
 }
 
 /// Stop all active audio playback
@@ -255,7 +255,7 @@ void AudioManager::update()
 			setFragmentPlaying(false);
 			setSentencePlaying(false);
 			setAudioLevelRaw(0);
-			audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebShift());
+			audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebMultiplier());
 		}
 	}
 
@@ -278,9 +278,9 @@ void AudioManager::startTTS(const String& phrase) {
 	PlaySentence::startTTS(phrase);
 }
 
-/// Set web UI volume shift and recalculate volume
-void AudioManager::setVolumeWebShift(float value) {
-	::setVolumeWebShift(value);  // no clamp - F9 pattern allows >1.0
+/// Set web UI volume multiplier and recalculate volume
+void AudioManager::setVolumeWebMultiplier(float value) {
+	::setVolumeWebMultiplier(value);  // no clamp - F9 pattern allows >1.0
 	updateVolume();
 }
 
@@ -288,7 +288,7 @@ void AudioManager::setVolumeWebShift(float value) {
 void AudioManager::updateVolume() {
 	PlayAudioFragment::updateVolume();
 	if (!isFragmentPlaying() && !isSentencePlaying() && !pcmPlayback_.active) {
-		audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebShift());
+		audioOutput.SetGain(getVolumeShiftedHi() * getVolumeWebMultiplier());
 	}
 }
 

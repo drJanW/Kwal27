@@ -1,8 +1,8 @@
 /**
  * @file StatusFlags.h
  * @brief Hardware failure bits and status tracking interface
- * @version 260204A
- $12026-02-10
+ * @version 260212A
+ * @date 2026-02-12
  */
 #pragma once
 
@@ -24,6 +24,6 @@ uint64_t getWeatherBits();      // Freezing, Cold, Mild, Warm, Hot
 uint64_t getMoonPhaseBits();    // NewMoon, Waxing, FullMoon, Waning
 uint64_t getHardwareFailBits(); // SD, WiFi, RTC, NTP, sensors
 uint64_t getTemperatureShiftBits();
-float getTemperatureShiftScale();
+float getTemperatureSwing();
 
 } // namespace StatusFlags

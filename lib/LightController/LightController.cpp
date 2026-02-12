@@ -1,8 +1,8 @@
 /**
  * @file LightController.cpp
  * @brief LED control implementation via FastLED library
- * @version 260202A
- $12026-02-08
+ * @version 260212C
+ * @date 2026-02-12
  */
 #include <Arduino.h>
 #include "Globals.h"
@@ -21,22 +21,22 @@ namespace {
 // Brightness terms used below:
 // - Globals::minBrightness/maxBrightness: hardware clamp (never fully off)
 // - Globals::brightnessLo/brightnessHi: operational range for slider mapping
-// - brightnessUnshiftedHi: base hi boundary before shifts
-// - brightnessShiftedHi:   hi boundary after shifts + webShift
-// - webShift:              user brightness multiplier (can be > 1.0)
-float   webShift = 1.0f;
-uint8_t brightnessUnshiftedHi = 100;
+// - brightnessBaseHi: base hi boundary before shifts
+// - brightnessShiftedHi:   hi boundary after shifts + webMultiplier
+// - webMultiplier:         user brightness multiplier (can be > 1.0)
+float   webMultiplier = 1.0f;
+uint8_t brightnessBaseHi = 100;
 uint8_t brightnessShiftedHi = 100;
 
 } // namespace
 
-// WebShift: user brightness multiplier
-float getWebShift() {
-  return webShift;
+// WebMultiplier: user brightness multiplier
+float getWebMultiplier() {
+  return webMultiplier;
 }
 
-void setWebShift(float value) {
-  webShift = value;  // No clamp - can be >1.0
+void setWebMultiplier(float value) {
+  webMultiplier = value;  // No clamp - can be >1.0
 }
 
 // SliderPct: current shiftedHi as percentage of Lo..Hi range
@@ -55,12 +55,12 @@ void setBrightnessShiftedHi(float value) {
   brightnessShiftedHi = static_cast<uint8_t>(constrain(value, 0, 255));
 }
 
-uint8_t getBrightnessUnshiftedHi() {
-  return brightnessUnshiftedHi;
+uint8_t getBrightnessBaseHi() {
+  return brightnessBaseHi;
 }
 
-void setBrightnessUnshiftedHi(uint8_t value) {
-  brightnessUnshiftedHi = value;
+void setBrightnessBaseHi(uint8_t value) {
+  brightnessBaseHi = value;
 }
 
 // === LED buffer ===
@@ -118,7 +118,7 @@ void updateLightController() {
   // windowWidth determines how many gradient colors are visible at once
   int windowWidth       = showParams.windowWidth > 0 ? showParams.windowWidth : 16;
   uint8_t windowStart   = colorPhase;
-  uint8_t maxBrightness = getBrightnessUnshiftedHi();
+  uint8_t maxBrightness = getBrightnessBaseHi();
 
   for (int i = 0; i < NUM_LEDS; ++i) {
     LEDPos pos = getLEDPos(i);
@@ -180,7 +180,7 @@ void applyBrightness() {
   // Skip while fade callbacks own FastLED brightness (lux measurement cycle)
   if (Globals::brightnessFading) return;
 
-  // sliderPct is derived from shiftedHi, which already includes webShift
+  // sliderPct is derived from shiftedHi, which already includes webMultiplier
   int sliderPct = getSliderPct();
   
   uint8_t brightness = static_cast<uint8_t>(MathUtils::mapRange(
