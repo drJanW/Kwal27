@@ -1,16 +1,18 @@
 /**
  * @file RTCController.cpp
  * @brief Hardware RTC (DS3231) control implementation
- * @version 260204A
- $12026-02-10
+ * @version 260212H
+ * @date 2026-02-12
  */
 #include <Arduino.h>
 #include "RTCController.h"
 #include "Globals.h"
 #include "PRTClock.h"
 #include <math.h>
+#include <sys/time.h>
 
 namespace {
+    RTC_DS3231 rtc;
     bool rtcAvailable = false;
 }
 
@@ -46,6 +48,12 @@ bool readInto(PRTClock& clock) {
     clock.setDoW(now.year(), now.month(), now.day());
     clock.setDoY(now.year(), now.month(), now.day());
     clock.setMoonPhaseValue();
+
+    // Sync ESP32 system clock so SD timestamps are correct before WiFi/NTP
+    struct timeval tv;
+    tv.tv_sec = static_cast<time_t>(now.unixtime());
+    tv.tv_usec = 0;
+    settimeofday(&tv, nullptr);
     return true;
 }
 

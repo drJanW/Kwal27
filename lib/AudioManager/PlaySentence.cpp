@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.cpp
  * @brief TTS sentence playback with word dictionary and VoiceRSS API
- * @version 260206K
- $12026-02-07
+ * @version 260212H
+ * @date 2026-02-12
  * 
  * Implements sequential word playback from /000/ directory.
  * Uses unified SpeakItem queue for mixing MP3 words and TTS sentences.
@@ -211,7 +211,6 @@ void playNextSpeakItem();
 
 // TTS completion callback (T4: timer-based, not loop() return)
 void cb_ttsReady() {
-    PF("[TTS] Completed via timer\n");
     // Cleanup decoder
     if (audio.audioMp3Decoder) {
         audio.audioMp3Decoder->stop();

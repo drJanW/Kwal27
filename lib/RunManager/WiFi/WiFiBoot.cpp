@@ -1,8 +1,8 @@
 /**
  * @file WiFiBoot.cpp
  * @brief WiFi connection one-time initialization implementation
- * @version 260204A
- $12026-02-11
+ * @version 260212G
+ * @date 2026-02-12
  */
 #include "WiFiBoot.h"
 #include "Globals.h"
@@ -177,8 +177,6 @@ namespace {
 
         if (count > 0) {
             PF("[WiFiBoot] %u CSVs (%uKB)\n", count, static_cast<unsigned>(totalBytes / 1024));
-        } else {
-            PL("[WiFiBoot] CSV fetch failed, using SD fallback");
         }
     }
 
@@ -187,7 +185,7 @@ namespace {
             return;
         }
         csvFetchCompleted = true;
-        PL("[WiFiBoot] CSV wait timeout, using SD fallback");
+        PL("[WiFiBoot] NAS timeout, using SD");
         removeAllNasCsvFiles();
         RunManager::resumeAfterWiFiBoot();
     }

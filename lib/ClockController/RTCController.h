@@ -1,8 +1,8 @@
 /**
  * @file RTCController.h
  * @brief RTCController implementation
- * @version 260211A
- * @date 2026-02-11
+ * @version 260212H
+ * @date 2026-02-12
  */
 // RTCController.h - Hardware RTC (DS3231) control
 // Only this module talks to I2C/RTC hardware
@@ -14,8 +14,6 @@
 class PRTClock;
 
 namespace RTCController {
-
-inline RTC_DS3231 rtc;
 
 // Hardware initialization
 void begin();
