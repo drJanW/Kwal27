@@ -1,14 +1,15 @@
 /**
  * @file CalendarPolicy.cpp
  * @brief Calendar business logic implementation
- * @version 260202A
- $12026-02-05
+ * @version 260213A
+ * @date 2026-02-13
  */
 #include <Arduino.h>
 #include "CalendarPolicy.h"
 
 #include "Globals.h"
 #include "Audio/AudioPolicy.h"
+#include "PRTClock.h"
 #include "SDController.h"
 #include "TodayState.h"
 
@@ -79,23 +80,35 @@ void speakSentence(const String& phrase) {
   AudioPolicy::requestSentence(phrase);
 }
 
+const ThemeBox* pickFallbackThemeBox() {
+  // Day-of-week routing: Sun=BIRDS1(25), Mon=BIRDS2(26), ..., Sat=BIRDS7(31)
+  const uint8_t dow = prtClock.getDoW();  // 0=Sun .. 6=Sat
+  const uint8_t birdsId = 25 + dow;
+  const ThemeBox* box = FindThemeBox(birdsId);
+  if (box && !box->entries.empty()) {
+    return box;
+  }
+  // Fallback to original default (first loaded box)
+  return GetDefaultThemeBox();
+}
+
 void applyThemeBox(const CalendarThemeBox& box) {
-  // If no specific theme box, use the default (first) theme box
+  // If no specific theme box, pick day-of-week fallback
   if (!box.valid) {
-    const ThemeBox* defaultBox = GetDefaultThemeBox();
-    if (defaultBox && !defaultBox->entries.empty()) {
+    const ThemeBox* fallback = pickFallbackThemeBox();
+    if (fallback && !fallback->entries.empty()) {
       // Convert to CalendarThemeBox format and recurse
       CalendarThemeBox defaultCal;
       defaultCal.valid = true;
-      defaultCal.id = defaultBox->id;
+      defaultCal.id = fallback->id;
       // Build entries string from vector
       String entriesStr;
-      for (size_t i = 0; i < defaultBox->entries.size(); ++i) {
+      for (size_t i = 0; i < fallback->entries.size(); ++i) {
         if (i > 0) entriesStr += ",";
-        entriesStr += String(defaultBox->entries[i]);
+        entriesStr += String(fallback->entries[i]);
       }
       defaultCal.entries = entriesStr;
-      PF_BOOT("[CalendarPolicy] default box %u\n", defaultBox->id);
+      PF_BOOT("[CalendarPolicy] fallback box %u (dow %u)\n", fallback->id, prtClock.getDoW());
       applyThemeBox(defaultCal);
       return;
     }

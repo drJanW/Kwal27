@@ -107,8 +107,6 @@ void CalendarRun::plan() {
     return;
   }
 
-  PF("[CalendarRun] Calendar scheduling enabled\n");
-
   if (initialDelayPending) {
     if (!timers.create(initialDelayMs, 1, CalendarRun::cb_loadCalendar)) {
       PF("[CalendarRun] Failed to arm initial calendar delay\n");

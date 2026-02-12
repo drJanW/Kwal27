@@ -207,7 +207,7 @@ float AudioShiftTable::getVolumeMultiplier(uint64_t statusBits) const {
     return (vol < 0.0f) ? 0.0f : vol;
 }
 
-uint16_t AudioShiftTable::getEffectiveFadeMs(uint64_t statusBits) const {
+uint16_t AudioShiftTable::getFadeMs(uint64_t statusBits) const {
     float mults[AUDIO_PARAM_COUNT];
     computeMultipliers(statusBits, mults);
     float fadeMs = static_cast<float>(Globals::baseFadeMs) * mults[AUDIO_FADE_MS];

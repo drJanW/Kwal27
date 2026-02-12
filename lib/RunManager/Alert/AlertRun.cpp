@@ -1,8 +1,8 @@
 /**
  * @file AlertRun.cpp
  * @brief Hardware failure alert state management implementation
- * @version 260206C
- $12026-02-11
+ * @version 260213A
+ * @date 2026-02-13
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -12,11 +12,13 @@
 #include "AlertRGB.h"
 #include "Audio/AudioPolicy.h"
 #include "Speak/SpeakRun.h"
+#include "TodayState.h"
 #include "TimerManager.h"
 #include "StatusFlags.h"
 #include "Globals.h"
 #include "ContextController.h"
 #include "SD/SDBoot.h"
+#include <ESP.h>
 
 namespace {
 
@@ -78,13 +80,8 @@ void cb_statusReminder() {
 }
 
 void cb_healthStatus() {
-    PF("[Health] Version %s\n", FIRMWARE_VERSION);
-    PF("[Health] Timers %d/%d  Heap %uKB (min %uKB)\n",
-       timers.getActiveCount(), TimerManager::MAX_TIMERS,
-       static_cast<unsigned>(ESP.getFreeHeap() / 1024),
-       static_cast<unsigned>(ESP.getMinFreeHeap() / 1024));
-    //PL("[Health] Components:");
-    
+    const auto& ts = ContextController::time();
+
     struct { StatusComponent c; const char* name; const char* icon; } items[] = {
         { SC_SD,       "SD",       "💾" },
         { SC_WIFI,     "WiFi",     "📶" },
@@ -106,9 +103,25 @@ void cb_healthStatus() {
         if (s == SC_Status::ABSENT) {
             PF("  %s %-10s —\n", item.icon, item.name);
         } else if (s == SC_Status::OK) {
-            if (item.c == SC_RTC && ContextController::time().hasRtcTemperature) {
+            if (item.c == SC_RTC && ts.hasRtcTemperature) {
                 PF("  %s %-10s ✅ %.1f°C\n", item.icon, item.name,
-                   static_cast<double>(ContextController::time().rtcTemperatureC));
+                   static_cast<double>(ts.rtcTemperatureC));
+            } else if (item.c == SC_AUDIO) {
+                const String& boxId = AudioPolicy::themeBoxId();
+                if (!boxId.isEmpty()) {
+                    long numId = boxId.toInt();
+                    const ThemeBox* tb = (numId > 0) ? FindThemeBox(static_cast<uint8_t>(numId)) : nullptr;
+                    if (tb) {
+                        PF("  %s %-10s ✅ %s\n", item.icon, item.name, tb->name.c_str());
+                    } else {
+                        PF("  %s %-10s ✅ [%s]\n", item.icon, item.name, boxId.c_str());
+                    }
+                } else {
+                    PF("  %s %-10s ✅\n", item.icon, item.name);
+                }
+            } else if (item.c == SC_NTP) {
+                PF("  %s %-10s ✅ %02u:%02u\n", item.icon, item.name,
+                   ts.hour, ts.minute);
             } else {
                 PF("  %s %-10s ✅\n", item.icon, item.name);
             }
@@ -118,6 +131,16 @@ void cb_healthStatus() {
             PF("  %s %-10s ⟳ %d\n", item.icon, item.name, v);
         }
     }
+
+    // Heap: current > minimum (largest block)
+    PF("  🧠 Heap       %u>%uKB (%u)\n",
+       static_cast<unsigned>(ESP.getFreeHeap() / 1024),
+       static_cast<unsigned>(ESP.getMinFreeHeap() / 1024),
+       static_cast<unsigned>(ESP.getMaxAllocHeap() / 1024));
+
+    // Timers: max active since boot
+    timers.getActiveCount();  // update max
+    PF("  ⏱️ Timers     max %d of %d used\n", timers.getMaxActiveTimers(), MAX_TIMERS);
 }
 
 } // namespace

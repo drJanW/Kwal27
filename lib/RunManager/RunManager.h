@@ -30,7 +30,6 @@ public:
     static void requestSayTime(TimeStyle style = TimeStyle::NORMAL);
     static void requestSayRTCtemperature();
     static void requestSetAudioLevel(float value);
-    static void requestShowTimerStatus();
     static bool requestStartClockTick(bool fallbackEnabled);
     static bool isClockRunning();
     static bool isClockInFallback();

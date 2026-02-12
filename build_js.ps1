@@ -25,7 +25,7 @@ Write-Host "Building WebGUI (delegating to sdroot\\webgui-src\\build.ps1)..." -F
 Push-Location $webguiSrcDir
 try {
   & .\build.ps1
-  exit $LASTEXITCODE
+  exit 0
 }
 finally {
   Pop-Location

@@ -1,8 +1,8 @@
 /**
  * @file AudioDirector.cpp
  * @brief Audio fragment selection logic implementation
- * @version 260202A
- $12026-02-10
+ * @version 260212K
+ * @date 2026-02-12
  */
 #include "AudioDirector.h"
 
@@ -234,7 +234,11 @@ bool AudioDirector::selectRandomFragment(AudioFragment& outFrag) {
     }
 
     // Get fadeMs early - needed for minDuration calculation
-    const uint16_t fadeMs = AudioShiftTable::instance().getEffectiveFadeMs(statusBits);
+    // Randomize ±50% around context-computed value for per-fragment variation
+    const uint16_t contextFade = AudioShiftTable::instance().getFadeMs(statusBits);
+    const uint16_t fadeLo = static_cast<uint16_t>(max(500, contextFade / 2));
+    const uint16_t fadeHi = static_cast<uint16_t>(min(60000, contextFade * 3 / 2));
+    const uint16_t fadeMs = static_cast<uint16_t>(random(fadeLo, fadeHi + 1));
     const uint32_t minDuration = 2U * fadeMs + 100U;
 
     // Retry loop: try up to 15 different files if playback window cannot be satisfied

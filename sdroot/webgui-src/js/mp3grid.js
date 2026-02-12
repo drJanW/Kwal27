@@ -242,6 +242,7 @@ Kwal.mp3grid = (function() {
         }
         loaded = true;
         draw();
+        updateHeader();
       })
       .catch(function(e) { console.error('[mp3grid] load failed:', e); });
   }

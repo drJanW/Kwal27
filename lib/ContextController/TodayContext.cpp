@@ -1,8 +1,8 @@
 /**
  * @file TodayContext.cpp
  * @brief Today's state management implementation
- * @version 260202A
- $12026-02-11
+ * @version 260213A
+ * @date 2026-02-13  (reverted day-of-week logic out of data layer)
  */
 #include <Arduino.h>
 #include "TodayState.h"

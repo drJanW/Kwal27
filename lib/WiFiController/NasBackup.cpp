@@ -1,8 +1,8 @@
 /**
  * @file NasBackup.cpp
  * @brief Push pattern/color CSVs to NAS csv_server.py after save
- * @version 260211A
- * @date 2026-02-11
+ * @version 260212I
+ * @date 2026-02-12
  *
  * Safe push design:
  *   requestPush(filename) sets a pending bool and starts a repeating timer.
@@ -180,9 +180,7 @@ void NasBackup::checkHealth() {
 
     bool ok = (httpCode == 200);
     AlertState::setNasStatus(ok);
-    if (ok) {
-        PL("[NasBackup] NAS reachable");
-    } else {
+    if (!ok) {
         PF("[NasBackup] NAS unreachable (HTTP %d)\n", httpCode);
     }
 

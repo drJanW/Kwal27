@@ -40,7 +40,7 @@ public:
 
     // Get effective values given current context
     float getVolumeMultiplier(uint64_t statusBits) const;     // 0.0 - 1.0+
-    uint16_t getEffectiveFadeMs(uint64_t statusBits) const;   // milliseconds
+    uint16_t getFadeMs(uint64_t statusBits) const;   // milliseconds
 
     // Base values (defaults when no shifts active)
     static constexpr float kBaseVolume = 1.0f;          // 100%

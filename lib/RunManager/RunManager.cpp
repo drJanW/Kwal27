@@ -1,7 +1,7 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260212C
+ * @version 260212K
  * @date 2026-02-12
  */
 #include <Arduino.h>
@@ -148,18 +148,11 @@ void cb_bootFragment() {
     RunManager::requestPlayFragment();
 }
 
-void cb_showTimerStatus() {
-    RunManager::requestShowTimerStatus();
-}
 
-void cb_logTimeDate() {
-    PF("[Status] %02u:%02u %02u-%02u-%u\n",
-       prtClock.getHour(), prtClock.getMinute(),
-       prtClock.getDay(), prtClock.getMonth(),
-       2000 + prtClock.getYear());
-}
 
 static uint16_t webAudioNextFadeMs = 957U;  // local cache for callback
+static AudioFragment pendingFragment{};     // stashed fragment for stop-then-play
+static bool hasPendingFragment = false;
 
 void cb_playNextFragment() {
     RunManager::requestPlayFragment();
@@ -168,6 +161,20 @@ void cb_playNextFragment() {
 void cb_webAudioStopThenNext() {
     PlayAudioFragment::stop(webAudioNextFadeMs);
     timers.create(static_cast<uint32_t>(webAudioNextFadeMs) + 1U, 1, cb_playNextFragment);
+}
+
+void cb_playPendingFragment() {
+    if (!hasPendingFragment) return;
+    hasPendingFragment = false;
+    if (!AudioPolicy::requestFragment(pendingFragment)) {
+        RUN_LOG_WARN("[AudioRun] playback rejected\n");
+    }
+}
+
+void cb_stopThenPlayPending() {
+    constexpr uint16_t kInterruptFadeMs = 500U;
+    PlayAudioFragment::stop(kInterruptFadeMs);
+    timers.create(kInterruptFadeMs + 1U, 1, cb_playPendingFragment);
 }
 
 } // namespace
@@ -204,8 +211,7 @@ void RunManager::begin() {
                   1, cb_sayRTCtemperature);
     // First audio after random 6-18 min, then reschedules itself
     timers.create(random(Globals::minAudioIntervalMs, Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
-    timers.create(Globals::timerStatusIntervalMs, 0, cb_showTimerStatus);
-    timers.create(MINUTES(30), 0, cb_logTimeDate);
+
     // Note: Periodic lux measurement is now handled by LightRun::plan()
     bootManager.begin();
 
@@ -282,6 +288,15 @@ void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file) {
     fragment.durationMs = rawDuration - 100U;
     fragment.fadeMs     = 500U;  // Default fade
     
+    if (isAudioBusy()) {
+        // Stash fragment, stop current, play after fade-out
+        pendingFragment = fragment;
+        hasPendingFragment = true;
+        timers.cancel(cb_stopThenPlayPending);
+        timers.create(1, 1, cb_stopThenPlayPending);
+        return;
+    }
+    
     if (!AudioPolicy::requestFragment(fragment)) {
         RUN_LOG_WARN("[AudioRun] playback rejected\n");
     }
@@ -333,10 +348,6 @@ void RunManager::requestSetAudioLevel(float value) {
     audio.setVolumeWebMultiplier(value);
     RUN_LOG_INFO("[AudioRun] webMultiplier=%.2f\n",
                      static_cast<double>(value));
-}
-
-void RunManager::requestShowTimerStatus() {
-    timers.showAvailableTimers(true);
 }
 
 bool RunManager::requestStartClockTick(bool fallbackEnabled) {

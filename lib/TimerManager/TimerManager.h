@@ -1,11 +1,12 @@
 /**
  * @file TimerManager.h
  * @brief Central non-blocking timer pool using callbacks (replaces scattered millis()/delay()).
- * @version 260206A
- $12026-02-07
+ * @version 260212I
+ * @date 2026-02-12
  */
 #pragma once
 #include <Arduino.h>
+#include "Globals.h"
 
 // Type alias for timer callbacks (plain function pointer).
 typedef void (*TimerCallback)();
@@ -28,7 +29,7 @@ public:
         float growthMultiplier = 1.0f; ///< Interval multiplier per fire (1.0=constant, >1.0=backoff)
     };
 
-    static const uint8_t MAX_TIMERS = 60;
+    // MAX_TIMERS defined in Globals.h
 
     /**
      * @brief Create a timer.
@@ -87,15 +88,21 @@ public:
     uint8_t getActiveCount() const;
 
     /**
-     * @brief Diagnostics: report current and peak timer usage.
-     * @param showAlways If true, always log; if false, only log when new peak reached.
+     * @brief Get max number of simultaneously active timers since boot.
+     */
+    uint8_t getMaxActiveTimers() const { return _maxActiveTimers; }
+
+    /**
+     * @brief Diagnostics: report current and max timer usage.
+     * @param showAlways If true, always log; if false, only log when new max reached.
      * @note Only outputs when SHOW_TIMER_STATUS is defined as true in Globals.h
      */
     void showAvailableTimers(bool showAlways);
 
 private:
     Timer timers[MAX_TIMERS];
-    uint8_t _remaining = 0;  ///< Set before each callback invocation
+    uint8_t _remaining = 0;   ///< Set before each callback invocation
+    uint8_t _maxActiveTimers = 0;   ///< Max simultaneously active timers since boot
 };
 
 /// @brief Global TimerManager instance - preferred access method

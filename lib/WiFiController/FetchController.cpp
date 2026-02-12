@@ -220,8 +220,6 @@ static void cb_fetchWeather() {
         // Switch from boot retries to periodic refresh
         timers.cancel(cb_fetchWeather);
         timers.create(Globals::weatherRefreshIntervalMs, 0, cb_fetchWeather);
-        PF("[Fetch] Weather bootstrapped, switching to %lu ms refresh\n",
-           (unsigned long)Globals::weatherRefreshIntervalMs);
     } else if (DEBUG_FETCH) {
         PF("[Fetch] Weather updated: min=%.1f max=%.1f\n", tMin, tMax);
     }

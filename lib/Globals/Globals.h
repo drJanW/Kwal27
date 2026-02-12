@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260212H"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260213A"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -29,6 +29,9 @@
 
 // Maximum directories in a themebox (theme_boxes.csv entries column)
 #define MAX_THEME_DIRS 500
+
+// Timer pool capacity (TimerManager slot count)
+#define MAX_TIMERS 50
 
 // Debug flags
 #define SHOW_TIMER_STATUS LOG_BOOT_SPAM  // Set true to see timer usage in serial

@@ -1,8 +1,8 @@
 /**
  * @file TimerManager.cpp
  * @brief Non-blocking timer system implementation
- * @version 260206A
- $12026-02-07
+ * @version 260212I
+ * @date 2026-02-12
  *
  * Manages a pool of 60 software timers checked each loop() iteration.
  * When a timer's interval elapses, its callback is invoked.
@@ -164,6 +164,7 @@ uint8_t TimerManager::getActiveCount() const {
     for (uint8_t i = 0; i < MAX_TIMERS; i++) {
         if (timers[i].active) count++;
     }
+    if (count > _maxActiveTimers) const_cast<TimerManager*>(this)->_maxActiveTimers = count;
     return count;
 }
 
@@ -177,11 +178,11 @@ void TimerManager::showAvailableTimers(bool showAlways) {
 
     if (usedCount > maxUsed) {
         maxUsed = usedCount;
-        PF("[TimerManager] New peak: %d/%d timers in use\n", usedCount, MAX_TIMERS);
+        PF("[TimerManager] New max: %d/%d timers in use\n", usedCount, MAX_TIMERS);
     }
 
     if (showAlways) {
-        PF("[TimerManager] Timers: %d/%d used (peak %d)\n", usedCount, MAX_TIMERS, maxUsed);
+        PF("[TimerManager] Timers: %d/%d used (max %d)\n", usedCount, MAX_TIMERS, maxUsed);
     }
 #else
     (void)showAlways;  // Suppress unused parameter warning

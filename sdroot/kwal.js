@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260212F - Built 2026-02-12 11:59
+ * Kwal WebGUI v260213A - Built 2026-02-13 00:33
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260212F';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260213A';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -1623,19 +1623,15 @@ Kwal.health = (function() {
   function render(data) {
     if (!container) return;
 
+    // Update title with date
+    var titleEl = document.getElementById('health-title');
+    if (titleEl) {
+      titleEl.textContent = 'Status' + (data.ntpDate ? ' ' + data.ntpDate : '');
+    }
+
     var html = '<table class="health-table">';
 
-    // Version info
-    html += '<tr><th colspan="2">Versions</th></tr>';
-    html += '<tr><td>Firmware</td><td>' + (data.firmware || '?') + '</td></tr>';
-    html += '<tr><td>WebGUI</td><td>' + (window.KWAL_JS_VERSION || '?') + '</td></tr>';
-
-    // Timer count
-    html += '<tr><th colspan="2">Resources</th></tr>';
-    html += '<tr><td>Timers</td><td>' + data.timers + '/' + data.maxTimers + '</td></tr>';
-
     // Flags with boot status (use boot field if available, fallback to health bits)
-    html += '<tr><th colspan="2">Hardware & Status</th></tr>';
     var healthBits = data.health || 0;
     var bootStatus = data.boot || 0;
     var absentBits = data.absent || 0;
@@ -1658,12 +1654,34 @@ Kwal.health = (function() {
       if (f.name === 'RTC' && data.rtcTempC !== undefined) {
         status += ' ' + data.rtcTempC.toFixed(1) + '°';
       }
+      // Append theme box name after Audio status
+      if (f.name === 'Audio' && data.themeBox) {
+        status += ' ' + data.themeBox;
+      }
+      // Append time after NTP status
+      if (f.name === 'NTP' && data.ntpTime) {
+        status += ' ' + data.ntpTime;
+      }
       // Append calendar date after Calendar status
       if (f.name === 'Calendar' && data.calendarDate) {
         status += ' ' + data.calendarDate;
       }
       html += '<tr><td>' + f.icon + ' ' + f.name + '</td><td>' + status + '</td></tr>';
     }
+
+    // Heap as component row
+    if (data.heapFree !== undefined) {
+      html += '<tr><td>🧠 Heap</td><td>' + data.heapFree + '>' + data.heapMin + 'KB (' + data.heapBlock + ')</td></tr>';
+    }
+
+    // Timers as component row
+    if (data.maxActiveTimers !== undefined) {
+      html += '<tr><td>⏱️ Timers</td><td>max ' + data.maxActiveTimers + ' of ' + data.maxTimers + ' used</td></tr>';
+    }
+
+    // Version info
+    html += '<tr><td>Firmware</td><td>' + (data.firmware || '?') + '</td></tr>';
+    html += '<tr><td>WebGUI</td><td>' + (window.KWAL_JS_VERSION || '?') + '</td></tr>';
 
     html += '</table>';
     container.innerHTML = html;
@@ -1979,6 +1997,7 @@ Kwal.mp3grid = (function() {
         }
         loaded = true;
         draw();
+        updateHeader();
       })
       .catch(function(e) { console.error('[mp3grid] load failed:', e); });
   }

@@ -197,11 +197,6 @@ namespace {
 
         if (!modulesReadyAnnounced) {
             modulesReadyAnnounced = true;
-            if (RunManager::isClockInFallback()) {
-                PL("[Main] Bootstrapping (RTC) ready");
-            } else {
-                PL("[Main] Bootstrapping (NTP) ready");
-            }
             // SD passed (we're post-SDBoot), WiFi up, clock running
             AlertRun::report(AlertRequest::START_RUNTIME);
         }
