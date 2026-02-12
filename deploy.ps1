@@ -28,10 +28,60 @@ $deviceUpper = $Device.ToUpper()
 $targetIP = if ($Device -eq "marmer") { $MARMER_IP } else { $HOUT_IP }
 $envName = $Device.ToLower()
 
+# --- NAS CSV server settings ---
+# csv_server.py on the NAS receives CSVs pushed by ESP32 devices (patterns, colors).
+# These sit in /shares/Public/Kwal/csv/ until consumed.
+# We check here BEFORE deploy so sdroot/ is current before any SD upload.
+$NAS_CSV_URL = "http://192.168.2.23:8081"
+$NAS_CSV_FILES = @("light_patterns.csv", "light_colors.csv")
+
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host " $deviceUpper Deployment Script" -ForegroundColor Cyan
 Write-Host " Target: $targetIP" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+
+# --- Sync updated CSVs from NAS to sdroot ---
+# When a pattern/color is saved on a device, it pushes the CSV to the NAS csv_server.
+# If the file still sits there, it means sdroot/ is stale. Download it, then move it
+# to done/ on the NAS so it won't be picked up again.
+Write-Host "Checking NAS for updated CSVs..." -ForegroundColor Gray
+foreach ($csvFile in $NAS_CSV_FILES) {
+    try {
+        # Try to fetch the file from the NAS csv_server (returns 404 if not present)
+        $response = Invoke-WebRequest -Uri "$NAS_CSV_URL/csv/$csvFile" -TimeoutSec 3 -ErrorAction Stop
+        if ($response.StatusCode -eq 200 -and $response.Content.Length -gt 0) {
+            $localPath = Join-Path $sdroot $csvFile
+            $nasContent = $response.Content
+
+            # Compare with local — only update if different
+            $localContent = ""
+            if (Test-Path $localPath) {
+                $localContent = Get-Content -Path $localPath -Raw
+            }
+
+            if ($nasContent -ne $localContent) {
+                # NAS has a newer version → update sdroot
+                Set-Content -Path $localPath -Value $nasContent -NoNewline
+                Write-Host "  $csvFile → sdroot (updated from NAS)" -ForegroundColor Green
+
+                # Move to done/ on NAS so it won't be re-downloaded by devices
+                Invoke-WebRequest -Uri "$NAS_CSV_URL/api/move?file=$csvFile" -TimeoutSec 3 -ErrorAction SilentlyContinue | Out-Null
+            } else {
+                # Identical — just clean up the NAS copy
+                Write-Host "  $csvFile → already current (cleaning NAS)" -ForegroundColor DarkGray
+                Invoke-WebRequest -Uri "$NAS_CSV_URL/api/move?file=$csvFile" -TimeoutSec 3 -ErrorAction SilentlyContinue | Out-Null
+            }
+        }
+    }
+    catch {
+        # 404 = file not on NAS (nothing to sync), timeout = NAS offline — both fine
+        if ($_.Exception.Response.StatusCode.value__ -eq 404) {
+            Write-Host "  $csvFile → not on NAS (up to date)" -ForegroundColor DarkGray
+        }
+        # NAS offline or other error: silently continue, deploy is not blocked
+    }
+}
 Write-Host ""
 
 # --- Auto-close serial monitor for HOUT ---
