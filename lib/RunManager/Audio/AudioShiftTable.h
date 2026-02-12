@@ -1,8 +1,8 @@
 /**
  * @file AudioShiftTable.h
  * @brief Audio parameter shift storage
- * @version 260205A
- * @date 2026-02-05
+ * @version 260212D
+ * @date 2026-02-12
  */
 #pragma once
 
@@ -39,7 +39,7 @@ public:
     std::vector<uint8_t> getThemeBoxAdditions(uint64_t statusBits) const;
 
     // Get effective values given current context
-    float getEffectiveVolume(uint64_t statusBits) const;      // 0.0 - 1.0+
+    float getVolumeMultiplier(uint64_t statusBits) const;     // 0.0 - 1.0+
     uint16_t getEffectiveFadeMs(uint64_t statusBits) const;   // milliseconds
 
     // Base values (defaults when no shifts active)

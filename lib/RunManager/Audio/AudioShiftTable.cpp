@@ -199,7 +199,7 @@ std::vector<uint8_t> AudioShiftTable::getThemeBoxAdditions(uint64_t statusBits) 
     return result;
 }
 
-float AudioShiftTable::getEffectiveVolume(uint64_t statusBits) const {
+float AudioShiftTable::getVolumeMultiplier(uint64_t statusBits) const {
     float mults[AUDIO_PARAM_COUNT];
     computeMultipliers(statusBits, mults);
     float vol = kBaseVolume * mults[AUDIO_VOLUME];

@@ -41,18 +41,18 @@ Where:
 ## Shift Application Flow
 
 ```
-AudioShiftTable::getEffectiveVolume(statusBits)
+AudioShiftTable::getVolumeMultiplier(statusBits)
     → returns 0.0-1.0+ (can exceed 1.0 for boost)
     
 AudioRun::applyVolumeShift(statusBits)
-    → scaledVolume = effectiveVolume × Globals::maxAudioVolume
-    → clamp to [0, Globals::maxAudioVolume]
-    → setVolumeShiftedHi(scaledVolume)
+    → shiftedHi = volumeMultiplier × MAX_VOLUME
+    → clamp to [0, MAX_VOLUME]
+    → setVolumeShiftedHi(shiftedHi)
 ```
 
-Log: `[AudioRun] Volume shift: 0.50 (eff=1.02, status=0x...)`
-- `0.50` = scaledVolume stored in volumeShiftedHi
-- `1.02` = raw effectiveVolume from shift (>1.0 means boost)
+Log: `[AudioRun] Volume shift: 0.50 (mult=1.02, status=0x...)`
+- `0.50` = shiftedHi stored in volumeShiftedHi
+- `1.02` = raw volumeMultiplier from shift (>1.0 means boost)
 
 ## WebGUI Slider Semantics
 

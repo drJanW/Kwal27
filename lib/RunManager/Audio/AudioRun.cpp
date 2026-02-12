@@ -1,8 +1,8 @@
 /**
  * @file AudioRun.cpp
  * @brief Audio playback state management implementation
- * @version 260202A
- $12026-02-05
+ * @version 260212D
+ * @date 2026-02-12
  */
 #include "AudioRun.h"
 
@@ -45,13 +45,11 @@ namespace
 
     void applyVolumeShift(uint64_t statusBits)
     {
-        float effectiveVolume = AudioShiftTable::instance().getEffectiveVolume(statusBits);
-        
-        float scaledVolume = effectiveVolume * MAX_VOLUME;
-        if (scaledVolume < 0.0f) scaledVolume = 0.0f;
-        if (scaledVolume > MAX_VOLUME) scaledVolume = MAX_VOLUME;
-        
-        setVolumeShiftedHi(scaledVolume);
+        float volumeMultiplier = AudioShiftTable::instance().getVolumeMultiplier(statusBits);
+        float shiftedHi = volumeMultiplier * MAX_VOLUME;
+        if (shiftedHi < 0.0f) shiftedHi = 0.0f;
+        if (shiftedHi > MAX_VOLUME) shiftedHi = MAX_VOLUME;
+        setVolumeShiftedHi(shiftedHi);
     }
 
     bool attemptDistancePlayback()
