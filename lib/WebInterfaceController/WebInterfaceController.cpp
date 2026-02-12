@@ -98,8 +98,8 @@ void routeSetBrightness(AsyncWebServerRequest *request)
     }
     String valStr = request->getParam("value")->value();
     int sliderPct = valStr.toInt();
-    // No constrain/clamp here: JS already ensures sliderPct in loPct..hiPct range
-    // Using map() not mapRange() - no double clamp needed (A5: no safety theatre)
+    // Slider sends 0-100 freely (grey zones are visual only)
+    // map() converts to brightness range, webMultiplier compensates shifts
     
     // 1. Get cached lux (no new measurement)
     float lux = SensorController::ambientLux();

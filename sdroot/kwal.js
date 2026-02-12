@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260211K - Built 2026-02-12 09:10
+ * Kwal WebGUI v260212E - Built 2026-02-12 10:01
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260211K';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260212E';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -115,10 +115,8 @@ Kwal.state = (function() {
  * Kwal - Audio module
  * See docs/glossary_slider_semantics.md for terminology
  * 
- * F9 pattern: Slider shows sliderPct (0-100%) directly.
- * Grey zone left: 0% to loPct
- * Blue zone: loPct to hiPct (usable range)
- * Grey zone right: hiPct to 100%
+ * Slider moves freely 0-100%. Grey zones show shiftedLo/Hi
+ * as visual indicators but do NOT restrict the thumb.
  * 
  * sliderPct = current volume as percentage of Lo..Hi range
  */
@@ -130,12 +128,10 @@ Kwal.audio = (function() {
   var currentDir = null, currentFile = null;
   var isPlaying = false;
   var playingTimeout = null;
-  var loPct = 0;      // Left grey zone boundary (%)
-  var hiPct = 100;    // Right grey zone boundary (%)
-
-  function clamp(val) {
-    return Math.max(loPct, Math.min(hiPct, val));
-  }
+  var pctMin = 0;     // Slider minimum
+  var pctMax = 100;   // Slider maximum
+  var loPct = 0;      // Grey zone left boundary (visual only)
+  var hiPct = 100;    // Grey zone right boundary (visual only)
 
   function updateGradient() {
     if (!slider) return;
@@ -165,13 +161,13 @@ Kwal.audio = (function() {
     
     if (slider && label) {
       slider.oninput = function() {
-        var pos = clamp(parseInt(slider.value, 10));
+        var pos = Math.max(pctMin, Math.min(pctMax, parseInt(slider.value, 10)));
         slider.value = pos;
         label.textContent = pos + '%';
       };
 
       slider.onchange = function() {
-        var pos = clamp(parseInt(slider.value, 10));
+        var pos = Math.max(pctMin, Math.min(pctMax, parseInt(slider.value, 10)));
         slider.value = pos;
         label.textContent = pos + '%';
         // Send linear value - firmware calculates webMultiplier
@@ -258,7 +254,7 @@ Kwal.audio = (function() {
     if (typeof hiPercent === 'number') hiPct = hiPercent;
     updateGradient();
     if (slider && label && typeof sliderPct === 'number') {
-      var pos = clamp(Math.round(sliderPct));
+      var pos = Math.max(pctMin, Math.min(pctMax, Math.round(sliderPct)));
       slider.value = pos;
       label.textContent = pos + '%';
     }
@@ -309,9 +305,8 @@ Kwal.audio = (function() {
  * Kwal - Brightness module
  * See docs/glossary_slider_semantics.md for terminology
  * 
- * Slider shows sliderPct (0-100%) directly.
- * Grey zone left: 0% to loPct (below minimum)
- * Green zone: loPct to hiPct (usable range)
+ * Slider moves freely 0-100%. Grey zones show shiftedLo/Hi
+ * as visual indicators but do NOT restrict the thumb.
  * 
  * sliderPct = current brightness as percentage of Lo..Hi range
  */
@@ -319,12 +314,10 @@ Kwal.brightness = (function() {
   'use strict';
 
   var slider, label;
-  var loPct = 28;     // Left grey zone boundary
-  var hiPct = 100;    // Right grey zone boundary
-
-  function clamp(val) {
-    return Math.max(loPct, Math.min(hiPct, val));
-  }
+  var pctMin = 0;     // Slider minimum
+  var pctMax = 100;   // Slider maximum
+  var loPct = 28;     // Grey zone left boundary (visual only)
+  var hiPct = 100;    // Grey zone right boundary (visual only)
 
   function updateGradient() {
     if (!slider) return;
@@ -343,13 +336,13 @@ Kwal.brightness = (function() {
     if (!slider || !label) return;
 
     slider.oninput = function() {
-      var pos = clamp(parseInt(slider.value, 10));
+      var pos = Math.max(pctMin, Math.min(pctMax, parseInt(slider.value, 10)));
       slider.value = pos;
       label.textContent = pos + '%';
     };
 
     slider.onchange = function() {
-      var pos = clamp(parseInt(slider.value, 10));
+      var pos = Math.max(pctMin, Math.min(pctMax, parseInt(slider.value, 10)));
       slider.value = pos;
       label.textContent = pos + '%';
       fetch('/setBrightness?value=' + pos, { method: 'POST' }).catch(function() {});
@@ -369,7 +362,7 @@ Kwal.brightness = (function() {
     if (typeof hiPercent === 'number') hiPct = hiPercent;
     updateGradient();
     if (slider && label && typeof sliderPct === 'number') {
-      var pos = clamp(Math.round(sliderPct));
+      var pos = Math.max(pctMin, Math.min(pctMax, Math.round(sliderPct)));
       slider.value = pos;
       label.textContent = pos + '%';
     }

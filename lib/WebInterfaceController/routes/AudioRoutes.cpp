@@ -38,8 +38,8 @@ void routeSetLevel(AsyncWebServerRequest *request)
     }
     String valStr = request->getParam("value")->value();
     int sliderPct = valStr.toInt();
-    // No constrain - JS already ensures sliderPct in loPct..hiPct range
-    // Using map() - mapRange clamps internally (A5: no safety theatre)
+    // Slider sends 0-100 freely (grey zones are visual only)
+    // mapRange converts to volume range, webMultiplier compensates shifts
     
     // Map sliderPct to target volume using Globals (like brightness)
     float targetVolume = MathUtils::mapRange(

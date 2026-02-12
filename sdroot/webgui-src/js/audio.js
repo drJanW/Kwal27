@@ -2,10 +2,8 @@
  * Kwal - Audio module
  * See docs/glossary_slider_semantics.md for terminology
  * 
- * F9 pattern: Slider shows sliderPct (0-100%) directly.
- * Grey zone left: 0% to loPct
- * Blue zone: loPct to hiPct (usable range)
- * Grey zone right: hiPct to 100%
+ * Slider moves freely 0-100%. Grey zones show shiftedLo/Hi
+ * as visual indicators but do NOT restrict the thumb.
  * 
  * sliderPct = current volume as percentage of Lo..Hi range
  */
@@ -17,12 +15,10 @@ Kwal.audio = (function() {
   var currentDir = null, currentFile = null;
   var isPlaying = false;
   var playingTimeout = null;
-  var loPct = 0;      // Left grey zone boundary (%)
-  var hiPct = 100;    // Right grey zone boundary (%)
-
-  function clamp(val) {
-    return Math.max(loPct, Math.min(hiPct, val));
-  }
+  var pctMin = 0;     // Slider minimum
+  var pctMax = 100;   // Slider maximum
+  var loPct = 0;      // Grey zone left boundary (visual only)
+  var hiPct = 100;    // Grey zone right boundary (visual only)
 
   function updateGradient() {
     if (!slider) return;
@@ -52,13 +48,13 @@ Kwal.audio = (function() {
     
     if (slider && label) {
       slider.oninput = function() {
-        var pos = clamp(parseInt(slider.value, 10));
+        var pos = Math.max(pctMin, Math.min(pctMax, parseInt(slider.value, 10)));
         slider.value = pos;
         label.textContent = pos + '%';
       };
 
       slider.onchange = function() {
-        var pos = clamp(parseInt(slider.value, 10));
+        var pos = Math.max(pctMin, Math.min(pctMax, parseInt(slider.value, 10)));
         slider.value = pos;
         label.textContent = pos + '%';
         // Send linear value - firmware calculates webMultiplier
@@ -145,7 +141,7 @@ Kwal.audio = (function() {
     if (typeof hiPercent === 'number') hiPct = hiPercent;
     updateGradient();
     if (slider && label && typeof sliderPct === 'number') {
-      var pos = clamp(Math.round(sliderPct));
+      var pos = Math.max(pctMin, Math.min(pctMax, Math.round(sliderPct)));
       slider.value = pos;
       label.textContent = pos + '%';
     }

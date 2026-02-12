@@ -2,9 +2,8 @@
  * Kwal - Brightness module
  * See docs/glossary_slider_semantics.md for terminology
  * 
- * Slider shows sliderPct (0-100%) directly.
- * Grey zone left: 0% to loPct (below minimum)
- * Green zone: loPct to hiPct (usable range)
+ * Slider moves freely 0-100%. Grey zones show shiftedLo/Hi
+ * as visual indicators but do NOT restrict the thumb.
  * 
  * sliderPct = current brightness as percentage of Lo..Hi range
  */
@@ -12,12 +11,10 @@ Kwal.brightness = (function() {
   'use strict';
 
   var slider, label;
-  var loPct = 28;     // Left grey zone boundary
-  var hiPct = 100;    // Right grey zone boundary
-
-  function clamp(val) {
-    return Math.max(loPct, Math.min(hiPct, val));
-  }
+  var pctMin = 0;     // Slider minimum
+  var pctMax = 100;   // Slider maximum
+  var loPct = 28;     // Grey zone left boundary (visual only)
+  var hiPct = 100;    // Grey zone right boundary (visual only)
 
   function updateGradient() {
     if (!slider) return;
@@ -36,13 +33,13 @@ Kwal.brightness = (function() {
     if (!slider || !label) return;
 
     slider.oninput = function() {
-      var pos = clamp(parseInt(slider.value, 10));
+      var pos = Math.max(pctMin, Math.min(pctMax, parseInt(slider.value, 10)));
       slider.value = pos;
       label.textContent = pos + '%';
     };
 
     slider.onchange = function() {
-      var pos = clamp(parseInt(slider.value, 10));
+      var pos = Math.max(pctMin, Math.min(pctMax, parseInt(slider.value, 10)));
       slider.value = pos;
       label.textContent = pos + '%';
       fetch('/setBrightness?value=' + pos, { method: 'POST' }).catch(function() {});
@@ -62,7 +59,7 @@ Kwal.brightness = (function() {
     if (typeof hiPercent === 'number') hiPct = hiPercent;
     updateGradient();
     if (slider && label && typeof sliderPct === 'number') {
-      var pos = clamp(Math.round(sliderPct));
+      var pos = Math.max(pctMin, Math.min(pctMax, Math.round(sliderPct)));
       slider.value = pos;
       label.textContent = pos + '%';
     }
