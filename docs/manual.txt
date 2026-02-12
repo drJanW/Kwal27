@@ -122,7 +122,6 @@ Kwal27
 │     ├─ LightController
 │     ├─ NAS
 │     ├─ NAS_Fallback
-│     ├─ OTAController
 │     ├─ RunManager
 │     ├─ RunManager_Audio
 │     ├─ RunManager_Light
@@ -140,7 +139,6 @@ Kwal27
 │  ├─ ContextController
 │  ├─ Globals
 │  ├─ LightController
-│  ├─ OTAController
 │  ├─ RunManager
 │  │  ├─ Alert
 │  │  ├─ Audio
@@ -148,7 +146,6 @@ Kwal27
 │  │  ├─ Clock
 │  │  ├─ Heartbeat
 │  │  ├─ Light
-│  │  ├─ OTA
 │  │  ├─ SD
 │  │  ├─ Sensors
 │  │  ├─ Speak

@@ -4,7 +4,7 @@
 
 This module describes the responsibilities and collaboration between AudioManager, PlayFragment, and PlaySentence. The design is optimized for reliable, non-blocking MP3 playback on ESP32, with fade support for fragments and sequential playback of individual words using a fixed word dictionary.
 
-1. AudioManager – Playback Coordinator and Resource Controller
+1. AudioManager - Playback Coordinator and Resource Controller
 AudioManager is responsible for:
 
 Initializing the I2S output and base gain (begin())
@@ -47,7 +47,7 @@ No playback duration tracking
 
 All actual playback logic is fully delegated to PlayFragment or PlaySentence.
 
-2. PlayFragment – Audio Fragment Playback Module
+2. PlayFragment - Audio Fragment Playback Module
 PlayFragment handles playback of MP3 fragments from arbitrary SD card subdirectories. Each fragment is played from a specified start time and for a given duration, optionally with fade effects.
 
 Responsibilities:
@@ -74,7 +74,7 @@ Calls SetGain(...) accordingly
 
 Fading and gain logic are completely decoupled from playback status. Playback ends automatically when the duration timer expires. No use of loop() or isRunning().
 
-3. PlaySentence – Sequential Word Playback Module
+3. PlaySentence - Sequential Word Playback Module
 PlaySentence plays a sequence of fixed MP3 word IDs from directory /000/. Words are played one at a time using a simple shifting mechanism.
 
 Features:

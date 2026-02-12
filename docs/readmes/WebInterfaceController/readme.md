@@ -1,23 +1,23 @@
 # Web Interface Controller
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260212A | Updated: 2026-02-12
 
 ## Purpose
 Serve a lightweight UI from the SD card so operators can monitor and steer the installation without reflashing firmware. The ESP32 hosts `index.html`, `styles.css`, and `kwal.js` directly from the SD root; updates only require copying new files and bumping the cache-buster query (`?v=`) in `index.html`.
 
 ## Current Features
-1. **Audio panel** – Displays the current fragment, exposes a slider for web volume (`/setWebAudioLevel`, `/getWebAudioLevel`), and shows status text from `AudioManager`.
-2. **Light panel** – Presents brightness control (`/setBrightness`, `/getBrightness`) and summary values from `LightController`.
-3. **OTA modal** – Single **Start OTA** button posts to `/ota/start`, displays a 15 s countdown, and reminds the operator to press Enter in `ota.bat` once the device reboots into ArduinoOTA mode.
-4. **SD controller modal** – File listing and upload/delete helpers talking to `SDController` REST endpoints (`/api/sd/*`).
-5. **Diagnostics** – `kwal.js` exposes `window.APP_BUILD_INFO` so the UI can verify whether the browser has the latest assets.
+1. **Audio panel** - Displays the current fragment, exposes a slider for web volume (`/setWebAudioLevel`, `/getWebAudioLevel`), and shows status text from `AudioManager`.
+2. **Light panel** - Presents brightness control (`/setBrightness`, `/getBrightness`) and summary values from `LightController`.
+3. **OTA modal** - File picker and **Upload Firmware** button posts a `.bin` to `/ota/upload` (HTTP multipart), shows a progress bar, and auto-detects reboot.
+4. **SD controller modal** - File listing and upload/delete helpers talking to `SDController` REST endpoints (`/api/sd/*`).
+5. **Diagnostics** - `kwal.js` exposes `window.APP_BUILD_INFO` so the UI can verify whether the browser has the latest assets.
 
 ## REST Endpoints
 - `GET /` → streams `index.html` from SD (returns 503 if SD not ready).
-- `GET /setBrightness?value=X` and `GET /getBrightness` – route to `RunManager` requests for light control.
-- `GET /setWebAudioLevel` and `GET /getWebAudioLevel` – adjust web-facing audio gain.
-- `POST /ota/start` – arms + confirms OTA window (replaces the old `/ota/arm` + `/ota/confirm` combo).
-- `GET /api/sd/status`, `POST /api/sd/upload`, `POST /api/sd/delete` – SD maintenance.
+- `GET /setBrightness?value=X` and `GET /getBrightness` - route to `RunManager` requests for light control.
+- `GET /setWebAudioLevel` and `GET /getWebAudioLevel` - adjust web-facing audio gain.
+- `POST /ota/upload` - HTTP firmware upload (multipart binary), reboots after success.
+- `GET /api/sd/status`, `POST /api/sd/upload`, `POST /api/sd/delete` - SD maintenance.
 
 Routes live in `WebInterfaceController.cpp`; each maps directly to a `RunManager` request or SDController method. Logging uses `PF` macros guarded by `WEBIF_LOG_LEVEL`.
 

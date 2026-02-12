@@ -52,7 +52,7 @@ Files: sdroot/colorsShifts.csv, sdroot/patternShifts.csv
 
 5. Rebuild and verify
 ---------------------
-- Run `pio run -e esp32_v3` to compile.
+- Run `pio run -e hout` to compile.
 - Monitor serial logs to confirm the new status bit appears in the
   `[LightRun] Applied ... (status=0x...)` dumps when the condition is met.
 - Confirm LEDs behave as expected; adjust CSV percentages if needed.

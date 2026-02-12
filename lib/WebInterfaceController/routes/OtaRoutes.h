@@ -1,18 +1,14 @@
 /**
  * @file OtaRoutes.h
- * @brief OTA update API endpoint routes (ArduinoOTA + HTTP upload)
- * @version 260206M
- * @date 2026-02-06
+ * @brief OTA update API endpoint — HTTP firmware upload
+ * @version 260212A
+ * @date 2026-02-12
  */
 #pragma once
 
 #include <ESPAsyncWebServer.h>
 
 namespace OtaRoutes {
-
-void routeArm(AsyncWebServerRequest *request);
-void routeConfirm(AsyncWebServerRequest *request);
-void routeStart(AsyncWebServerRequest *request);
 
 // HTTP OTA: browser-based firmware upload
 void routeUploadFirmwareData(AsyncWebServerRequest *request,

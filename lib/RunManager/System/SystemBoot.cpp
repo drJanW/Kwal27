@@ -1,15 +1,15 @@
 /**
  * @file SystemBoot.cpp
  * @brief System-level boot stages implementation
- * @version 260201A
- $12026-02-08
+ * @version 260212B
+ * @date 2026-02-12
  */
 #include <Arduino.h>
 #include "SystemBoot.h"
 #include "Globals.h"
 #include "HWconfig.h"
-#include "OTAController.h"
 #include "RunManager.h"
+#include <Preferences.h>
 #include <Wire.h>
 
 // Serial init timeout (ms) for headless boot scenarios
@@ -25,7 +25,17 @@ bool systemBootStage0() {
     bootRandomSeed();  // Seed RNG after hardware is ready
     Globals::fillFadeCurve();  // Precompute shared sine² fade curve
     PF("%s\n", FIRMWARE_VERSION);
-    otaBootHandler();  // Check if OTA mode was requested
+
+    // Clear stale NVS OTA mode flags (legacy ArduinoOTA remnant)
+    Preferences prefs;
+    prefs.begin("ota", false);
+    const uint8_t otaMode = prefs.getUChar("mode", 0);
+    if (otaMode != 0) {
+        prefs.putUChar("mode", 0);
+        PF("[OTA] cleared stale NVS mode=%u\n", otaMode);
+    }
+    prefs.end();
+
     return true;       // Stage 0 complete
 }
 

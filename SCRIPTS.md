@@ -14,14 +14,6 @@ Unified deployment script for HOUT and MARMER devices.
 .\deploy.ps1 hout -SkipBuild   # Upload only (no rebuild)
 ```
 
-### `ota.ps1`
-Build and upload firmware via OTA (Over-The-Air update). 
-Builds the `esp32_v3_ota` environment, waits for you to enable OTA mode in the web interface, then uploads.
-```
-.\ota.ps1           # Default IP .188
-.\ota.ps1 189       # Custom last octet
-```
-
 ### `trace.ps1`
 Open serial monitor on specified COM port (default: COM6).
 ```

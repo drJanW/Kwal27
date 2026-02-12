@@ -219,9 +219,3 @@ void generateColorGradient(const CRGB &colorA, const CRGB &colorB, CRGB *grad, i
     }
   }
 }
-
-void LightController::showOtaPattern() {
-  fill_solid(leds, NUM_LEDS, CRGB::OrangeRed);
-  FastLED.setBrightness(getBrightnessShiftedHi());
-  FastLED.show();
-}

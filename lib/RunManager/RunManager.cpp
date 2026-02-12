@@ -42,9 +42,6 @@
 #include "Sensors/SensorsBoot.h"
 #include "Sensors/SensorsRun.h"
 #include "Sensors/SensorsPolicy.h"
-#include "OTA/OTABoot.h"
-#include "OTA/OTARun.h"
-#include "OTA/OTAPolicy.h"
 #include "Speak/SpeakBoot.h"
 #include "Speak/SpeakRun.h"
 #include "SD/SDBoot.h"
@@ -194,8 +191,6 @@ static LightBoot lightBoot;
 static LightRun lightRun;
 static SensorsBoot sensorsBoot;
 static SensorsRun sensorsRun;
-static OTABoot otaBoot;
-static OTARun otaRun;
 static SpeakBoot speakBoot;
 static SpeakRun speakRun;
 static bool sdPostBootCompleted = false;
@@ -239,18 +234,6 @@ void RunManager::update() {
         lastHeartbeatMs = now;
     }
 #endif
-}
-
-void RunManager::requestArmOTA(uint32_t window_s) {
-    RUN_LOG_INFO("[OTARun] armOTA window=%us\n", static_cast<unsigned>(window_s));
-    otaArm(window_s);
-    audio.stop();
-    lightController.showOtaPattern();
-}
-
-bool RunManager::requestConfirmOTA() {
-    RUN_LOG_INFO("[OTARun] confirmOTA\n");
-    return otaConfirmAndReboot();
 }
 
 void RunManager::requestPlayFragment() {
@@ -407,8 +390,6 @@ void RunManager::resumeAfterSDBoot() {
     WebDirector::instance().plan();
     sensorsBoot.plan();
     sensorsRun.plan();
-    otaBoot.plan();
-    otaRun.plan();
     speakBoot.plan();
     speakRun.plan();
 }

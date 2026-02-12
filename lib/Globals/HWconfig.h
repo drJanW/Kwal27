@@ -152,8 +152,6 @@
 
 #define WIFI_SSID "keijebijter"
 #define WIFI_PASSWORD "Helmondia;55"
-#define OTA_PASSWORD "KwalOTA_3732"
-#define OTA_URL "http://" IP_LAN_STR "2/firmware.bin"
 #define VOICERSS_API_KEY "9889993b45294559968a1c26c59bc1d1"
 // Xeno-canto.org - janwilms@gmail.com/Xeno-cant_3732  -  68276ca7acbfa97a6c627795eb6aad00b547fc1e
 

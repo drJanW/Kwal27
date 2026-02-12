@@ -5,10 +5,10 @@ _Status: NA IMPLEMENTATIE_
 
 ## 1. Conventies
 
-1. **Transport** – HTTP port 80, geen authenticatie (netwerk perimeter zorgt voor access control)
-2. **Content types** – `text/plain` voor responses, `application/json` voor SSE en CRUD payloads
-3. **Cache** – `Cache-Control: no-store` op alle JSON responses
-4. **Error codes** –
+1. **Transport** - HTTP port 80, geen authenticatie (netwerk perimeter zorgt voor access control)
+2. **Content types** - `text/plain` voor responses, `application/json` voor SSE en CRUD payloads
+3. **Cache** - `Cache-Control: no-store` op alle JSON responses
+4. **Error codes** -
    - `400` → malformed parameters / validation error
    - `404` → SD path not found
    - `500` → internal failure
@@ -80,7 +80,7 @@ Browser krijgt gegarandeerd complete data zonder extra requests.
 
 | Endpoint | Methode | Query | Response | Actie |
 |----------|---------|-------|----------|-------|
-| `/api/audio/next` | POST | – | `"OK"` | Skip naar volgend fragment |
+| `/api/audio/next` | POST | - | `"OK"` | Skip naar volgend fragment |
 | `/api/audio/play` | GET | `dir=X` | `"OK"` | Play random uit dir |
 | `/api/audio/play` | GET | `dir=X&file=Y` | `"OK"` | Play exact fragment |
 
@@ -126,8 +126,8 @@ Header: `X-Pattern: rainbow` (active pattern ID)
 | `/api/patterns` | POST | `{ id, label, ... }` | Updated list | Update existing → SSE |
 | `/api/patterns/select` | POST | `{ "id": "rainbow" }` | `"OK"` | → SSE state |
 | `/api/patterns/delete` | POST | `{ "id": "rainbow" }` | Updated list | → SSE patterns + state |
-| `/api/patterns/next` | POST | – | `"OK"` | → SSE state |
-| `/api/patterns/prev` | POST | – | `"OK"` | → SSE state |
+| `/api/patterns/next` | POST | - | `"OK"` | → SSE state |
+| `/api/patterns/prev` | POST | - | `"OK"` | → SSE state |
 | `/api/patterns/preview` | POST | `{ params... }` | `{ "status": "ok" }` | Transient, geen SSE |
 
 **Create payload (geen id):**
@@ -168,8 +168,8 @@ Header: `X-Color: sunset` (active color ID)
 | `/api/colors` | POST | `{ id, label, ... }` | Updated list | Update existing → SSE |
 | `/api/colors/select` | POST | `{ "id": "sunset" }` | `"OK"` | → SSE state |
 | `/api/colors/delete` | POST | `{ "id": "sunset" }` | Updated list | → SSE colors + state |
-| `/api/colors/next` | POST | – | `"OK"` | → SSE state |
-| `/api/colors/prev` | POST | – | `"OK"` | → SSE state |
+| `/api/colors/next` | POST | - | `"OK"` | → SSE state |
+| `/api/colors/prev` | POST | - | `"OK"` | → SSE state |
 | `/api/colors/preview` | POST | `{ colorA_hex, colorB_hex }` | `{ "status": "ok" }` | Transient, geen SSE |
 
 ---
@@ -178,7 +178,7 @@ Header: `X-Color: sunset` (active color ID)
 
 | Endpoint | Methode | Payload | Response |
 |----------|---------|---------|----------|
-| `/api/sd/status` | GET | – | `{"ready":true,"busy":false,"hasIndex":true}` |
+| `/api/sd/status` | GET | - | `{"ready":true,"busy":false,"hasIndex":true}` |
 | `/api/sd/upload` | POST | Multipart form | `{"status":"ok","path":"/..."}` |
 | `/api/sd/delete` | POST | `{ "path": "/foo/bar" }` | `{"status":"ok"}` |
 

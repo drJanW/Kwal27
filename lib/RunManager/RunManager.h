@@ -1,15 +1,14 @@
 /**
  * @file RunManager.h
  * @brief Central coordinator header for all Kwal modules
- * @version 260211A
- * @date 2026-02-11
+ * @version 260212B
+ * @date 2026-02-12
  */
 #pragma once
 #include <Arduino.h>
 #include "AudioManager.h"
 #include "LightController.h"
 #include "SDController.h"
-#include "OTAController.h"
 #include "TimerManager.h"
 #include "PRTClock.h"
 
@@ -31,8 +30,6 @@ public:
     static void requestSayTime(TimeStyle style = TimeStyle::NORMAL);
     static void requestSayRTCtemperature();
     static void requestSetAudioLevel(float value);
-    static void requestArmOTA(uint32_t window_s);
-    static bool requestConfirmOTA();
     static void requestShowTimerStatus();
     static bool requestStartClockTick(bool fallbackEnabled);
     static bool isClockRunning();

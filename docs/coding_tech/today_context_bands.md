@@ -1,4 +1,4 @@
-# Today Context – Time-of-Day Bands
+# Today Context - Time-of-Day Bands
 
 This note snapshot captures the phase scheme from the spreadsheet screenshot so
 we do not lose it across sessions.

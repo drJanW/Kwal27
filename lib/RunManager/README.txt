@@ -9,7 +9,6 @@ INPUT SOURCES
 - TimerManager callbacks
 - Calendar/context refresh
 - Sensors (distance, lux, temp, voltage)
-- OTA arming/confirm signals
 - Manual GPIO inputs
 
 STACK SUMMARY
@@ -19,7 +18,7 @@ Input → Boot → Run → Director → Policy → Controller → Hardware
 FLOW OF CONTROL
 ----------------
 1. Input source generates a request
-  (e.g. "play fragment", "say time", "silence for 2h", "arm OTA")
+  (e.g. "play fragment", "say time", "silence for 2h")
 
 2. **Boot layer** (BootManager, *Boot.cpp)
    - Registers timers, seeds RNG/clock, hands pointers into runners.
@@ -37,7 +36,7 @@ FLOW OF CONTROL
    - Arbitrates requests, clamps values, chooses intervals, exposes helper queries.
    - Returns either APPROVED + params or REJECTED + reason. No side effects.
 
-6. **Controller layer** (AudioManager, LightController, SDController, OTAController, WiFiController, SensorController)
+6. **Controller layer** (AudioManager, LightController, SDController, WiFiController, SensorController)
    - Owns runtime state machines and is the only code that talks to drivers (FastLED, I2S, SPI, Wi-Fi, etc.).
 
 7. **Hardware drivers**

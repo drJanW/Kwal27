@@ -1,4 +1,4 @@
-# Audio Run – Distance Playback Notes
+# Audio Run - Distance Playback Notes
 
 > Version: 260205D | Updated: 2026-02-05
 

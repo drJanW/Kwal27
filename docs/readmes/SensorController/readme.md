@@ -61,7 +61,7 @@ Drivers never call back into app logic; the controller **pulls**.
 - Ensure `TimerManager` is available and initialized.
 
 ## Configuration
-- Poll period: set via `SensorController::init(period_ms)`; typical 50–100 ms.
+- Poll period: set via `SensorController::init(period_ms)`; typical 50-100 ms.
 - Register sensors at compile time in the controller's static registry.
 - Optional: per-sensor priority for update ordering.
 
@@ -126,7 +126,7 @@ typedef struct {
 ## Timing
 - One periodic timer created in `init()` calls `update()` at `period_ms`.
 - No `delay()`; avoid ad-hoc `millis()` loops inside drivers.
-- With signals ≥ 200 ms, a 50–100 ms polling period gives ≤ 100 ms latency.
+- With signals >= 200 ms, a 50-100 ms polling period gives <= 100 ms latency.
 
 ## Performance
 - Target per-sensor `update()` time: ≤ 0.5 ms typical.
@@ -168,7 +168,7 @@ ARCHITECTURE:
 TIMING:
 - One timer: TimerSystem.setTimer(period, period, 0, SensorController::update)
 - No delay(); no ad-hoc millis() loops in drivers
-- Signals >= 200 ms -> typical poll 50–100 ms
+- Signals >= 200 ms -> typical poll 50-100 ms
 
 STANDARD TYPES:
 - SensorEvent { type:u8, a:u8, b:u16, value:u32, ts_ms:u32 }
@@ -221,7 +221,7 @@ ERRORS/RECOVERY:
 - SensorController can emit periodic health events by policy
 
 PERFORMANCE TARGETS:
-- Per-sensor update(): <= 0.2–0.5 ms typical
+- Per-sensor update(): <= 0.2-0.5 ms typical
 - Split heavy work across calls with internal FSM
 - Bound bus usage to avoid contention with audio/Wi-Fi/lights
 

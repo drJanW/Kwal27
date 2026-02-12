@@ -1,22 +1,19 @@
 /*
  * Kwal - OTA module
  * API: POST /ota/upload (multipart firmware binary)
- *       POST /ota/start  (legacy ArduinoOTA arm)
  */
 Kwal.ota = (function() {
   'use strict';
 
-  var fileInput, uploadBtn, status, progressBar, startBtn;
+  var fileInput, uploadBtn, status, progressBar;
 
   function init() {
     fileInput   = document.getElementById('ota-file');
     uploadBtn   = document.getElementById('ota-upload');
     status      = document.getElementById('ota-status');
     progressBar = document.getElementById('ota-progress');
-    startBtn    = document.getElementById('ota-start');
 
     if (uploadBtn) uploadBtn.onclick = uploadFirmware;
-    if (startBtn)  startBtn.onclick  = startOta;
     if (fileInput) fileInput.onchange = function() {
       if (uploadBtn) uploadBtn.disabled = !fileInput.files.length;
       showStatus('', false);
@@ -35,7 +32,6 @@ Kwal.ota = (function() {
     }
 
     if (uploadBtn) uploadBtn.disabled = true;
-    if (startBtn)  startBtn.disabled  = true;
     showStatus('Uploading ' + file.name + ' (' + formatSize(file.size) + ')...', false);
     setProgress(0);
 
@@ -81,7 +77,7 @@ Kwal.ota = (function() {
 
     var timer = setInterval(function() {
       attempts++;
-      fetch('/ota/arm', { method: 'GET' })
+      fetch('/api/health', { method: 'GET' })
         .then(function(r) {
           if (r.ok) {
             clearInterval(timer);
@@ -99,40 +95,6 @@ Kwal.ota = (function() {
     }, 2000);
   }
 
-  function startOta() {
-    if (startBtn) startBtn.disabled = true;
-    showStatus('OTA starten...', false);
-
-    fetch('/ota/start', { method: 'POST' })
-      .then(function(r) {
-        if (!r.ok) throw new Error(r.statusText);
-        return r.text();
-      })
-      .then(function(msg) {
-        showStatus(msg, false);
-        startCountdown(300);
-      })
-      .catch(function(err) {
-        showStatus('Error: ' + err.message, true);
-        if (startBtn) startBtn.disabled = false;
-      });
-  }
-
-  function startCountdown(seconds) {
-    var countdown = seconds;
-    showStatus('Waiting for upload... ' + countdown + 's', false);
-    var timer = setInterval(function() {
-      countdown--;
-      if (countdown <= 0) {
-        clearInterval(timer);
-        showStatus('OTA timeout - refresh page', false);
-        if (startBtn) startBtn.disabled = false;
-      } else {
-        showStatus('Waiting for upload... ' + countdown + 's', false);
-      }
-    }, 1000);
-  }
-
   function setProgress(pct) {
     if (progressBar) {
       progressBar.value = pct;
@@ -142,7 +104,6 @@ Kwal.ota = (function() {
 
   function resetButtons() {
     if (uploadBtn) uploadBtn.disabled = !fileInput || !fileInput.files.length;
-    if (startBtn)  startBtn.disabled  = false;
     setProgress(0);
   }
 

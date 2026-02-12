@@ -11,7 +11,7 @@ VCC   SDA   SCL   GND   32K
 Details
 
 
-Power: 3.3 V – 5 V (Pi uses 3.3 V)
+Power: 3.3 V - 5 V (Pi uses 3.3 V)
 
 
 I²C address: 0x68

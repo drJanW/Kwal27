@@ -15,8 +15,6 @@ class LightController {
 public:
   LightController() = default;
 
-  void showOtaPattern();
-
 private:
   LightController(const LightController&) = delete;
   LightController& operator=(const LightController&) = delete;

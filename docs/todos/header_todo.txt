@@ -16,7 +16,6 @@ docs/readmes/ (already have headers - DONE)
   LightController/readme.md
   NAS/readme.md
   NAS_Fallback/readme.md
-  OTAController/readme.md
   RunManager/readme.md
   RunManager_Audio/readme.md
   RunManager_Light/readme.md
@@ -43,8 +42,6 @@ lib/ embedded docs (need headers)
   lib/AudioManager/AUDIO_GAIN_SEMANTICS.md
   lib/ContextController/CalendarREADME.md
   lib/SDController/SDManager_test_checklist.md
-  lib/WebInterfaceController/WEBGUI_CONTRACT.md
-  sdroot/webgui-src/WEBGUI_CONTRACT.md
 
 SKIP (old/archive)
   docs/_OLD_/*.md
@@ -89,7 +86,6 @@ Project root:
   naspush.ps1
   nasstart.ps1
   opstart.ps1
-  ota.ps1
   tonasprompt.ps1
   trace.ps1
   upload_csv.ps1

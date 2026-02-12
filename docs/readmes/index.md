@@ -9,7 +9,6 @@ Central index of README files moved into docs/readmes/.
 - [ContextController/readme.md](ContextController/readme.md)
 - [Globals/readme.md](Globals/readme.md)
 - [LightController/readme.md](LightController/readme.md)
-- [OTAController/readme.md](OTAController/readme.md)
 - [RunManager/readme.md](RunManager/readme.md)
 - [RunManager_Audio/readme.md](RunManager_Audio/readme.md)
 - [RunManager_Light/readme.md](RunManager_Light/readme.md)

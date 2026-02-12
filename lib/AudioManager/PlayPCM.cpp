@@ -45,7 +45,7 @@ inline uint32_t readLE32(const uint8_t* buf) {
 constexpr uint32_t kExpectedSampleRate = 22050;
 constexpr uint16_t kExpectedChannels = 1;
 constexpr uint16_t kExpectedBitsPerSample = 16;
-// Policy: see AudioManager README §6 – ping.wav must stay fixed-format PCM.
+// Policy: see AudioManager README S6 - ping.wav must stay fixed-format PCM.
 
 bool isValidClip(const PCM* clip) {
   return clip && clip->samples && clip->sampleCount > 0 && clip->sampleRate > 0;
