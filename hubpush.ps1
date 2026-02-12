@@ -35,7 +35,7 @@ if ($LASTEXITCODE -ne 0 -or -not $repoRoot) {
 $repoName = Split-Path -Leaf $repoRoot
 
 $remoteName = "origin"
-$githubUrl = "https://github.com/janwilmans/$repoName.git"
+$githubUrl = "https://github.com/drJanW/$repoName.git"
 
 # Ensure remote exists
 $currentRemote = git remote get-url $remoteName 2>$null
