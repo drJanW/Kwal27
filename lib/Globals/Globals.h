@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260215E"
+#define FIRMWARE_VERSION_CODE "260215F"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -61,6 +61,7 @@ struct Globals {
     inline static float    volumeLo               = 0.05f;        // Slider Lo boundary (fraction of max)
     inline static float    volumeHi               = MAX_VOLUME;   // Slider Hi boundary (default = hardware max)
     inline static float    basePlaybackVolume     = 0.6f;         // Default playback volume
+    inline static uint8_t  defaultAudioSliderPct  = 70U;          // Boot default audio slider position (0-100%); CSV-overridable
     inline static float    minDistanceVolume      = 0.2f;         // Volume floor near sensor
     inline static float    pingVolumeMax          = 1.0f;         // Ping sound max volume
     inline static float    pingVolumeMin          = 0.35f;        // Ping sound min volume
@@ -90,6 +91,7 @@ struct Globals {
     inline static uint8_t  maxBrightness           = 242U;        // Hardware maximum
     inline static uint8_t  brightnessLo            = 70U;         // Operational Lo boundary
     inline static uint8_t  brightnessHi            = 242U;        // Operational Hi boundary
+    inline static uint8_t  defaultBrightnessSliderPct = 60U;      // Boot default brightness slider position (0-100%); CSV-overridable
     inline static constexpr int loPct               = 0;           // Slider percentage lower bound
     inline static constexpr int hiPct               = 100;         // Slider percentage upper bound
     inline static float    luxMin                  = 0.0f;        // Lux sensor minimum

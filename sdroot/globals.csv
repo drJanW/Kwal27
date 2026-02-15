@@ -18,6 +18,7 @@
 #pingVolumeMax;f;1.0;ping volume at distanceMinMm (hand close)
 #pingVolumeMin;f;0.35;ping volume at distanceMaxMm (hand far)
 #busyRetryMs;u;120;how long to wait before retry if audio busy
+#defaultAudioSliderPct;u;70;boot default audio slider position (0-100%)
 
 # ═══════════════════════════════════════════════════════════════════
 # SPEECH (2 params)
@@ -39,6 +40,7 @@ patternChangeIntervalMs;u;17640000;pick new random pattern (4.9 hours)
 # BRIGHTNESS/LUX (5 params)
 # ═══════════════════════════════════════════════════════════════════
 brightnessLo;u;10;LEDs never go darker than this value
+#defaultBrightnessSliderPct;u;60;boot default brightness slider position (0-100%)
 #luxBeta;f;0.005;curve steepness: higher=faster response to light
 #luxMax;f;800.0;lux reading at which brightness reaches Hi
 #maxMilliamps;u;1200;power budget, prevents PSU overload

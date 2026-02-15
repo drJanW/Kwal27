@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260215E - Built 2026-02-15 17:00
+ * Kwal WebGUI v260215E - Built 2026-02-15 17:09
  */
 
 // === js/namespace.js ===
@@ -1623,10 +1623,16 @@ Kwal.health = (function() {
   function render(data) {
     if (!container) return;
 
-    // Update title with date
+    // Update title text (preserve refresh icon as first child)
     var titleEl = document.getElementById('health-title');
     if (titleEl) {
-      titleEl.textContent = (data.device || 'Status') + (data.ntpDate ? ' ' + data.ntpDate : '');
+      var refreshEl = document.getElementById('health-refresh');
+      var titleText = (data.device || 'Status') + (data.ntpDate ? ' ' + data.ntpDate : '');
+      // Clear text nodes, keep refresh icon
+      while (titleEl.lastChild && titleEl.lastChild !== refreshEl) {
+        titleEl.removeChild(titleEl.lastChild);
+      }
+      titleEl.appendChild(document.createTextNode(titleText));
     }
 
     var html = '<table class="health-table">';
@@ -1688,16 +1694,15 @@ Kwal.health = (function() {
   }
 
   function doRestart() {
-    if (restartBtn) restartBtn.disabled = true;
+    if (!confirm('Restart ESP?')) return;
     fetch('/api/restart', { method: 'POST' })
       .then(function(r) {
         if (!r.ok) throw new Error(r.statusText);
-        if (restartBtn) restartBtn.textContent = 'Restarting...';
+        if (restartBtn) restartBtn.textContent = '⏳';
         setTimeout(function() { location.reload(); }, 5000);
       })
       .catch(function(err) {
         alert('Restart failed: ' + err.message);
-        if (restartBtn) restartBtn.disabled = false;
       });
   }
 

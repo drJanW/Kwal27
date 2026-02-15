@@ -197,6 +197,12 @@ static void applyOverride(const char* key, char type, const char* value) {
             PF_BOOT("[Globals] busyRetryMs = %u\n", Globals::busyRetryMs);
         }
     }
+    else if (strcmp(key, "defaultAudioSliderPct") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 <= 100) {
+            Globals::defaultAudioSliderPct = static_cast<uint8_t>(u32);
+            PF_BOOT("[Globals] defaultAudioSliderPct = %u\n", Globals::defaultAudioSliderPct);
+        }
+    }
     // ═══════════════════════════════════════════════════════════
     // SPEECH
     // ═══════════════════════════════════════════════════════════
@@ -290,6 +296,12 @@ static void applyOverride(const char* key, char type, const char* value) {
         if (parseUint32(value, &u32) && u32 <= 255) {
             Globals::brightnessHi = static_cast<uint8_t>(u32);
             PF_BOOT("[Globals] brightnessHi = %u\n", Globals::brightnessHi);
+        }
+    }
+    else if (strcmp(key, "defaultBrightnessSliderPct") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 <= 100) {
+            Globals::defaultBrightnessSliderPct = static_cast<uint8_t>(u32);
+            PF_BOOT("[Globals] defaultBrightnessSliderPct = %u\n", Globals::defaultBrightnessSliderPct);
         }
     }
     else if (strcmp(key, "luxShiftLo") == 0 && type == 'i') {

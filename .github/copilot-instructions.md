@@ -92,14 +92,41 @@ Every `.cpp` file: `#include <Arduino.h>` as FIRST include
 | `A56/` | Staging area for work-in-progress refactors |
 | `docs/` | Design docs, `glossary_slider_semantics.md` (read before brightness work) |
 
-## Build & Deploy Commands
+## Build & Deploy Protocol
 
+### Device roles
+| Device | IP | Role | Access |
+|--------|----|------|--------|
+| **HOUT** | 192.168.2.189 | Sandbox / dev unit | USB (COM12), physical SD card access |
+| **MARMER** | 192.168.2.188 | Display / production | OTA only, physically inaccessible |
+
+- **HOUT (189) is the safe target** — always upload/deploy here first
+- **MARMER (188) is production** — NEVER upload to 188 unless the user explicitly says so
+
+### Who does what
+- **Copilot** runs WebGUI builds (`build.ps1`) and uploads (`upload_web.ps1`) — **to HOUT (189) only**
+- **User** runs firmware builds and deploys (`deploy.ps1`, `ota.ps1`) — Copilot never runs `pio` or `deploy.ps1`
+- **Copilot NEVER runs `upload_csv.ps1`** — CSV uploads are the user's responsibility
+- After firmware code changes, Copilot says **"Ik heb firmware gebumped. Nu compileren!"** and waits for the user
+
+### WebGUI deploy (Copilot runs these)
+```powershell
+cd sdroot\webgui-src
+.\build.ps1                    # JS sources → sdroot/kwal.js (+ cache-bust in index.html)
+cd ..\..
+.\upload_web.ps1 192.168.2.189 # Upload web files to HOUT ONLY
+```
+
+### Firmware deploy (user runs these)
 ```powershell
 .\deploy.ps1 hout     # USB upload to HOUT (189)
 .\deploy.ps1 marmer   # OTA upload to MARMER (188)
 .\ota.ps1 [188|189]   # Standalone OTA update
+```
+
+### Other commands
+```powershell
 .\trace.ps1 [COM#]    # Serial monitor
-.\upload_web.ps1      # Upload web files to SD
 .\upload_csv.ps1      # Upload CSV configs to SD
 .\download_csv.ps1    # Download CSVs from device
 .\naspush.ps1 "msg"   # Commit and push to NAS
@@ -144,7 +171,7 @@ Every `.cpp` file: `#include <Arduino.h>` as FIRST include
 
 ## What NOT to Do
 
-- Never run `pio` commands directly - say "Nu compileren" and wait
+- Never run `pio` or `deploy.ps1` — firmware builds are the user's responsibility; say "Ik heb firmware gebumped. Nu compileren!" and wait
 - Never edit `sdroot/kwal.js` - edit `sdroot/webgui-src/js/*.js` sources
 - Never edit `sdroot/webgui-src/index.html` or `sdroot/webgui-src/styles.css` — they are NOT build inputs
 - Never add "safety" guards that duplicate upstream validation

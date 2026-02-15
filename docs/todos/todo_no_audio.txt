@@ -1,0 +1,84 @@
+todo_no_audio.txt — Optional Hardware Absence via config.txt
+=============================================================
+Date: 2026-02-15
+Status: Design complete, not yet implemented
+Goal: Single firmware supports Kwals with/without audio and NAS.
+      config.txt flags control status reporting and resource usage.
+      Audio subsystem runs freely (I2S is harmless without hardware).
+      NAS subsystem is fully suppressed (avoids HTTP timeouts + WiFi reconnect).
+
+-------------------------------------------------------------
+CONFIG.TXT
+-------------------------------------------------------------
+[ ] Add audio=1 to config.txt (default: present)
+[ ] Add nas=1   to config.txt (default: present)
+    Existing pattern: rtc=1, lux=0, distance=0, sensor3=0
+
+-------------------------------------------------------------
+NO AUDIO (cosmetic only — I2S runs harmlessly)
+-------------------------------------------------------------
+[ ] Globals.h: add bool audioPresent = true
+[ ] Globals.cpp: parse audio= from config.txt (same pattern as rtc/lux/distance/sensor3)
+[ ] AlertState.cpp isPresent(): add case SC_AUDIO: return Globals::audioPresent
+    — This gives: web GUI dash, serial log dash, getAbsentBits bit 3 set
+[ ] AlertRGB.cpp buildSequence(): add Globals::audioPresent guard before audio flash
+    — Match existing pattern: if (Globals::audioPresent && isNotOk(...))
+[ ] WebGUI: hide audio controls when absent
+    — audio.js: volume slider, next button, dir/file display
+    — health.js: already handled by absentBits (shows — automatically)
+    — Needs: absent flag sent to JS (already in /api/health absentBits)
+
+  Status display:
+    audio=1, working  → green check
+    audio=1, problem  → red X
+    audio=0           → dash (—)
+
+  NOT touched (already safe without hardware):
+    - audio.begin() — I2S init succeeds without external DAC
+    - audio.update() — pumps data to unconnected pins, cheap
+    - AudioPolicy — fragment requests decode to nowhere, harmless
+    - isAudioBusy() — returns false normally, SD/NAS guards unaffected
+
+-------------------------------------------------------------
+NO NAS (functional — prevents real system degradation)
+-------------------------------------------------------------
+[ ] Globals.h: add bool nasPresent = true
+[ ] Globals.cpp: parse nas= from config.txt
+[ ] AlertState.cpp isPresent(): add case SC_NAS: return Globals::nasPresent
+    — Web GUI shows — instead of red X, serial log shows —
+[ ] AlertRGB.cpp buildSequence(): add Globals::nasPresent guard before NAS purple flash
+[ ] NasBackup.cpp checkHealth(): skip entirely if !nasPresent
+    — Prevents: 1.5s HTTP timeouts, WiFi reconnect on 3rd fail, timer slot waste
+[ ] NasBackup.cpp requestPush(): skip entirely if !nasPresent
+    — Prevents: permanent 10s push timer ticking forever
+[ ] AlertState.cpp setNasStatus(false): skip AlertRGB::startFlashing() if !nasPresent
+
+  Why NAS needs more guards than audio:
+    Audio = passive (I2S clocks out to nothing)
+    NAS = active timer chain: health checks every 57 min, 1.5s HTTP timeouts,
+          WiFi reconnect on 3rd consecutive fail, push timer every 10s.
+          Without guards, absent NAS actively degrades the system.
+
+-------------------------------------------------------------
+WEBGUI CHANGES
+-------------------------------------------------------------
+[ ] audio.js: check absentBits for audio (bit 3), hide volume/next/dir controls
+[ ] mp3grid.js: hide or disable grid modal when audio absent
+[ ] health.js: already works — absentBits mechanism shows — for absent components
+[ ] No HTML/CSS changes needed — JS hides elements dynamically
+
+-------------------------------------------------------------
+TESTING
+-------------------------------------------------------------
+[ ] Test with audio=1 nas=1 — current behavior unchanged
+[ ] Test with audio=0 — dash in status, no audio flash, GUI hides audio controls
+[ ] Test with nas=0 — dash in status, no purple flash, no HTTP attempts, no WiFi reconnect
+[ ] Verify no timer slot leak with nas=0 (health timer not created, push timer not created)
+[ ] Verify isAudioBusy() still returns false with audio=0 (SD/NAS guards unaffected)
+
+-------------------------------------------------------------
+VERSION BUMPS NEEDED AT IMPLEMENTATION TIME
+-------------------------------------------------------------
+[ ] Globals.h FIRMWARE_VERSION
+[ ] build.ps1 $version (WebGUI JS changes)
+[ ] Per-file @version/@date headers for all touched files
