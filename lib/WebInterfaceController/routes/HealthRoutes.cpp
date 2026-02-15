@@ -1,8 +1,8 @@
 /**
  * @file HealthRoutes.cpp
  * @brief Health API endpoint routes
- * @version 260213A
- * @date 2026-02-13
+ * @version 260215C
+ * @date 2026-02-15
  */
 #include <Arduino.h>
 #include "HealthRoutes.h"
@@ -20,7 +20,8 @@ namespace HealthRoutes {
 void routeHealth(AsyncWebServerRequest *request) {
     // Build JSON response
     String json = "{";
-    json += "\"firmware\":\"" + String(FIRMWARE_VERSION) + "\",";
+    json += "\"device\":\"" + String(Globals::deviceName) + "\",";
+    json += "\"firmware\":\"" + String(Globals::firmwareVersion) + "\",";
     json += "\"health\":" + String(AlertState::getHealthBits()) + ",";
     json += "\"boot\":" + String(AlertState::getBootStatus()) + ",";
     json += "\"absent\":" + String(AlertState::getAbsentBits()) + ",";

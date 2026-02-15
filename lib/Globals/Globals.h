@@ -1,7 +1,7 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260215A
+ * @version 260215C
  * @date 2026-02-15
  */
 #pragma once
@@ -13,13 +13,8 @@
 #include <atomic>
 #include <type_traits>
 
-// Firmware version - used by /api/health and Serial output
-#if KWAL == HOUT
-  #define DEVICE_PREFIX "HOUT-"
-#else
-  #define DEVICE_PREFIX "MARMER-"
-#endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260215A"
+// Firmware version code (no device prefix)
+#define FIRMWARE_VERSION_CODE "260215C"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -157,12 +152,22 @@ struct Globals {
     inline static uint32_t rtcTemperatureIntervalMs  = MINUTES(3); // RTC temperature read interval
 
     // ─────────────────────────────────────────────────────────────
-    // WIFI (7 params) — SSID/password/IP/gateway loaded from wifi.txt
+    // DEVICE IDENTITY — loaded from config.txt on SD card
     // ─────────────────────────────────────────────────────────────
-    inline static char     wifiSsid[64]              = WIFI_SSID;          // WiFi network name (from wifi.txt)
-    inline static char     wifiPassword[64]          = WIFI_PASSWORD;      // WiFi password (from wifi.txt)
-    inline static char     staticIp[20]              = STATIC_IP_STR;      // Static IP (from wifi.txt)
-    inline static char     staticGateway[20]         = STATIC_GATEWAY_STR; // Gateway (from wifi.txt)
+    inline static char     deviceName[20]            = "KWAL";             // Device name (from config.txt)
+    inline static char     firmwareVersion[40]       = FIRMWARE_VERSION_CODE; // Version code only
+    inline static bool     rtcPresent                = true;               // RTC hardware present (default: yes)
+    inline static bool     luxSensorPresent          = true;               // Lux sensor present (default: yes)
+    inline static bool     distanceSensorPresent     = false;              // Distance sensor present (default: no)
+    inline static bool     sensor3Present            = false;              // Board sensor present (default: no)
+
+    // ─────────────────────────────────────────────────────────────
+    // WIFI (7 params) — SSID/password/IP/gateway loaded from config.txt
+    // ─────────────────────────────────────────────────────────────
+    inline static char     wifiSsid[64]              = WIFI_SSID;          // WiFi network name (from config.txt)
+    inline static char     wifiPassword[64]          = WIFI_PASSWORD;      // WiFi password (from config.txt)
+    inline static char     staticIp[20]              = "";                // Static IP (from config.txt, empty = DHCP)
+    inline static char     staticGateway[20]         = "";                // Gateway (from config.txt, empty = DHCP)
     inline static uint32_t wifiStatusCheckIntervalMs = 250UL;     // Connection status interval
     inline static uint32_t wifiConnectionCheckIntervalMs = 5000UL; // Connection check interval
     inline static uint32_t wifiRetryStartMs          = 2000UL;    // Retry start interval

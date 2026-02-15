@@ -1,8 +1,8 @@
 /**
  * @file WiFiController.cpp
  * @brief WiFi station connection with growing retry interval and connection monitoring
- * @version 260214A
- $12026-02-14
+ * @version 260215B
+ * @date 2026-02-15
  */
 #include <Arduino.h>
 #include "WiFiController.h"
@@ -110,17 +110,16 @@ void bootWiFiConnect() {
 
     // Start a fresh connection attempt (STA only)
     WiFi.disconnect(false);
-#if defined(USE_STATIC_IP) && USE_STATIC_IP
-    {
+    // Static IP only if config.txt provided ip= (otherwise DHCP)
+    if (strlen(Globals::staticIp) > 0) {
         IPAddress local_IP, gateway, subnet, dns;
         local_IP.fromString(Globals::staticIp);
         gateway.fromString(Globals::staticGateway);
         subnet.fromString(STATIC_SUBNET_STR);
         dns.fromString(STATIC_DNS_STR);
         if (!WiFi.config(local_IP, gateway, subnet, dns))
-            PL("[WiFi] Static IP config failed — using DHCP");
+            PL("[WiFi] Static IP config failed \u2014 using DHCP");
     }
-#endif
     WiFi.begin(Globals::wifiSsid, Globals::wifiPassword);
 
     // Start timers only once per bootWiFiConnect() cycle:

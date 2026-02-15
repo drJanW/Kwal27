@@ -1,32 +1,44 @@
 # deploy.ps1
-# Unified deployment script for HOUT and MARMER devices
-# Usage: .\deploy.ps1 hout      - USB upload to HOUT (189), firmware only
-#        .\deploy.ps1 hout +    - USB upload with CSV/JS
-#        .\deploy.ps1 marmer    - OTA upload to MARMER (188), firmware only
-#        .\deploy.ps1 marmer +  - OTA upload with CSV/JS
-#        .\deploy.ps1 marmer -SkipBuild  - OTA upload only (use existing firmware)
+# Unified deployment script — one firmware binary, deploy via USB or OTA
+# Usage: .\deploy.ps1 usb           - USB upload, firmware only
+#        .\deploy.ps1 usb +         - USB upload with CSV/JS to USB-connected device
+#        .\deploy.ps1 ota <IP>      - OTA upload to IP, firmware only
+#        .\deploy.ps1 ota <IP> +    - OTA upload with CSV/JS
+#        .\deploy.ps1 ota <IP> -SkipBuild  - OTA upload only (use existing firmware)
 
 param(
     [Parameter(Mandatory=$true, Position=0)]
-    [ValidateSet("hout", "marmer")]
-    [string]$Device,
+    [ValidateSet("usb", "ota")]
+    [string]$Method,
     
     [Parameter(Position=1)]
-    [string]$Plus,
+    [string]$Arg1,
+    
+    [Parameter(Position=2)]
+    [string]$Arg2,
     
     [switch]$SkipBuild
 )
 
-# "+" as second param enables SD upload
-$SkipSD = $Plus -ne "+"
+# Parse arguments: OTA needs IP, USB doesn't
+if ($Method -eq "ota") {
+    if (-not $Arg1 -or $Arg1 -eq "+") {
+        Write-Host "Usage: .\deploy.ps1 ota <IP> [+] [-SkipBuild]" -ForegroundColor Red
+        exit 1
+    }
+    $targetIP = $Arg1
+    $SkipSD = $Arg2 -ne "+"
+} else {
+    # USB: Arg1 is optional "+"
+    $SkipSD = $Arg1 -ne "+"
+    # Discover IP from device after upload (for SD uploads and ping check)
+    $targetIP = ""
+}
 
-$HOUT_IP = "192.168.2.189"
-$MARMER_IP = "192.168.2.188"
+$methodUpper = $Method.ToUpper()
 $sdroot = Join-Path $PSScriptRoot "sdroot"
-
-$deviceUpper = $Device.ToUpper()
-$targetIP = if ($Device -eq "marmer") { $MARMER_IP } else { $HOUT_IP }
-$envName = $Device.ToLower()
+# Single PlatformIO environment — firmware is identical for all devices
+$envName = "esp32"
 
 # --- NAS CSV server settings ---
 # csv_server.py on the NAS receives CSVs pushed by ESP32 devices (patterns, colors).
@@ -142,7 +154,7 @@ if ($Device -eq "marmer") {
     }
     $step++
 
-    $binPath = Join-Path $PSScriptRoot ".pio\build\marmer\firmware.bin"
+    $binPath = Join-Path $PSScriptRoot ".pio\build\esp32\firmware.bin"
     if (-not (Test-Path $binPath)) {
         Write-Host "  firmware.bin not found at $binPath" -ForegroundColor Red
         exit 1

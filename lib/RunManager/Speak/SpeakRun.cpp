@@ -1,8 +1,8 @@
 /**
  * @file SpeakRun.cpp
  * @brief TTS speech state management implementation
- * @version 260206K
- $12026-02-10
+ * @version 260215C
+ * @date 2026-02-15
  */
 #include "SpeakRun.h"
 #include "SpeakPolicy.h"
@@ -98,11 +98,10 @@ void formatVersionSpoken(const char* version, char* out, size_t outSize) {
     appendWord(prefix);
 
     if (dLen >= 2) {
-        // Process all digits in pairs (YYMMDD → 26 02 10)
+        // Process all digits in pairs (YYMMDD → 26 02 15)
         for (uint8_t i = 0; i + 1 < dLen; i += 2) {
             if (digits[i] == '0') {
-                // Leading zero → speak "nul" + digit (02 → "nul twee")
-                appendWord("nul");
+                // Leading zero → speak only the unit digit (02 → "twee")
                 appendWord(digitWord(static_cast<uint8_t>(digits[i + 1] - '0')));
             } else {
                 uint8_t pair = static_cast<uint8_t>((digits[i] - '0') * 10 + (digits[i + 1] - '0'));
@@ -117,9 +116,7 @@ void formatVersionSpoken(const char* version, char* out, size_t outSize) {
         appendWord(digitWord(static_cast<uint8_t>(digits[0] - '0')));
     }
 
-    for (uint8_t i = 0; i < sLen; ++i) {
-        appendWord(phoneticLetter(suffix[i]));
-    }
+    // Suffix letters are not spoken
 
     out[idx] = '\0';
 }
@@ -144,7 +141,7 @@ const char* getTtsSentence(SpeakRequest request) {
             else if (hour < 18) greet = "Goedemiddag";
             static char versionSpoken[64];
             static char sentence[128];
-            formatVersionSpoken(FIRMWARE_VERSION, versionSpoken, sizeof(versionSpoken));
+            formatVersionSpoken(Globals::firmwareVersion, versionSpoken, sizeof(versionSpoken));
             snprintf(sentence, sizeof(sentence), "%s. Versie %s", greet, versionSpoken);
             return sentence;
         }

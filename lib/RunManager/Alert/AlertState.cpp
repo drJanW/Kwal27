@@ -1,8 +1,8 @@
 /**
  * @file AlertState.cpp
  * @brief Hardware status state storage implementation
- * @version 260206A
- $12026-02-11
+ * @version 260215B
+ * @date 2026-02-15
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -65,10 +65,10 @@ SC_Status getStatus(StatusComponent c) {
 
 bool isPresent(StatusComponent c) {
     switch (c) {
-        case SC_RTC:     return RTC_PRESENT;
-        case SC_DIST:    return DISTANCE_SENSOR_PRESENT;
-        case SC_LUX:     return LUX_SENSOR_PRESENT;
-        case SC_SENSOR3: return SENSOR3_PRESENT;
+        case SC_RTC:     return Globals::rtcPresent;
+        case SC_DIST:    return Globals::distanceSensorPresent;
+        case SC_LUX:     return Globals::luxSensorPresent;
+        case SC_SENSOR3: return Globals::sensor3Present;
         default:         return true;  // SD, WiFi, NTP, etc always "present"
     }
 }

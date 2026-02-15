@@ -1,8 +1,8 @@
 /**
  * @file ClockBoot.cpp
  * @brief RTC/NTP clock one-time initialization implementation
- * @version 260212H
- * @date 2026-02-12
+ * @version 260215B
+ * @date 2026-02-15
  */
 #include "ClockBoot.h"
 
@@ -13,7 +13,7 @@
 void ClockBoot::plan() {
     // RTC already read in systemBootStage1() (time available before SD/WiFi)
     // Start I2CInitHelper for ongoing RTC health tracking
-    if (RTC_PRESENT) {
+    if (Globals::rtcPresent) {
         ClockPolicy::begin();
     }
 }

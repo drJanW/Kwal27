@@ -348,3 +348,18 @@ API ROUTES (referentie)
   GET  /log                     Seriële log
   GET  /log/clear               Log wissen
   SSE  /events                  Server-sent events (live updates)
+
+  ====================================
+  config.txt
+
+# Device configuratie — per kwal uniek
+name=HOUT
+ssid=keijebijter
+password=Helmondia;55
+ip=192.168.2.189
+gateway=192.168.2.254
+rtc=1
+lux=0
+distance=0
+sensor3=0
+#end

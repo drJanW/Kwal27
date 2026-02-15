@@ -1,8 +1,8 @@
 /**
  * @file StatusFlags.cpp
  * @brief Hardware failure bits and status tracking implementation
- * @version 260212A
- * @date 2026-02-12
+ * @version 260215B
+ * @date 2026-02-15
  */
 #include <Arduino.h>
 #include "StatusFlags.h"
@@ -173,11 +173,11 @@ uint64_t getHardwareFailBits() {
     if (!AlertState::isSdOk())             bits |= (1ULL << STATUS_SD_OK);
     if (!AlertState::isWifiOk())           bits |= (1ULL << STATUS_WIFI_OK);
     // Optional hardware: only count as fail if PRESENT
-    if (RTC_PRESENT && !AlertState::isRtcOk())                       bits |= (1ULL << STATUS_RTC_OK);
+    if (Globals::rtcPresent && !AlertState::isRtcOk())                       bits |= (1ULL << STATUS_RTC_OK);
     if (!AlertState::isNtpOk())                                      bits |= (1ULL << STATUS_NTP_OK);
-    if (DISTANCE_SENSOR_PRESENT && !AlertState::isDistanceSensorOk()) bits |= (1ULL << STATUS_DISTANCE_SENSOR_OK);
-    if (LUX_SENSOR_PRESENT && !AlertState::isLuxSensorOk())           bits |= (1ULL << STATUS_LUX_SENSOR_OK);
-    if (SENSOR3_PRESENT && !AlertState::isSensor3Ok())                bits |= (1ULL << STATUS_SENSOR3_OK);
+    if (Globals::distanceSensorPresent && !AlertState::isDistanceSensorOk()) bits |= (1ULL << STATUS_DISTANCE_SENSOR_OK);
+    if (Globals::luxSensorPresent && !AlertState::isLuxSensorOk())           bits |= (1ULL << STATUS_LUX_SENSOR_OK);
+    if (Globals::sensor3Present && !AlertState::isSensor3Ok())                bits |= (1ULL << STATUS_SENSOR3_OK);
     if (!AlertState::isNasOk())                                       bits |= (1ULL << STATUS_NAS_OK);
     return bits;
 }

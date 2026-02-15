@@ -1,8 +1,8 @@
 /**
  * @file SystemBoot.cpp
  * @brief System-level boot stages implementation
- * @version 260212H
- * @date 2026-02-12
+ * @version 260215C
+ * @date 2026-02-15
  */
 #include <Arduino.h>
 #include "SystemBoot.h"
@@ -26,7 +26,7 @@ bool systemBootStage0() {
     delay(50);         // Let hardware RNG settle BEFORE seeding
     bootRandomSeed();  // Seed RNG after hardware is ready
     Globals::fillFadeCurve();  // Precompute shared sine² fade curve
-    PF("%s\n", FIRMWARE_VERSION);
+    PF("%s %s\n", Globals::deviceName, Globals::firmwareVersion);
 
     // Clear stale NVS OTA mode flags (legacy ArduinoOTA remnant)
     Preferences prefs;
@@ -53,7 +53,7 @@ bool systemBootStage1() {
         // so time is known for all subsequent boot stages.
         // Calls controller directly (normal Boot->Policy->Controller
         // stack not available yet).
-        if (RTC_PRESENT) {
+        if (Globals::rtcPresent) {
             RTCController::begin();
             if (RTCController::readInto(prtClock)) {
                 prtClock.setTimeFetched(true);

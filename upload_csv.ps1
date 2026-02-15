@@ -20,7 +20,7 @@ if ($allFiles.Count -eq 0) {
     exit 0
 }
 
-Write-Host "Uploading $($allFiles.Count) CSV files + wifi.txt to $ip..." -ForegroundColor Cyan
+Write-Host "Uploading $($allFiles.Count) CSV files to $ip..." -ForegroundColor Cyan
 
 $success = 0
 $failed = 0

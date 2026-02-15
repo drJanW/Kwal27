@@ -1,8 +1,8 @@
 /**
  * @file Globals.cpp
  * @brief CSV override loader for Globals
- * @version 260214C
- * @date 2026-02-14
+ * @version 260215C
+ * @date 2026-02-15
  */
 #include "Arduino.h"
 #include "Globals.h"
@@ -636,24 +636,24 @@ void Globals::fillFadeCurve() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Load wifi.txt: four non-comment lines = SSID, password, staticIp, gateway
+// Load config.txt: key=value pairs for device identity & hardware presence
 // ─────────────────────────────────────────────────────────────
-static void loadWifiTxt() {
-    const String path = SdPathUtils::chooseCsvPath("wifi.txt");
+static void loadConfigTxt() {
+    const String path = SdPathUtils::chooseCsvPath("config.txt");
     if (path.isEmpty() || !SDController::fileExists(path.c_str())) {
-        PL("[Globals] No wifi.txt, using firmware defaults");
+        PL("[Globals] No config.txt, using firmware defaults");
         return;
     }
     File file = SD.open(path.c_str(), FILE_READ);
     if (!file) {
-        PL("[Globals] Failed to open wifi.txt");
+        PL("[Globals] Failed to open config.txt");
         return;
     }
 
     char line[128];
-    uint8_t dataLine = 0;   // 0=SSID, 1=password, 2=staticIp, 3=gateway
+    uint8_t keysLoaded = 0;
 
-    while (file.available() && dataLine < 4) {
+    while (file.available()) {
         size_t len = 0;
         while (file.available() && len < sizeof(line) - 1) {
             char c = file.read();
@@ -666,34 +666,52 @@ static void loadWifiTxt() {
         // Skip empty lines and comments
         if (len == 0 || line[0] == '#') continue;
 
-        switch (dataLine) {
-            case 0:
-                strncpy(Globals::wifiSsid, line, sizeof(Globals::wifiSsid) - 1);
-                Globals::wifiSsid[sizeof(Globals::wifiSsid) - 1] = '\0';
-                PF_BOOT("[Globals] wifiSsid = %s (from wifi.txt)\n", Globals::wifiSsid);
-                break;
-            case 1:
-                strncpy(Globals::wifiPassword, line, sizeof(Globals::wifiPassword) - 1);
-                Globals::wifiPassword[sizeof(Globals::wifiPassword) - 1] = '\0';
-                PF_BOOT("[Globals] wifiPassword = *** (from wifi.txt)\n");
-                break;
-            case 2:
-                strncpy(Globals::staticIp, line, sizeof(Globals::staticIp) - 1);
-                Globals::staticIp[sizeof(Globals::staticIp) - 1] = '\0';
-                PF_BOOT("[Globals] staticIp = %s (from wifi.txt)\n", Globals::staticIp);
-                break;
-            case 3:
-                strncpy(Globals::staticGateway, line, sizeof(Globals::staticGateway) - 1);
-                Globals::staticGateway[sizeof(Globals::staticGateway) - 1] = '\0';
-                PF_BOOT("[Globals] staticGateway = %s (from wifi.txt)\n", Globals::staticGateway);
-                break;
+        // Split on first '=' (value may contain '=')
+        char* eq = strchr(line, '=');
+        if (!eq) continue;
+        *eq = '\0';
+        const char* key = line;
+        const char* val = eq + 1;
+
+        if (strcmp(key, "name") == 0) {
+            strncpy(Globals::deviceName, val, sizeof(Globals::deviceName) - 1);
+            Globals::deviceName[sizeof(Globals::deviceName) - 1] = '\0';
+            PF_BOOT("[Globals] deviceName = %s\n", Globals::deviceName);
+        } else if (strcmp(key, "ssid") == 0) {
+            strncpy(Globals::wifiSsid, val, sizeof(Globals::wifiSsid) - 1);
+            Globals::wifiSsid[sizeof(Globals::wifiSsid) - 1] = '\0';
+            PF_BOOT("[Globals] wifiSsid = %s (from config.txt)\n", Globals::wifiSsid);
+        } else if (strcmp(key, "password") == 0) {
+            strncpy(Globals::wifiPassword, val, sizeof(Globals::wifiPassword) - 1);
+            Globals::wifiPassword[sizeof(Globals::wifiPassword) - 1] = '\0';
+            PF_BOOT("[Globals] wifiPassword = *** (from config.txt)\n");
+        } else if (strcmp(key, "ip") == 0) {
+            strncpy(Globals::staticIp, val, sizeof(Globals::staticIp) - 1);
+            Globals::staticIp[sizeof(Globals::staticIp) - 1] = '\0';
+            PF_BOOT("[Globals] staticIp = %s (from config.txt)\n", Globals::staticIp);
+        } else if (strcmp(key, "gateway") == 0) {
+            strncpy(Globals::staticGateway, val, sizeof(Globals::staticGateway) - 1);
+            Globals::staticGateway[sizeof(Globals::staticGateway) - 1] = '\0';
+            PF_BOOT("[Globals] staticGateway = %s (from config.txt)\n", Globals::staticGateway);
+        } else if (strcmp(key, "rtc") == 0) {
+            Globals::rtcPresent = (val[0] == '1');
+            PF_BOOT("[Globals] rtcPresent = %d (from config.txt)\n", Globals::rtcPresent);
+        } else if (strcmp(key, "lux") == 0) {
+            Globals::luxSensorPresent = (val[0] == '1');
+            PF_BOOT("[Globals] luxSensorPresent = %d (from config.txt)\n", Globals::luxSensorPresent);
+        } else if (strcmp(key, "distance") == 0) {
+            Globals::distanceSensorPresent = (val[0] == '1');
+            PF_BOOT("[Globals] distanceSensorPresent = %d (from config.txt)\n", Globals::distanceSensorPresent);
+        } else if (strcmp(key, "sensor3") == 0) {
+            Globals::sensor3Present = (val[0] == '1');
+            PF_BOOT("[Globals] sensor3Present = %d (from config.txt)\n", Globals::sensor3Present);
         }
-        dataLine++;
+        keysLoaded++;
     }
     file.close();
 
-    if (dataLine < 2) {
-        PL("[Globals] wifi.txt incomplete (need at least SSID + password)");
+    if (keysLoaded < 2) {
+        PL("[Globals] config.txt has very few keys - check file");
     }
 }
 
@@ -704,8 +722,8 @@ void Globals::begin() {
         return;
     }
 
-    // Load WiFi credentials from wifi.txt (before globals.csv)
-    loadWifiTxt();
+    // Load device identity and WiFi from config.txt (before globals.csv)
+    loadConfigTxt();
     
     // Check file existence
     const String csvPath = SdPathUtils::chooseCsvPath("globals.csv");

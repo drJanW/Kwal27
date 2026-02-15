@@ -1,8 +1,8 @@
 /**
  * @file AlertRGB.cpp
  * @brief RGB LED status flash coordination implementation
- * @version 260202A
- $12026-02-11
+ * @version 260215B
+ * @date 2026-02-15
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "AlertRGB.h"
@@ -89,7 +89,7 @@ void buildSequence() {
         addStep(0x000000, Globals::flashNormalMs);
     }
     // Optional hardware: only flash if PRESENT
-    if (RTC_PRESENT && isNotOk(STATUS_RTC_OK)) {
+    if (Globals::rtcPresent && isNotOk(STATUS_RTC_OK)) {
         addStep(AlertPolicy::COLOR_RTC, Globals::flashNormalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }
@@ -97,15 +97,15 @@ void buildSequence() {
         addStep(AlertPolicy::COLOR_NTP, Globals::flashNormalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }
-    if (DISTANCE_SENSOR_PRESENT && isNotOk(STATUS_DISTANCE_SENSOR_OK)) {
+    if (Globals::distanceSensorPresent && isNotOk(STATUS_DISTANCE_SENSOR_OK)) {
         addStep(AlertPolicy::COLOR_DISTANCE_SENSOR, Globals::flashNormalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }
-    if (LUX_SENSOR_PRESENT && isNotOk(STATUS_LUX_SENSOR_OK)) {
+    if (Globals::luxSensorPresent && isNotOk(STATUS_LUX_SENSOR_OK)) {
         addStep(AlertPolicy::COLOR_LUX_SENSOR, Globals::flashNormalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }
-    if (SENSOR3_PRESENT && isNotOk(STATUS_SENSOR3_OK)) {
+    if (Globals::sensor3Present && isNotOk(STATUS_SENSOR3_OK)) {
         addStep(AlertPolicy::COLOR_SENSOR3, Globals::flashNormalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }

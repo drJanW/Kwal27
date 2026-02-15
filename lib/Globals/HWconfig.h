@@ -1,8 +1,8 @@
 /**
  * @file HWconfig.h
  * @brief Hardware pin definitions and configuration
- * @version 260205A
- $12026-02-07
+ * @version 260215B
+ * @date 2026-02-15
  */
 #pragma once
 
@@ -10,15 +10,7 @@
 //#include "config_secrets.h"
 
 // ======================= Device Selection =======================
-// Device identifiers (for #if comparison)
-#define HOUT   1
-#define MARMER 2
-
-// KWAL is set via platformio.ini build_flags (-DKWAL=1 for HOUT, -DKWAL=2 for MARMER)
-// Default to HOUT if not defined (for IDE parsing)
-#ifndef KWAL
-  #define KWAL HOUT
-#endif
+// Device identity is determined at runtime from config.txt on SD card
 
 // ======================= FALLBACK TEST ONLY FLAGS =======================
 // Uncomment to simulate component failures during boot testing
@@ -62,30 +54,9 @@
 #define I2C_SDA 21
 #define I2C_SCL 22
 
-// ======================= Static IP Configuration =======================
-#define USE_STATIC_IP true // set to false for DHCP
-
-// LAN prefix - single source of truth
-#define IP_LAN_STR "192.168.2."
-// Device IP addresses (last octet)
-#define IP_HOUT   189
-#define IP_MARMER 188
-// ======================= Hardware Presence =======================
-// Auto-configured based on IP_KWAL device selection
-// MARMER: RTC + LUX, HOUT: no sensors
-#if KWAL == MARMER
-  #define RTC_PRESENT true
-  #define DISTANCE_SENSOR_PRESENT false
-  #define LUX_SENSOR_PRESENT true
-  #define SENSOR3_PRESENT false
-  #define IP_KWAL IP_MARMER
-#else // HOUT
-  #define RTC_PRESENT true//false
-  #define DISTANCE_SENSOR_PRESENT false
-  #define LUX_SENSOR_PRESENT false
-  #define SENSOR3_PRESENT false
-  #define IP_KWAL IP_HOUT
-#endif
+// ======================= Network Fallback =======================
+// Subnet and DNS are universal; IP and gateway come from config.txt
+// If config.txt is missing, staticIp is empty → DHCP
 
 // I2C addresses
 #define VL53L1X_I2C_ADDR 0x29
@@ -156,7 +127,5 @@
 // Xeno-canto.org - janwilms@gmail.com/Xeno-cant_3732  -  68276ca7acbfa97a6c627795eb6aad00b547fc1e
 
 // IP strings for fromString() parsing
-#define STATIC_IP_STR      IP_LAN_STR _STR(IP_KWAL)
-#define STATIC_GATEWAY_STR IP_LAN_STR "254"
 #define STATIC_SUBNET_STR  "255.255.255.0"
 #define STATIC_DNS_STR     "8.8.8.8"

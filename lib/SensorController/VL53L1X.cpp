@@ -1,14 +1,12 @@
 /**
  * @file VL53L1X.cpp
  * @brief Time-of-flight distance sensor driver implementation
- * @version 260202A
- $12026-02-05
+ * @version 260215B
+ * @date 2026-02-15
  */
 #include <Arduino.h>
 #include "VL53L1X.h"
 #include "Globals.h"
-
-#if DISTANCE_SENSOR_PRESENT
 
 #ifndef VL53L1X_DEBUG
 #define VL53L1X_DEBUG 0
@@ -79,5 +77,3 @@ float readVL53L1X()
     l1x.clearInterrupt();
     return static_cast<float>(mm);
 }
-
-#endif // DISTANCE_SENSOR_PRESENT
