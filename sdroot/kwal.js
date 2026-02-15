@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260215E - Built 2026-02-15 17:09
+ * Kwal WebGUI v260215F - Built 2026-02-15 18:51
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260215E';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260215F';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -87,13 +87,13 @@ Kwal.state = (function() {
   }
 
   function updateDevModal() {
-    var saveColorsBtn = document.getElementById('save-colors-btn');
-    var savePatternBtn = document.getElementById('save-pattern-btn');
-    if (saveColorsBtn) {
-      saveColorsBtn.style.display = colorsModified ? 'block' : 'none';
+    var saveColorsBar = document.getElementById('save-colors-bar');
+    var savePatternBar = document.getElementById('save-pattern-bar');
+    if (saveColorsBar) {
+      saveColorsBar.style.display = colorsModified ? 'flex' : 'none';
     }
-    if (savePatternBtn) {
-      savePatternBtn.style.display = patternModified ? 'block' : 'none';
+    if (savePatternBar) {
+      savePatternBar.style.display = patternModified ? 'flex' : 'none';
     }
   }
 
@@ -837,7 +837,14 @@ Kwal.pattern = (function() {
     saveCurrentPattern: saveCurrentPattern,
     getCurrentLabel: getCurrentLabel,
     setActiveById: setActiveById,
-    updateFromSSE: updateFromSSE
+    updateFromSSE: updateFromSSE,
+    revertPattern: function() {
+      var orig = Kwal.state.getOriginalPattern();
+      if (orig && orig.id) {
+        selectPattern(orig.id);
+      }
+      if (Kwal.state) Kwal.state.clearPatternModified();
+    }
   };
 })();
 
@@ -1384,7 +1391,14 @@ Kwal.colors = (function() {
     saveCurrentColors: saveCurrentColors,
     getCurrentLabel: getCurrentLabel,
     setActiveById: setActiveById,
-    updateFromSSE: updateFromSSE
+    updateFromSSE: updateFromSSE,
+    revertColors: function() {
+      var orig = Kwal.state.getOriginalColors();
+      if (orig && orig.id) {
+        selectColor(orig.id);
+      }
+      if (Kwal.state) Kwal.state.clearColorsModified();
+    }
   };
 })();
 
@@ -2353,6 +2367,7 @@ Kwal.mp3grid = (function() {
     
     // Save colors button on main screen
     var saveColorsBtn = document.getElementById('save-colors-btn');
+    var cancelColorsBtn = document.getElementById('cancel-colors-btn');
     var saveColorsConfirm = document.getElementById('save-colors-confirm');
     var saveColorsName = document.getElementById('save-colors-name');
     
@@ -2362,6 +2377,12 @@ Kwal.mp3grid = (function() {
           saveColorsName.value = Kwal.colors.getCurrentLabel();
         }
         Kwal.modal.open('save-colors-modal');
+      };
+    }
+    
+    if (cancelColorsBtn) {
+      cancelColorsBtn.onclick = function() {
+        if (Kwal.colors.revertColors) Kwal.colors.revertColors();
       };
     }
     
@@ -2386,6 +2407,7 @@ Kwal.mp3grid = (function() {
     
     // Save pattern button on main screen
     var savePatternBtn = document.getElementById('save-pattern-btn');
+    var cancelPatternBtn = document.getElementById('cancel-pattern-btn');
     var savePatternConfirm = document.getElementById('save-pattern-confirm');
     var savePatternName = document.getElementById('save-pattern-name');
     
@@ -2395,6 +2417,12 @@ Kwal.mp3grid = (function() {
           savePatternName.value = Kwal.pattern.getCurrentLabel();
         }
         Kwal.modal.open('save-pattern-modal');
+      };
+    }
+    
+    if (cancelPatternBtn) {
+      cancelPatternBtn.onclick = function() {
+        if (Kwal.pattern.revertPattern) Kwal.pattern.revertPattern();
       };
     }
     

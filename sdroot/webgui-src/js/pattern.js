@@ -333,6 +333,13 @@ Kwal.pattern = (function() {
     saveCurrentPattern: saveCurrentPattern,
     getCurrentLabel: getCurrentLabel,
     setActiveById: setActiveById,
-    updateFromSSE: updateFromSSE
+    updateFromSSE: updateFromSSE,
+    revertPattern: function() {
+      var orig = Kwal.state.getOriginalPattern();
+      if (orig && orig.id) {
+        selectPattern(orig.id);
+      }
+      if (Kwal.state) Kwal.state.clearPatternModified();
+    }
   };
 })();

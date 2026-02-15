@@ -56,8 +56,16 @@
     </section>
 
     <div id="save-buttons">
-      <button id="save-colors-btn" class="btn-save" style="display:none;">Kleuren opslaan</button>
-      <button id="save-pattern-btn" class="btn-save" style="display:none;">Patroon opslaan</button>
+      <div id="save-colors-bar" class="save-bar" style="display:none;">
+        <span class="save-label">Kleuren gewijzigd</span>
+        <button id="save-colors-btn" class="btn-icon save-yes" title="Opslaan">💾</button>
+        <button id="cancel-colors-btn" class="btn-icon save-no" title="Annuleren">✕</button>
+      </div>
+      <div id="save-pattern-bar" class="save-bar" style="display:none;">
+        <span class="save-label">Patroon gewijzigd</span>
+        <button id="save-pattern-btn" class="btn-icon save-yes" title="Opslaan">💾</button>
+        <button id="cancel-pattern-btn" class="btn-icon save-no" title="Annuleren">✕</button>
+      </div>
     </div>
 
     <footer>
@@ -214,7 +222,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260215E"></script>
+  <script src="kwal.js?v=260215F"></script>
 </body>
 
 </html>

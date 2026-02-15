@@ -281,6 +281,13 @@ Kwal.colors = (function() {
     saveCurrentColors: saveCurrentColors,
     getCurrentLabel: getCurrentLabel,
     setActiveById: setActiveById,
-    updateFromSSE: updateFromSSE
+    updateFromSSE: updateFromSSE,
+    revertColors: function() {
+      var orig = Kwal.state.getOriginalColors();
+      if (orig && orig.id) {
+        selectColor(orig.id);
+      }
+      if (Kwal.state) Kwal.state.clearColorsModified();
+    }
   };
 })();

@@ -1,0 +1,143 @@
+todo_no_RGB.txt — Optional Art LED Strip Absence via config.txt
+==============================================================
+Date: 2026-02-15
+Status: Design complete, not yet implemented
+Goal: Single firmware supports Kwals with/without WS2812B art strip.
+      config.txt flag controls subsystem init, timers, and web GUI.
+      Builtin heartbeat LED (GPIO 2) is unaffected — always runs.
+
+NOTE: Unlike audio (cosmetic-only flag) and NAS (active harm prevention),
+      no-RGB is a MAJOR suppression — it skips the largest subsystem
+      in the firmware (9 timer slots, ~4.5KB RAM, 40-80ms/sec CPU).
+      A Kwal without LEDs is unusual but not impossible (web-only sensor hub).
+
+-------------------------------------------------------------
+CLASSIFICATION: AUDIO vs NAS vs RGB
+-------------------------------------------------------------
+  Audio = passive   — I2S clocks to nothing, harmless. Flag is cosmetic.
+  NAS   = active    — HTTP timeouts + WiFi reconnect. Flag prevents harm.
+  RGB   = heavy     — 9 timer slots, 20 FPS render loop, ~4.5KB RAM,
+                       5 CSV/bin file reads at boot. Flag saves real resources.
+
+-------------------------------------------------------------
+CONFIG.TXT
+-------------------------------------------------------------
+[ ] Add leds=1 to config.txt (default: present)
+    Term "leds" not "rgb" — RGB is the data pin name, LEDs is the hardware.
+
+-------------------------------------------------------------
+FIRMWARE — GLOBALS
+-------------------------------------------------------------
+[ ] Globals.h: add bool ledsPresent = true
+[ ] Globals.cpp: parse leds= from config.txt (same pattern as rtc/lux/distance)
+
+-------------------------------------------------------------
+FIRMWARE — BOOT LAYER
+-------------------------------------------------------------
+[ ] LightBoot.cpp initLight(): skip entirely if !ledsPresent
+    — Skips: FastLED.addLeds(), power limits, LED map load
+    — Skips: 3 timer creates (cb_updateLightController, cb_colorCycle, cb_brightCycle)
+    — Skips: hwStatus |= HW_RGB
+[ ] LightBoot.cpp plan(): skip brightness seed, SSE push if !ledsPresent
+[ ] SDBoot.cpp: skip failLeds[] pattern if !ledsPresent
+    — SDBoot has its OWN FastLED.addLeds() call and CRGB failLeds[160]
+    — Both should be skipped (saves 480 bytes alone)
+
+-------------------------------------------------------------
+FIRMWARE — RUN LAYER
+-------------------------------------------------------------
+[ ] LightRun.cpp plan(): skip entirely if !ledsPresent
+    — Skips: 4 timers (cb_luxMeasure, cb_changeColor, cb_changePattern, cb_shiftTimer)
+    — Skips: PlayLightShow() call (which creates 2 more timer restarts: cb_xPhase, cb_yPhase)
+[ ] LightRun.cpp — all public methods (selectNextPattern, selectNextColors, etc.):
+    early return if !ledsPresent
+    — Prevents web API calls from triggering light operations
+[ ] ColorsCatalog: skip previewColors() → PlayLightShow() if !ledsPresent
+[ ] PatternCatalog/ColorsCatalog: skip CSV loads at boot if !ledsPresent
+[ ] ShiftTable: skip CSV loads at boot if !ledsPresent
+
+-------------------------------------------------------------
+FIRMWARE — ALERT LAYER
+-------------------------------------------------------------
+[ ] AlertRGB.cpp startFlashing(): skip if !ledsPresent
+    — No strip to flash on. Heartbeat LED (GPIO 2) still shows failure pattern.
+[ ] AlertRGB.cpp stopFlashing(): skip if !ledsPresent
+[ ] HWconfig.h: consider removing HW_RGB from HW_ALL_CRITICAL
+    — Currently never checked at runtime, but if ever enforced, would halt boot
+    — For documentation accuracy: absent hardware is not critical
+
+-------------------------------------------------------------
+FIRMWARE — CROSS-SUBSYSTEM
+-------------------------------------------------------------
+[ ] LightController.cpp applyBrightness(): skip if !ledsPresent
+    — Currently reads audio level for brightness modulation — unnecessary without LEDs
+[ ] LightController.cpp updateLightController(): skip if !ledsPresent
+    — The 20 FPS render loop: 160-LED trig math + FastLED.show() to nowhere
+[ ] AlertRGB → LightRun::reapplyCurrentShow(): already safe (skipped if plan() never ran)
+[ ] NasBackup requestPush(): LightRun pushes pattern/color CSV changes to NAS
+    — If no patterns/colors loaded, no push triggered — already safe
+
+-------------------------------------------------------------
+FIRMWARE — WEB ROUTES (keep responding, return empty/neutral)
+-------------------------------------------------------------
+[ ] /setBrightness — accept but ignore (or return current 0)
+[ ] /getBrightness — return 0 or neutral JSON
+[ ] /api/patterns/* — return empty list / noop
+[ ] /api/colors/* — return empty list / noop
+    Note: routes still registered (same firmware), just return inert responses
+
+-------------------------------------------------------------
+WEBGUI CHANGES
+-------------------------------------------------------------
+[ ] Hide brightness slider + label (#brightness, #bri-num)
+[ ] Hide pattern row (label, prev/next, modal button)
+[ ] Hide colors row (label, prev/next, modal button)
+[ ] Hide save buttons (#save-colors-btn, #save-pattern-btn)
+[ ] Hide modals: pattern-modal, colors-modal, colorpicker-modal,
+    save-colors-modal, save-pattern-modal
+[ ] JS modules to gate on absent flag:
+    — brightness.js, pattern.js, colors.js, colorpicker.js
+    — state.js (modified tracking for colors/patterns)
+    — SSE handlers for sliderPct, brightnessLo/Hi/Max, patternLabel, colorLabel
+[ ] health.js: already handled by absentBits (shows — automatically)
+
+-------------------------------------------------------------
+RESOURCES SAVED WITH leds=0
+-------------------------------------------------------------
+  Timer slots:    9 permanent (of 50) = 18% reclaimed
+  RAM:            ~4,500 bytes (leds[], colorGradient[], ledMap[], failLeds[],
+                  catalogs, shift tables, FastLED internals)
+  CPU:            40-80ms/sec (20 FPS render + FastLED.show() bit-bang)
+  SD reads:       5 files skipped at boot (ledmap.bin, light_patterns.csv,
+                  light_colors.csv, colorsShifts.csv, patternShifts.csv)
+  Boot time:      ~200-400ms faster (CSV parsing + LED map load)
+
+-------------------------------------------------------------
+WHAT STILL WORKS WITH leds=0
+-------------------------------------------------------------
+  Heartbeat LED (GPIO 2)      — always runs, shows alive/failure pattern
+  Audio subsystem              — independent
+  Web interface                — accessible, light controls hidden
+  Sensors                      — independent
+  Calendar/context             — independent
+  NAS backup                   — independent (no light CSVs to push)
+  OTA updates                  — independent
+
+-------------------------------------------------------------
+TESTING
+-------------------------------------------------------------
+[ ] Test with leds=1 — current behavior unchanged
+[ ] Test with leds=0 — no FastLED init, no timers created, GUI hides light controls
+[ ] Verify 0 timer slots used by lighting subsystem
+[ ] Verify web API routes return inert responses, no crash
+[ ] Verify heartbeat LED still blinks normally
+[ ] Verify AlertRGB skip does not leave dangling state
+[ ] Verify audio brightness modulation doesn't crash (applyBrightness guard)
+[ ] Verify boot time improvement
+
+-------------------------------------------------------------
+VERSION BUMPS NEEDED AT IMPLEMENTATION TIME
+-------------------------------------------------------------
+[ ] Globals.h FIRMWARE_VERSION
+[ ] build.ps1 $version (WebGUI JS changes)
+[ ] Per-file @version/@date headers for all touched files

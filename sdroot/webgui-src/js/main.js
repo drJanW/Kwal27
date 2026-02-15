@@ -124,6 +124,7 @@
     
     // Save colors button on main screen
     var saveColorsBtn = document.getElementById('save-colors-btn');
+    var cancelColorsBtn = document.getElementById('cancel-colors-btn');
     var saveColorsConfirm = document.getElementById('save-colors-confirm');
     var saveColorsName = document.getElementById('save-colors-name');
     
@@ -133,6 +134,12 @@
           saveColorsName.value = Kwal.colors.getCurrentLabel();
         }
         Kwal.modal.open('save-colors-modal');
+      };
+    }
+    
+    if (cancelColorsBtn) {
+      cancelColorsBtn.onclick = function() {
+        if (Kwal.colors.revertColors) Kwal.colors.revertColors();
       };
     }
     
@@ -157,6 +164,7 @@
     
     // Save pattern button on main screen
     var savePatternBtn = document.getElementById('save-pattern-btn');
+    var cancelPatternBtn = document.getElementById('cancel-pattern-btn');
     var savePatternConfirm = document.getElementById('save-pattern-confirm');
     var savePatternName = document.getElementById('save-pattern-name');
     
@@ -166,6 +174,12 @@
           savePatternName.value = Kwal.pattern.getCurrentLabel();
         }
         Kwal.modal.open('save-pattern-modal');
+      };
+    }
+    
+    if (cancelPatternBtn) {
+      cancelPatternBtn.onclick = function() {
+        if (Kwal.pattern.revertPattern) Kwal.pattern.revertPattern();
       };
     }
     

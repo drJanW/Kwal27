@@ -46,13 +46,13 @@ Kwal.state = (function() {
   }
 
   function updateDevModal() {
-    var saveColorsBtn = document.getElementById('save-colors-btn');
-    var savePatternBtn = document.getElementById('save-pattern-btn');
-    if (saveColorsBtn) {
-      saveColorsBtn.style.display = colorsModified ? 'block' : 'none';
+    var saveColorsBar = document.getElementById('save-colors-bar');
+    var savePatternBar = document.getElementById('save-pattern-bar');
+    if (saveColorsBar) {
+      saveColorsBar.style.display = colorsModified ? 'flex' : 'none';
     }
-    if (savePatternBtn) {
-      savePatternBtn.style.display = patternModified ? 'block' : 'none';
+    if (savePatternBar) {
+      savePatternBar.style.display = patternModified ? 'flex' : 'none';
     }
   }
 
