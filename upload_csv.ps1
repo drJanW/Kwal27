@@ -12,19 +12,23 @@ if ($ip -eq "") {
 $baseUrl = "http://$ip/api/sd/upload"
 $sdroot = Join-Path $PSScriptRoot "sdroot"
 
-$csvFiles = Get-ChildItem -Path $sdroot -Filter "*.csv" -File
+# Determine device name from IP for wifi file selection
+$device = if ($lastOctet -eq 189 -or $ip -eq "192.168.2.189") { "hout" } else { "marmer" }
 
-if ($csvFiles.Count -eq 0) {
+$csvFiles = Get-ChildItem -Path $sdroot -Filter "*.csv" -File
+$allFiles = @($csvFiles)
+
+if ($allFiles.Count -eq 0) {
     Write-Host "No CSV files found in $sdroot" -ForegroundColor Yellow
     exit 0
 }
 
-Write-Host "Uploading $($csvFiles.Count) CSV files to $ip..." -ForegroundColor Cyan
+Write-Host "Uploading $($allFiles.Count) CSV files + wifi to $ip ($device)..." -ForegroundColor Cyan
 
 $success = 0
 $failed = 0
 
-foreach ($file in $csvFiles) {
+foreach ($file in $allFiles) {
     Write-Host -NoNewline "  $($file.Name)... "
     
     try {
@@ -46,3 +50,22 @@ foreach ($file in $csvFiles) {
 
 Write-Host ""
 Write-Host "Done: $success uploaded, $failed failed" -ForegroundColor $(if ($failed -eq 0) { "Green" } else { "Yellow" })
+
+# Upload device-specific wifi file as wifi.txt
+$wifiSource = Join-Path $sdroot "wifi_$device.txt"
+if (Test-Path $wifiSource) {
+    Write-Host "  wifi_$device.txt as wifi.txt..." -NoNewline
+    try {
+        $result = curl.exe -s -X POST -F "file=@$wifiSource;filename=wifi.txt" $baseUrl
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host " OK" -ForegroundColor Green
+        } else {
+            Write-Host " FAILED" -ForegroundColor Red
+        }
+    }
+    catch {
+        Write-Host " ERROR: $_" -ForegroundColor Red
+    }
+} else {
+    Write-Host "  WARNING: wifi_$device.txt not found" -ForegroundColor Yellow
+}

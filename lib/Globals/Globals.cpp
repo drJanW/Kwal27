@@ -1,8 +1,8 @@
 /**
  * @file Globals.cpp
  * @brief CSV override loader for Globals
- * @version 260211A
- * @date 2026-02-11
+ * @version 260214C
+ * @date 2026-02-14
  */
 #include "Arduino.h"
 #include "Globals.h"
@@ -635,12 +635,77 @@ void Globals::fillFadeCurve() {
     }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Load wifi.txt: four non-comment lines = SSID, password, staticIp, gateway
+// ─────────────────────────────────────────────────────────────
+static void loadWifiTxt() {
+    const String path = SdPathUtils::chooseCsvPath("wifi.txt");
+    if (path.isEmpty() || !SDController::fileExists(path.c_str())) {
+        PL("[Globals] No wifi.txt, using firmware defaults");
+        return;
+    }
+    File file = SD.open(path.c_str(), FILE_READ);
+    if (!file) {
+        PL("[Globals] Failed to open wifi.txt");
+        return;
+    }
+
+    char line[128];
+    uint8_t dataLine = 0;   // 0=SSID, 1=password, 2=staticIp, 3=gateway
+
+    while (file.available() && dataLine < 4) {
+        size_t len = 0;
+        while (file.available() && len < sizeof(line) - 1) {
+            char c = file.read();
+            if (c == '\n') break;
+            line[len++] = c;
+        }
+        line[len] = '\0';
+        // Trim CR
+        if (len > 0 && line[len - 1] == '\r') line[--len] = '\0';
+        // Skip empty lines and comments
+        if (len == 0 || line[0] == '#') continue;
+
+        switch (dataLine) {
+            case 0:
+                strncpy(Globals::wifiSsid, line, sizeof(Globals::wifiSsid) - 1);
+                Globals::wifiSsid[sizeof(Globals::wifiSsid) - 1] = '\0';
+                PF_BOOT("[Globals] wifiSsid = %s (from wifi.txt)\n", Globals::wifiSsid);
+                break;
+            case 1:
+                strncpy(Globals::wifiPassword, line, sizeof(Globals::wifiPassword) - 1);
+                Globals::wifiPassword[sizeof(Globals::wifiPassword) - 1] = '\0';
+                PF_BOOT("[Globals] wifiPassword = *** (from wifi.txt)\n");
+                break;
+            case 2:
+                strncpy(Globals::staticIp, line, sizeof(Globals::staticIp) - 1);
+                Globals::staticIp[sizeof(Globals::staticIp) - 1] = '\0';
+                PF_BOOT("[Globals] staticIp = %s (from wifi.txt)\n", Globals::staticIp);
+                break;
+            case 3:
+                strncpy(Globals::staticGateway, line, sizeof(Globals::staticGateway) - 1);
+                Globals::staticGateway[sizeof(Globals::staticGateway) - 1] = '\0';
+                PF_BOOT("[Globals] staticGateway = %s (from wifi.txt)\n", Globals::staticGateway);
+                break;
+        }
+        dataLine++;
+    }
+    file.close();
+
+    if (dataLine < 2) {
+        PL("[Globals] wifi.txt incomplete (need at least SSID + password)");
+    }
+}
+
 void Globals::begin() {
     // Check SD availability
     if (!AlertState::isSdOk()) {
         Serial.println("[Globals] SD not available, using defaults");
         return;
     }
+
+    // Load WiFi credentials from wifi.txt (before globals.csv)
+    loadWifiTxt();
     
     // Check file existence
     const String csvPath = SdPathUtils::chooseCsvPath("globals.csv");

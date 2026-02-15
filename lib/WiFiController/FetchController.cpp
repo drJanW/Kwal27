@@ -1,8 +1,8 @@
 /**
  * @file FetchController.cpp
  * @brief HTTP fetch for weather/sunrise APIs and NTP time
- * @version 260206A
- $12026-02-09
+ * @version 260214A
+ * @date 2026-02-14
  */
 #include <Arduino.h>
 #include "FetchController.h"
@@ -23,13 +23,19 @@
 #include <sys/time.h>
 
 // --- Config ---
-// HTTPS versions - often fail on ESP32 due to TLS handshake issues (code -1)
-// #define SUN_URL     "https://api.sunrise-sunset.org/json?lat=52.3702&lng=4.8952&formatted=0"
-// #define WEATHER_URL "https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.89&daily=temperature_2m_max,temperature_2m_min&timezone=auto"
+// URLs built dynamically from Globals::locationLat / locationLon
+static char sunUrl[128];
+static char weatherUrl[192];
 
-// HTTP versions - more reliable on ESP32
-#define SUN_URL     "http://api.sunrise-sunset.org/json?lat=52.3702&lng=4.8952&formatted=0"
-#define WEATHER_URL "http://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.89&daily=temperature_2m_max,temperature_2m_min&timezone=auto"
+static void buildLocationUrls() {
+    snprintf(sunUrl, sizeof(sunUrl),
+        "http://api.sunrise-sunset.org/json?lat=%.4f&lng=%.4f&formatted=0",
+        Globals::locationLat, Globals::locationLon);
+    snprintf(weatherUrl, sizeof(weatherUrl),
+        "http://api.open-meteo.com/v1/forecast?latitude=%.2f&longitude=%.2f"
+        "&daily=temperature_2m_max,temperature_2m_min&timezone=auto",
+        Globals::locationLat, Globals::locationLon);
+}
 
 #define DEBUG_FETCH LOG_BOOT_SPAM
 
@@ -182,7 +188,7 @@ static void cb_fetchWeather() {
     }
 
     String response;
-    if (!fetchUrlToString(WEATHER_URL, response)) {
+    if (!fetchUrlToString(weatherUrl, response)) {
         if (!weatherFetched) ContextController::clearWeather();
         if (lastRetry) {
             AlertState::setWeatherStatus(false);
@@ -263,7 +269,7 @@ static void cb_fetchSunrise() {
     }
 
     String response;
-    if (!fetchUrlToString(SUN_URL, response)) {
+    if (!fetchUrlToString(sunUrl, response)) {
         prtClock.setSunriseHour(0);
         prtClock.setSunriseMinute(0);
         prtClock.setSunsetHour(0);
@@ -483,6 +489,8 @@ static bool loadTimeFromSD(PRTClock &clock) {
 // ===================================================
 
 bool bootFetchController() {
+    buildLocationUrls();
+
     if (!AlertState::isWifiOk()) {
         if (DEBUG_FETCH) {
             PL("[Fetch] boot aborted, no WiFi");

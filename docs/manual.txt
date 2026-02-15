@@ -1,176 +1,358 @@
 KWAL MANUAL
 ===========
+v1 - 2026-02-14
 
-OVERVIEW
---------
-Kwal is an ESP32-based ambient art installation (jellyfish sculpture) that combines:
-- LED light patterns and colors
-- Audio playback (ambient tracks and speech)
-- Web interface for live control
-- Sensor input (distance, lux, optional temperature)
-- SD card for configuration, audio assets, and CSV data
+De Kwal is een ESP32 ambient kunstinstallatie (kwal-sculptuur) met LED-licht,
+geluid, een webinterface en sensoren. Dit document is opgedeeld in drie delen:
+  1. GEBRUIKER   - hoe bedien ik de kwal via de webinterface?
+  2. OPERATOR    - hoe pas ik gedrag aan zonder te programmeren?
+  3. PROGRAMMEUR - hoe wijzig ik firmware of webinterface?
 
-ARCHITECTURE
+
+================================================================================
+DEEL 1: GEBRUIKER
+================================================================================
+
+Open een browser en ga naar het IP-adres van de kwal:
+  HOUT   : http://192.168.2.189
+  MARMER : http://192.168.2.188
+
+Het hoofdscherm heeft twee panelen: Audio en Licht.
+
+
+AUDIO PANEEL
 ------------
-Boot → Plan → Policy → Run → Controller
+  Volume slider    0-100%     Regelt het afspeelvolume.
+  ⏭ (next)                    Stopt huidig fragment, speelt volgend.
+  👍 / 👎 (vote)              Stem op de huidige map. Score is zichtbaar.
+  Map/Bestand                 Toont de huidige map (bv. 042) en bestandsnaam.
 
-- Boot: one-time initialization, register timers, seed caches
-- Plan: arm timers for periodic work
-- Policy: rules/constraints (no side effects)
-- Run: executes timers, sequences work, raises requests
-- Controller: hardware drivers (FastLED, I2S, SPI)
+Geluid speelt automatisch: ambient fragmenten wisselen vanzelf af.
+De kwal spreekt ook (firmware-versie bij opstarten, kalenderberichten).
 
-All timing uses TimerManager (non-blocking).
 
-BOOT SEQUENCE (HIGH LEVEL)
---------------------------
-1) SD boot: mount SD, validate index, load globals.csv
-2) WiFi boot: connect, start web interface
-3) Clock: RTC/NTP time ready
-4) Calendar: load today’s entry (if present)
-5) Welcome: spoken greeting (TTS-first, MP3 fallback)
-6) Boot fragment: first ambient audio fragment
-
-WELCOME is played after Calendar is ready to avoid SD/network contention.
-
-RUNTIME LOOP
+LICHT PANEEL
 ------------
-- TimerManager drives all periodic actions
-- RunManager orchestrates subsystem Run layers
-- Calendar may update theme box/pattern/color
-- Audio plays ambient fragments and speech
+  Helderheid slider  0-100%  Regelt de LED-helderheid.
+  Patroon    ⏮ / ⏭          Vorig/volgend lichtpatroon (animatie).
+  Kleuren    ⏮ / ⏭          Vorig/volgend kleurpalet.
 
-WEB INTERFACE (OPTIONS)
+Bij wijziging verschijnt een "opslaan" knop. Hiermee wordt de keuze
+vastgelegd op de SD-kaart zodat het na herstart behouden blijft.
+
+
+⚙ DEV-MENU (tandwiel rechtsonder)
+----------------------------------
+Dit menu is voor gevorderd gebruik:
+
+  SD           Bestand uploaden naar de SD-kaart.
+  OTA          Firmware updaten via de browser (.bin bestand kiezen).
+  Pattern      Lijst van alle patronen - klik om te activeren.
+  Colors       Lijst van alle kleurpaletten - klik om te activeren.
+  Status       Systeeminfo, sensorstatus, uptime. "Restart ESP" herstart.
+  View Log     Recente seriële log-uitvoer bekijken.
+  MP3 Grid     Visueel overzicht van alle MP3-mappen en bestanden op SD.
+               Klik op een cel om dat bestand af te spelen.
+
+
+FOUTEN - KLEURFLITSEN
+---------------------
+Bij een hardwarefout flitst de kwal in een specifieke kleur:
+
+  ROOD       SD-kaart niet gevonden (kritiek)
+  ORANJE     WiFi niet verbonden (kritiek)
+  GEEL       RTC klok fout
+  WIT        NTP tijdsync mislukt
+  GROEN      Afstandssensor fout
+  MAGENTA    Luxsensor fout
+  CYAAN      Sensor 3 fout (optioneel)
+
+Patroon: zwart → kleur → zwart → kleur → ... → terug naar normaal.
+
+
+================================================================================
+DEEL 2: OPERATOR
+================================================================================
+
+De operator past het gedrag van de kwal aan via CSV-bestanden.
+Hiervoor heb je alleen Notepad (of Excel) en een webbrowser nodig.
+Je hoeft NIET te kunnen programmeren.
+
+
+BESTANDEN UPLOADEN
+------------------
+Via de webinterface (de enige manier die je nodig hebt):
+
+  1. Open de kwal in je browser (zie Deel 1 voor het IP-adres)
+  2. Klik rechtsonder op het tandwiel ⚙
+  3. Klik op "SD"
+  4. Kies een bestand op je computer
+  5. Klik "Upload"
+
+Het bestand wordt direct op de SD-kaart van de kwal gezet.
+Na een herstart (⚙ → Status → "Restart ESP") gebruikt de kwal
+de nieuwe versie.
+
+
+BESTANDEN OPHALEN
+-----------------
+Om de huidige versie van een bestand te bekijken:
+  Open in je browser:  http://[IP-adres]/api/sd/file?path=/globals.csv
+  (vervang globals.csv door het gewenste bestand)
+  Sla op via rechtermuisklik → "Opslaan als..."
+
+
+WELKE CSV DOET WAT
+-------------------
+Alle CSV-bestanden worden bewerkt met Notepad of Excel.
+LET OP: gebruik puntkomma (;) als scheidingsteken, NIET komma.
+
+  globals.csv
+    Stelt waardes in zoals volume, helderheid, en intervallen.
+    Elke regel: key;type;waarde;commentaar
+    Types: u = geheel getal, f = decimaal, b = ja/nee
+    Regels die beginnen met # zijn uitgeschakeld → de standaardwaarde
+    uit de firmware wordt dan gebruikt.
+
+    Voorbeeld - helderheid nooit onder 10%:
+      brightnessLo;u;10;minimale helderheid
+
+    Voorbeeld - kleuren elke 5.8 uur wisselen:
+      colorChangeIntervalMs;u;20880000;~5.8 uur
+
+    TIP: download eerst het huidige bestand (zie boven), bekijk welke
+    regels er zijn, en pas alleen de waarde aan.
+
+  theme_boxes.csv
+    Bepaalt welke MP3-mappen bij een thema horen.
+    Elke regel: id;kleur;naam;mappen
+    De mappen zijn mapnummers gescheiden door komma's.
+
+    Voorbeeld:
+      1;#4A9BD9;DEFAULT;001,002,003,010,042
+      6;#2196F3;WAVES;060,061
+
+    Wil je een nieuwe map toevoegen aan een thema? Voeg het nummer toe
+    aan het einde van de lijst.
+
+  calendar.csv
+    Datum-gestuurde gebeurtenissen: wat de kwal zegt en speelt per dag.
+    Elke regel: jaar;maand;dag;tekst;interval;thema;patroon;kleuren
+
+    Voorbeeld - nieuwjaarswens elk uur:
+      2026;1;1;Gelukkig Nieuwjaar;60;1;0;0
+
+    Voorbeeld - kerst met kerstthema (thema 8 = XMAS):
+      2026;12;25;Het is Kerstmis;30;8;0;0
+
+    De "tekst" wordt door de kwal uitgesproken (Nederlands).
+    "interval" = minuten tussen herhalingen.
+    "thema" verwijst naar het id in theme_boxes.csv.
+    Gebruik 0 voor patroon/kleuren om de huidige te behouden.
+
+  audioShifts.csv
+    Bepaalt hoe volume en overgangssnelheid variëren per tijdstip.
+    's Nachts stiller, overdag luider. Normaal niet aanpassen.
+
+  light_patterns.csv / light_colors.csv
+    Definitie van beschikbare patronen en kleurpaletten.
+    Normaal niet aanpassen tenzij je nieuwe paletten wilt toevoegen.
+
+  colorsShifts.csv / patternShifts.csv
+    Verschuivingen per tijdstip. Normaal niet aanpassen.
+
+
+MP3 BESTANDEN TOEVOEGEN
 ------------------------
-The Web UI provides live control of core functions. Typical controls include:
-- Audio: volume and next-track actions
-- Brightness: output scaling
-- Pattern and color selection
-- Status and health information
-- OTA trigger (firmware update)
+De SD-kaart bevat genummerde mappen (001, 002, ... 199) met MP3's.
 
-Exact labels and ranges are defined by the Web UI and globals.csv.
+  1. Haal de SD-kaart uit de kwal (stroom eraf!)
+  2. Stop de kaart in je computer
+  3. Maak een nieuwe map aan, bv. 075
+  4. Zet MP3-bestanden erin, genummerd: 001.mp3, 002.mp3, enz.
+  5. Open theme_boxes.csv in Notepad
+  6. Voeg 075 toe aan het gewenste thema (achter de laatste komma)
+  7. Sla op, stop de kaart terug, stroom aan
 
-CONFIGURATION FILES (SD CARD)
-------------------------------
-All CSV files live on the SD card (sdroot/) and are edited offline.
+  Of zonder SD-kaart uit te halen:
+  1. Upload de MP3's via ⚙ → SD (één voor één, pad: /075/001.mp3)
+  2. Upload de aangepaste theme_boxes.csv via ⚙ → SD
+  3. Herstart: ⚙ → Status → "Restart ESP"
 
-Key files:
-- globals.csv            : runtime overrides (intervals, thresholds, limits)
-- audioShifts.csv        : audio shifts
-- calendar.csv           : day-based behavior
-- colorsShifts.csv       : color shifts
-- light_patterns.csv     : pattern definitions
-- light_colors.csv       : color definitions
-- patternShifts.csv      : pattern shifts
-- theme_boxes.csv        : theme box mapping
 
-Use upload_csv.ps1 to update SD from host.
+KWAL VERPLAATSEN NAAR ANDERE LOCATIE
+-------------------------------------
+Als de kwal naar een andere plek of tentoonstelling gaat:
 
-ALERT RGB COLORS (ERRORS)
--------------------------
-On hardware failure the sculpture flashes specific colors.
-A black pause (1 second) is inserted between colors.
+  STAP 1: MAAK EEN KOPIE VAN DE SD-KAART
 
-Critical errors (2 seconds):
-  RED        - SD card failure
-  ORANGE     - WiFi not connected
+    Haal de SD-kaart uit de kwal (stroom eraf!).
+    Kopieer ALLES naar een nieuwe SD-kaart (16 of 32 GB, FAT32).
+    Werk verder op de KOPIE — het origineel bewaar je als backup.
+    Alle aanpassingen hieronder doe je op de kopie.
 
-Normal errors (1 second):
-  YELLOW     - RTC clock failure
-  WHITE      - NTP time sync failure
-  GREEN      - Distance sensor failure
-  MAGENTA    - Lux sensor failure
-  CYAN       - Sensor 3 failure (optional)
+  STAP 2: PAS INSTELLINGEN AAN OP DE KOPIE
 
-Sequence: black → color → black → color → ... → return to pattern
+    Ander WiFi netwerk en/of IP-adres
+      Open wifi.txt op de SD-kaart in Notepad.
+      Het bestand bevat vier regels (onder de commentaren):
+        Regel 1: netwerknaam (SSID)
+        Regel 2: wachtwoord
+        Regel 3: vast IP-adres (bijv. 192.168.2.190)
+        Regel 4: gateway (bijv. 192.168.2.254)
+      Pas de regels aan en sla op.
+      Wachtwoorden met puntkomma's, spaties etc. zijn geen probleem.
 
-AUDIO
------
-- Ambient audio is played from SD in fragments
-- Speech uses TTS (VoiceRSS) with MP3 fallback when needed
-- Welcome greeting speaks the firmware version
+    Andere locatie (zonsopgang/zonsondergang)
+      Open globals.csv in Notepad en pas aan:
+        locationLat;f;51.45
+        locationLon;f;5.47
+      Gebruik Google Maps om coördinaten op te zoeken.
+      Sla op.
 
-SENSORS
--------
-- Distance sensor: proximity-based behavior
-- Lux sensor: ambient light-based brightness adjustment
-- Optional temperature sensor (Sensor 3)
+    Kalender aanpassen
+      Open calendar.csv in Notepad, pas datums en teksten aan.
 
-MAINTENANCE & DEPLOYMENT
-------------------------
-Common scripts:
-- deploy.ps1 hout / marmer  : upload firmware
-- ota.ps1                   : standalone OTA
-- upload_web.ps1            : upload web assets to SD
-- upload_csv.ps1            : upload CSV configs to SD
-- download_csv.ps1          : download CSV configs
+    Ander geluid
+      Andere MP3's op de SD-kaart zetten.
+      theme_boxes.csv aanpassen.
 
-REPOSITORY TREE (DIRECTORIES ONLY, EXCLUDES DOT DIRECTORIES)
------------------------------------------------------------
-Kwal27
-├─ docs
-│  ├─ _OLD_
-│  │  └─ A56
-│  └─ readmes
-│     ├─ AudioManager
-│     ├─ ClockController
-│     ├─ ContextController
-│     ├─ ffmpeg
-│     ├─ Globals
-│     ├─ lib
-│     ├─ LightController
-│     ├─ NAS
-│     ├─ NAS_Fallback
-│     ├─ RunManager
-│     ├─ RunManager_Audio
-│     ├─ RunManager_Light
-│     ├─ RunManager_Speak
-│     ├─ SDController
-│     ├─ sdroot
-│     ├─ SensorController
-│     ├─ TimerManager
-│     ├─ WebInterfaceController
-│     └─ WiFiController
-├─ excel
-├─ lib
-│  ├─ AudioManager
-│  ├─ ClockController
-│  ├─ ContextController
-│  ├─ Globals
-│  ├─ LightController
-│  ├─ RunManager
-│  │  ├─ Alert
-│  │  ├─ Audio
-│  │  ├─ Calendar
-│  │  ├─ Clock
-│  │  ├─ Heartbeat
-│  │  ├─ Light
-│  │  ├─ SD
-│  │  ├─ Sensors
-│  │  ├─ Speak
-│  │  ├─ Status
-│  │  ├─ System
-│  │  ├─ Web
-│  │  └─ WiFi
-│  ├─ SDController
-│  ├─ SensorController
-│  ├─ TimerManager
-│  ├─ WebInterfaceController
-│  │  └─ routes
-│  └─ WiFiController
-├─ sdroot
-│  └─ webgui-src
-│     └─ js
-├─ src
-└─ tools
-  └─ ffmpeg
+    Volume/helderheid aanpassen
+      globals.csv bewerken (zie boven).
 
-OPTIONS CHECKLIST (TO CONFIRM)
-------------------------------
-Please confirm or correct these option areas so this manual can be completed:
-1) Web UI: exact control list and slider ranges
-2) Audio: which actions are exposed (next, skip, fade, etc.)
-3) Brightness: slider semantics (see glossary_slider_semantics.md)
-4) OTA: user-facing workflow details
-5) Calendar: which fields are user-editable and how they map to patterns/colors
+  STAP 3: KAART IN DE KWAL, STROOM AAN
+
+    Stop de aangepaste SD-kaart in de kwal en zet stroom aan.
+    Open je browser op het (nieuwe) IP-adres.
+
+  SAMENVATTING:
+    Geluid, kalender, helderheid, volume  →  zelf te doen (CSV/SD)
+    WiFi, locatie, IP-adres               →  zelf te doen (wifi.txt/CSV)
+
+
+================================================================================
+DEEL 3: PROGRAMMEUR
+================================================================================
+
+Dit deel is bedoeld voor iemand die kan programmeren (C++, PlatformIO).
+Als de originele ontwikkelaar niet meer beschikbaar is: zoek iemand met
+ESP32/Arduino ervaring. De codebase is goed gedocumenteerd.
+
+
+WAT DE OPERATOR NIET KAN (EN JIJ WEL)
+--------------------------------------
+De operator kan nu WiFi, IP-adres en locatie zelf wijzigen via globals.csv.
+Deze wijzigingen vereisen wél compileren + flashen:
+
+  Hardware-configuratie wijzigen
+    lib/Globals/HWconfig.h:
+      Sensor aan/uit, pinnummers, I2C adressen, etc.
+
+  Nieuwe sensoren toevoegen
+    Nieuwe code in lib/SensorController/.
+
+  LED-configuratie wijzigen
+    Aantal LEDs, pinnummers, type strip.
+    lib/Globals/HWconfig.h en lib/LightController/.
+
+  Na elke wijziging: compileren en flashen.
+
+
+BOUW & DEPLOY
+-------------
+Vereisten: PlatformIO (VS Code extensie), USB-kabel of WiFi-verbinding.
+
+  .\deploy.ps1 hout           USB upload naar HOUT (189)
+  .\deploy.ps1 marmer         OTA upload naar MARMER (188)
+  .\deploy.ps1 marmer +       OTA + alle SD-bestanden
+  .\trace.ps1                 Seriële monitor openen
+  .\ota.ps1 189               Alleen OTA firmware sturen
+
+  Of via de browser (als WiFi werkt en je een .bin hebt):
+  ⚙ → OTA → kies het .bin bestand → Upload Firmware
+
+WebGUI JS wijzigen:
+  1. Bewerk bestanden in sdroot/webgui-src/js/*.js
+  2. cd sdroot\webgui-src; .\build.ps1    (bouwt kwal.js)
+  3. .\upload_web.ps1                     (uploadt naar SD)
+  NOOIT sdroot/kwal.js direct bewerken!
+
+HTML/CSS wijzigen:
+  Bewerk sdroot/index.html en sdroot/styles.css direct.
+  NOOIT webgui-src/index.html of webgui-src/styles.css bewerken.
+
+
+ARCHITECTUUR (KORT)
+-------------------
+  Boot → Plan → Policy → Run → Controller
+
+  TimerManager = centraal niet-blokkerend timersysteem (60 slots)
+  RunManager   = orchestratie van alle subsystemen
+  Controllers  = hardware drivers (FastLED, I2S, SPI, SD)
+  Policy       = regels/beperkingen, geen side-effects
+
+  Alle timing via TimerManager. Nooit millis(), delay(), Ticker.
+  Zie .github/copilot-instructions.md voor alle regels.
+
+
+HARDWARE CONFIGURATIE
+---------------------
+  HWconfig.h definieert alles per apparaat:
+
+  Twee apparaten: HOUT (192.168.2.189) en MARMER (192.168.2.188)
+  Selectie via platformio.ini build flags: -DKWAL=HOUT of -DKWAL=MARMER
+
+  LEDs:       160x WS2812B, pin 4, max 250 helderheid, 1200mA budget
+  Audio:      I2S DAC (pin 14/13/15), MAX98357A versterker
+  SD:         SPI (CS=5, MOSI=23, MISO=19, CLK=18)
+  Sensoren:   I2C (SDA=21, SCL=22) - RTC, optioneel lux/afstand
+  WiFi:       Station mode, statisch IP, hardcoded SSID
+
+
+VEELVOORKOMENDE UITBREIDINGEN
+-----------------------------
+
+  Sensor toevoegen
+    1. Driver in lib/SensorController/
+    2. Boot layer: init in SensorsBoot.cpp
+    3. Run layer: timer + callback in SensorsRun.cpp
+    4. HWconfig.h: HAS_SENSOR_x define toevoegen
+    5. AlertState: foutkleur registreren
+
+  Kwal zonder audio
+    HWconfig.h: HAS_AUDIO uitzetten (als dit al bestaat)
+    Of: AudioManager conditioneel compileren via #ifdef
+    RunManager Audio callbacks worden dan niet geregistreerd.
+
+  Kwal zonder NAS
+    Standaard: de kwal heeft geen NAS-afhankelijkheid.
+    MP3's en CSV's staan op de lokale SD-kaart.
+    NAS-scripts (naspush.ps1, nasstart.ps1) zijn developer tools,
+    niet nodig voor runtime.
+
+
+API ROUTES (referentie)
+-----------------------
+  GET  /api/health              Systeemstatus, uptime, sensorinfo
+  POST /api/restart             Herstart ESP32
+  GET  /api/audio/current       Huidig afspeelbestand
+  POST /api/audio/next          Volgend fragment
+  GET  /api/audio/play?d=X&f=Y  Speel specifiek bestand
+  GET  /api/audio/grid          MP3-grid data
+  GET  /api/audio/themebox      Huidige themebox info
+  GET  /setWebAudioLevel?v=X    Volume instellen (0-100)
+  GET  /getWebAudioLevel        Volume ophalen
+  GET  /api/patterns            Lijst patronen
+  POST /api/patterns/next       Volgend patroon
+  POST /api/patterns/prev       Vorig patroon
+  GET  /api/colors              Lijst kleuren
+  POST /api/colors/next         Volgende kleur
+  POST /api/colors/prev         Vorige kleur
+  GET  /api/context/today       Kalender-entry vandaag
+  GET  /api/sd/status           SD-kaart info
+  GET  /api/sd/file?path=X      Bestand downloaden
+  POST /api/sd/upload           Bestand uploaden
+  POST /ota/upload              Firmware OTA
+  GET  /log                     Seriële log
+  GET  /log/clear               Log wissen
+  SSE  /events                  Server-sent events (live updates)

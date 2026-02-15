@@ -1,0 +1,10 @@
+# WiFi en netwerkinstellingen voor MARMER
+# Regel 1: netwerknaam (SSID)
+# Regel 2: wachtwoord
+# Regel 3: vast IP-adres
+# Regel 4: gateway
+# Lege regels en regels met # worden genegeerd.
+keijebijter
+Helmondia;55
+192.168.2.189
+192.168.2.254

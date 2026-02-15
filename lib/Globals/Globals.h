@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260212D
- * @date 2026-02-12
+ * @version 260214C
+ * @date 2026-02-14
  */
 #pragma once
 
@@ -19,7 +19,7 @@
 #else
   #define DEVICE_PREFIX "MARMER-"
 #endif
-#define FIRMWARE_VERSION DEVICE_PREFIX "260213B"
+#define FIRMWARE_VERSION DEVICE_PREFIX "260214B"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -157,8 +157,12 @@ struct Globals {
     inline static uint32_t rtcTemperatureIntervalMs  = MINUTES(3); // RTC temperature read interval
 
     // ─────────────────────────────────────────────────────────────
-    // WIFI (4 params)
+    // WIFI (7 params) — SSID/password/IP/gateway loaded from wifi.txt
     // ─────────────────────────────────────────────────────────────
+    inline static char     wifiSsid[64]              = WIFI_SSID;          // WiFi network name (from wifi.txt)
+    inline static char     wifiPassword[64]          = WIFI_PASSWORD;      // WiFi password (from wifi.txt)
+    inline static char     staticIp[20]              = STATIC_IP_STR;      // Static IP (from wifi.txt)
+    inline static char     staticGateway[20]         = STATIC_GATEWAY_STR; // Gateway (from wifi.txt)
     inline static uint32_t wifiStatusCheckIntervalMs = 250UL;     // Connection status interval
     inline static uint32_t wifiConnectionCheckIntervalMs = 5000UL; // Connection check interval
     inline static uint32_t wifiRetryStartMs          = 2000UL;    // Retry start interval

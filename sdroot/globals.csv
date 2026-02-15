@@ -85,6 +85,10 @@ luxMeasurementDelayMs;u;200;LED blackout time before lux read
 #flashNormalMs;u;1000;duration of sensor fail flash
 
 # ═══════════════════════════════════════════════════════════════════
+# WIFI — Alle netwerkinstellingen staan in wifi.txt
+# ═══════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════
 # BOOT/CLOCK (3 params)
 # ═══════════════════════════════════════════════════════════════════
 #clockBootstrapIntervalMs;u;500;poll rate while waiting for NTP sync
@@ -102,8 +106,8 @@ luxMeasurementDelayMs;u;200;LED blackout time before lux read
 # ═══════════════════════════════════════════════════════════════════
 # LOCATION (2 params)
 # ═══════════════════════════════════════════════════════════════════
-#locationLat;f;52.37;for sunrise/sunset calc, default=Amsterdam
-#locationLon;f;4.90;for sunrise/sunset calc, default=Amsterdam
+locationLat;f;52.37;breedtegraad voor zonsopkomst/ondergang
+locationLon;f;4.90;lengtegraad voor zonsopkomst/ondergang
 
 # ═══════════════════════════════════════════════════════════════════
 # TIME FALLBACK (4 params)

@@ -28,6 +28,9 @@ $knownFiles = @(
     "theme_boxes.csv"
 )
 
+# wifi.txt is per-device: download as wifi_<device>.txt
+$downloadWifi = $true
+
 # Create destination folder
 if (!(Test-Path $dest)) {
     New-Item -ItemType Directory -Path $dest | Out-Null
@@ -74,3 +77,18 @@ foreach ($fileName in $knownFiles) {
 }
 
 Write-Host "`nDone: $ok downloaded, $fail skipped. Files in: $dest"
+
+# Download wifi.txt and save as wifi_<device>.txt
+if ($downloadWifi) {
+    $wifiUrl = "$baseUrl/api/sd/file?path=/wifi.txt"
+    $wifiLocal = Join-Path $dest "wifi_$($device.ToLower()).txt"
+    Write-Host "Downloading wifi.txt as wifi_$($device.ToLower()).txt ... " -NoNewline
+    try {
+        Invoke-WebRequest -Uri $wifiUrl -OutFile $wifiLocal -TimeoutSec 60
+        $size = (Get-Item $wifiLocal).Length
+        Write-Host "OK ($size bytes)" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "FAILED" -ForegroundColor Yellow
+    }
+}

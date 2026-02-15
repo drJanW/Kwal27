@@ -30,7 +30,13 @@ $files = @(
     "kwal.js"
 )
 
-Write-Host "Uploading web files to $ESP32_IP..." -ForegroundColor Cyan
+# Device-specific wifi file → uploaded as wifi.txt
+$wifiSource = Join-Path $webDir "wifi_$target.txt"
+if (-not (Test-Path $wifiSource)) {
+    Write-Host "  WARNING: wifi_$target.txt not found" -ForegroundColor Yellow
+}
+
+Write-Host "Uploading web files to $ESP32_IP ($target)..." -ForegroundColor Cyan
 
 foreach ($file in $files) {
     $filePath = Join-Path $webDir $file
@@ -42,6 +48,18 @@ foreach ($file in $files) {
     Write-Host "  Uploading $file..." -NoNewline
     try {
         curl -X POST -F "file=@$filePath" -F "path=/" $UPLOAD_URL --silent --show-error
+        Write-Host " OK" -ForegroundColor Green
+    }
+    catch {
+        Write-Host " FAILED" -ForegroundColor Red
+    }
+}
+
+# Upload wifi file as wifi.txt
+if (Test-Path $wifiSource) {
+    Write-Host "  Uploading wifi_$target.txt as wifi.txt..." -NoNewline
+    try {
+        curl -X POST -F "file=@$wifiSource;filename=wifi.txt" -F "path=/" $UPLOAD_URL --silent --show-error
         Write-Host " OK" -ForegroundColor Green
     }
     catch {
