@@ -1,0 +1,268 @@
+KWAL WEB-GUI GEBRUIKERSHANDLEIDING
+==================================
+Versie: 2026-02-15
+
+Doel
+----
+Deze handleiding legt stap voor stap uit hoe je de Kwal op je smartphone bedient.
+Focus: dagelijkse bediening, snelle how-to’s, en veelvoorkomende problemen oplossen.
+
+
+1) STARTEN (SNEL)
+=================
+
+Open de Kwal-pagina op je smartphone
+------------------------------------
+1. Verbind je smartphone met WiFi:
+	- SSID: keijebijter
+	- Wachtwoord: Helmondia;55
+2. Open je browser. Chrome, DuckDuckGo of Safari (Apple).
+3. Ga naar het publieke adres:
+	- MARMER: http://192.168.2.188
+4. Wacht tot het hoofdscherm zichtbaar is.
+
+Wat je op het hoofdscherm ziet
+------------------------------
+- Audio-paneel: volume, volgende track, huidige map/bestand.
+- Licht-paneel: helderheid, patroon, kleuren.
+
+
+2) GELUID
+=========
+
+2.1 GELUID ZACHTER OF HARDER ZETTEN
+-----------------------------------
+
+Geluid zachter zetten
+---------------------
+1. Zoek in het Audio-paneel de volume-schuif.
+2. Sleep de schuif naar links.
+3. Controleer het percentage naast de schuif.
+4. Wacht 1-2 seconden; je hoort direct effect.
+
+Geluid harder zetten
+--------------------
+Sleep dezelfde schuif naar rechts.
+
+Voten op audio (👍 / 👎)
+-----------------------
+1. Tik op 👍 als je dit audio-fragment goed vindt.
+2. Tik op 👎 als je dit audio-fragment minder goed vindt.
+3. De score naast de knoppen verandert direct.
+
+Wat voting doet
+---------------
+- Hogere score: dit audio-fragment komt vaker terug.
+- Lagere score: dit audio-fragment komt minder vaak terug.
+
+
+2.2 ANDER AUDIOFRAGMENT SPELEN
+------------------------------
+
+1. Klik op de knop met ⏭ in het Audio-paneel.
+2. Het huidige fragment stopt en een willekeurig ander fragment start.
+
+Verborgen audio-opties (tikken op tekst)
+----------------------------------------
+- Tik op dir-nummer (bijv. 042):
+	er start een willekeurig fragment uit diezelfde map.
+- Tik op file-nummer (bijv. 007):
+	hetzelfde fragment wordt opnieuw gestart en in zijn geheel afgespeeld.
+
+2.3 MP3 GRID (AUDIO)
+--------------------
+1. Open dev-menu.
+2. Kies MP3 Grid.
+3. Klik op map/bestand-cel om te spelen.
+4. Gebruik dit om snel te testen of bestanden aanwezig zijn.
+
+
+
+3) LICHT
+========
+
+3.1 HELDERHEID AANPASSEN
+------------------------
+
+1. Zoek de helderheid-schuif in het Licht-paneel.
+2. Sleep naar links voor minder licht, naar rechts voor meer licht.
+3. Kijk naar het percentage of numerieke waarde.
+
+Praktische presets
+------------------
+- Donkere ruimte: 20-35%
+- Gemengde ruimte: 40-60%
+- Fel verlichte ruimte: 65-85%
+
+
+3.2 VOLGEND/VORIG PATROON
+-------------------------
+
+1. Gebruik de patroonknoppen ⏮ en ⏭.
+2. Klik één keer en wacht kort op visuele overgang.
+3. Herhaal tot je het gewenste patroon hebt.
+
+Wanneer handig
+--------------
+- Sfeer snel aanpassen zonder diep menu.
+- Live demonstratie aan bezoekers.
+
+
+3.3 VOLGENDE/VORIGE KLEURENSET
+-------------------------------
+
+1. Gebruik de kleurknoppen ⏮ en ⏭ in het Licht-paneel.
+2. Observeer direct de nieuwe kleurmix.
+3. Herhaal tot de juiste sfeer is bereikt.
+
+
+EXTRA: WIJZIGINGEN OPSLAAN
+==========================
+
+Wanneer opslaan?
+----------------
+Als je wilt dat keuzes na herstart behouden blijven.
+
+Opslaan stap-voor-stap
+----------------------
+1. Pas patroon en/of kleuren aan.
+2. Klik op de knop Opslaan (indien zichtbaar).
+3. Wacht op bevestiging (visueel bericht of status).
+
+
+EXTRA: DEV-MENU OPENEN
+======================
+
+1. Klik op het tandwiel rechtsonder.
+2. Kies de gewenste functie:
+	- SD
+	- OTA
+	- Pattern
+	- Colors
+	- Status
+	- View Log
+	- MP3 Grid
+
+
+EXTRA: BESTAND UPLOADEN VIA SD MENU
+===================================
+
+Gebruik dit voor CSV, webbestanden of andere assets.
+
+1. Open dev-menu (tandwiel).
+2. Kies SD.
+3. Klik Bestand kiezen.
+4. Selecteer lokaal bestand.
+5. Klik Upload.
+6. Controleer statusmelding.
+
+Na upload
+---------
+- Voor sommige bestanden is een restart nodig om effect te zien.
+
+
+EXTRA: FIRMWARE OTA UPDATE VIA WEB-GUI
+======================================
+
+1. Open dev-menu.
+2. Kies OTA.
+3. Selecteer het juiste .bin bestand.
+4. Klik Upload Firmware.
+5. Wacht tot upload 100% is.
+6. Wacht op reboot van de ESP32.
+7. Herlaad browser na 10-30 seconden.
+
+
+EXTRA: STATUS CONTROLEREN
+========================
+
+1. Open dev-menu.
+2. Kies Status.
+3. Controleer:
+	- WiFi
+	- SD
+	- Sensoren
+	- Uptime
+4. Gebruik Restart ESP alleen als nodig.
+
+Gebruik dit wanneer:
+- Audio niet speelt.
+- Licht niet reageert.
+- Web-GUI traag of foutmeldingen geeft.
+
+
+EXTRA: LOG BEKIJKEN
+===================
+
+1. Open dev-menu.
+2. Kies View Log.
+3. Scroll naar recente regels.
+4. Zoek op woorden als error, fail, warning.
+
+Tip
+---
+Maak screenshot of kopie van relevante regels bij supportvragen.
+
+
+PROBLEMEN OPLOSSEN
+==================
+
+Webpagina opent niet
+--------------------
+- Controleer of je op hetzelfde netwerk zit.
+- Controleer of IP-adres klopt.
+- Probeer andere browser.
+- Vernieuw pagina met harde refresh (Ctrl+F5).
+
+Geluid verandert niet bij volume-schuif
+---------------------------------------
+- Wacht 1-2 seconden na schuiven.
+- Druk op Next om nieuw fragment te forceren.
+- Controleer in Status of Audio OK is.
+- Controleer of versterker/speaker aan staat.
+
+Geen audio hoorbaar
+-------------------
+- Controleer of volume niet op 0 staat.
+- Test met Next.
+- Controleer SD-status en aanwezigheid audiofiles.
+
+Licht reageert niet
+-------------------
+- Verhoog helderheid.
+- Wissel patroon én kleur om te testen.
+- Check Status op sensor/foutmeldingen.
+
+OTA lukt niet
+-------------
+- Controleer of je juiste .bin gebruikt.
+- Zorg voor stabiele WiFi-verbinding.
+- Probeer opnieuw na reboot.
+
+
+DAGELIJKSE CHECKLIST (1 MINUUT)
+===============================
+
+1. Kwal-pagina opent op MARMER: http://192.168.2.188.
+2. Volume op gewenst niveau.
+3. Helderheid past bij ruimte.
+4. Patroon/kleur klopt met moment.
+5. Eventueel test met Next.
+
+
+KORTE COMMANDO-LIJST (WAT DOE IK WAARVOOR)
+===========================================
+
+- Geluid zachter: volume-schuif links.
+- Geluid harder: volume-schuif rechts.
+- Volgend fragment: Next knop.
+- Meer/minder licht: helderheid-schuif.
+- Andere sfeer: patroon/kleur vorige/volgende.
+- Permanent maken: Opslaan.
+- Storingen checken: Status + View Log.
+
+
+EINDE
+=====
+Deze handleiding is gericht op bediening op je smartphone. Voor firmware-ontwikkeling
+of architectuur gebruik je de technische documentatie in docs/ en lib/.
