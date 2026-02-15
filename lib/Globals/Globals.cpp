@@ -1,7 +1,7 @@
 /**
  * @file Globals.cpp
  * @brief CSV override loader for Globals
- * @version 260215C
+ * @version 260215E
  * @date 2026-02-15
  */
 #include "Arduino.h"
@@ -724,6 +724,8 @@ void Globals::begin() {
 
     // Load device identity and WiFi from config.txt (before globals.csv)
     loadConfigTxt();
+    PF("[config] device=%s\n", Globals::deviceName);
+    PF("[config] firmware=%s\n", Globals::firmwareVersion);
     
     // Check file existence
     const String csvPath = SdPathUtils::chooseCsvPath("globals.csv");

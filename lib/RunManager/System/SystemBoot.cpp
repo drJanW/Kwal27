@@ -1,7 +1,7 @@
 /**
  * @file SystemBoot.cpp
  * @brief System-level boot stages implementation
- * @version 260215C
+ * @version 260215D
  * @date 2026-02-15
  */
 #include <Arduino.h>
@@ -26,7 +26,7 @@ bool systemBootStage0() {
     delay(50);         // Let hardware RNG settle BEFORE seeding
     bootRandomSeed();  // Seed RNG after hardware is ready
     Globals::fillFadeCurve();  // Precompute shared sine² fade curve
-    PF("%s %s\n", Globals::deviceName, Globals::firmwareVersion);
+    // deviceName not yet known (config.txt loaded after SD init in Globals::begin())
 
     // Clear stale NVS OTA mode flags (legacy ArduinoOTA remnant)
     Preferences prefs;

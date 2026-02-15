@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260213A - Built 2026-02-15 08:49
+ * Kwal WebGUI v260215E - Built 2026-02-15 17:00
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260213A';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260215E';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -1626,7 +1626,7 @@ Kwal.health = (function() {
     // Update title with date
     var titleEl = document.getElementById('health-title');
     if (titleEl) {
-      titleEl.textContent = 'Status' + (data.ntpDate ? ' ' + data.ntpDate : '');
+      titleEl.textContent = (data.device || 'Status') + (data.ntpDate ? ' ' + data.ntpDate : '');
     }
 
     var html = '<table class="health-table">';

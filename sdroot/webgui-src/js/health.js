@@ -70,7 +70,7 @@ Kwal.health = (function() {
     // Update title with date
     var titleEl = document.getElementById('health-title');
     if (titleEl) {
-      titleEl.textContent = 'Status' + (data.ntpDate ? ' ' + data.ntpDate : '');
+      titleEl.textContent = (data.device || 'Status') + (data.ntpDate ? ' ' + data.ntpDate : '');
     }
 
     var html = '<table class="health-table">';

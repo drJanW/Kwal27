@@ -1,7 +1,7 @@
 /**
  * @file SpeakRun.cpp
  * @brief TTS speech state management implementation
- * @version 260215C
+ * @version 260215E
  * @date 2026-02-15
  */
 #include "SpeakRun.h"
@@ -116,7 +116,9 @@ void formatVersionSpoken(const char* version, char* out, size_t outSize) {
         appendWord(digitWord(static_cast<uint8_t>(digits[0] - '0')));
     }
 
-    // Suffix letters are not spoken
+    for (uint8_t i = 0; i < sLen; ++i) {
+        appendWord(phoneticLetter(suffix[i]));
+    }
 
     out[idx] = '\0';
 }
