@@ -2,7 +2,7 @@
 # Usage: .\upload_csv.ps1 [lastOctet]  or  .\upload_csv.ps1 -ip <full-ip>
 
 param(
-    [int]$lastOctet = 188,
+    [int]$lastOctet = 189,
     [string]$ip = ""
 )
 

@@ -1,8 +1,8 @@
 /**
  * @file RTCController.h
  * @brief RTCController implementation
- * @version 260212H
- * @date 2026-02-12
+ * @version 260216A
+ * @date 2026-02-16
  */
 // RTCController.h - Hardware RTC (DS3231) control
 // Only this module talks to I2C/RTC hardware
@@ -23,6 +23,9 @@ bool isAvailable();
 
 // Read time from RTC hardware into PRTClock
 bool readInto(PRTClock& clock);
+
+// Lightweight tick read: H:M:S + date only (no DoW/DoY/moon/settimeofday)
+bool readTime(PRTClock& clock);
 
 // Write time from PRTClock to RTC hardware
 void writeFrom(const PRTClock& clock);

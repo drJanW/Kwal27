@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.h
  * @brief TTS sentence playback using word dictionary from SD card
- * @version 260206A
- * @date 2026-02-06
+ * @version 260216B
+ * @date 2026-02-16
  * 
  * Plays sequences of pre-recorded words from /000/ directory.
  * Words are played sequentially with configurable inter-word pause.

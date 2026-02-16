@@ -26,6 +26,11 @@ Controllers (hardware APIs)    Directors (context→requests)
 - Never ignore a direct request.
 - Never reverse a decision without asking first.
 
+### Chat Length Awareness
+- After ~30 exchanges in a single chat, warn: "Chat wordt lang, overweeg nieuw gesprek."
+- After ~50 exchanges, warn again more urgently.
+- This prevents context overflow, slower responses, and higher token cost.
+
 ### Engineering Discipline
 - Avoid quick fixes and patch chains. Prefer a structural solution based on the actual boot/run sequence.
 - Trace the flow end-to-end before editing when symptoms are timing/order related.

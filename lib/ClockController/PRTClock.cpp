@@ -1,14 +1,15 @@
 /**
  * @file PRTClock.cpp
  * @brief Real-time clock management with DS3231 RTC and NTP synchronization
- * @version 260202A
- $12026-02-05
+ * @version 260216A
+ * @date 2026-02-16
  */
 #include <Arduino.h>
 #include <atomic>
 #include <math.h>
 #include "PRTClock.h"
 #include "FetchController.h"
+#include "RTCController.h"
 #include "Globals.h"
 #include "LogBuffer.h"
 
@@ -55,47 +56,51 @@ void PRTClock::begin() {
 }
 
 void PRTClock::update() {
-  // advance one second
-  uint8_t ss = getSecond();
-  uint8_t mm = getMinute();
-  uint8_t hh = getHour();
+  if (Globals::rtcPresent && RTCController::isAvailable()) {
+    // DS3231 is authoritative — read H:M:S + date directly
+    RTCController::readTime(*this);
+  } else {
+    // No RTC: manual second counting (drifts with millis())
+    uint8_t ss = getSecond();
+    uint8_t mm = getMinute();
+    uint8_t hh = getHour();
 
-  if (++ss >= 60) {
-    ss = 0;
-    if (++mm >= 60) {
-      mm = 0;
-      if (++hh >= 24) hh = 0;
+    if (++ss >= 60) {
+      ss = 0;
+      if (++mm >= 60) {
+        mm = 0;
+        if (++hh >= 24) hh = 0;
+      }
     }
+
+    setSecond(ss);
+    setMinute(mm);
+    setHour(hh);
+
+    // Date rollover at midnight (only needed without RTC)
+    static uint8_t lastHour = 255;
+    if (lastHour == 23 && hh == 0) {
+      uint8_t d = getDay();
+      uint8_t m = getMonth();
+      uint8_t y = getYear();
+      uint8_t daysInMonth[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+      if (m == 2 && (y % 4 == 0)) daysInMonth[1] = 29;
+      if (++d > daysInMonth[m-1]) {
+        d = 1;
+        if (++m > 12) { m = 1; y++; }
+        setMonth(m);
+        setYear(y);
+      }
+      setDay(d);
+      PF("[PRTClock] Date rollover to %u-%02u-%02u\n", 2000+y, m, d);
+    }
+    lastHour = hh;
   }
 
-  setSecond(ss);
-  setMinute(mm);
-  setHour(hh);
-
-  // Date rollover at midnight
-  static uint8_t lastHour = 255;
-  if (lastHour == 23 && hh == 0) {
-    // Advance date
-    uint8_t d = getDay();
-    uint8_t m = getMonth();
-    uint8_t y = getYear();
-    uint8_t daysInMonth[] = {31,28,31,30,31,30,31,31,30,31,30,31};
-    if (m == 2 && (y % 4 == 0)) daysInMonth[1] = 29; // leap year
-    if (++d > daysInMonth[m-1]) {
-      d = 1;
-      if (++m > 12) { m = 1; y++; }
-      setMonth(m);
-      setYear(y);
-    }
-    setDay(d);
-    PF("[PRTClock] Date rollover to %u-%02u-%02u\n", 2000+y, m, d);
-  }
-  lastHour = hh;
-
-  // once per midnight, trigger re-sync
+  // NTP re-sync trigger (both paths: keeps DS3231 accurate long-term)
   static bool synced_today = false;
+  uint8_t hh = getHour(), mm = getMinute(), ss = getSecond();
   if (hh == 0 && mm == 0 && ss > 1 && !synced_today) {
-    // Reset flag - FetchController::requestNtpResync() will restart timer
     setTimeFetched(false);
     FetchController::requestNtpResync();
 
@@ -106,7 +111,7 @@ void PRTClock::update() {
     synced_today = true;
   }
   if (hh == 1 && mm == 0 && ss > 0) {
-    synced_today = false; // re-arm for next midnight
+    synced_today = false;
   }
 }
 

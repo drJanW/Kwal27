@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.cpp
  * @brief TTS sentence playback with word dictionary and VoiceRSS API
- * @version 260212H
- * @date 2026-02-12
+ * @version 260216C
+ * @date 2026-02-16
  * 
  * Implements sequential word playback from /000/ directory.
  * Uses unified SpeakItem queue for mixing MP3 words and TTS sentences.
@@ -63,8 +63,8 @@ uint8_t mp3Scratchpad[8];
 bool forceMax = false;
 
 constexpr uint16_t WORD_FALLBACK_MS = 800;
-constexpr uint16_t TTS_CHAR_INTERVAL_MS = 95;
-constexpr uint16_t TTS_TAIL_INTERVAL_MS = 1800;
+constexpr uint16_t TTS_CHAR_INTERVAL_MS = 114;   // scaled ~1.2x for r=-2 speech rate
+constexpr uint16_t TTS_TAIL_INTERVAL_MS = 2100;   // scaled ~1.2x for r=-2 speech rate
 
 uint16_t countWords(const char* sentence) {
     if (!sentence) return 0;
@@ -88,7 +88,7 @@ uint16_t countWords(const char* sentence) {
 uint32_t calcTtsDurationMs(const char* sentence) {
     uint32_t charMs = strlen(sentence) * TTS_CHAR_INTERVAL_MS + TTS_TAIL_INTERVAL_MS;
     uint16_t words = countWords(sentence);
-    uint32_t wordMs = static_cast<uint32_t>(words) * 420U + TTS_TAIL_INTERVAL_MS;
+    uint32_t wordMs = static_cast<uint32_t>(words) * 504U + TTS_TAIL_INTERVAL_MS;  // scaled ~1.2x for r=-2
     return (charMs > wordMs) ? charMs : wordMs;
 }
 
@@ -234,14 +234,37 @@ void enqueue(SpeakItemType type, const void* payload) {
         PL("[PlaySentence] Queue full, dropping");
         return;
     }
-    speakQueue[speakQueueTail] = { type, payload };
+    // TTS strings: store owned copy (caller's String may destruct)
+    const void* stored = payload;
+    if (type == SpeakItemType::TTS_SENTENCE) {
+        stored = strdup(static_cast<const char*>(payload));
+        if (!stored) {
+            PL("[PlaySentence] strdup failed, dropping");
+            return;
+        }
+    }
+    speakQueue[speakQueueTail] = { type, stored };
     speakQueueTail = (speakQueueTail + 1) % SPEAK_QUEUE_SIZE;
 }
 
 // === TTS Helper functions (within anonymous namespace) ===
+struct TtsVoice { const char* lang; const char* name; };
+constexpr TtsVoice ttsVoices[] = {
+    { "nl-nl", "Daan" },   // Netherlands male
+    { "nl-nl", "Lotte" },  // Netherlands female
+    { "nl-nl", "Bram" },   // Netherlands male
+    { "nl-be", "Daan" },   // Flemish male
+    { "nl-be", "Lotte" },  // Flemish female
+    { "nl-be", "Bram" },   // Flemish male
+};
+constexpr uint8_t TTS_VOICE_COUNT = sizeof(ttsVoices) / sizeof(ttsVoices[0]);
+
 String makeVoiceRSSUrl(const String& text) {
+    const TtsVoice& v = ttsVoices[random(0, TTS_VOICE_COUNT)];
+    PF("[PlaySentence] TTS voice: %s / %s\n", v.lang, v.name);
     return String("http://api.voicerss.org/?key=") + VOICERSS_API_KEY +
-           "&hl=nl-nl&v=Bram&c=MP3&f=44khz_16bit_mono&src=" + urlencode(text);
+           "&hl=" + v.lang + "&v=" + v.name +
+           "&r=-2&c=MP3&f=44khz_16bit_mono&src=" + urlencode(text);
 }
 
 bool voicerss_ok(const String& url, String& err) {
@@ -344,6 +367,7 @@ void playNextSpeakItem() {
         startTTSInternal(sentence);
         durationMs = calcTtsDurationMs(sentence);
         PF("[TTS] %s (%ums)\n", sentence, durationMs);
+        free(const_cast<void*>(item.payload));  // release strdup'd copy
         
         // T4: Timer-based completion
         timers.cancel(cb_ttsReady);
@@ -489,7 +513,14 @@ void stop() {
     timers.cancel(cb_ttsReady);
     timers.cancel(cb_wordTimer);
     
-    // Clear unified queue
+    // Free any remaining strdup'd TTS strings before clearing queue
+    while (speakQueueHead != speakQueueTail) {
+        SpeakItem& item = speakQueue[speakQueueHead];
+        if (item.type == SpeakItemType::TTS_SENTENCE && item.payload) {
+            free(const_cast<void*>(item.payload));
+        }
+        speakQueueHead = (speakQueueHead + 1) % SPEAK_QUEUE_SIZE;
+    }
     speakQueueHead = 0;
     speakQueueTail = 0;
     

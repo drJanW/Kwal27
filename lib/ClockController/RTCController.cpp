@@ -1,8 +1,8 @@
 /**
  * @file RTCController.cpp
  * @brief Hardware RTC (DS3231) control implementation
- * @version 260212H
- * @date 2026-02-12
+ * @version 260216A
+ * @date 2026-02-16
  */
 #include <Arduino.h>
 #include "RTCController.h"
@@ -54,6 +54,25 @@ bool readInto(PRTClock& clock) {
     tv.tv_sec = static_cast<time_t>(now.unixtime());
     tv.tv_usec = 0;
     settimeofday(&tv, nullptr);
+    return true;
+}
+
+bool readTime(PRTClock& clock) {
+    if (!rtcAvailable) {
+        return false;
+    }
+
+    DateTime now = rtc.now();
+    if (now.year() < 2000 || now.year() > 2099) {
+        return false;
+    }
+
+    clock.setYear(now.year() - 2000);
+    clock.setMonth(now.month());
+    clock.setDay(now.day());
+    clock.setHour(now.hour());
+    clock.setMinute(now.minute());
+    clock.setSecond(now.second());
     return true;
 }
 
