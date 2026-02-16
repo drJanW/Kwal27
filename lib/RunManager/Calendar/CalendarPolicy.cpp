@@ -1,7 +1,7 @@
 /**
  * @file CalendarPolicy.cpp
  * @brief Calendar business logic implementation
- * @version 260216D
+ * @version 260216F
  * @date 2026-02-16
  */
 #include <Arduino.h>
@@ -145,11 +145,9 @@ void applyThemeBox(const CalendarThemeBox& box) {
   }
 
   if (filteredCount == 0) {
-    // Index may not be ready yet (deferred rebuild). Use unfiltered list
-    // so the theme box is not permanently cleared by a timing race.
-    PF("[CalendarPolicy] Box %u: index not ready, using %u unfiltered dirs\n",
-       static_cast<unsigned>(box.id), static_cast<unsigned>(count));
-    AudioPolicy::setThemeBox(dirs, count, boxIdStr);
+    PF("[CalendarPolicy] Theme box %u has no populated directories, clearing\n",
+       static_cast<unsigned>(box.id));
+    AudioPolicy::clearThemeBox();
     return;
   }
 

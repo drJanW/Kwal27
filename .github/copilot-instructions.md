@@ -31,6 +31,15 @@ Controllers (hardware APIs)    Directors (context→requests)
 - After ~50 exchanges, warn again more urgently.
 - This prevents context overflow, slower responses, and higher token cost.
 
+### Anti-Shortcut Rule
+When adding new functionality:
+1. FIRST find the existing mechanism that does the same or similar thing
+2. THEN extend it with a public API if needed
+3. NEVER create a parallel mechanism in a different layer
+4. Web handlers set flags/call Run-layer APIs. NOTHING ELSE.
+5. If you catch yourself writing `cb_*` outside `lib/RunManager/` — STOP. Wrong layer.
+6. Avoid treating symptoms — find and fix the root cause.
+
 ### Engineering Discipline
 - Avoid quick fixes and patch chains. Prefer a structural solution based on the actual boot/run sequence.
 - Trace the flow end-to-end before editing when symptoms are timing/order related.

@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260215F - Built 2026-02-15 18:51
+ * Kwal WebGUI v260216E - Built 2026-02-16 12:08
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260215F';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260216E';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -447,19 +447,22 @@ Kwal.modal = (function() {
 
 // === js/sd.js ===
 /*
- * Kwal - SD module (simple upload to root)
+ * Kwal - SD module (upload + index rebuild)
  */
 Kwal.sd = (function() {
   'use strict';
 
-  var fileInput, uploadBtn, uploadMsg;
+  var fileInput, uploadBtn, uploadMsg, rebuildBtn, rebuildMsg;
 
   function init() {
     fileInput = document.getElementById('upload-file');
     uploadBtn = document.getElementById('upload-btn');
     uploadMsg = document.getElementById('upload-msg');
+    rebuildBtn = document.getElementById('rebuild-idx-btn');
+    rebuildMsg = document.getElementById('rebuild-msg');
 
     if (uploadBtn) uploadBtn.onclick = upload;
+    if (rebuildBtn) rebuildBtn.onclick = rebuildIndex;
   }
 
   function upload() {
@@ -493,6 +496,25 @@ Kwal.sd = (function() {
       uploadMsg.textContent = text;
       uploadMsg.className = isError ? 'err' : 'ok';
     }
+  }
+
+  function rebuildIndex() {
+    if (rebuildMsg) { rebuildMsg.textContent = 'Rebuilding...'; rebuildMsg.className = ''; }
+    if (rebuildBtn) rebuildBtn.disabled = true;
+    fetch('/api/sd/rebuild', { method: 'POST' })
+      .then(function(r) {
+        if (!r.ok) throw new Error(r.statusText);
+        return r.json();
+      })
+      .then(function() {
+        if (rebuildMsg) { rebuildMsg.textContent = 'Rebuild gestart, check log'; rebuildMsg.className = 'ok'; }
+      })
+      .catch(function(err) {
+        if (rebuildMsg) { rebuildMsg.textContent = 'Error: ' + err.message; rebuildMsg.className = 'err'; }
+      })
+      .finally(function() {
+        if (rebuildBtn) rebuildBtn.disabled = false;
+      });
   }
 
   return {

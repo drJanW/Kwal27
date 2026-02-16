@@ -1,8 +1,8 @@
 /**
  * @file SDBoot.cpp
  * @brief SD card one-time initialization implementation
- * @version 260206C
- * @date 2026-02-06
+ * @version 260216G
+ * @date 2026-02-16
  */
 #include <Arduino.h>
 #include "SDBoot.h"
@@ -237,4 +237,13 @@ void SDBoot::onTimeAvailable() {
     rebuildPending = false;
     // Defer rebuild to avoid blocking NTP_OK event flow
     timers.create(100, 1, cb_deferredRebuild);
+}
+
+void SDBoot::requestRebuild() {
+    if (timers.isActive(cb_deferredRebuild)) {
+        PF("[SDBoot] Rebuild already scheduled\n");
+        return;
+    }
+    timers.create(100, 1, cb_deferredRebuild);
+    PF("[SDBoot] Rebuild requested\n");
 }

@@ -1,8 +1,8 @@
 /**
  * @file Calendar.cpp
  * @brief Calendar day structure and parsing implementation
- * @version 260204A
- $12026-02-05
+ * @version 260216H
+ * @date 2026-02-16
  */
 #include <Arduino.h>
 #include "Calendar.h"
@@ -198,8 +198,9 @@ bool CalendarSelector::loadThemeBox(uint8_t id, CalendarThemeBox& out) {
 			continue;
 		}
 
-		const String name = (columns.size() > 1) ? columns[1] : String();
-		const String entries = (columns.size() > 2) ? columns[2] : String();
+		// columns: 0=id, 1=color (skip), 2=name, 3=entries
+		const String name = (columns.size() > 2) ? columns[2] : String();
+		const String entries = (columns.size() > 3) ? columns[3] : String();
 
 		if (rowId != id) {
 			continue;

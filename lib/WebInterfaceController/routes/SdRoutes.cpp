@@ -1,13 +1,14 @@
 /**
  * @file SdRoutes.cpp
  * @brief SD card API endpoint routes
- * @version 260205A
- * @date 2026-02-05
+ * @version 260216G
+ * @date 2026-02-16
  */
 #include "SdRoutes.h"
 #include "../WebUtils.h"
 #include "Globals.h"
 #include "SDController.h"
+#include "SD/SDBoot.h"
 #include "Alert/AlertState.h"
 #include <SD.h>
 #include <memory>
@@ -178,6 +179,18 @@ void attachRoutes(AsyncWebServer &server)
     server.on("/api/sd/status", HTTP_GET, routeStatus);
     server.on("/api/sd/file", HTTP_GET, routeFileDownload);
     server.on("/api/sd/upload", HTTP_POST, routeUploadRequest, routeUploadData);
+    server.on("/api/sd/rebuild", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (!AlertState::isSdOk()) {
+            sendError(request, 503, F("SD not ready"));
+            return;
+        }
+        if (AlertState::isSdBusy()) {
+            sendError(request, 409, F("SD busy"));
+            return;
+        }
+        SDBoot::requestRebuild();
+        sendJson(request, F("{\"status\":\"accepted\"}"));
+    });
 }
 
 } // namespace SdRoutes
