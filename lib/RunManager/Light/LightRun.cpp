@@ -1,8 +1,8 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260212C
- * @date 2026-02-12
+ * @version 260216J
+ * @date 2026-02-16
  */
 #include "LightRun.h"
 
@@ -536,9 +536,9 @@ void LightRun::applyColor(uint8_t colorId) {
         // Calendar specifies color, select it
         if (catalog.selectColor(String(colorId), errorMessage)) {
             colorSource = LightSource::CALENDAR;
-            PF("[LightRun] Calendar: color %u selected\n", static_cast<unsigned>(colorId));
+            PF("[LightRun] Calendar: colors %u selected\n", static_cast<unsigned>(colorId));
         } else {
-            PF("[LightRun] Calendar: color %u failed: %s\n",
+            PF("[LightRun] Calendar: colors %u failed: %s\n",
                static_cast<unsigned>(colorId), errorMessage.c_str());
         }
     }
