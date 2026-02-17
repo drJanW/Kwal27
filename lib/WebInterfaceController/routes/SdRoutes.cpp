@@ -1,8 +1,8 @@
 /**
  * @file SdRoutes.cpp
  * @brief SD card API endpoint routes
- * @version 260216G
- * @date 2026-02-16
+ * @version 260217A
+ * @date 2026-02-17
  */
 #include "SdRoutes.h"
 #include "../WebUtils.h"
@@ -174,9 +174,64 @@ void routeUploadData(AsyncWebServerRequest *request, const String &filename,
     }
 }
 
+void routeListDir(AsyncWebServerRequest *request)
+{
+    if (!AlertState::isSdOk()) {
+        sendError(request, 503, F("SD not ready"));
+        return;
+    }
+    if (AlertState::isSdBusy()) {
+        sendError(request, 409, F("SD busy"));
+        return;
+    }
+    if (!request->hasParam("path")) {
+        sendError(request, 400, F("Missing path parameter"));
+        return;
+    }
+
+    String path = request->getParam("path")->value();
+    if (!path.startsWith("/")) path = "/" + path;
+    if (path.indexOf("..") >= 0) {
+        sendError(request, 400, F("Invalid path"));
+        return;
+    }
+
+    String payload = F("{\"files\":[");
+
+    if (SD.exists(path)) {
+        SDController::lockSD();
+        File dir = SD.open(path);
+        if (dir && dir.isDirectory()) {
+            bool first = true;
+            File entry = dir.openNextFile();
+            while (entry) {
+                if (!entry.isDirectory()) {
+                    if (!first) payload += ',';
+                    first = false;
+                    payload += F("{\"name\":\"");
+                    appendJsonEscaped(payload, entry.name());
+                    payload += F("\",\"size\":");
+                    payload += String(entry.size());
+                    payload += '}';
+                }
+                entry.close();
+                entry = dir.openNextFile();
+            }
+            dir.close();
+        } else {
+            if (dir) dir.close();
+        }
+        SDController::unlockSD();
+    }
+
+    payload += F("]}");
+    sendJson(request, payload);
+}
+
 void attachRoutes(AsyncWebServer &server)
 {
     server.on("/api/sd/status", HTTP_GET, routeStatus);
+    server.on("/api/sd/list", HTTP_GET, routeListDir);
     server.on("/api/sd/file", HTTP_GET, routeFileDownload);
     server.on("/api/sd/upload", HTTP_POST, routeUploadRequest, routeUploadData);
     server.on("/api/sd/rebuild", HTTP_POST, [](AsyncWebServerRequest *request) {
