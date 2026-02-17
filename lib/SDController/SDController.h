@@ -1,8 +1,8 @@
 /**
  * @file SDController.h
  * @brief SD card control interface with directory scanning and file indexing
- * @version 260202A
- $12026-02-05
+ * @version 260217D
+ * @date 2026-02-17
  */
 #pragma once
 #include <Arduino.h>
@@ -51,6 +51,7 @@ public:
     // === Index operations ===
     static void rebuildIndex();
     static void scanDirectory(uint8_t dir_num);
+    static void syncDirectory(uint8_t dir_num);  // Like scanDirectory but preserves existing votes
     static void rebuildWordsIndex();
     static void updateHighestDirNum();
     static uint8_t getHighestDirNum();

@@ -104,7 +104,7 @@ void bootWiFiConnect() {
     configureStation();
 
     if (!loggedStart) {
-        PL("[WiFi] Starting connection with growing interval");
+        PL("[WiFi] Connecting...");
         loggedStart = true;
     }
 

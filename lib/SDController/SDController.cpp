@@ -1,8 +1,8 @@
 /**
  * @file SDController.cpp
  * @brief SD card control implementation with directory scanning and file indexing
- * @version 260202A
- $12026-02-05
+ * @version 260217D
+ * @date 2026-02-17
  */
 #include <Arduino.h>
 #include "SDController.h"
@@ -195,6 +195,64 @@ void SDController::scanDirectory(uint8_t dir_num) {
     if (SD.exists(dirPath)) {
         writeDirEntry(dir_num, &dirEntry);
     }
+}
+
+void SDController::syncDirectory(uint8_t dir_num) {
+    // Like scanDirectory but preserves existing voting scores.
+    // Caller must hold lockSD().
+    char dirPath[12];
+    snprintf(dirPath, sizeof(dirPath), "/%03u", dir_num);
+    if (!SD.exists(dirPath)) return;
+
+    char filesDirPath[SDPATHLENGTH];
+    snprintf(filesDirPath, sizeof(filesDirPath), "%s%s", dirPath, FILES_DIR);
+
+    // Read existing scores (if index exists)
+    uint8_t oldScores[SD_MAX_FILES_PER_SUBDIR + 1] = {};  // [1..100]
+    if (SD.exists(filesDirPath)) {
+        File old = SD.open(filesDirPath, FILE_READ);
+        if (old) {
+            for (uint8_t i = 1; i <= SD_MAX_FILES_PER_SUBDIR; ++i) {
+                FileEntry fe{};
+                old.seek((i - 1) * sizeof(FileEntry));
+                if (old.read(reinterpret_cast<uint8_t*>(&fe), sizeof(FileEntry)) == sizeof(FileEntry)) {
+                    oldScores[i] = fe.score;
+                }
+            }
+            old.close();
+        }
+        SD.remove(filesDirPath);
+    }
+
+    File filesIndex = SD.open(filesDirPath, "w");
+    if (!filesIndex) {
+        PF("[SDController] Open fail: %s\n", filesDirPath);
+        return;
+    }
+
+    DirEntry dirEntry = {0, 0};
+
+    for (uint8_t fnum = 1; fnum <= SD_MAX_FILES_PER_SUBDIR; fnum++) {
+        FileEntry fe = {0, 0, 0};
+        char mp3path[SDPATHLENGTH];
+        snprintf(mp3path, sizeof(mp3path), "%s/%03u.mp3", dirPath, fnum);
+        if (SD.exists(mp3path)) {
+            File mp3 = SD.open(mp3path, FILE_READ);
+            if (mp3) {
+                fe.sizeKb = mp3.size() / 1024;
+                mp3.close();
+            }
+            fe.score = (oldScores[fnum] > 0) ? oldScores[fnum] : 100;
+            dirEntry.fileCount++;
+            dirEntry.totalScore += fe.score;
+        }
+        filesIndex.seek((fnum - 1) * sizeof(FileEntry));
+        filesIndex.write((const uint8_t*)&fe, sizeof(FileEntry));
+    }
+    filesIndex.close();
+    writeDirEntry(dir_num, &dirEntry);
+    PF("[SDController] syncDir %03u: %u files, totalScore=%u\n",
+       dir_num, dirEntry.fileCount, dirEntry.totalScore);
 }
 
 void SDController::rebuildWordsIndex() {

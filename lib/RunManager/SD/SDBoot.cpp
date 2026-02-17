@@ -1,8 +1,8 @@
 /**
  * @file SDBoot.cpp
  * @brief SD card one-time initialization implementation
- * @version 260216G
- * @date 2026-02-16
+ * @version 260217D
+ * @date 2026-02-17
  */
 #include <Arduino.h>
 #include "SDBoot.h"
@@ -25,6 +25,7 @@ SDBoot* instance = nullptr;
 bool loggedStart = false;
 bool sdFailPatternActive = false;
 bool rebuildPending = false;  // Deferred rebuild waiting for time
+static uint8_t pendingSyncDir = 0;  // Dir number awaiting syncDirectory (0 = none)
 CRGB failLeds[NUM_LEDS];
 uint8_t failPhase = 0;
 
@@ -246,4 +247,27 @@ void SDBoot::requestRebuild() {
     }
     timers.create(100, 1, cb_deferredRebuild);
     PF("[SDBoot] Rebuild requested\n");
+}
+
+static void cb_deferredSyncDir() {
+    uint8_t dir = pendingSyncDir;
+    pendingSyncDir = 0;
+    if (dir == 0) return;
+    if (AlertState::isSdBusy()) {
+        // Retry in 200ms
+        pendingSyncDir = dir;
+        timers.create(200, 1, cb_deferredSyncDir);
+        return;
+    }
+    SDController::lockSD();
+    SDController::syncDirectory(dir);
+    SDController::updateHighestDirNum();
+    SDController::unlockSD();
+}
+
+void SDBoot::requestSyncDir(uint8_t dirNum) {
+    if (dirNum == 0) return;
+    pendingSyncDir = dirNum;
+    timers.create(100, 1, cb_deferredSyncDir);
+    PF("[SDBoot] SyncDir %03u requested\n", dirNum);
 }

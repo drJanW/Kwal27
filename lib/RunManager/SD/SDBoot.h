@@ -1,8 +1,8 @@
 /**
  * @file SDBoot.h
  * @brief SD card one-time initialization
- * @version 260216G
- * @date 2026-02-16
+ * @version 260217D
+ * @date 2026-02-17
  */
 #pragma once
 
@@ -17,6 +17,10 @@ public:
     /// Request an index rebuild from outside (e.g. web handler).
     /// Schedules the rebuild in the Run layer via timer.
     static void requestRebuild();
+
+    /// Request a vote-preserving reindex of one dir.
+    /// Schedules via timer so SD I/O runs outside web handler.
+    static void requestSyncDir(uint8_t dirNum);
     
 private:
     static void cb_retryBoot();
