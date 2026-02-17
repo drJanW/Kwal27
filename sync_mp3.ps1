@@ -33,19 +33,41 @@ function Test-DeviceReachable {
 
 function Get-EspFileList([int]$dirNum) {
     $dirStr = "{0:d3}" -f $dirNum
-    try {
-        $r = Invoke-WebRequest -Uri "$baseUrl/api/sd/list?path=/$dirStr" -TimeoutSec $timeout -ErrorAction Stop
-        $json = $r.Content | ConvertFrom-Json
-        $result = @{}
-        foreach ($f in $json.files) {
-            # Skip index files
-            if ($f.name -match '^\.' ) { continue }
-            $result[$f.name] = [long]$f.size
+    $maxRetries = 5
+    for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
+        try {
+            $r = Invoke-WebRequest -Uri "$baseUrl/api/sd/list?path=/$dirStr" -TimeoutSec $timeout -ErrorAction Stop
+            $json = $r.Content | ConvertFrom-Json
+            $result = @{}
+            foreach ($f in $json.files) {
+                # Skip index files
+                if ($f.name -match '^\.' ) { continue }
+                $result[$f.name] = [long]$f.size
+            }
+            return $result
+        } catch {
+            $status = $_.Exception.Response.StatusCode.value__
+            if ($status -eq 409) {
+                # SD busy — wait and retry
+                Write-Host " (SD busy, retry $attempt/$maxRetries)" -NoNewline -ForegroundColor Yellow
+                Start-Sleep -Seconds 3
+                continue
+            }
+            if ($status -eq 503) {
+                Write-Host "`nERROR: SD not ready on device" -ForegroundColor Red
+                exit 1
+            }
+            # Other error (timeout, network) — retry once
+            if ($attempt -lt $maxRetries) {
+                Start-Sleep -Seconds 2
+                continue
+            }
+            Write-Host "`nERROR: Failed to list dir $dirStr after $maxRetries attempts" -ForegroundColor Red
+            exit 1
         }
-        return $result
-    } catch {
-        return @{}
     }
+    Write-Host "`nERROR: Dir $dirStr still busy after $maxRetries retries" -ForegroundColor Red
+    exit 1
 }
 
 function Get-EspHighestDir {
@@ -60,26 +82,48 @@ function Get-EspHighestDir {
 }
 
 function Send-Delete([string]$sdPath) {
-    try {
-        $encoded = [Uri]::EscapeDataString($sdPath)
-        $r = Invoke-WebRequest -Uri "$baseUrl/api/sd/delete?path=$encoded" -Method POST -TimeoutSec $timeout -ErrorAction Stop
-        return $true
-    } catch {
-        Write-Host "  FAIL delete $sdPath : $_" -ForegroundColor Red
-        return $false
+    for ($attempt = 1; $attempt -le 5; $attempt++) {
+        try {
+            $encoded = [Uri]::EscapeDataString($sdPath)
+            $r = Invoke-WebRequest -Uri "$baseUrl/api/sd/delete?path=$encoded" -Method POST -TimeoutSec $timeout -ErrorAction Stop
+            return $true
+        } catch {
+            $status = $_.Exception.Response.StatusCode.value__
+            if ($status -eq 409 -and $attempt -lt 5) {
+                Start-Sleep -Seconds 2
+                continue
+            }
+            Write-Host "  FAIL delete $sdPath : $_" -ForegroundColor Red
+            return $false
+        }
     }
+    return $false
 }
 
 function Send-Upload([string]$localPath, [string]$sdDir) {
-    try {
-        # Use curl for multipart upload (Invoke-WebRequest multipart is verbose)
-        $result = curl -s -X POST -F "file=@$localPath" "$baseUrl/api/sd/upload?path=$sdDir" 2>&1
-        $json = $result | ConvertFrom-Json -ErrorAction Stop
-        return ($json.status -eq "ok")
-    } catch {
-        Write-Host "  FAIL upload $localPath : $_" -ForegroundColor Red
-        return $false
+    for ($attempt = 1; $attempt -le 5; $attempt++) {
+        try {
+            # Use curl for multipart upload (Invoke-WebRequest multipart is verbose)
+            $result = curl -s -X POST -F "file=@$localPath" "$baseUrl/api/sd/upload?path=$sdDir" 2>&1
+            $json = $result | ConvertFrom-Json -ErrorAction Stop
+            if ($json.status -eq "ok") { return $true }
+            # Non-ok status — check if busy
+            if ($json.error -match "busy" -and $attempt -lt 5) {
+                Start-Sleep -Seconds 2
+                continue
+            }
+            Write-Host "  FAIL: $($json.error)" -ForegroundColor Red
+            return $false
+        } catch {
+            if ($attempt -lt 5) {
+                Start-Sleep -Seconds 2
+                continue
+            }
+            Write-Host "  FAIL upload $localPath : $_" -ForegroundColor Red
+            return $false
+        }
     }
+    return $false
 }
 
 function Send-SyncDir([int]$dirNum) {

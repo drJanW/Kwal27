@@ -1,7 +1,7 @@
 /**
  * @file SdRoutes.cpp
  * @brief SD card API endpoint routes
- * @version 260217D
+ * @version 260217E
  * @date 2026-02-17
  */
 #include "SdRoutes.h"
@@ -200,10 +200,8 @@ void routeListDir(AsyncWebServerRequest *request)
         sendError(request, 503, F("SD not ready"));
         return;
     }
-    if (AlertState::isSdBusy()) {
-        sendError(request, 409, F("SD busy"));
-        return;
-    }
+    // No isSdBusy guard — lockSD() below handles concurrency.
+    // Allows sync_mp3.ps1 to scan during audio playback.
     if (!request->hasParam("path")) {
         sendError(request, 400, F("Missing path parameter"));
         return;
