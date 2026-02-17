@@ -31,6 +31,25 @@ function Test-DeviceReachable {
     }
 }
 
+function Get-EspBinaryFile([string]$sdPath, [string]$localPath) {
+    # Download a binary file from the device with retry on SD busy (409)
+    for ($attempt = 1; $attempt -le 5; $attempt++) {
+        try {
+            Invoke-WebRequest -Uri "$baseUrl/api/sd/file?path=$sdPath" -OutFile $localPath -TimeoutSec $timeout -ErrorAction Stop
+            return $true
+        } catch {
+            $status = $_.Exception.Response.StatusCode.value__
+            if ($status -eq 409 -and $attempt -lt 5) {
+                Start-Sleep -Seconds 2
+                continue
+            }
+            if ($attempt -ge 5) { return $false }
+            Start-Sleep -Seconds 1
+        }
+    }
+    return $false
+}
+
 function Get-EspHighestDir {
     try {
         $r = Invoke-WebRequest -Uri "$baseUrl/api/audio/grid" -TimeoutSec $timeout -ErrorAction Stop
@@ -138,9 +157,7 @@ $espHighest = Get-EspHighestDir
 
 # Download .root_dirs — DirEntry[200], 4 bytes each: {uint16_t fileCount, uint16_t totalScore}
 $rootDirsPath = Join-Path $env:TEMP "sync_root_dirs.bin"
-try {
-    Invoke-WebRequest -Uri "$baseUrl/api/sd/file?path=/.root_dirs" -OutFile $rootDirsPath -TimeoutSec $timeout -ErrorAction Stop
-} catch {
+if (-not (Get-EspBinaryFile "/.root_dirs" $rootDirsPath)) {
     Write-Host "ERROR: Cannot download .root_dirs from device" -ForegroundColor Red
     exit 1
 }
@@ -167,8 +184,7 @@ foreach ($dirNum in $dirsWithFiles) {
     $dirStr = "{0:d3}" -f $dirNum
     $pct = [math]::Round(($progress / $dirsWithFiles.Count) * 100)
     Write-Host "`r  Reading index $dirStr ($pct%)..." -NoNewline
-    try {
-        Invoke-WebRequest -Uri "$baseUrl/api/sd/file?path=/$dirStr/.files_dir" -OutFile $filesDirTmp -TimeoutSec $timeout -ErrorAction Stop
+    if (Get-EspBinaryFile "/$dirStr/.files_dir" $filesDirTmp) {
         $fBytes = [System.IO.File]::ReadAllBytes($filesDirTmp)
         $files = @{}
         for ($fnum = 1; $fnum -le 100; $fnum++) {
@@ -183,8 +199,8 @@ foreach ($dirNum in $dirsWithFiles) {
         if ($files.Count -gt 0) {
             $espDirs[$dirNum] = $files
         }
-    } catch {
-        Write-Host " (skip: $($_.Exception.Message))" -NoNewline -ForegroundColor Yellow
+    } else {
+        Write-Host " (skip: download failed)" -NoNewline -ForegroundColor Yellow
     }
 }
 Write-Host ""  # newline after progress

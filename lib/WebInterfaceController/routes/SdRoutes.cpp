@@ -11,7 +11,6 @@
 #include "SD/SDBoot.h"
 #include "Alert/AlertState.h"
 #include <SD.h>
-#include <memory>
 
 using WebUtils::sendJson;
 using WebUtils::sendError;
@@ -43,6 +42,10 @@ void routeFileDownload(AsyncWebServerRequest *request)
         sendError(request, 503, F("SD not ready"));
         return;
     }
+    if (AlertState::isSdBusy()) {
+        sendError(request, 409, F("SD busy"));
+        return;
+    }
     
     if (!request->hasParam("path")) {
         sendError(request, 400, F("Missing path parameter"));
@@ -61,8 +64,22 @@ void routeFileDownload(AsyncWebServerRequest *request)
         sendError(request, 400, F("Invalid path"));
         return;
     }
-    
+
+    // Determine content type before SD access
+    const char *contentType = "application/octet-stream";
+    if (path.endsWith(".csv")) contentType = "text/csv";
+    else if (path.endsWith(".txt")) contentType = "text/plain";
+    else if (path.endsWith(".json")) contentType = "application/json";
+    else if (path.endsWith(".html")) contentType = "text/html";
+    else if (path.endsWith(".js")) contentType = "application/javascript";
+    else if (path.endsWith(".css")) contentType = "text/css";
+
+    // Read entire file into response stream under SD lock.
+    // This keeps SD access short and prevents async file handle issues.
+    SDController::lockSD();
+
     if (!SD.exists(path)) {
+        SDController::unlockSD();
         sendError(request, 404, F("File not found"));
         return;
     }
@@ -70,20 +87,34 @@ void routeFileDownload(AsyncWebServerRequest *request)
     File file = SD.open(path, FILE_READ);
     if (!file || file.isDirectory()) {
         if (file) file.close();
+        SDController::unlockSD();
         sendError(request, 400, F("Cannot read file"));
         return;
     }
-    
-    // Determine content type
-    String contentType = "application/octet-stream";
-    if (path.endsWith(".csv")) contentType = "text/csv";
-    else if (path.endsWith(".txt")) contentType = "text/plain";
-    else if (path.endsWith(".json")) contentType = "application/json";
-    else if (path.endsWith(".html")) contentType = "text/html";
-    else if (path.endsWith(".js")) contentType = "application/javascript";
-    else if (path.endsWith(".css")) contentType = "text/css";
-    
-    request->send(SD, path, contentType);
+
+    size_t fileSize = file.size();
+    if (fileSize > 65536) {
+        file.close();
+        SDController::unlockSD();
+        sendError(request, 413, F("File too large for download"));
+        return;
+    }
+
+    // AsyncResponseStream owns its buffer — no manual free needed
+    AsyncResponseStream *stream = request->beginResponseStream(contentType, fileSize);
+    uint8_t chunk[512];
+    size_t remaining = fileSize;
+    while (remaining > 0) {
+        size_t toRead = (remaining < sizeof(chunk)) ? remaining : sizeof(chunk);
+        size_t got = file.read(chunk, toRead);
+        if (got == 0) break;
+        stream->write(chunk, got);
+        remaining -= got;
+    }
+    file.close();
+    SDController::unlockSD();
+
+    request->send(stream);
 }
 
 // Upload state for multipart routing
