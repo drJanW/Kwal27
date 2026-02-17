@@ -12,36 +12,16 @@ PREREQUISITES
 FIRMWARE CHANGES
 ================
 
-TODO 1: Add /api/sd/list endpoint
-  GET /api/sd/list?path=/107
-  Returns JSON array of files in that directory.
-  Response: {"files":[{"name":"001.mp3","size":45231},{"name":"002.mp3","size":61002}]}
-  If dir doesn't exist: {"files":[]}
-  Guard: isSdOk, !isSdBusy
-
-TODO 2: Add /api/sd/delete endpoint
-  POST /api/sd/delete?path=/108/042.mp3
-  Deletes single file from SD.
-  Response: {"status":"ok"}
-  Guard: isSdOk, !isSdBusy, lockSD/unlockSD
-  Security: block ".." in path
-
-TODO 3: Fix /api/sd/upload to support subdirectories
-  Currently: always writes to "/" (root)
-  Needed: accept "path" form field, e.g. path=/108
-  Upload to /108/042.mp3 when file=042.mp3 and path=/108
-  Auto-create directory if it doesn't exist (SD.mkdir)
-  Guard: lockSD/unlockSD (already present)
-
-TODO 4: Version bump
-  Bump FIRMWARE_VERSION in Globals.h
-  Update @version/@date in SdRoutes.cpp, SdRoutes.h
+[x] TODO 1: Add /api/sd/list endpoint — DONE (commit 40a439a)
+[x] TODO 2: Add /api/sd/delete endpoint — DONE (no index update in handler)
+[x] TODO 3: Fix /api/sd/upload to support subdirectories — DONE (query param ?path=)
+[x] TODO 4: Version bump — DONE (260217D)
 
 
 PC-SIDE SCRIPT: sync_mp3.ps1
 =============================
 
-TODO 5: Create sync_mp3.ps1
+[x] TODO 5: Create sync_mp3.ps1 — DONE
 
 Usage:
   .\sync_mp3.ps1           # sync to 189 (HOUT)
@@ -173,17 +153,11 @@ So the sync strategy is:
     - .root_dirs entry becomes fileCount=0 after rebuild
     - Votes are lost — acceptable since the dir is gone.
 
-TODO 6: Add /api/sd/syncdir endpoint (smarter than raw rebuild)
-  POST /api/sd/syncdir?dir=108
-  For ONE specific dir:
-    1. Read existing /.files (preserving scores for files that still exist)
-    2. Scan actual MP3 files in /108/
-    3. For each MP3 found:
-       - If FileEntry already has score > 0 → keep score
-       - If FileEntry has score == 0 (new file) → set score = 100
-    4. Write updated /.files
-    5. Update DirEntry in .root_dirs
-  This preserves votes for unchanged files and gives new files a default score.
+[x] TODO 6: Add /api/sd/syncdir endpoint — DONE
+  SDController::syncDirectory() preserves existing votes.
+  SDBoot::requestSyncDir() defers to timer callback.
+  POST /api/sd/syncdir?dir=126 → "accepted" → timer → syncDirectory()
+  Tested: score=42 survives syncdir. New files get score=100.
 
 ALTERNATIVE (simpler, script-side):
   Instead of a new endpoint, the script can:
