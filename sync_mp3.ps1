@@ -31,45 +31,6 @@ function Test-DeviceReachable {
     }
 }
 
-function Get-EspFileList([int]$dirNum) {
-    $dirStr = "{0:d3}" -f $dirNum
-    $maxRetries = 5
-    for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
-        try {
-            $r = Invoke-WebRequest -Uri "$baseUrl/api/sd/list?path=/$dirStr" -TimeoutSec $timeout -ErrorAction Stop
-            $json = $r.Content | ConvertFrom-Json
-            $result = @{}
-            foreach ($f in $json.files) {
-                # Skip index files
-                if ($f.name -match '^\.' ) { continue }
-                $result[$f.name] = [long]$f.size
-            }
-            return $result
-        } catch {
-            $status = $_.Exception.Response.StatusCode.value__
-            if ($status -eq 409) {
-                # SD busy — wait and retry
-                Write-Host " (SD busy, retry $attempt/$maxRetries)" -NoNewline -ForegroundColor Yellow
-                Start-Sleep -Seconds 3
-                continue
-            }
-            if ($status -eq 503) {
-                Write-Host "`nERROR: SD not ready on device" -ForegroundColor Red
-                exit 1
-            }
-            # Other error (timeout, network) — retry once
-            if ($attempt -lt $maxRetries) {
-                Start-Sleep -Seconds 2
-                continue
-            }
-            Write-Host "`nERROR: Failed to list dir $dirStr after $maxRetries attempts" -ForegroundColor Red
-            exit 1
-        }
-    }
-    Write-Host "`nERROR: Dir $dirStr still busy after $maxRetries retries" -ForegroundColor Red
-    exit 1
-}
-
 function Get-EspHighestDir {
     try {
         $r = Invoke-WebRequest -Uri "$baseUrl/api/audio/grid" -TimeoutSec $timeout -ErrorAction Stop
@@ -166,30 +127,64 @@ foreach ($d in $subDirs) {
 $nasCount = ($nasDirs.Values | ForEach-Object { $_.Count } | Measure-Object -Sum).Sum
 Write-Host "  NAS: $($nasDirs.Count) dirs, $nasCount files" -ForegroundColor White
 
-# ── Phase 2: Scan ESP32 ─────────────────────────────────────────
+# ── Phase 2: Scan ESP32 via binary indices ───────────────────────
+# Downloads .root_dirs (800B) + .files_dir per dir (404B each).
+# No dir-listing needed — the indices contain file counts and sizes.
 
 Write-Host "Scanning ESP32 at $ip..." -ForegroundColor Cyan
-$espDirs = @{}  # dirNum → @{ filename → size }
+$espDirs = @{}  # dirNum → @{ filename → sizeKb }
 
-# Scan all NAS dirs on ESP
-$allDirNums = [System.Collections.Generic.HashSet[int]]::new()
-foreach ($k in $nasDirs.Keys) { [void]$allDirNums.Add($k) }
-
-# Also check ESP dirs beyond NAS range (detect orphans)
 $espHighest = Get-EspHighestDir
-for ($i = 1; $i -le $espHighest; $i++) {
-    [void]$allDirNums.Add($i)
+
+# Download .root_dirs — DirEntry[200], 4 bytes each: {uint16_t fileCount, uint16_t totalScore}
+$rootDirsPath = Join-Path $env:TEMP "sync_root_dirs.bin"
+try {
+    Invoke-WebRequest -Uri "$baseUrl/api/sd/file?path=/.root_dirs" -OutFile $rootDirsPath -TimeoutSec $timeout -ErrorAction Stop
+} catch {
+    Write-Host "ERROR: Cannot download .root_dirs from device" -ForegroundColor Red
+    exit 1
+}
+$rootBytes = [System.IO.File]::ReadAllBytes($rootDirsPath)
+
+# Parse .root_dirs to find which dirs have files
+$dirsWithFiles = @()
+for ($d = 1; $d -le $espHighest; $d++) {
+    $off = $d * 4  # DirEntry[d], 4 bytes each
+    if (($off + 3) -ge $rootBytes.Length) { break }
+    $fileCount = [BitConverter]::ToUInt16($rootBytes, $off)
+    if ($fileCount -gt 0) {
+        $dirsWithFiles += $d
+    }
 }
 
-$sorted = $allDirNums | Sort-Object
+# Download .files_dir for each dir with files
+# FileEntry[101], 4 bytes each: {uint16_t sizeKb, uint8_t score, uint8_t reserved}
+# Index 0 = file 001, index N-1 = file N
+$filesDirTmp = Join-Path $env:TEMP "sync_files_dir.bin"
 $progress = 0
-foreach ($dirNum in $sorted) {
+foreach ($dirNum in $dirsWithFiles) {
     $progress++
-    $pct = [math]::Round(($progress / $sorted.Count) * 100)
-    Write-Host "`r  Scanning dir $("{0:d3}" -f $dirNum) ($pct%)..." -NoNewline
-    $files = Get-EspFileList $dirNum
-    if ($files.Count -gt 0) {
-        $espDirs[$dirNum] = $files
+    $dirStr = "{0:d3}" -f $dirNum
+    $pct = [math]::Round(($progress / $dirsWithFiles.Count) * 100)
+    Write-Host "`r  Reading index $dirStr ($pct%)..." -NoNewline
+    try {
+        Invoke-WebRequest -Uri "$baseUrl/api/sd/file?path=/$dirStr/.files_dir" -OutFile $filesDirTmp -TimeoutSec $timeout -ErrorAction Stop
+        $fBytes = [System.IO.File]::ReadAllBytes($filesDirTmp)
+        $files = @{}
+        for ($fnum = 1; $fnum -le 100; $fnum++) {
+            $off = ($fnum - 1) * 4
+            if (($off + 3) -ge $fBytes.Length) { break }
+            $sizeKb = [BitConverter]::ToUInt16($fBytes, $off)
+            if ($sizeKb -gt 0) {
+                $fname = "{0:d3}.mp3" -f $fnum
+                $files[$fname] = [long]$sizeKb
+            }
+        }
+        if ($files.Count -gt 0) {
+            $espDirs[$dirNum] = $files
+        }
+    } catch {
+        Write-Host " (skip: $($_.Exception.Message))" -NoNewline -ForegroundColor Yellow
     }
 }
 Write-Host ""  # newline after progress
@@ -198,10 +193,18 @@ $espCount = ($espDirs.Values | ForEach-Object { $_.Count } | Measure-Object -Sum
 Write-Host "  ESP: $($espDirs.Count) dirs, $espCount files" -ForegroundColor White
 
 # ── Phase 3: Compare ────────────────────────────────────────────
+# ESP index stores sizeKb (file size / 1024). NAS has exact byte sizes.
+# Compare: round(nasSize / 1024) vs espSizeKb.
 
 $toUpload = @()   # @{ dirNum, filename, nasPath }
 $toDelete = @()   # sdPath strings
 $changedDirs = [System.Collections.Generic.HashSet[int]]::new()
+
+# All dirs from both NAS and ESP
+$allDirNums = [System.Collections.Generic.HashSet[int]]::new()
+foreach ($k in $nasDirs.Keys) { [void]$allDirNums.Add($k) }
+foreach ($k in $espDirs.Keys) { [void]$allDirNums.Add($k) }
+$sorted = $allDirNums | Sort-Object
 
 foreach ($dirNum in $sorted) {
     $nasFiles = if ($nasDirs.ContainsKey($dirNum)) { $nasDirs[$dirNum] } else { @{} }
@@ -210,9 +213,9 @@ foreach ($dirNum in $sorted) {
 
     # Files on NAS but not on ESP (or different size) → upload
     foreach ($fname in $nasFiles.Keys) {
-        $nasSize = $nasFiles[$fname]
-        $espSize = if ($espFiles.ContainsKey($fname)) { $espFiles[$fname] } else { -1 }
-        if ($espSize -ne $nasSize) {
+        $nasSizeKb = [math]::Floor($nasFiles[$fname] / 1024)
+        $espSizeKb = if ($espFiles.ContainsKey($fname)) { $espFiles[$fname] } else { -1 }
+        if ($espSizeKb -ne $nasSizeKb) {
             $toUpload += @{
                 dirNum  = $dirNum
                 filename = $fname
