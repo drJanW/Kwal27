@@ -1,8 +1,8 @@
 /**
  * @file AlertState.h
  * @brief Hardware status state storage
- * @version 260206A
- $12026-02-11
+ * @version 260218A
+ * @date 2026-02-18
  */
 #pragma once
 
@@ -55,6 +55,8 @@ namespace AlertState {
     bool isPresent(StatusComponent c);       // hardware present per HWconfig.h
     void setSdBusy(bool busy);
     bool isSdBusy();
+    void setSyncMode(bool active);
+    bool isSyncMode();
     
     // Legacy - backward compatible
     bool isStatusOK(StatusComponent c);

@@ -1,8 +1,8 @@
 /**
  * @file AlertState.cpp
  * @brief Hardware status state storage implementation
- * @version 260215B
- * @date 2026-02-15
+ * @version 260218A
+ * @date 2026-02-18
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -21,6 +21,7 @@ namespace {
 uint64_t bootStatus = 0;
 bool bootPhase = true;
 std::atomic<bool> sdBusy{false};
+std::atomic<bool> syncMode{false};
 
 // ===== Helpers =====
 constexpr uint8_t BITS_PER_FIELD = 4;
@@ -85,6 +86,15 @@ bool isSdBusy() {
     return sdBusy.load(std::memory_order_relaxed);
 }
 
+void setSyncMode(bool active) {
+    syncMode.store(active, std::memory_order_relaxed);
+    PF("[AlertState] syncMode = %s\n", active ? "ON" : "OFF");
+}
+
+bool isSyncMode() {
+    return syncMode.load(std::memory_order_relaxed);
+}
+
 void setStatusOK(StatusComponent c, bool status) {
     set(c, status ? STATUS_OK : STATUS_NOTOK);
 }
@@ -112,6 +122,7 @@ void reset() {
     setStatusOK(SC_TTS, false);      // Not yet spoken
     bootPhase = true;
     setSdBusy(false);
+    syncMode.store(false, std::memory_order_relaxed);
 }
 
 void setSdStatus(bool status) {
@@ -278,7 +289,7 @@ bool canPlayMP3Words() {
 }
 
 bool canPlayFragment() {
-    return isStatusOK(SC_SD) && isStatusOK(SC_AUDIO) && isStatusOK(SC_CALENDAR);
+    return isStatusOK(SC_SD) && isStatusOK(SC_AUDIO) && isStatusOK(SC_CALENDAR) && !isSyncMode();
 }
 
 bool canFetch() {

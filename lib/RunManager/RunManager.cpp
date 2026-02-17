@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260212K
- * @date 2026-02-12
+ * @version 260218A
+ * @date 2026-02-18
  */
 #include <Arduino.h>
 #include <math.h>
@@ -177,6 +177,11 @@ void cb_stopThenPlayPending() {
     timers.create(kInterruptFadeMs + 1U, 1, cb_playPendingFragment);
 }
 
+void cb_startSync() {
+    PlayAudioFragment::stop(0);  // Immediate stop — no fade during sync
+    AlertState::setSyncMode(true);
+}
+
 } // namespace
 
 
@@ -243,6 +248,10 @@ void RunManager::update() {
 }
 
 void RunManager::requestPlayFragment() {
+    if (!AlertState::canPlayFragment()) {
+        RUN_LOG_WARN("[AudioRun] playback blocked by policy\n");
+        return;
+    }
     AudioFragment fragment{};
     if (!AudioDirector::selectRandomFragment(fragment)) {
         RUN_LOG_WARN("[AudioRun] no fragment available\n");
@@ -255,6 +264,10 @@ void RunManager::requestPlayFragment() {
 }
 
 void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file) {
+    if (!AlertState::canPlayFragment()) {
+        RUN_LOG_WARN("[AudioRun] playback blocked by policy\n");
+        return;
+    }
     AudioPolicy::resetToBaseThemeBox();  // Clear any single-dir override
     FileEntry fileEntry{};
     uint8_t targetFile = static_cast<uint8_t>(file);
@@ -427,4 +440,13 @@ void RunManager::requestWebAudioNext(uint16_t fadeMs) {
     webAudioNextFadeMs = fadeMs;
     timers.cancel(cb_webAudioStopThenNext);
     timers.create(1, 1, cb_webAudioStopThenNext);
+}
+
+void RunManager::requestStartSync() {
+    timers.cancel(cb_startSync);
+    timers.create(1, 1, cb_startSync);
+}
+
+void RunManager::requestStopSync() {
+    AlertState::setSyncMode(false);
 }

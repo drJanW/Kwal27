@@ -32,22 +32,12 @@ function Test-DeviceReachable {
 }
 
 function Get-EspBinaryFile([string]$sdPath, [string]$localPath) {
-    # Download a binary file from the device with retry on SD busy (409)
-    for ($attempt = 1; $attempt -le 5; $attempt++) {
-        try {
-            Invoke-WebRequest -Uri "$baseUrl/api/sd/file?path=$sdPath" -OutFile $localPath -TimeoutSec $timeout -ErrorAction Stop
-            return $true
-        } catch {
-            $status = $_.Exception.Response.StatusCode.value__
-            if ($status -eq 409 -and $attempt -lt 5) {
-                Start-Sleep -Seconds 2
-                continue
-            }
-            if ($attempt -ge 5) { return $false }
-            Start-Sleep -Seconds 1
-        }
+    try {
+        Invoke-WebRequest -Uri "$baseUrl/api/sd/file?path=$sdPath" -OutFile $localPath -TimeoutSec $timeout -ErrorAction Stop
+        return $true
+    } catch {
+        return $false
     }
-    return $false
 }
 
 function Get-EspHighestDir {
@@ -62,48 +52,27 @@ function Get-EspHighestDir {
 }
 
 function Send-Delete([string]$sdPath) {
-    for ($attempt = 1; $attempt -le 5; $attempt++) {
-        try {
-            $encoded = [Uri]::EscapeDataString($sdPath)
-            $r = Invoke-WebRequest -Uri "$baseUrl/api/sd/delete?path=$encoded" -Method POST -TimeoutSec $timeout -ErrorAction Stop
-            return $true
-        } catch {
-            $status = $_.Exception.Response.StatusCode.value__
-            if ($status -eq 409 -and $attempt -lt 5) {
-                Start-Sleep -Seconds 2
-                continue
-            }
-            Write-Host "  FAIL delete $sdPath : $_" -ForegroundColor Red
-            return $false
-        }
+    try {
+        $encoded = [Uri]::EscapeDataString($sdPath)
+        Invoke-WebRequest -Uri "$baseUrl/api/sd/delete?path=$encoded" -Method POST -TimeoutSec $timeout -ErrorAction Stop
+        return $true
+    } catch {
+        Write-Host "  FAIL delete $sdPath : $_" -ForegroundColor Red
+        return $false
     }
-    return $false
 }
 
 function Send-Upload([string]$localPath, [string]$sdDir) {
-    for ($attempt = 1; $attempt -le 5; $attempt++) {
-        try {
-            # Use curl for multipart upload (Invoke-WebRequest multipart is verbose)
-            $result = curl -s -X POST -F "file=@$localPath" "$baseUrl/api/sd/upload?path=$sdDir" 2>&1
-            $json = $result | ConvertFrom-Json -ErrorAction Stop
-            if ($json.status -eq "ok") { return $true }
-            # Non-ok status — check if busy
-            if ($json.error -match "busy" -and $attempt -lt 5) {
-                Start-Sleep -Seconds 2
-                continue
-            }
-            Write-Host "  FAIL: $($json.error)" -ForegroundColor Red
-            return $false
-        } catch {
-            if ($attempt -lt 5) {
-                Start-Sleep -Seconds 2
-                continue
-            }
-            Write-Host "  FAIL upload $localPath : $_" -ForegroundColor Red
-            return $false
-        }
+    try {
+        $result = curl -s -X POST -F "file=@$localPath" "$baseUrl/api/sd/upload?path=$sdDir" 2>&1
+        $json = $result | ConvertFrom-Json -ErrorAction Stop
+        if ($json.status -eq "ok") { return $true }
+        Write-Host "  FAIL: $($json.error)" -ForegroundColor Red
+        return $false
+    } catch {
+        Write-Host "  FAIL upload $localPath : $_" -ForegroundColor Red
+        return $false
     }
-    return $false
 }
 
 function Send-SyncDir([int]$dirNum) {
@@ -113,6 +82,27 @@ function Send-SyncDir([int]$dirNum) {
     } catch {
         Write-Host "  FAIL syncdir $dirNum : $_" -ForegroundColor Red
         return $false
+    }
+}
+
+function Send-SyncStart {
+    try {
+        Invoke-WebRequest -Uri "$baseUrl/api/sd/syncstart" -Method POST -TimeoutSec $timeout -ErrorAction Stop | Out-Null
+        Start-Sleep -Milliseconds 500  # Let audio stop + SD unlock
+        Write-Host "  Audio paused for sync" -ForegroundColor Green
+        return $true
+    } catch {
+        Write-Host "ERROR: Cannot start sync mode" -ForegroundColor Red
+        return $false
+    }
+}
+
+function Send-SyncStop {
+    try {
+        Invoke-WebRequest -Uri "$baseUrl/api/sd/syncstop" -Method POST -TimeoutSec $timeout -ErrorAction Stop | Out-Null
+        Write-Host "  Audio resumed" -ForegroundColor Green
+    } catch {
+        Write-Host "WARNING: Cannot stop sync mode — device may need reboot" -ForegroundColor Yellow
     }
 }
 
@@ -287,6 +277,11 @@ if ($confirm -eq "n" -or $confirm -eq "N") {
     exit 0
 }
 
+# ── Activate sync mode (stops audio, prevents new playback) ─────
+
+Write-Host "`nActivating sync mode..." -ForegroundColor Cyan
+if (-not (Send-SyncStart)) { exit 1 }
+
 # ── Phase 5: Execute deletions ───────────────────────────────────
 
 $deleted = 0
@@ -332,6 +327,11 @@ if ($changedDirs.Count -gt 0) {
         Start-Sleep -Milliseconds 2000
     }
 }
+
+# ── Deactivate sync mode (resumes audio) ────────────────────────
+
+Write-Host "`nDeactivating sync mode..." -ForegroundColor Cyan
+Send-SyncStop
 
 # ── Phase 8: Summary ────────────────────────────────────────────
 

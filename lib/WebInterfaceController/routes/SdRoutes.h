@@ -1,8 +1,8 @@
 /**
  * @file SdRoutes.h
  * @brief SD card API endpoint routes
- * @version 260217D
- * @date 2026-02-17
+ * @version 260218A
+ * @date 2026-02-18
  */
 #pragma once
 

@@ -1,14 +1,15 @@
 /**
  * @file SdRoutes.cpp
  * @brief SD card API endpoint routes
- * @version 260217E
- * @date 2026-02-17
+ * @version 260218A
+ * @date 2026-02-18
  */
 #include "SdRoutes.h"
 #include "../WebUtils.h"
 #include "Globals.h"
 #include "SDController.h"
 #include "SD/SDBoot.h"
+#include "RunManager.h"
 #include "Alert/AlertState.h"
 #include <SD.h>
 
@@ -351,6 +352,22 @@ void attachRoutes(AsyncWebServer &server)
             return;
         }
         SDBoot::requestSyncDir(static_cast<uint8_t>(dir));
+        sendJson(request, F("{\"status\":\"accepted\"}"));
+    });
+    server.on("/api/sd/syncstart", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (AlertState::isSyncMode()) {
+            sendJson(request, F("{\"status\":\"already active\"}"));
+            return;
+        }
+        RunManager::requestStartSync();
+        sendJson(request, F("{\"status\":\"accepted\"}"));
+    });
+    server.on("/api/sd/syncstop", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (!AlertState::isSyncMode()) {
+            sendJson(request, F("{\"status\":\"not active\"}"));
+            return;
+        }
+        RunManager::requestStopSync();
         sendJson(request, F("{\"status\":\"accepted\"}"));
     });
 }

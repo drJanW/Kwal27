@@ -1,8 +1,8 @@
 /**
  * @file SDBoot.cpp
  * @brief SD card one-time initialization implementation
- * @version 260217D
- * @date 2026-02-17
+ * @version 260218A
+ * @date 2026-02-18
  */
 #include <Arduino.h>
 #include "SDBoot.h"
@@ -253,12 +253,6 @@ static void cb_deferredSyncDir() {
     uint8_t dir = pendingSyncDir;
     pendingSyncDir = 0;
     if (dir == 0) return;
-    if (AlertState::isSdBusy()) {
-        // Retry in 200ms
-        pendingSyncDir = dir;
-        timers.create(200, 1, cb_deferredSyncDir);
-        return;
-    }
     SDController::lockSD();
     SDController::syncDirectory(dir);
     SDController::updateHighestDirNum();
