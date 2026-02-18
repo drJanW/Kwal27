@@ -1,7 +1,7 @@
 /**
  * @file SDBoot.cpp
  * @brief SD card one-time initialization implementation
- * @version 260218M
+ * @version 260218N
  * @date 2026-02-18
  */
 #include <Arduino.h>
@@ -50,7 +50,7 @@ static bool needsIndexRebuild() {
 
 // Timer callback for deferred rebuild
 static void cb_deferredRebuild() {
-    PF("[SDBoot] Rebuilding index with valid timestamps\n");
+    PF("[SDBoot] Rebuilding index, existing votes will be preserved\n");
     SDController::rebuildIndex();
     SDController::updateHighestDirNum();
     if (!SDController::fileExists(WORDS_INDEX_FILE)) {
