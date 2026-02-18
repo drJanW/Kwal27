@@ -45,6 +45,7 @@ public:
 
     // === State management ===
     static void setReady(bool ready);
+    static bool checkPresent();  // Probe card presence (cardType check)
     static void lockSD();        // Increment lock counter (reentrant)
     static void unlockSD();      // Decrement lock counter
 

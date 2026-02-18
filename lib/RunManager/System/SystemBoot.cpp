@@ -1,8 +1,8 @@
 /**
  * @file SystemBoot.cpp
  * @brief System-level boot stages implementation
- * @version 260215D
- * @date 2026-02-15
+ * @version 260218E
+ * @date 2026-02-18
  */
 #include <Arduino.h>
 #include "SystemBoot.h"
@@ -23,6 +23,7 @@ bool systemBootStage0() {
     while (!Serial && (millis() - serialStart < SERIAL_TIMEOUT_MS)) { 
         delay(10); 
     }
+    PF("\n[Kwal] Firmware %s\n", FIRMWARE_VERSION_CODE);
     delay(50);         // Let hardware RNG settle BEFORE seeding
     bootRandomSeed();  // Seed RNG after hardware is ready
     Globals::fillFadeCurve();  // Precompute shared sine² fade curve

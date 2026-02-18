@@ -620,6 +620,15 @@ static void applyOverride(const char* key, char type, const char* value) {
         }
     }
     // ═══════════════════════════════════════════════════════════
+    // SD HEALTH
+    // ═══════════════════════════════════════════════════════════
+    else if (strcmp(key, "sdHealthCheckIntervalMs") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 >= 10000) {
+            Globals::sdHealthCheckIntervalMs = u32;
+            PF_BOOT("[Globals] sdHealthCheckIntervalMs = %lu\n", (unsigned long)u32);
+        }
+    }
+    // ═══════════════════════════════════════════════════════════
     // DEBUG
     // ═══════════════════════════════════════════════════════════
     else if (strcmp(key, "timerStatusIntervalMs") == 0 && type == 'u') {

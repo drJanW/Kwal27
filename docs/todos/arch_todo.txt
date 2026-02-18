@@ -18,3 +18,10 @@ ARCH TODO (status ownership)
    - Timer orchestration, retry logic, and the consecutive-failure counter move to WiFiRun.
    - Files: lib/WiFiController/WiFiController.cpp → split into lib/RunManager/WiFi/WiFiRun.cpp
    - Risk: touches WiFi boot sequence; USB-only recovery if broken. Do on a calm day.
+
+6) Rename AlertState → naam dekt de lading niet meer.
+   - AlertState is gegroeid tot gedeelde hardware-status + operationele vlaggen (sdBusy, syncMode) + policy gating (canPlayFragment, canFetch, etc.).
+   - De naam "Alert" is misleidend — het is geen alert-systeem, het is system-breed status + gating.
+   - Kandidaten: SystemStatus, HardwareGate, SystemGate — nog te beslissen.
+   - Scope: namespace rename in 20+ bestanden, AlertState.h/cpp → nieuwe naam.
+   - Bestanden: lib/RunManager/Alert/AlertState.h, AlertState.cpp, alle call sites.

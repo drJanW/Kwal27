@@ -1,8 +1,8 @@
 /**
  * @file CalendarBoot.cpp
  * @brief Calendar subsystem one-time initialization implementation
- * @version 260206A
- * @date 2026-02-06
+ * @version 260218B
+ * @date 2026-02-18
  */
 #include <Arduino.h>
 #include "CalendarBoot.h"
@@ -30,46 +30,14 @@ bool loggedClockWait = false;
 bool loggedInitFail = false;
 bool loggedStateFail = false;
 
-void armRetry();
-void cancelRetry();
-
-void cb_retry() {
-  // Update boot status with remaining retries
-  auto remaining = timers.remaining();
-  AlertState::set(SC_CALENDAR, remaining);
-
-  // Check if timer exhausted
-  if (remaining == 1) {
-    AlertState::setStatusOK(SC_CALENDAR, false);
-    PF("[CalendarBoot] Gave up after 14 retries\n");
-    return;
-  }
-
-  calendarBoot.plan();
-}
-
-void armRetry() {
-  // Growing interval: starts at 2s, grows 1.5x each retry, max 30s
-  // Use restart() because armRetry() can be called while timer is pending
-  if (!timers.restart(retryStartMs, retryCount, cb_retry, retryGrowth)) {
-    PF("[CalendarBoot] Failed to create retry timer\n");
-  }
-}
-
-void cancelRetry() {
-  timers.cancel(cb_retry);
-}
-
-} // namespace
-
-void CalendarBoot::plan() {
+/// Attempt all CalendarBoot work. Returns true if fully done.
+bool tryBoot() {
   if (!AlertState::isSdOk()) {
     if (!loggedSdWait) {
       PF("[CalendarBoot] SD not ready, retrying\n");
       loggedSdWait = true;
     }
-    armRetry();
-    return;
+    return false;
   }
   loggedSdWait = false;
 
@@ -78,8 +46,7 @@ void CalendarBoot::plan() {
       PF_BOOT("[CalendarBoot] Waiting for clock\n");
       loggedClockWait = true;
     }
-    armRetry();
-    return;
+    return false;
   }
   loggedClockWait = false;
 
@@ -89,7 +56,7 @@ void CalendarBoot::plan() {
         PF("[CalendarBoot] Calendar selector init failed\n");
         loggedInitFail = true;
       }
-      return;
+      return false;
     }
     loggedInitFail = false;
     PF_BOOT("[CalendarBoot] selector ready\n");
@@ -100,12 +67,39 @@ void CalendarBoot::plan() {
       PF("[CalendarBoot] Today state init failed\n");
       loggedStateFail = true;
     }
-    armRetry();
-    return;
+    return false;
   }
   loggedStateFail = false;
 
   PF_BOOT("[CalendarBoot] today state ready\n");
   AlertState::setStatusOK(SC_CALENDAR);
-  cancelRetry();
+  return true;
+}
+
+void cb_retry() {
+  auto remaining = timers.remaining();
+  AlertState::set(SC_CALENDAR, remaining);
+
+  if (tryBoot()) {
+    timers.cancel(cb_retry);
+    return;
+  }
+
+  if (remaining <= 1) {
+    AlertState::setStatusOK(SC_CALENDAR, false);
+    PF("[CalendarBoot] Gave up after %u retries\n", retryCount);
+  }
+}
+
+} // namespace
+
+void CalendarBoot::plan() {
+  if (tryBoot()) {
+    return;
+  }
+
+  // Failed — arm repeating retry timer (counts down naturally with growing interval)
+  if (!timers.create(retryStartMs, retryCount, cb_retry, retryGrowth)) {
+    PF("[CalendarBoot] Failed to create retry timer\n");
+  }
 }

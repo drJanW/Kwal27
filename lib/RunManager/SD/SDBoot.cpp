@@ -1,7 +1,7 @@
 /**
  * @file SDBoot.cpp
  * @brief SD card one-time initialization implementation
- * @version 260218A
+ * @version 260218D
  * @date 2026-02-18
  */
 #include <Arduino.h>
@@ -166,6 +166,22 @@ static void initSD() {
     bootManager.restartBootTimer();
 }
 
+/// Report SD OK (logging + alerts only, no boot control)
+static void reportSdOk() {
+    loggedStart = false;
+    SDPolicy::showStatus();
+    AlertRun::report(AlertRequest::SD_OK);
+}
+
+/// Report SD failure (logging + alerts + fail pattern, no boot control)
+static void reportSdFail() {
+    PL("[SDBoot] SD boot failed after retries");
+    loggedStart = false;
+    SDPolicy::showStatus(true);
+    AlertRun::report(AlertRequest::SD_FAIL);
+    startSdFailPattern();
+}
+
 } // namespace
 
 bool SDBoot::plan() {
@@ -173,12 +189,10 @@ bool SDBoot::plan() {
         instance = this;
     }
 
-    // Success path
+    // Already OK?
     if (AlertState::isSdOk()) {
-        timers.cancel(cb_retryBoot);
-        loggedStart = false;
-        SDPolicy::showStatus();
-        AlertRun::report(AlertRequest::SD_OK);
+        reportSdOk();
+        RunManager::resumeAfterSDBoot();
         return true;
     }
 
@@ -188,46 +202,48 @@ bool SDBoot::plan() {
         loggedStart = true;
     }
 
-    // Try init
+    // First attempt
     initSD();
 
-    // Check again after init attempt
     if (AlertState::isSdOk()) {
-        timers.cancel(cb_retryBoot);
-        loggedStart = false;
-        SDPolicy::showStatus();
-        AlertRun::report(AlertRequest::SD_OK);
+        reportSdOk();
+        RunManager::resumeAfterSDBoot();
         return true;
     }
 
-    // Arm retry timer (creates if not active)
-    if (!timers.isActive(cb_retryBoot)) {
-        timers.create(retryIntervalMs, retryCount, cb_retryBoot);
-    }
-
-    // Update retry status for WebGUI
-    auto remaining = timers.remaining();
-    if (remaining > 0) {
-        AlertState::set(SC_SD, remaining);
-    }
-
-    // Still waiting for retries?
-    if (timers.isActive(cb_retryBoot)) {
-        return false;
-    }
-
-    // Timer exhausted - all retries done, still failed
-    PL("[Run][Plan] SD boot failed after retries");
-    loggedStart = false;
-    SDPolicy::showStatus(true);
-    AlertRun::report(AlertRequest::SD_FAIL);
-    startSdFailPattern();  // Pink/turquoise ambient preset
-    return true;
+    // Failed — arm retry timer (let it count down naturally)
+    timers.create(retryIntervalMs, retryCount, cb_retryBoot);
+    return false;
 }
 
 void SDBoot::cb_retryBoot() {
-    if (instance && instance->plan()) {
+    if (!instance) return;
+
+    // Already OK? (e.g., another path initialized SD)
+    if (AlertState::isSdOk()) {
+        timers.cancel(cb_retryBoot);
+        reportSdOk();
         RunManager::resumeAfterSDBoot();
+        return;
+    }
+
+    auto remaining = timers.remaining();
+    AlertState::set(SC_SD, remaining);
+
+    // Try init
+    initSD();
+
+    if (AlertState::isSdOk()) {
+        timers.cancel(cb_retryBoot);
+        reportSdOk();
+        RunManager::resumeAfterSDBoot();
+        return;
+    }
+
+    // Last retry exhausted?
+    if (remaining <= 1) {
+        reportSdFail();
+        RunManager::resumeAfterSDBoot();  // Continue boot without SD
     }
 }
 

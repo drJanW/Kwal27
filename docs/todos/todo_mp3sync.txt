@@ -21,7 +21,7 @@ FIRMWARE CHANGES
 PC-SIDE SCRIPT: sync_mp3.ps1
 =============================
 
-[x] TODO 5: Create sync_mp3.ps1 — DONE
+[ ] TODO 5: Create sync_mp3.ps1 
 
 Usage:
   .\sync_mp3.ps1           # sync to 189 (HOUT)

@@ -1,8 +1,8 @@
 /**
  * @file SDController.cpp
  * @brief SD card control implementation with directory scanning and file indexing
- * @version 260217D
- * @date 2026-02-17
+ * @version 260218C
+ * @date 2026-02-18
  */
 #include <Arduino.h>
 #include "SDController.h"
@@ -38,6 +38,12 @@ bool SDController::begin(uint8_t csPin, SPIClass& spi, uint32_t hz) {
 void SDController::setReady(bool ready) {
     ready_.store(ready, std::memory_order_relaxed);
     AlertState::setStatusOK(SC_SD, ready);
+}
+
+bool SDController::checkPresent() {
+    // cardType() returns a cached value — useless for removal detection.
+    // totalBytes() actually probes the hardware via SPI.
+    return SD.totalBytes() > 0;
 }
 
 void SDController::lockSD() {

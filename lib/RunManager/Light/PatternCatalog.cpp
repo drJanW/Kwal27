@@ -1,8 +1,8 @@
 /**
  * @file PatternCatalog.cpp
  * @brief LED pattern storage implementation
- * @version 260204A
- $12026-02-10
+ * @version 260218E
+ * @date 2026-02-18
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "PatternCatalog.h"
@@ -21,7 +21,7 @@ constexpr const char* kActivePatternPrefix = "# active_pattern=";
 constexpr size_t kActivePatternPrefixLen = sizeof("# active_pattern=") - 1;
 constexpr uint8_t kSchemaVersion = 1;
 
-// No hardcoded defaults - CSV on SD is the single source of truth
+// CSV on SD is primary source; inline fallback in getActiveParams() for SD-absent boot
 
 bool isNumericId(const String& id) {
     if (id.isEmpty()) {
@@ -342,8 +342,16 @@ LightShowParams PatternCatalog::getActiveParams() const {
     if (!entry && !patterns_.empty()) {
         entry = &patterns_.front();
     }
-    // Return RAW params - shifts are applied in LightRun::applyToLights()
-    return entry ? entry->params : LightShowParams();
+    if (entry) {
+        // Return RAW params - shifts are applied in LightRun::applyToLights()
+        return entry->params;
+    }
+    // Inline fallback - no CSV needed (matches ColorsCatalog fallback approach)
+    return LightShowParams(
+        CRGB::LightPink, CRGB::DeepPink,
+        10, 10, 8.0f, 10, 5.1f,
+        0.0f, 0.0f, 20.0f, 16, 0.0f, 0.0f, 0.0f,
+        10, 10);
 }
 
 // setShift(), getShift(), applyShifts() REMOVED

@@ -1,8 +1,8 @@
 /**
  * @file SDRun.h
- * @brief SD card state management
- * @version 260131A
- $12026-02-05
+ * @brief SD card state management with periodic health check
+ * @version 260218C
+ * @date 2026-02-18
  */
 #pragma once
 
@@ -11,4 +11,5 @@
 class SDRun {
 public:
     void plan();
+    static void cb_checkSdHealth();
 };

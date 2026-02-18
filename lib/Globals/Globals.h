@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260218A"
+#define FIRMWARE_VERSION_CODE "260218E"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -204,6 +204,11 @@ struct Globals {
     inline static uint8_t  fallbackDay             = 20U;         // Fallback day
     inline static uint8_t  fallbackHour            = 4U;          // Fallback hour (04:00)
     inline static uint16_t fallbackYear            = 2026U;       // Fallback year
+
+    // ─────────────────────────────────────────────────────────────
+    // SD HEALTH (1 param)
+    // ─────────────────────────────────────────────────────────────
+    inline static uint32_t sdHealthCheckIntervalMs = MINUTES(6);  // Periodic SD presence check
 
     // ─────────────────────────────────────────────────────────────
     // DEBUG (2 params)

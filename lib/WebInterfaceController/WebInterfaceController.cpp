@@ -1,13 +1,14 @@
 /**
  * @file WebInterfaceController.cpp
  * @brief Async web server setup, routes index.html and API endpoints
- * @version 260212C
- * @date 2026-02-12
+ * @version 260218E
+ * @date 2026-02-18
  */
 #include <Arduino.h>
 #include "WebInterfaceController.h"
 #include "WebGuiStatus.h"
 #include "WebUtils.h"
+#include "FallbackPage.h"
 #include "Globals.h"
 #include "MathUtils.h"
 #include "LightController.h"
@@ -68,11 +69,11 @@ const uint8_t faviconIco[] PROGMEM = {
 void routeRoot(AsyncWebServerRequest *request)
 {
     if (!AlertState::isSdOk()) {
-        request->send(503, "text/plain", "OUT OF ORDER - SD card failure");
+        request->send_P(200, "text/html", FALLBACK_HTML);
         return;
     }
     if (!SD.exists("/index.html")) {
-        request->send(500, "text/plain", "index.html not found");
+        request->send_P(200, "text/html", FALLBACK_HTML);
         return;
     }
     request->send(SD, "/index.html", "text/html");

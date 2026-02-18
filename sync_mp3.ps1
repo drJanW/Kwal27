@@ -1,4 +1,4 @@
-# sync_mp3.ps1
+﻿# sync_mp3.ps1
 # Syncs MP3 directories from NAS to ESP32 SD card (vote-preserving)
 # Usage: .\sync_mp3.ps1              # sync to HOUT (189)
 #        .\sync_mp3.ps1 188          # sync to MARMER (188)
@@ -6,7 +6,9 @@
 
 param(
     [Parameter(Position=0)][string]$lastOctet = "189",
-    [string]$ip = ""
+    [string]$ip = "",
+    [switch]$y,
+    [switch]$dryrun
 )
 
 if ($ip -eq "") {
@@ -17,13 +19,13 @@ $nasRoot = "V:\kwal\sdcard"
 $baseUrl = "http://$ip"
 $timeout = 10  # seconds per HTTP request
 
-# ── Helpers ──────────────────────────────────────────────────────
+# -- Helpers ------------------------------------------------------
 
 function Test-DeviceReachable {
     try {
-        $r = Invoke-WebRequest -Uri "$baseUrl/api/health" -TimeoutSec 3 -ErrorAction Stop
+        $r = Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/health" -TimeoutSec 3 -ErrorAction Stop
         $json = $r.Content | ConvertFrom-Json
-        Write-Host "Device: $($json.device) — firmware $($json.firmware)" -ForegroundColor Cyan
+        Write-Host "Device: $($json.device) - firmware $($json.firmware)" -ForegroundColor Cyan
         return $true
     } catch {
         Write-Host "ERROR: Cannot reach $ip" -ForegroundColor Red
@@ -33,7 +35,7 @@ function Test-DeviceReachable {
 
 function Get-EspBinaryFile([string]$sdPath, [string]$localPath) {
     try {
-        Invoke-WebRequest -Uri "$baseUrl/api/sd/file?path=$sdPath" -OutFile $localPath -TimeoutSec $timeout -ErrorAction Stop
+        Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/sd/file?path=$sdPath" -OutFile $localPath -TimeoutSec $timeout -ErrorAction Stop
         return $true
     } catch {
         return $false
@@ -42,7 +44,7 @@ function Get-EspBinaryFile([string]$sdPath, [string]$localPath) {
 
 function Get-EspHighestDir {
     try {
-        $r = Invoke-WebRequest -Uri "$baseUrl/api/audio/grid" -TimeoutSec $timeout -ErrorAction Stop
+        $r = Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/audio/grid" -TimeoutSec $timeout -ErrorAction Stop
         $json = $r.Content | ConvertFrom-Json
         return [int]$json.highest
     } catch {
@@ -54,7 +56,7 @@ function Get-EspHighestDir {
 function Send-Delete([string]$sdPath) {
     try {
         $encoded = [Uri]::EscapeDataString($sdPath)
-        Invoke-WebRequest -Uri "$baseUrl/api/sd/delete?path=$encoded" -Method POST -TimeoutSec $timeout -ErrorAction Stop
+        Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/sd/delete?path=$encoded" -Method POST -TimeoutSec $timeout -ErrorAction Stop
         return $true
     } catch {
         Write-Host "  FAIL delete $sdPath : $_" -ForegroundColor Red
@@ -77,7 +79,7 @@ function Send-Upload([string]$localPath, [string]$sdDir) {
 
 function Send-SyncDir([int]$dirNum) {
     try {
-        $r = Invoke-WebRequest -Uri "$baseUrl/api/sd/syncdir?dir=$dirNum" -Method POST -TimeoutSec $timeout -ErrorAction Stop
+        $r = Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/sd/syncdir?dir=$dirNum" -Method POST -TimeoutSec $timeout -ErrorAction Stop
         return $true
     } catch {
         Write-Host "  FAIL syncdir $dirNum : $_" -ForegroundColor Red
@@ -87,7 +89,7 @@ function Send-SyncDir([int]$dirNum) {
 
 function Send-SyncStart {
     try {
-        Invoke-WebRequest -Uri "$baseUrl/api/sd/syncstart" -Method POST -TimeoutSec $timeout -ErrorAction Stop | Out-Null
+        Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/sd/syncstart" -Method POST -TimeoutSec $timeout -ErrorAction Stop | Out-Null
         Start-Sleep -Milliseconds 500  # Let audio stop + SD unlock
         Write-Host "  Audio paused for sync" -ForegroundColor Green
         return $true
@@ -99,14 +101,14 @@ function Send-SyncStart {
 
 function Send-SyncStop {
     try {
-        Invoke-WebRequest -Uri "$baseUrl/api/sd/syncstop" -Method POST -TimeoutSec $timeout -ErrorAction Stop | Out-Null
+        Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/sd/syncstop" -Method POST -TimeoutSec $timeout -ErrorAction Stop | Out-Null
         Write-Host "  Audio resumed" -ForegroundColor Green
     } catch {
-        Write-Host "WARNING: Cannot stop sync mode — device may need reboot" -ForegroundColor Yellow
+        Write-Host "WARNING: Cannot stop sync mode - device may need reboot" -ForegroundColor Yellow
     }
 }
 
-# ── Pre-flight ───────────────────────────────────────────────────
+# -- Pre-flight ---------------------------------------------------
 
 if (-not (Test-Path $nasRoot)) {
     Write-Host "ERROR: NAS not mounted at $nasRoot" -ForegroundColor Red
@@ -115,10 +117,10 @@ if (-not (Test-Path $nasRoot)) {
 
 if (-not (Test-DeviceReachable)) { exit 1 }
 
-# ── Phase 1: Scan NAS ───────────────────────────────────────────
+# -- Phase 1: Scan NAS -------------------------------------------
 
 Write-Host "`nScanning NAS..." -ForegroundColor Cyan
-$nasDirs = @{}  # dirNum → @{ filename → size }
+$nasDirs = @{}  # dirNum -> @{ filename -> size }
 
 $subDirs = Get-ChildItem -Path $nasRoot -Directory | Where-Object { $_.Name -match '^\d{3}$' }
 foreach ($d in $subDirs) {
@@ -136,16 +138,16 @@ foreach ($d in $subDirs) {
 $nasCount = ($nasDirs.Values | ForEach-Object { $_.Count } | Measure-Object -Sum).Sum
 Write-Host "  NAS: $($nasDirs.Count) dirs, $nasCount files" -ForegroundColor White
 
-# ── Phase 2: Scan ESP32 via binary indices ───────────────────────
+# -- Phase 2: Scan ESP32 via binary indices -----------------------
 # Downloads .root_dirs (800B) + .files_dir per dir (404B each).
-# No dir-listing needed — the indices contain file counts and sizes.
+# No dir-listing needed - the indices contain file counts and sizes.
 
 Write-Host "Scanning ESP32 at $ip..." -ForegroundColor Cyan
-$espDirs = @{}  # dirNum → @{ filename → sizeKb }
+$espDirs = @{}  # dirNum -> @{ filename -> sizeKb }
 
 $espHighest = Get-EspHighestDir
 
-# Download .root_dirs — DirEntry[200], 4 bytes each: {uint16_t fileCount, uint16_t totalScore}
+# Download .root_dirs - DirEntry[200], 4 bytes each: {uint16_t fileCount, uint16_t totalScore}
 $rootDirsPath = Join-Path $env:TEMP "sync_root_dirs.bin"
 if (-not (Get-EspBinaryFile "/.root_dirs" $rootDirsPath)) {
     Write-Host "ERROR: Cannot download .root_dirs from device" -ForegroundColor Red
@@ -156,7 +158,7 @@ $rootBytes = [System.IO.File]::ReadAllBytes($rootDirsPath)
 # Parse .root_dirs to find which dirs have files
 $dirsWithFiles = @()
 for ($d = 1; $d -le $espHighest; $d++) {
-    $off = $d * 4  # DirEntry[d], 4 bytes each
+    $off = ($d - 1) * 4  # DirEntry[d-1], 4 bytes each (0-based in file)
     if (($off + 3) -ge $rootBytes.Length) { break }
     $fileCount = [BitConverter]::ToUInt16($rootBytes, $off)
     if ($fileCount -gt 0) {
@@ -198,7 +200,7 @@ Write-Host ""  # newline after progress
 $espCount = ($espDirs.Values | ForEach-Object { $_.Count } | Measure-Object -Sum).Sum
 Write-Host "  ESP: $($espDirs.Count) dirs, $espCount files" -ForegroundColor White
 
-# ── Phase 3: Compare ────────────────────────────────────────────
+# -- Phase 3: Compare --------------------------------------------
 # ESP index stores sizeKb (file size / 1024). NAS has exact byte sizes.
 # Compare: round(nasSize / 1024) vs espSizeKb.
 
@@ -217,7 +219,7 @@ foreach ($dirNum in $sorted) {
     $espFiles = if ($espDirs.ContainsKey($dirNum)) { $espDirs[$dirNum] } else { @{} }
     $dirStr = "{0:d3}" -f $dirNum
 
-    # Files on NAS but not on ESP (or different size) → upload
+    # Files on NAS but not on ESP (or different size) -> upload
     foreach ($fname in $nasFiles.Keys) {
         $nasSizeKb = [math]::Floor($nasFiles[$fname] / 1024)
         $espSizeKb = if ($espFiles.ContainsKey($fname)) { $espFiles[$fname] } else { -1 }
@@ -231,7 +233,7 @@ foreach ($dirNum in $sorted) {
         }
     }
 
-    # Files on ESP but not on NAS → delete
+    # Files on ESP but not on NAS -> delete
     foreach ($fname in $espFiles.Keys) {
         if (-not $nasFiles.ContainsKey($fname)) {
             $toDelete += "/$dirStr/$fname"
@@ -240,7 +242,7 @@ foreach ($dirNum in $sorted) {
     }
 }
 
-# ── Phase 4: Summary & Confirm ──────────────────────────────────
+# -- Phase 4: Summary & Confirm ----------------------------------
 
 Write-Host ""
 if ($toUpload.Count -eq 0 -and $toDelete.Count -eq 0) {
@@ -264,25 +266,31 @@ if ($toUpload.Count -le 20) {
         Write-Host "    + /$("{0:d3}" -f $u.dirNum)/$($u.filename)" -ForegroundColor Green
     }
 }
-if ($toDelete.Count -le 20) {
+if ($toDelete.Count -le 100) {
     foreach ($d in $toDelete) {
         Write-Host "    - $d" -ForegroundColor Red
     }
 }
 
 Write-Host ""
-$confirm = Read-Host "Continue? [Y/n]"
-if ($confirm -eq "n" -or $confirm -eq "N") {
-    Write-Host "Aborted." -ForegroundColor Yellow
+if ($dryrun) {
+    Write-Host "Dry run - no changes made." -ForegroundColor Yellow
     exit 0
 }
+if (-not $y) {
+    $confirm = Read-Host "Continue? [Y/n]"
+    if ($confirm -eq "n" -or $confirm -eq "N") {
+        Write-Host "Aborted." -ForegroundColor Yellow
+        exit 0
+    }
+}
 
-# ── Activate sync mode (stops audio, prevents new playback) ─────
+# -- Activate sync mode (stops audio, prevents new playback) -----
 
 Write-Host "`nActivating sync mode..." -ForegroundColor Cyan
 if (-not (Send-SyncStart)) { exit 1 }
 
-# ── Phase 5: Execute deletions ───────────────────────────────────
+# -- Phase 5: Execute deletions -----------------------------------
 
 $deleted = 0
 if ($toDelete.Count -gt 0) {
@@ -296,7 +304,7 @@ if ($toDelete.Count -gt 0) {
     }
 }
 
-# ── Phase 6: Execute uploads ────────────────────────────────────
+# -- Phase 6: Execute uploads ------------------------------------
 
 $uploaded = 0
 if ($toUpload.Count -gt 0) {
@@ -314,7 +322,7 @@ if ($toUpload.Count -gt 0) {
     }
 }
 
-# ── Phase 7: Reindex changed dirs ───────────────────────────────
+# -- Phase 7: Reindex changed dirs -------------------------------
 
 if ($changedDirs.Count -gt 0) {
     Write-Host "`nReindexing $($changedDirs.Count) dirs..." -ForegroundColor Cyan
@@ -328,11 +336,11 @@ if ($changedDirs.Count -gt 0) {
     }
 }
 
-# ── Deactivate sync mode (resumes audio) ────────────────────────
+# -- Deactivate sync mode (resumes audio) ------------------------
 
 Write-Host "`nDeactivating sync mode..." -ForegroundColor Cyan
 Send-SyncStop
 
-# ── Phase 8: Summary ────────────────────────────────────────────
+# -- Phase 8: Summary --------------------------------------------
 
 Write-Host "`nDone: $uploaded uploaded, $deleted deleted, $($changedDirs.Count) dirs reindexed." -ForegroundColor Cyan

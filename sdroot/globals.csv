@@ -120,6 +120,11 @@ locationLon;f;4.90;lengtegraad voor zonsopkomst/ondergang
 #fallbackYear;u;2026;used when no RTC/NTP/cache available
 
 # ═══════════════════════════════════════════════════════════════════
+# SD HEALTH (1 param)
+# ═══════════════════════════════════════════════════════════════════
+#sdHealthCheckIntervalMs;u;360000;periodic SD card presence probe (6 min default)
+
+# ═══════════════════════════════════════════════════════════════════
 # DEBUG (2 params)
 # ═══════════════════════════════════════════════════════════════════
 #timerStatusIntervalMs;u;60000;Serial output of timer slot usage
