@@ -23,7 +23,7 @@ bool systemBootStage0() {
     while (!Serial && (millis() - serialStart < SERIAL_TIMEOUT_MS)) { 
         delay(10); 
     }
-    PF("\n[Kwal] Firmware %s\n", FIRMWARE_VERSION_CODE);
+    PF(" Firmware %s\n", FIRMWARE_VERSION_CODE);
     delay(50);         // Let hardware RNG settle BEFORE seeding
     bootRandomSeed();  // Seed RNG after hardware is ready
     Globals::fillFadeCurve();  // Precompute shared sine² fade curve

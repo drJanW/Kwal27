@@ -1,8 +1,8 @@
 /**
  * @file HealthRoutes.cpp
  * @brief Health API endpoint routes
- * @version 260215C
- * @date 2026-02-15
+ * @version 260218J
+ * @date 2026-02-18
  */
 #include <Arduino.h>
 #include "HealthRoutes.h"
@@ -42,6 +42,11 @@ void routeHealth(AsyncWebServerRequest *request) {
         snprintf(timeBuf, sizeof(timeBuf), "%02u:%02u", ts.hour, ts.minute);
         json += ",\"ntpTime\":\"" + String(timeBuf) + "\"";
     }
+
+    // WiFi config (for fallback page form pre-fill)
+    json += ",\"wifiSsid\":\"" + String(Globals::wifiSsid) + "\"";
+    json += ",\"staticIp\":\"" + String(Globals::staticIp) + "\"";
+    json += ",\"staticGw\":\"" + String(Globals::staticGateway) + "\"";
 
     // Heap stats
     json += ",\"heapFree\":" + String(ESP.getFreeHeap() / 1024);
@@ -86,9 +91,37 @@ void routeRestart(AsyncWebServerRequest *request) {
     timers.create(500, 1, cb_restart);
 }
 
+void routeWifiConfig(AsyncWebServerRequest *request) {
+    if (!request->hasParam("pin", true) || !request->hasParam("ssid", true)) {
+        request->send(400, "application/json", F("{\"error\":\"Missing pin or ssid\"}"));
+        return;
+    }
+    uint16_t pin = request->getParam("pin", true)->value().toInt();
+    if (pin != Globals::wifiConfigPin) {
+        PL("[WiFi] Web config rejected: wrong PIN");
+        request->send(403, "application/json", F("{\"error\":\"Wrong PIN\"}"));
+        return;
+    }
+    String ssid     = request->getParam("ssid", true)->value();
+    String password = request->hasParam("password", true) ? request->getParam("password", true)->value() : "";
+    String ip       = request->hasParam("ip", true)       ? request->getParam("ip", true)->value()       : "";
+    String gateway  = request->hasParam("gateway", true)  ? request->getParam("gateway", true)->value()  : "";
+    String name     = request->hasParam("name", true)     ? request->getParam("name", true)->value()     : "";
+
+    PF("[WiFi] POST params: name='%s' ssid='%s' ip='%s' gw='%s'\n",
+       name.c_str(), ssid.c_str(), ip.c_str(), gateway.c_str());
+
+    if (!Globals::updateWifiFromWeb(ssid.c_str(), password.c_str(), ip.c_str(), gateway.c_str(), name.c_str())) {
+        request->send(400, "application/json", F("{\"error\":\"Invalid config\"}"));
+        return;
+    }
+    request->send(200, "application/json", F("{\"status\":\"ok\",\"message\":\"WiFi config saved. Restart to apply.\"}"));
+}
+
 void attachRoutes(AsyncWebServer &server) {
     server.on("/api/health", HTTP_GET, routeHealth);
     server.on("/api/restart", HTTP_POST, routeRestart);
+    server.on("/api/wifi/config", HTTP_POST, routeWifiConfig);
 }
 
 } // namespace HealthRoutes

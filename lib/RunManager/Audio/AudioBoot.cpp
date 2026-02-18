@@ -1,8 +1,8 @@
 /**
  * @file AudioBoot.cpp
  * @brief Audio subsystem one-time initialization implementation
- * @version 260215F
- * @date 2026-02-15
+ * @version 260218K
+ * @date 2026-02-18
  */
 #include "AudioBoot.h"
 
@@ -14,18 +14,25 @@
 #include "AudioRun.h"
 #include "AudioShiftTable.h"
 #include "Alert/AlertState.h"
+#include "Alert/AlertRun.h"
 #include "Speak/SpeakRun.h"
 #include "PlaySentence.h"
 
 void AudioBoot::plan() {
+    // I2S audio init — always needed (TTS uses network, not SD)
+    audio.begin();
+    hwStatus |= HW_AUDIO;
+    AlertState::setAudioStatus(true);
+
     if (!AlertState::isSdOk()) {
-        PL_BOOT("[Run][Plan] Audio boot deferred: SD not ready");
+        PL("[AudioBoot] SD absent — TTS only mode");
+        // SD_FAIL was reported before audio was ready — speak it now
+        SpeakRun::speakFail(SC_SD);
+        // Welcome was queued but never played (CalendarRun gate) — play now
+        AlertRun::playWelcomeIfPending();
         return;
     }
 
-    audio.begin();
-    hwStatus |= HW_AUDIO;
-    
     // Initialize audio shift table
     AudioShiftTable::instance().begin();
 
@@ -51,6 +58,5 @@ void AudioBoot::plan() {
     PF("[AudioBoot] defaultAudioSliderPct=%u → volumeWebMultiplier=%.3f\n",
        Globals::defaultAudioSliderPct, initVolMult);
 
-    AlertState::setAudioStatus(true);
     PlaySentence::speakNext();  // Kickstart queue if items waiting
 }

@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260215E
- * @date 2026-02-15
+ * @version 260218F
+ * @date 2026-02-18
  */
 #pragma once
 
@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260218E"
+#define FIRMWARE_VERSION_CODE "260218L"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -232,6 +232,17 @@ struct Globals {
 
     // Initialize: load CSV overrides (call after SD init)
     static void begin();
+
+    // Save current WiFi config to NVS (called after config.txt load or web update)
+    static void saveWifiToNvs();
+
+    // Update WiFi config from web form and save to NVS
+    static bool updateWifiFromWeb(const char* ssid, const char* password,
+                                  const char* ip, const char* gateway,
+                                  const char* name);
+
+    // WiFi config PIN for web form confirmation
+    static constexpr uint16_t wifiConfigPin = 1951;
 };
 
 // ─────────────────────────────────────────────────────────────

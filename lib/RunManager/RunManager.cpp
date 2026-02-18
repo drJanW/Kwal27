@@ -1,7 +1,7 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260218A
+ * @version 260218L
  * @date 2026-02-18
  */
 #include <Arduino.h>
@@ -405,6 +405,19 @@ void RunManager::resumeAfterSDBoot() {
     }
 
     sdPostBootCompleted = true;
+
+    // When SD failed, load NVS WiFi cache BEFORE WiFi connects
+    // (normal SD path already loaded config.txt via Globals::begin() in SDBoot::initSD)
+    if (!AlertState::isSdOk()) {
+        Globals::begin();
+        PF("\n=== DEGRADED MODE (no SD) ===\n");
+        PF("  Device:  %s\n", Globals::deviceName);
+        PF("  IP:      %s\n", strlen(Globals::staticIp) > 0 ? Globals::staticIp : "DHCP");
+        PF("  Active:  LED fallback, TTS, WebGUI fallback, OTA\n");
+        PF("  Missing: music, animated light shows (and calendar, config)\n");
+        PF("  Action:  insert SD card and restart\n");
+        PF("=============================\n\n");
+    }
 
     sdRun.plan();
     wifiBoot.plan();

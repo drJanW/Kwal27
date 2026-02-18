@@ -1,7 +1,7 @@
 /**
  * @file FallbackPage.cpp
  * @brief PROGMEM fallback HTML definition — single copy in flash
- * @version 260218E
+ * @version 260218J
  * @date 2026-02-18
  */
 #include <Arduino.h>
@@ -23,10 +23,12 @@ td{padding:4px 8px;border-bottom:1px solid #333}
 td:first-child{color:#888;width:40%}
 .card{background:#16213e;border-radius:8px;padding:12px;margin:12px 0}
 input[type=file]{margin:8px 0;color:#e0e0e0}
+input[type=text],input[type=password],input[type=number]{background:#0d1b2a;color:#e0e0e0;border:1px solid #333;border-radius:4px;padding:6px 8px;width:100%;margin:4px 0;font-size:0.95em}
+label{display:block;color:#888;margin-top:8px;font-size:0.85em}
 button,.btn{background:#0f3460;color:#e0e0e0;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;margin:4px 4px 4px 0;font-size:0.95em}
 button:hover,.btn:hover{background:#1a5276}
 .ok{color:#6bcb77}.fail{color:#ff6b6b}
-#otaSt{margin-top:8px;font-style:italic}
+#otaSt,#wifiSt{margin-top:8px;font-style:italic}
 #prog{display:none;width:100%;height:6px;margin-top:6px;appearance:none;border-radius:3px;overflow:hidden}
 #prog::-webkit-progress-bar{background:#333}#prog::-webkit-progress-value{background:#6bcb77}
 </style>
@@ -34,6 +36,17 @@ button:hover,.btn:hover{background:#1a5276}
 <div class="warn"><h1>&#9888; SD Card Failure</h1>
 <p>The SD card is not available. WebGUI, audio, config files and LED maps are offline.</p></div>
 <div class="card"><h2>Device Status</h2><div id="hp">Loading...</div></div>
+<div class="card"><h2>WiFi Configuration</h2>
+<form id="wf">
+<label>Device Name</label><input type="text" name="name" id="fName" placeholder="KWAL">
+<label>SSID *</label><input type="text" name="ssid" id="fSsid" required>
+<label>Password</label><input type="password" name="password">
+<label>Static IP</label><input type="text" name="ip" id="fIp" placeholder="192.168.2.189">
+<label>Gateway</label><input type="text" name="gateway" id="fGw" placeholder="192.168.2.254">
+<label>PIN *</label><input type="number" name="pin" required placeholder="4 digits" maxlength="4">
+<button type="submit">Save &amp; Restart</button>
+</form>
+<div id="wifiSt"></div></div>
 <div class="card"><h2>OTA Firmware Update</h2>
 <form id="ota"><input type="file" name="firmware" accept=".bin">
 <button type="submit">Upload Firmware</button></form>
@@ -57,9 +70,23 @@ function loadHealth(){
   h+='<tr><td>SD</td><td class="fail">FAIL</td></tr>';
   h+='</table>';
   $('hp').innerHTML=h;
+  function fill(id,v){var el=$(id);if(el&&!el.value)el.value=v||el.placeholder||'';}
+  fill('fSsid',d.wifiSsid);fill('fName',d.device);fill('fIp',d.staticIp);fill('fGw',d.staticGw);
  }).catch(()=>{$('hp').textContent='Health check failed';});
 }
 loadHealth();setInterval(loadHealth,30000);
+
+$('wf').onsubmit=function(e){
+ e.preventDefault();
+ var fd=new FormData(this);
+ var st=$('wifiSt');
+ st.textContent='Saving...';
+ fetch('/api/wifi/config',{method:'POST',body:new URLSearchParams(fd)})
+ .then(r=>r.json()).then(d=>{
+  if(d.status==='ok'){st.textContent=d.message;setTimeout(doRestart,2000);}
+  else st.textContent='Error: '+(d.error||'Unknown');
+ }).catch(()=>{st.textContent='Request failed';});
+};
 
 $('ota').onsubmit=function(e){
  e.preventDefault();

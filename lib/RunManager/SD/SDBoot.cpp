@@ -81,7 +81,7 @@ void startSdFailPattern() {
     
     // Start pattern update timer (50ms = 20 FPS)
     timers.create(50, 0, cb_sdFailPattern);
-    PL("[SDBoot] SD fail pattern started");
+    PL("[SDBoot] FAILED_SD pattern started");
 }
 
 // Version string comparison (whitespace insensitive)
