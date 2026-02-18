@@ -77,16 +77,6 @@ function Send-Upload([string]$localPath, [string]$sdDir) {
     }
 }
 
-function Send-SyncDir([int]$dirNum) {
-    try {
-        $r = Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/sd/syncdir?dir=$dirNum" -Method POST -TimeoutSec $timeout -ErrorAction Stop
-        return $true
-    } catch {
-        Write-Host "  FAIL syncdir $dirNum : $_" -ForegroundColor Red
-        return $false
-    }
-}
-
 function Send-SyncStart {
     try {
         Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/sd/syncstart" -Method POST -TimeoutSec $timeout -ErrorAction Stop | Out-Null
@@ -96,15 +86,6 @@ function Send-SyncStart {
     } catch {
         Write-Host "ERROR: Cannot start sync mode" -ForegroundColor Red
         return $false
-    }
-}
-
-function Send-SyncStop {
-    try {
-        Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/sd/syncstop" -Method POST -TimeoutSec $timeout -ErrorAction Stop | Out-Null
-        Write-Host "  Audio resumed" -ForegroundColor Green
-    } catch {
-        Write-Host "WARNING: Cannot stop sync mode - device may need reboot" -ForegroundColor Yellow
     }
 }
 
@@ -322,25 +303,35 @@ if ($toUpload.Count -gt 0) {
     }
 }
 
-# -- Phase 7: Reindex changed dirs -------------------------------
+# -- Phase 7: Delete .root_dirs + reboot to rebuild indices ------
 
-if ($changedDirs.Count -gt 0) {
-    Write-Host "`nReindexing $($changedDirs.Count) dirs..." -ForegroundColor Cyan
-    foreach ($dirNum in ($changedDirs | Sort-Object)) {
-        Write-Host "  SYNC $("{0:d3}" -f $dirNum)" -NoNewline
-        if (Send-SyncDir $dirNum) {
-            Write-Host " OK" -ForegroundColor Green
-        }
-        # Small delay to let timer callback complete before next
-        Start-Sleep -Milliseconds 2000
+Write-Host "`nDeleting .root_dirs to trigger full rebuild..." -ForegroundColor Cyan
+Send-Delete "/.root_dirs" | Out-Null
+
+Write-Host "Rebooting device..." -ForegroundColor Cyan
+try {
+    Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/restart" -Method POST -TimeoutSec 5 | Out-Null
+} catch {}
+
+# Wait for device to come back online
+Write-Host "Waiting for device..." -NoNewline
+Start-Sleep -Seconds 5
+$attempts = 0
+while ($attempts -lt 30) {
+    try {
+        Invoke-WebRequest -UseBasicParsing -Uri "$baseUrl/api/health" -TimeoutSec 2 -ErrorAction Stop | Out-Null
+        Write-Host " online!" -ForegroundColor Green
+        break
+    } catch {
+        Write-Host "." -NoNewline
+        Start-Sleep -Seconds 2
+        $attempts++
     }
 }
+if ($attempts -ge 30) {
+    Write-Host "`nWARNING: Device did not come back online within 60s" -ForegroundColor Yellow
+}
 
-# -- Deactivate sync mode (resumes audio) ------------------------
+# -- Summary -----------------------------------------------------
 
-Write-Host "`nDeactivating sync mode..." -ForegroundColor Cyan
-Send-SyncStop
-
-# -- Phase 8: Summary --------------------------------------------
-
-Write-Host "`nDone: $uploaded uploaded, $deleted deleted, $($changedDirs.Count) dirs reindexed." -ForegroundColor Cyan
+Write-Host "`nDone: $uploaded uploaded, $deleted deleted. Indices rebuilt at boot." -ForegroundColor Cyan
