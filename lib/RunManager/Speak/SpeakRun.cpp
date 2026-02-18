@@ -1,8 +1,8 @@
 /**
  * @file SpeakRun.cpp
  * @brief TTS speech state management implementation
- * @version 260215E
- * @date 2026-02-15
+ * @version 260218M
+ * @date 2026-02-18
  */
 #include "SpeakRun.h"
 #include "SpeakPolicy.h"
@@ -127,6 +127,7 @@ void formatVersionSpoken(const char* version, char* out, size_t outSize) {
 const char* getTtsSentence(SpeakRequest request) {
     switch (request) {
         case SpeakRequest::SD_FAIL:              return "Geheugenkaart werkt niet";
+        case SpeakRequest::SD_VERSION_FAIL:      return "Geheugenkaart versie klopt niet";
         case SpeakRequest::WIFI_FAIL:            return "WiFi werkt niet";
         case SpeakRequest::RTC_FAIL:             return "Temperatuur sensor werkt niet";
         case SpeakRequest::NTP_FAIL:             return "Tijd ophalen mislukt";

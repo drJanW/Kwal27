@@ -1,8 +1,8 @@
 /**
  * @file SDSettings.h
  * @brief Centralized SD card configuration constants and index format definitions
- * @version 260202A
- $12026-02-05
+ * @version 260218M
+ * @date 2026-02-18
  */
 #pragma once
 
@@ -23,7 +23,7 @@
 #define SD_STRINGIFY(x) SD_STRINGIFY_IMPL(x)
 
 #define SD_INDEX_VERSION  \
-"SDMANAGER " SD_VERSION "\n" \
+"SDCONTROLLER " SD_VERSION "\n" \
 "Index format V3\n" \
 "All MP3 files: mono, 128 kbps (max)\n" \
 "headless files only (no ID3 tags)\n" \

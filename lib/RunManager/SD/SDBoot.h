@@ -1,8 +1,8 @@
 /**
  * @file SDBoot.h
  * @brief SD card one-time initialization
- * @version 260217D
- * @date 2026-02-17
+ * @version 260218M
+ * @date 2026-02-18
  */
 #pragma once
 
@@ -21,6 +21,9 @@ public:
     /// Request a vote-preserving reindex of one dir.
     /// Schedules via timer so SD I/O runs outside web handler.
     static void requestSyncDir(uint8_t dirNum);
+
+    /// True if SD was readable but version.txt didn't match firmware
+    static bool isVersionMismatch();
     
 private:
     static void cb_retryBoot();

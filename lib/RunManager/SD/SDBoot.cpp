@@ -1,7 +1,7 @@
 /**
  * @file SDBoot.cpp
  * @brief SD card one-time initialization implementation
- * @version 260218D
+ * @version 260218M
  * @date 2026-02-18
  */
 #include <Arduino.h>
@@ -25,6 +25,7 @@ SDBoot* instance = nullptr;
 bool loggedStart = false;
 bool sdFailPatternActive = false;
 bool rebuildPending = false;  // Deferred rebuild waiting for time
+bool versionMismatch = false; // SD readable but index version wrong
 static uint8_t pendingSyncDir = 0;  // Dir number awaiting syncDirectory (0 = none)
 CRGB failLeds[NUM_LEDS];
 uint8_t failPhase = 0;
@@ -128,15 +129,16 @@ static void initSD() {
             SDController::closeFile(v);
         }
         if (!versionStringsEqual(sdver, SD_INDEX_VERSION)) {
-            PF("[SDBoot][ERROR] SD version mismatch.\n");
+            PF("[SDBoot] SD readable but index version mismatch\n");
             PF("  Card: %s\n  Need: %s\n", sdver.c_str(), SD_INDEX_VERSION);
+            versionMismatch = true;
             SDController::setReady(false);
-            return;  // Degraded path - no HALT
+            return;
         } else {
             PF_BOOT("[SDBoot] version OK\n");
         }
     } else {
-        PF("[SDBoot] Version file missing.\n");
+        PF("[SDBoot] Version file missing\n");
     }
 
     // SD mounted successfully - mark ready so boot can continue
@@ -175,7 +177,11 @@ static void reportSdOk() {
 
 /// Report SD failure (logging + alerts + fail pattern, no boot control)
 static void reportSdFail() {
-    PL("[SDBoot] SD boot failed after retries");
+    if (versionMismatch) {
+        PL("[SDBoot] SD readable but version mismatch — upload correct firmware or re-index");
+    } else {
+        PL("[SDBoot] SD boot failed after retries");
+    }
     loggedStart = false;
     SDPolicy::showStatus(true);
     AlertRun::report(AlertRequest::SD_FAIL);
@@ -280,4 +286,8 @@ void SDBoot::requestSyncDir(uint8_t dirNum) {
     pendingSyncDir = dirNum;
     timers.create(100, 1, cb_deferredSyncDir);
     PF("[SDBoot] SyncDir %03u requested\n", dirNum);
+}
+
+bool SDBoot::isVersionMismatch() {
+    return versionMismatch;
 }

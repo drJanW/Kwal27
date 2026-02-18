@@ -1,8 +1,8 @@
 /**
  * @file SpeakRun.h
  * @brief TTS speech state management
- * @version 260205A
- * @date 2026-02-05
+ * @version 260218M
+ * @date 2026-02-18
  */
 #pragma once
 
@@ -14,6 +14,7 @@
 enum class SpeakRequest : uint8_t {
     // Component failures (for boot notification)
     SD_FAIL,
+    SD_VERSION_FAIL,
     WIFI_FAIL,
     RTC_FAIL,
     NTP_FAIL,

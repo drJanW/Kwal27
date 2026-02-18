@@ -1,7 +1,7 @@
 /**
  * @file AudioBoot.cpp
  * @brief Audio subsystem one-time initialization implementation
- * @version 260218K
+ * @version 260218M
  * @date 2026-02-18
  */
 #include "AudioBoot.h"
@@ -16,6 +16,7 @@
 #include "Alert/AlertState.h"
 #include "Alert/AlertRun.h"
 #include "Speak/SpeakRun.h"
+#include "SD/SDBoot.h"
 #include "PlaySentence.h"
 
 void AudioBoot::plan() {
@@ -26,8 +27,10 @@ void AudioBoot::plan() {
 
     if (!AlertState::isSdOk()) {
         PL("[AudioBoot] SD absent — TTS only mode");
-        // SD_FAIL was reported before audio was ready — speak it now
-        SpeakRun::speakFail(SC_SD);
+        // Speak appropriate failure (version mismatch vs hardware fail)
+        SpeakRun::speak(SDBoot::isVersionMismatch()
+            ? SpeakRequest::SD_VERSION_FAIL
+            : SpeakRequest::SD_FAIL);
         // Welcome was queued but never played (CalendarRun gate) — play now
         AlertRun::playWelcomeIfPending();
         return;
