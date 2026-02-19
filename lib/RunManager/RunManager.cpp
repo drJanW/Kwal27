@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260218L
- * @date 2026-02-18
+ * @version 260219E
+ * @date 2026-02-19
  */
 #include <Arduino.h>
 #include <math.h>
@@ -155,7 +155,7 @@ static AudioFragment pendingFragment{};     // stashed fragment for stop-then-pl
 static bool hasPendingFragment = false;
 
 void cb_playNextFragment() {
-    RunManager::requestPlayFragment();
+    RunManager::requestPlayFragment("random");
 }
 
 void cb_webAudioStopThenNext() {
@@ -247,7 +247,7 @@ void RunManager::update() {
 #endif
 }
 
-void RunManager::requestPlayFragment() {
+void RunManager::requestPlayFragment(const char* source) {
     if (!AlertState::canPlayFragment()) {
         RUN_LOG_WARN("[AudioRun] playback blocked by policy\n");
         return;
@@ -257,13 +257,16 @@ void RunManager::requestPlayFragment() {
         RUN_LOG_WARN("[AudioRun] no fragment available\n");
         return;
     }
+    // Source tag only — no box info
+    strncpy(fragment.source, source, sizeof(fragment.source) - 1);
+    fragment.source[sizeof(fragment.source) - 1] = '\0';
 
     if (!AudioPolicy::requestFragment(fragment)) {
         RUN_LOG_WARN("[AudioRun] playback rejected\n");
     }
 }
 
-void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file) {
+void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file, const char* source) {
     if (!AlertState::canPlayFragment()) {
         RUN_LOG_WARN("[AudioRun] playback blocked by policy\n");
         return;
@@ -279,7 +282,7 @@ void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file) {
             RUN_LOG_WARN("[AudioRun] dir %u not found or empty\n", dir);
             return;
         }
-        targetFile = random(0, dirEntry.fileCount);
+        targetFile = random(1, dirEntry.fileCount + 1);
     }
     
     if (!SDController::readFileEntry(dir, targetFile, &fileEntry)) {
@@ -300,6 +303,8 @@ void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file) {
     fragment.startMs    = 100U;  // Skip header
     fragment.durationMs = rawDuration - 100U;
     fragment.fadeMs     = 500U;  // Default fade
+    strncpy(fragment.source, source, sizeof(fragment.source) - 1);
+    fragment.source[sizeof(fragment.source) - 1] = '\0';
     
     if (isAudioBusy()) {
         // Stash fragment, stop current, play after fade-out
@@ -317,8 +322,7 @@ void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file) {
 
 void RunManager::requestSetSingleDirThemeBox(uint8_t dir) {
     AudioPolicy::setThemeBox(&dir, 1, "web-" + String(dir));
-    PF("[RunManager] Single-dir theme box set: dir %u\n", dir);
-    requestPlaySpecificFragment(dir, -1);  // Play random file from that dir immediately
+    requestPlaySpecificFragment(dir, -1, "grid/dir");  // Play random file from that dir immediately
     // Reschedule next automatic play with shorter interval
     timers.restart(random(Globals::singleDirMinIntervalMs, Globals::singleDirMaxIntervalMs + 1), 1, cb_playFragment);
 }
@@ -438,7 +442,7 @@ void RunManager::resumeAfterWiFiBoot() {
 
     wifiPostBootCompleted = true;
 
-    Globals::begin();
+    // Globals::begin() already called during SD boot (or SD-fail fallback)
     bootManager.restartBootTimer();
     calendarBoot.plan();
     calendarRun.plan();

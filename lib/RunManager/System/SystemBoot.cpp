@@ -1,8 +1,8 @@
 /**
  * @file SystemBoot.cpp
  * @brief System-level boot stages implementation
- * @version 260218E
- * @date 2026-02-18
+ * @version 260219E
+ * @date 2026-02-19
  */
 #include <Arduino.h>
 #include "SystemBoot.h"
@@ -48,7 +48,7 @@ bool systemBootStage1() {
     if (wireOk) {
         Wire.setClock(I2C_CLOCK_HZ);
         hwStatus |= HW_I2C;
-        PL("  I2C: OK");
+        PL(" I2C: OK");
 
         // Pre-boot exception: read RTC before RunManager starts
         // so time is known for all subsequent boot stages.
@@ -59,16 +59,16 @@ bool systemBootStage1() {
             if (RTCController::readInto(prtClock)) {
                 prtClock.setTimeFetched(true);
                 if (RTCController::wasPowerLost()) {
-                    PL("  RTC: power lost");
+                    PL(" RTC: power lost");
                 } else {
-                    PL("  RTC: OK");
+                    PL(" RTC: OK");
                 }
             } else {
-                PL("  RTC: FAIL");
+                PL(" RTC: FAIL");
             }
         }
     } else {
-        PL("  I2C: FAIL");
+        PL(" I2C: FAIL");
     }
     
     RunManager::begin();

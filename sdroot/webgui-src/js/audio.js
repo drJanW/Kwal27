@@ -86,7 +86,7 @@ Kwal.audio = (function() {
           setPlayingState(true);
           if (playingTimeout) clearTimeout(playingTimeout);
           playingTimeout = setTimeout(function() { setPlayingState(false); }, 32000);
-          fetch('/api/audio/play?dir=' + currentDir).catch(function() {
+          fetch('/api/audio/play?dir=' + currentDir + '&src=dir%2B').catch(function() {
             setPlayingState(false);
           });
         }
@@ -100,7 +100,7 @@ Kwal.audio = (function() {
           setPlayingState(true);
           if (playingTimeout) clearTimeout(playingTimeout);
           playingTimeout = setTimeout(function() { setPlayingState(false); }, 32000);
-          fetch('/api/audio/play?dir=' + currentDir + '&file=' + currentFile).catch(function() {
+          fetch('/api/audio/play?dir=' + currentDir + '&file=' + currentFile + '&src=replay').catch(function() {
             setPlayingState(false);
           });
         }

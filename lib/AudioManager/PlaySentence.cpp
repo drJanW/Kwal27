@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.cpp
  * @brief TTS sentence playback with word dictionary and VoiceRSS API
- * @version 260216C
- * @date 2026-02-16
+ * @version 260219C
+ * @date 2026-02-19
  * 
  * Implements sequential word playback from /000/ directory.
  * Uses unified SpeakItem queue for mixing MP3 words and TTS sentences.
@@ -286,8 +286,10 @@ bool voicerss_ok(const String& url, String& err) {
     // Read response head if immediately available (no polling)
     String head;
     WiFiClient* s = http.getStreamPtr();
-    while (s->available() && head.length() < 256) {
-        head += char(s->read());
+    if (s) {
+        while (s->available() && head.length() < 256) {
+            head += char(s->read());
+        }
     }
     http.end();
 

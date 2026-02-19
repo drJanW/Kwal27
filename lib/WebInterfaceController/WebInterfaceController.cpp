@@ -1,8 +1,8 @@
 /**
  * @file WebInterfaceController.cpp
  * @brief Async web server setup, routes index.html and API endpoints
- * @version 260218E
- * @date 2026-02-18
+ * @version 260219C
+ * @date 2026-02-19
  */
 #include <Arduino.h>
 #include "WebInterfaceController.h"
@@ -168,7 +168,7 @@ void beginWebInterface()
     SDVoting::attachVoteRoute(server);
 
     server.begin();
-    PF("[WebInterface] Ready at http://%s/\n", WiFi.localIP().toString().c_str());
+    PL("[WebInterface] Server started");
 }
 
 void updateWebInterface()

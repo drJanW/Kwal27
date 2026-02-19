@@ -177,7 +177,7 @@ Kwal.mp3grid = (function() {
     canvas.addEventListener('dblclick', function(e) {
       e.preventDefault();
       if (selRow > 0 && selCol > 0) {
-        fetch('/api/audio/play?dir=' + selRow + '&file=' + selCol).catch(function() {});
+        fetch('/api/audio/play?dir=' + selRow + '&file=' + selCol + '&src=grid%2Ffile').catch(function() {});
       }
     });
 
@@ -211,7 +211,7 @@ Kwal.mp3grid = (function() {
       el.addEventListener('click', function(e) {
         e.preventDefault();
         if (selRow > 0 && selCol > 0) {
-          fetch('/api/audio/play?dir=' + selRow + '&file=' + selCol).catch(function() {});
+          fetch('/api/audio/play?dir=' + selRow + '&file=' + selCol + '&src=grid%2Ffile').catch(function() {});
           if (fileVal) { fileVal.style.color = '#e8c72e'; setTimeout(function() { fileVal.style.color = ''; }, 400); }
         }
       });

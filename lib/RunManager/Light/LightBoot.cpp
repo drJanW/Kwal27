@@ -1,8 +1,8 @@
 /**
  * @file LightBoot.cpp
  * @brief LED show one-time initialization implementation
- * @version 260215F
- * @date 2026-02-15
+ * @version 260219C
+ * @date 2026-02-19
  */
 #include "LightBoot.h"
 #include "LightController.h"
@@ -53,7 +53,7 @@ void LightBoot::plan() {
         ? (targetBri / Globals::brightnessHi)
         : 1.0f;
     setWebMultiplier(initWebMult);
-    PF("[LightBoot] defaultBrightnessSliderPct=%u → webMultiplier=%.3f\n",
+    PF("[LightBoot] Slider=%u → webMultiplier=%.3f\n",
        Globals::defaultBrightnessSliderPct, initWebMult);
     WebGuiStatus::pushState();  // Push initial brightness
 }

@@ -751,7 +751,7 @@ static bool loadConfigTxt() {
     }
     File file = SD.open(path.c_str(), FILE_READ);
     if (!file) {
-        PL("[config] Failed to open config.txt");
+        PL("[boot] config.txt exists but could not be opened");
         return false;
     }
 
@@ -816,7 +816,7 @@ static bool loadConfigTxt() {
     file.close();
 
     if (keysLoaded < 2) {
-        PL("[config] config.txt has very few keys");
+        PL("[boot] config.txt has very few keys");
     }
     return keysLoaded >= 2;
 }
@@ -827,19 +827,22 @@ void Globals::begin() {
     const char* source = hadNvs ? "NVS" : "defaults";
 
     // ── Step 2: If SD available, config.txt overrides NVS and re-caches ──
-    if (!AlertState::isSdOk()) {
-        PF("[config] %s (%s, no SD)\n", Globals::deviceName, source);
-        return;
+    if (AlertState::isSdOk()) {
+        bool hadFile = loadConfigTxt();
+        Globals::configFilePresent = hadFile;
+        if (hadFile) {
+            saveConfigToNvs();
+            source = "SD";
+        }
     }
 
-    bool hadFile = loadConfigTxt();
-    Globals::configFilePresent = hadFile;
-    if (hadFile) saveConfigToNvs();
-    const char* src = hadFile ? "SD" : source;
-
-    PF("[config] %s ip=%s fw=%s rtc=%d lux=%d (%s)\n",
-       Globals::deviceName, Globals::staticIp, Globals::firmwareVersion,
-       Globals::rtcPresent, Globals::luxSensorPresent, src);
+    PF("[boot][%s] %s ssid=%s pw=%s ip=%s gw=%s\n",
+       source, Globals::deviceName, Globals::wifiSsid, Globals::wifiPassword,
+       Globals::staticIp, Globals::staticGateway);
+    PF("[boot][%s] %s rtc=%d lux=%d dist=%d s3=%d\n",
+       source, Globals::deviceName,
+       Globals::rtcPresent, Globals::luxSensorPresent,
+       Globals::distanceSensorPresent, Globals::sensor3Present);
     
     // ── Step 3: Load globals.csv overrides ──
     const String csvPath = SdPathUtils::chooseCsvPath("globals.csv");

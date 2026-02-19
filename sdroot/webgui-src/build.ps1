@@ -22,7 +22,7 @@ $modules = @(
 
 # Output ONLY to sdroot - NO local copy to prevent accidental editing
 $sdroot_output = "../kwal.js"
-$version = "260219A"
+$version = "260219D"
 
 # Header with DO NOT EDIT warning (in case Copilot is being a cunt)
 $header = @"

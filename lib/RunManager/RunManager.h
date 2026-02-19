@@ -1,8 +1,8 @@
 /**
  * @file RunManager.h
  * @brief Central coordinator header for all Kwal modules
- * @version 260218A
- * @date 2026-02-18
+ * @version 260219E
+ * @date 2026-02-19
  */
 #pragma once
 #include <Arduino.h>
@@ -22,8 +22,8 @@ public:
     static void update();
 
     // Requests (external inputs)
-    static void requestPlayFragment();
-    static void requestPlaySpecificFragment(uint8_t dir, int8_t file);  // file=-1 for random from dir
+    static void requestPlayFragment(const char* source = "timer");
+    static void requestPlaySpecificFragment(uint8_t dir, int8_t file, const char* source = "?");
     static void requestSetSingleDirThemeBox(uint8_t dir);
     static void requestWebAudioNext(uint16_t fadeMs);
     static void requestStartSync();

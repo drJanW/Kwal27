@@ -1,8 +1,8 @@
 /**
  * @file AudioBoot.cpp
  * @brief Audio subsystem one-time initialization implementation
- * @version 260218M
- * @date 2026-02-18
+ * @version 260219C
+ * @date 2026-02-19
  */
 #include "AudioBoot.h"
 
@@ -58,7 +58,7 @@ void AudioBoot::plan() {
         ? (targetVol / MAX_VOLUME)
         : 1.0f;
     setVolumeWebMultiplier(initVolMult);
-    PF("[AudioBoot] defaultAudioSliderPct=%u → volumeWebMultiplier=%.3f\n",
+    PF("[AudioBoot] Slider=%u → WebMultiplier=%.3f\n",
        Globals::defaultAudioSliderPct, initVolMult);
 
     PlaySentence::speakNext();  // Kickstart queue if items waiting

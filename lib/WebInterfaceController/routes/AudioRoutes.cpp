@@ -1,8 +1,8 @@
 /**
  * @file AudioRoutes.cpp
  * @brief Audio API endpoint routes
- * @version 260212C
- * @date 2026-02-12
+ * @version 260219E
+ * @date 2026-02-19
  */
 #include <Arduino.h>
 #include "AudioRoutes.h"
@@ -69,7 +69,6 @@ void routeNext(AsyncWebServerRequest *request)
 {
     RunManager::requestWebAudioNext(Globals::webAudioNextFadeMs);
     request->send(200, "text/plain", "OK");
-    WEBIF_LOG("[Web] Audio next triggered (fade %u ms)\n", Globals::webAudioNextFadeMs);
 }
 
 void routeCurrent(AsyncWebServerRequest *request)
@@ -99,13 +98,17 @@ void routePlay(AsyncWebServerRequest *request)
     if (request->hasParam("file")) {
         file = request->getParam("file")->value().toInt();
     }
-    RunManager::requestPlaySpecificFragment(dir, file);
-    request->send(200, "text/plain", "OK");
-    if (file >= 0) {
-        PF("[Web] Replay %u/%d requested\n", dir, file);
-    } else {
-        PF("[Web] Play random from dir %u requested\n", dir);
+    // Source: grid/replay/dir+ from JS src= param, or "random" for dir-only
+    const char* source = "random";
+    if (file >= 0) source = "replay";  // default for specific file
+    if (request->hasParam("src")) {
+        String s = request->getParam("src")->value();
+        if (s == "grid" || s == "grid/file" || s == "grid%2Ffile") source = "grid/file";
+        else if (s == "replay") source = "replay";
+        else if (s == "dir+" || s == "dir%2B") source = "dir+";
     }
+    RunManager::requestPlaySpecificFragment(dir, file, source);
+    request->send(200, "text/plain", "OK");
 }
 
 void routeThemeBox(AsyncWebServerRequest *request)

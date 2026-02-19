@@ -1,8 +1,8 @@
 /**
  * @file AudioDirector.cpp
  * @brief Audio fragment selection logic implementation
- * @version 260212K
- * @date 2026-02-12
+ * @version 260219E
+ * @date 2026-02-19
  */
 #include "AudioDirector.h"
 
@@ -302,6 +302,7 @@ bool AudioDirector::selectRandomFragment(AudioFragment& outFrag) {
                 outFrag.startMs    = static_cast<uint16_t>(startMs);
                 outFrag.durationMs = static_cast<uint16_t>((durationMs > 0xFFFF) ? 0xFFFF : durationMs);
                 outFrag.fadeMs     = fadeMs;
+                // source filled by caller (requestPlayFragment sets timer/next)
 
 #if LOG_AUDIO_DIRECTOR_VERBOSE
                 PF("[AudioDirector] pick %03u/%03u start=%u dur=%u fade=%u (raw=%lu)\n",

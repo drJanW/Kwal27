@@ -1,8 +1,8 @@
 /**
  * @file PlayFragment.h
  * @brief MP3 fragment playback with fade-in/fade-out support
- * @version 260205A
- $12026-02-07
+ * @version 260219E
+ * @date 2026-02-19
  * 
  * PlayAudioFragment handles playback of MP3 files from SD card subdirectories.
  * Each fragment is played from a specified start position for a given duration,
@@ -30,6 +30,7 @@ struct AudioFragment {
   uint32_t startMs;     ///< Start position in milliseconds (seek target)
   uint32_t durationMs;  ///< Playback duration in milliseconds
   uint16_t fadeMs;      ///< Fade duration (both in and out)
+  char     source[16];  ///< Origin label for logging (timer/random/grid-file/grid-dir/replay/dir+)
 };
 
 /**

@@ -135,7 +135,7 @@ Kwal.health = (function() {
 
     // config.txt delete option (only when file is present on SD)
     if (data.configFile) {
-      html += '<tr><td>⚙️ config.txt</td><td><button class="btn-small btn-warn" id="btn-del-config">Delete</button> (NVS up to date)</td></tr>';
+      html += '<tr><td>⚙️ config.txt</td><td><span id="btn-del-config" style="cursor:pointer" title="Delete config.txt from SD">🗑️</span> NVS up to date</td></tr>';
     }
 
     html += '</table>';

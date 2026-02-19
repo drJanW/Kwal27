@@ -1,0 +1,111 @@
+Sensor Registry Refactor — Plan
+================================
+Doel: één SensorDef tabel, één plek om een sensor toe te voegen.
+Van 12 plekken naar 4 plekken bij nieuwe sensor.
+
+Centrale tabel (in Globals.h):
+─────────────────────────────────
+struct SensorDef {
+    const char*     key;        // "distance" — zelfde in config.txt, NVS, boot log
+    bool*           present;    // &Globals::distanceSensorPresent
+    StatusComponent sc;         // SC_DIST
+    uint32_t        alertColor; // 0x00FF00
+    const char*     label;      // "Distance" — health API + WebGUI
+    const char*     icon;       // "📏" — WebGUI
+    void (*beginFn)();          // SensorController::beginDistanceSensor
+};
+
+static const SensorDef sensorDefs[] = {
+    {"rtc",      &Globals::rtcPresent,              SC_RTC,     0xFFFF00, "RTC",      "🕐", nullptr},
+    {"lux",      &Globals::luxSensorPresent,        SC_LUX,     0xFF00FF, "Lux",      "☀️",  SensorController::beginLuxSensor},
+    {"distance", &Globals::distanceSensorPresent,   SC_DIST,    0x00FF00, "Distance", "📏", SensorController::beginDistanceSensor},
+    {"sensor3",  &Globals::sensor3Present,          SC_SENSOR3, 0x00FFFF, "Sensor3",  "🌡️",  SensorController::beginSensor3},
+};
+
+Bestanden die veranderen:
+─────────────────────────────────
+#  Bestand                          Nu                              Straks
+1  Globals.h                        Losse bools, geen tabel         SensorDef tabel + bools (gelinkt via pointer)
+2  Globals.cpp loadConfigTxt()      4x strcmp if/else               for-loop over sensorDefs[]
+3  Globals.cpp loadConfigFromNvs()  4x getBool                      for-loop
+4  Globals.cpp saveConfigToNvs()    4x putBool                      for-loop
+5  Globals.cpp begin() boot log     Hardcoded format string         for-loop bouwt dynamic string
+6  SensorsBoot.cpp                  3x if (flag) beginX()           for-loop: if (*s.present && s.beginFn) s.beginFn()
+7  AlertState.cpp isPresent()       switch met 4 cases              for-loop over tabel
+8  AlertRGB.cpp                     3x if (flag && isNotOk)         for-loop: presentie + statusBit + kleur uit tabel
+9  StatusFlags.cpp                  3x if (flag && !isOk)           for-loop
+10 AlertPolicy.h                    4x constexpr COLOR_xxx          Kleuren verhuizen naar tabel
+11 HealthRoutes.cpp                 Sensor status via health bits   sensorDefs array meesturen als JSON
+12 health.js                        Hardcoded fields array          Dynamisch uit API response
+
+Bonus opruiming:
+─────────────────────────────────
+- copyStr(dst, src, maxLen) helper — vervangt 10x strncpy + null-terminator
+- keysLoaded bug — telt alleen nog herkende keys (nu telt hij ook onbekende)
+- NVS keys unificeren — "dist" → "distance", "s3" → "sensor3" (eenmalig NVS reset)
+
+Wat NIET verandert:
+─────────────────────────────────
+- Individuele bool members in Globals.h — blijven, tabel linkt ernaar via pointer.
+
+SensorDef uitgebreid met SpeakRequest + flash flag:
+─────────────────────────────────
+struct SensorDef {
+    const char*     key;           // "distance" — config.txt, NVS, boot log
+    bool*           present;       // &Globals::distanceSensorPresent
+    StatusComponent sc;            // SC_DIST
+    uint32_t        alertColor;    // 0x00FF00
+    const char*     label;         // "Distance" — health API + WebGUI
+    const char*     icon;          // "📏" — WebGUI
+    void (*beginFn)();             // SensorController::beginDistanceSensor
+    SpeakRequest    failSpeak;     // SpeakRequest::DISTANCE_SENSOR_FAIL
+    bool            flashOnFail;   // true = AlertRGB::startFlashing() buiten boot
+};
+
+Hierdoor kan ook setDistanceSensorStatus() etc generiek worden:
+→ één setSensorStatus(StatusComponent sc, bool status) die de tabel raadpleegt.
+
+Struct staat in flash (const), gaat NIET naar NVS. Geen RAM-kosten.
+
+Nieuwe sensor toevoegen (voorbeeld: accelerometer):
+════════════════════════════════════════════════════
+
+EDIT 1 — lib/Globals/Globals.h — bool toevoegen bij DEVICE IDENTITY sectie:
+────────────────────────────────────────────────────
+    inline static bool     sensor3Present            = false;
++   inline static bool     accelPresent              = false;    // ← NIEUW
+    inline static bool     configFilePresent         = false;
+
+EDIT 2 — lib/Globals/Globals.h — tabel entry toevoegen aan sensorDefs[]:
+────────────────────────────────────────────────────
+    {"sensor3",  &Globals::sensor3Present,  SC_SENSOR3, 0x00FFFF, "Sensor3",  "🌡️",
+     SensorController::beginSensor3,  SpeakRequest::SENSOR3_FAIL,  true},
++   {"accel",    &Globals::accelPresent,    SC_ACCEL,   0xFF8080, "Accel",    "🎯",   // ← NIEUW
++    SensorController::beginAccel,    SpeakRequest::ACCEL_FAIL,    true},
+
+EDIT 3a — lib/RunManager/Alert/AlertState.h — SC_ACCEL aan enum:
+────────────────────────────────────────────────────
+    SC_SENSOR3,
++   SC_ACCEL,       // ← NIEUW
+    SC_NTP,
+
+EDIT 3b — lib/RunManager/Speak/SpeakRequest.h — ACCEL_FAIL aan enum:
+────────────────────────────────────────────────────
+    SENSOR3_FAIL,
++   ACCEL_FAIL,     // ← NIEUW
+
+EDIT 4 — sdroot/MARMER/config.txt (en/of sdroot/HOUT/config.txt):
+────────────────────────────────────────────────────
+    sensor3=0
++   accel=1         // ← NIEUW (1=aanwezig, 0=niet)
+
+GEEN EDITS NODIG IN (want table-driven):
+────────────────────────────────────────────────────
+  ✓ Globals.cpp        — loadConfigTxt(), loadConfigFromNvs(), saveConfigToNvs(), boot log
+  ✓ SensorsBoot.cpp    — sensor init
+  ✓ AlertState.cpp     — isPresent(), setSensorStatus()
+  ✓ AlertRGB.cpp       — fout-flash kleuren
+  ✓ StatusFlags.cpp    — hardware fail bits
+  ✓ AlertPolicy.h      — kleuren (nu in tabel)
+  ✓ HealthRoutes.cpp   — health API
+  ✓ health.js          — WebGUI health panel

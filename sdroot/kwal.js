@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260219A - Built 2026-02-19 10:10
+ * Kwal WebGUI v260219D - Built 2026-02-19 13:35
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260219A';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260219D';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -199,7 +199,7 @@ Kwal.audio = (function() {
           setPlayingState(true);
           if (playingTimeout) clearTimeout(playingTimeout);
           playingTimeout = setTimeout(function() { setPlayingState(false); }, 32000);
-          fetch('/api/audio/play?dir=' + currentDir).catch(function() {
+          fetch('/api/audio/play?dir=' + currentDir + '&src=dir%2B').catch(function() {
             setPlayingState(false);
           });
         }
@@ -213,7 +213,7 @@ Kwal.audio = (function() {
           setPlayingState(true);
           if (playingTimeout) clearTimeout(playingTimeout);
           playingTimeout = setTimeout(function() { setPlayingState(false); }, 32000);
-          fetch('/api/audio/play?dir=' + currentDir + '&file=' + currentFile).catch(function() {
+          fetch('/api/audio/play?dir=' + currentDir + '&file=' + currentFile + '&src=replay').catch(function() {
             setPlayingState(false);
           });
         }
@@ -1727,7 +1727,7 @@ Kwal.health = (function() {
 
     // config.txt delete option (only when file is present on SD)
     if (data.configFile) {
-      html += '<tr><td>⚙️ config.txt</td><td><button class="btn-small btn-warn" id="btn-del-config">Delete</button> (NVS up to date)</td></tr>';
+      html += '<tr><td>⚙️ config.txt</td><td><span id="btn-del-config" style="cursor:pointer" title="Delete config.txt from SD">🗑️</span> NVS up to date</td></tr>';
     }
 
     html += '</table>';
@@ -1996,7 +1996,7 @@ Kwal.mp3grid = (function() {
     canvas.addEventListener('dblclick', function(e) {
       e.preventDefault();
       if (selRow > 0 && selCol > 0) {
-        fetch('/api/audio/play?dir=' + selRow + '&file=' + selCol).catch(function() {});
+        fetch('/api/audio/play?dir=' + selRow + '&file=' + selCol + '&src=grid%2Ffile').catch(function() {});
       }
     });
 
@@ -2030,7 +2030,7 @@ Kwal.mp3grid = (function() {
       el.addEventListener('click', function(e) {
         e.preventDefault();
         if (selRow > 0 && selCol > 0) {
-          fetch('/api/audio/play?dir=' + selRow + '&file=' + selCol).catch(function() {});
+          fetch('/api/audio/play?dir=' + selRow + '&file=' + selCol + '&src=grid%2Ffile').catch(function() {});
           if (fileVal) { fileVal.style.color = '#e8c72e'; setTimeout(function() { fileVal.style.color = ''; }, 400); }
         }
       });

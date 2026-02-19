@@ -1,8 +1,8 @@
 /**
  * @file PRTClock.cpp
  * @brief Real-time clock management with DS3231 RTC and NTP synchronization
- * @version 260216A
- * @date 2026-02-16
+ * @version 260219E
+ * @date 2026-02-19
  */
 #include <Arduino.h>
 #include <atomic>
@@ -26,8 +26,8 @@ static std::atomic<bool>     _timeFetched{false};
 static bool provideTimestamp(char* buf, size_t bufSize) {
     if (bufSize < 12) return false;
     if (!_timeFetched.load(std::memory_order_relaxed)) {
-        // Before clock sync: show millis (space-padded)
-        snprintf(buf, bufSize, "%7lums ", millis());
+        // Before clock sync: show millis (9 chars, matches HH:MM:SS )
+        snprintf(buf, bufSize, "%6lums ", millis());
         return true;
     }
     snprintf(buf, bufSize, "%02u:%02u:%02u ", 
