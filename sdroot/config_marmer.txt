@@ -1,0 +1,10 @@
+# Device configuratie — per kwal uniek
+name=MARMER
+ssid=keijebijter
+password=Helmondia;55
+ip=192.168.2.188
+gateway=192.168.2.254
+rtc=1
+lux=1
+distance=0
+sensor3=0
