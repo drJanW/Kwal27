@@ -133,8 +133,31 @@ Kwal.health = (function() {
     html += '<tr><td>Firmware</td><td>' + (data.firmware || '?') + '</td></tr>';
     html += '<tr><td>WebGUI</td><td>' + (window.KWAL_JS_VERSION || '?') + '</td></tr>';
 
+    // config.txt delete option (only when file is present on SD)
+    if (data.configFile) {
+      html += '<tr><td>⚙️ config.txt</td><td><button class="btn-small btn-warn" id="btn-del-config">Delete</button> (NVS up to date)</td></tr>';
+    }
+
     html += '</table>';
     container.innerHTML = html;
+
+    // Bind config.txt delete button if present
+    var delBtn = document.getElementById('btn-del-config');
+    if (delBtn) {
+      delBtn.onclick = function() {
+        if (!confirm('Delete config.txt from SD? (NVS config stays)')) return;
+        fetch('/api/sd/delete?path=/config.txt', { method: 'POST' })
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d.status === 'ok') {
+              delBtn.parentNode.innerHTML = '✅ Deleted';
+            } else {
+              alert('Delete failed');
+            }
+          })
+          .catch(function(e) { alert('Error: ' + e.message); });
+      };
+    }
   }
 
   function doRestart() {

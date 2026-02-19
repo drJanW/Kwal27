@@ -1,8 +1,8 @@
 /**
  * @file HealthRoutes.cpp
  * @brief Health API endpoint routes
- * @version 260218J
- * @date 2026-02-18
+ * @version 260219A
+ * @date 2026-02-19
  */
 #include <Arduino.h>
 #include "HealthRoutes.h"
@@ -28,7 +28,10 @@ void routeHealth(AsyncWebServerRequest *request) {
     json += "\"timers\":" + String(timers.getActiveCount()) + ",";
     json += "\"maxActiveTimers\":" + String(timers.getMaxActiveTimers()) + ",";
     json += "\"maxTimers\":" + String(MAX_TIMERS);
-
+    // Config source flag (config.txt on SD still present after boot)
+    if (Globals::configFilePresent) {
+        json += ",\"configFile\":true";
+    }
     const auto& ts = ContextController::time();
     if (ts.hasRtcTemperature) {
         json += ",\"rtcTempC\":" + String(ts.rtcTemperatureC, 1);

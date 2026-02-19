@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260218N"
+#define FIRMWARE_VERSION_CODE "260219B"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -162,6 +162,7 @@ struct Globals {
     inline static bool     luxSensorPresent          = true;               // Lux sensor present (default: yes)
     inline static bool     distanceSensorPresent     = false;              // Distance sensor present (default: no)
     inline static bool     sensor3Present            = false;              // Board sensor present (default: no)
+    inline static bool     configFilePresent         = false;              // config.txt found on SD at boot
 
     // ─────────────────────────────────────────────────────────────
     // WIFI (7 params) — SSID/password/IP/gateway loaded from config.txt

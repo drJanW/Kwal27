@@ -1,8 +1,8 @@
 /**
  * @file Globals.cpp
  * @brief CSV override loader for Globals
- * @version 260218L
- * @date 2026-02-18
+ * @version 260219A
+ * @date 2026-02-19
  */
 #include "Arduino.h"
 #include "Globals.h"
@@ -658,9 +658,10 @@ void Globals::fillFadeCurve() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// NVS WiFi cache: persists WiFi config across SD-absent boots
+// NVS config cache: persists device config across SD-absent boots
+// Stores WiFi params + device name + sensor presence flags
 // ─────────────────────────────────────────────────────────────
-static void saveWifiToNvsInternal() {
+static void saveConfigToNvs() {
     Preferences prefs;
     prefs.begin("wifi", false);
     prefs.putString("ssid", Globals::wifiSsid);
@@ -668,12 +669,16 @@ static void saveWifiToNvsInternal() {
     prefs.putString("ip", Globals::staticIp);
     prefs.putString("gw", Globals::staticGateway);
     prefs.putString("name", Globals::deviceName);
+    prefs.putBool("rtc", Globals::rtcPresent);
+    prefs.putBool("lux", Globals::luxSensorPresent);
+    prefs.putBool("dist", Globals::distanceSensorPresent);
+    prefs.putBool("s3", Globals::sensor3Present);
     prefs.end();
-    PL("[Globals] WiFi config cached to NVS");
+    PL_BOOT("[NVS] Config cached");
 }
 
 void Globals::saveWifiToNvs() {
-    saveWifiToNvsInternal();
+    saveConfigToNvs();
 }
 
 bool Globals::updateWifiFromWeb(const char* ssid, const char* password,
@@ -698,12 +703,12 @@ bool Globals::updateWifiFromWeb(const char* ssid, const char* password,
         strncpy(Globals::deviceName, name, sizeof(Globals::deviceName) - 1);
         Globals::deviceName[sizeof(Globals::deviceName) - 1] = '\0';
     }
-    saveWifiToNvsInternal();
+    saveConfigToNvs();
     PF("[Globals] WiFi updated from web: ssid=%s ip=%s\n", Globals::wifiSsid, Globals::staticIp);
     return true;
 }
 
-static bool loadWifiFromNvs() {
+static bool loadConfigFromNvs() {
     Preferences prefs;
     prefs.begin("wifi", true);  // read-only
     String ssid = prefs.getString("ssid", "");
@@ -727,6 +732,11 @@ static bool loadWifiFromNvs() {
         strncpy(Globals::deviceName, name.c_str(), sizeof(Globals::deviceName) - 1);
         Globals::deviceName[sizeof(Globals::deviceName) - 1] = '\0';
     }
+    // Sensor flags — use current defaults if key not yet stored (backward compat)
+    Globals::rtcPresent            = prefs.getBool("rtc",  Globals::rtcPresent);
+    Globals::luxSensorPresent      = prefs.getBool("lux",  Globals::luxSensorPresent);
+    Globals::distanceSensorPresent = prefs.getBool("dist", Globals::distanceSensorPresent);
+    Globals::sensor3Present        = prefs.getBool("s3",   Globals::sensor3Present);
     prefs.end();
     return true;
 }
@@ -734,16 +744,15 @@ static bool loadWifiFromNvs() {
 // ─────────────────────────────────────────────────────────────
 // Load config.txt: key=value pairs for device identity & hardware presence
 // ─────────────────────────────────────────────────────────────
-static void loadConfigTxt() {
+static bool loadConfigTxt() {
     const String path = SdPathUtils::chooseCsvPath("config.txt");
     if (path.isEmpty() || !SDController::fileExists(path.c_str())) {
-        PL("[Globals] No config.txt, using firmware defaults");
-        return;
+        return false;
     }
     File file = SD.open(path.c_str(), FILE_READ);
     if (!file) {
-        PL("[Globals] Failed to open config.txt");
-        return;
+        PL("[config] Failed to open config.txt");
+        return false;
     }
 
     char line[128];
@@ -807,35 +816,32 @@ static void loadConfigTxt() {
     file.close();
 
     if (keysLoaded < 2) {
-        PL("[Globals] config.txt has very few keys - check file");
+        PL("[config] config.txt has very few keys");
     }
+    return keysLoaded >= 2;
 }
 
 void Globals::begin() {
-    static bool nvsLoaded = false;
+    // ── Step 1: Always load NVS first (device identity baseline) ──
+    bool hadNvs = loadConfigFromNvs();
+    const char* source = hadNvs ? "NVS" : "defaults";
 
-    // Check SD availability
+    // ── Step 2: If SD available, config.txt overrides NVS and re-caches ──
     if (!AlertState::isSdOk()) {
-        if (nvsLoaded) return;  // Already loaded in earlier call
-        nvsLoaded = true;
-        // Try NVS cache before falling back to compile-time defaults
-        if (loadWifiFromNvs()) {
-            PF("[NVS] WiFi config restored (ip=%s)\n", Globals::staticIp);
-        } else {
-            Serial.println("[Globals] No SD, no NVS — using compile-time defaults");
-        }
+        PF("[config] %s (%s, no SD)\n", Globals::deviceName, source);
         return;
     }
 
-    // Load device identity and WiFi from config.txt (before globals.csv)
-    loadConfigTxt();
-    PF("[config] device=%s\n", Globals::deviceName);
-    PF("[config] firmware=%s\n", Globals::firmwareVersion);
+    bool hadFile = loadConfigTxt();
+    Globals::configFilePresent = hadFile;
+    if (hadFile) saveConfigToNvs();
+    const char* src = hadFile ? "SD" : source;
 
-    // Cache WiFi config to NVS for SD-absent boots
-    saveWifiToNvsInternal();
+    PF("[config] %s ip=%s fw=%s rtc=%d lux=%d (%s)\n",
+       Globals::deviceName, Globals::staticIp, Globals::firmwareVersion,
+       Globals::rtcPresent, Globals::luxSensorPresent, src);
     
-    // Check file existence
+    // ── Step 3: Load globals.csv overrides ──
     const String csvPath = SdPathUtils::chooseCsvPath("globals.csv");
     if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         Serial.println("[Globals] No globals.csv, using defaults");
