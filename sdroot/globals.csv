@@ -39,7 +39,7 @@ patternChangeIntervalMs;u;17640000;pick new random pattern (4.9 hours)
 # ═══════════════════════════════════════════════════════════════════
 # BRIGHTNESS/LUX (5 params)
 # ═══════════════════════════════════════════════════════════════════
-brightnessLo;u;10;
+brightnessLo;u;70;
 #defaultBrightnessSliderPct;u;60;boot default brightness slider position (0-100%)
 #luxBeta;f;0.005;curve steepness: higher=faster response to light
 #luxMax;f;800.0;lux reading at which brightness reaches Hi
