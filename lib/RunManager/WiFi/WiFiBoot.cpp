@@ -243,7 +243,7 @@ namespace {
                 // Defer NAS health check — WiFi CSV downloads leave TCP connections
                 // in TIME_WAIT (~120s), each holding ~6-11KB heap. Adding another
                 // HTTP connection here causes OOM during audio+webserver.
-                timers.create(30000, 1, []() { NasBackup::checkHealth(); });
+                timers.create(SECONDS(30), 1, []() { NasBackup::startHealthTimer(); });
                 RunManager::resumeAfterWiFiBoot();
             }
 

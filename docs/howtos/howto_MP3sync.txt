@@ -1,0 +1,144 @@
+============================================================
+HOW TO: MP3 Sync (NAS → ESP32 SD card)
+============================================================
+
+=== NEDERLANDS ===
+
+Wat het doet:
+  Synchroniseert MP3-bestanden van de NAS (V:\kwal\sdcard\)
+  naar de SD-kaart van een ESP32 via WiFi.
+  Stemscores (voting) blijven behouden.
+
+Vereisten:
+- NAS gemount op V:\kwal\sdcard\
+- MP3-bestanden staan in genummerde mappen: 001\ t/m 126\
+- Map 000\ wordt overgeslagen (words/speak, apart gegenereerd)
+- Alleen .mp3 bestanden — geen CSVs, geen binaries
+- ESP32 en PC op hetzelfde WiFi-netwerk
+- ESP32 firmware draait (WebGUI bereikbaar)
+
+Gebruik:
+  .\sync_mp3.ps1              # sync naar HOUT (189)
+  .\sync_mp3.ps1 188          # sync naar MARMER (188)
+  .\sync_mp3.ps1 -dryrun      # alleen tonen wat er zou veranderen
+  .\sync_mp3.ps1 -y           # skip bevestigingsvraag
+
+Stappen:
+1. Open terminal in VS Code (Ctrl+`)
+2. Type: .\sync_mp3.ps1
+   → Script scant NAS-mappen
+   → Script leest ESP32 indices via WiFi (.root_dirs + .files_dir)
+   → Script vergelijkt bestanden (naam + grootte)
+
+3. Script toont overzicht:
+   - Upload: X files (Y MB)   — nieuw of gewijzigd
+   - Delete: X files           — op ESP maar niet op NAS
+   - Reindex: X dirs           — mappen die veranderen
+
+4. Bevestig met Enter (of n om te annuleren)
+   → Audio wordt automatisch gepauzeerd (sync mode)
+   → Verwijderingen worden eerst uitgevoerd
+   → Uploads daarna (met voortgangspercentage)
+   → .root_dirs wordt verwijderd
+   → ESP32 wordt herstart → indices worden bij boot opgebouwd
+
+5. Script wacht tot ESP32 weer online is
+   → "Done: X uploaded, X deleted. Indices rebuilt at boot."
+
+Stemscores:
+  Bestaande stemscores overleven de sync.
+  ESP32 leest scores uit .files_dir bij boot.
+  Nieuwe bestanden krijgen score=100.
+  Verwijderde mappen verliezen scores (logisch, bestanden zijn weg).
+
+Snelheid:
+  ~2-4 MB/s over WiFi. 80 MB aan MP3s duurt ~30 seconden.
+
+Troubleshooting:
+- "NAS not mounted" → Check of V:\kwal\sdcard\ bereikbaar is
+- "Cannot reach device" → Check WiFi, ping IP, check WebGUI
+- Upload FAIL + retry → SD-contention, script probeert 3x automatisch
+- Device komt niet terug → Wacht langer, of check serial monitor
+
+
+=== ENGLISH ===
+
+What it does:
+  Synchronizes MP3 files from NAS (V:\kwal\sdcard\)
+  to an ESP32's SD card over WiFi.
+  Voting scores are preserved.
+
+Requirements:
+- NAS mounted at V:\kwal\sdcard\
+- MP3 files in numbered dirs: 001\ through 126\
+- Dir 000\ is skipped (words/speak, generated separately)
+- Only .mp3 files — no CSVs, no binaries
+- ESP32 and PC on same WiFi network
+- ESP32 firmware running (WebGUI accessible)
+
+Usage:
+  .\sync_mp3.ps1              # sync to HOUT (189)
+  .\sync_mp3.ps1 188          # sync to MARMER (188)
+  .\sync_mp3.ps1 -dryrun      # show changes without executing
+  .\sync_mp3.ps1 -y           # skip confirmation prompt
+
+Steps:
+1. Open terminal in VS Code (Ctrl+`)
+2. Type: .\sync_mp3.ps1
+   → Script scans NAS directories
+   → Script reads ESP32 binary indices over WiFi (.root_dirs + .files_dir)
+   → Script compares files by name and size
+
+3. Script shows summary:
+   - Upload: X files (Y MB)   — new or changed
+   - Delete: X files           — on ESP32 but not on NAS
+   - Reindex: X dirs           — dirs with changes
+
+4. Confirm with Enter (or n to abort)
+   → Audio is automatically paused (sync mode)
+   → Deletions execute first
+   → Uploads follow (with progress percentage)
+   → .root_dirs is deleted
+   → ESP32 reboots → indices rebuild at boot
+
+5. Script waits for ESP32 to come back online
+   → "Done: X uploaded, X deleted. Indices rebuilt at boot."
+
+Voting scores:
+  Existing voting scores survive sync.
+  ESP32 reads scores from .files_dir at boot.
+  New files get score=100.
+  Deleted dirs lose their scores (expected — files are gone).
+
+Throughput:
+  ~2-4 MB/s over WiFi. 80 MB of MP3s takes ~30 seconds.
+
+Troubleshooting:
+- "NAS not mounted" → Verify V:\kwal\sdcard\ is accessible
+- "Cannot reach device" → Check WiFi, ping IP, verify WebGUI loads
+- Upload FAIL + retry → SD contention, script retries 3 times automatically
+- Device doesn't come back → Wait longer, or check serial monitor
+
+
+=== QUICK REFERENCE ===
+
+Sync to HOUT:     .\sync_mp3.ps1
+Sync to MARMER:   .\sync_mp3.ps1 188
+Dry run:          .\sync_mp3.ps1 -dryrun
+No prompt:        .\sync_mp3.ps1 -y
+
+NAS source:       V:\kwal\sdcard\001\ through 126\
+Excluded:         000\ (words/speak)
+Comparison:       filename + size (rounded to KB)
+Vote safety:      scores preserved, new files get 100
+Rebuild:          automatic at ESP32 boot after reboot
+
+=== FIRMWARE ENDPOINTS USED ===
+
+GET  /api/health              — verify device reachable
+GET  /api/audio/grid          — get highest dir number
+GET  /api/sd/file?path=X      — download binary index files
+POST /api/sd/delete?path=X    — delete file from SD
+POST /api/sd/upload?path=X    — upload file to SD subdir
+POST /api/sd/syncstart        — pause audio, enter sync mode
+POST /api/restart             — reboot device after sync

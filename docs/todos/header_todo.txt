@@ -1,47 +1,16 @@
 Header TODO - Files needing standard headers
 Generated: 2026-02-05
-Status: Pending (after .cpp/.h are done)
+Updated: 2026-02-20
+Status: Readmes done. JS/PS1/docs pending. Dead entries removed.
 
 ══════════════════════════════════════════════════════════════════
 MARKDOWN (.md) - use: > Version: YYMMDD | Updated: YYYY-MM-DD
 ══════════════════════════════════════════════════════════════════
 
-docs/readmes/ (already have headers - DONE)
-  AudioManager/readme.md
-  ClockController/readme.md
-  ContextController/readme.md
-  ffmpeg/readme.md
-  Globals/readme.md
-  lib/readme.md
-  LightController/readme.md
-  NAS/readme.md
-  NAS_Fallback/readme.md
-  RunManager/readme.md
-  RunManager_Audio/readme.md
-  RunManager_Light/readme.md
-  RunManager_Speak/readme.md
-  SDController/readme.md
-  sdroot/readme.md
-  SensorController/readme.md
-  TimerManager/readme.md
-  WebInterfaceController/readme.md
-  WiFiController/readme.md
-  index.md
-
-docs/ (need headers)
-  boot_stages.md
-  fallback_policy.md
-  glossary_slider_semantics.md
-  NAMING_v2.md
-  sensor3_implementation_guide.md
-  sensor4_implementation_guide.md
-  today_readme.md
-  web_interface_api_new.md
+docs/readmes/ (DONE — all 20 files have headers)
 
 lib/ embedded docs (need headers)
-  lib/AudioManager/AUDIO_GAIN_SEMANTICS.md
   lib/ContextController/CalendarREADME.md
-  lib/SDController/SDManager_test_checklist.md
 
 SKIP (old/archive)
   docs/_OLD_/*.md
@@ -55,11 +24,13 @@ JAVASCRIPT (.js) - use: /* @version YYMMDD @date YYYY-MM-DD */
 sdroot/webgui-src/js/
   audio.js
   brightness.js
+  colorpicker.js
   colors.js
   health.js
   log.js
   main.js
   modal.js
+  mp3grid.js
   namespace.js
   ota.js
   pattern.js
@@ -81,19 +52,27 @@ Project root:
   dirtree.ps1
   download_csv.ps1
   export_chat.ps1
+  extract_manual_chat.ps1
   go.ps1
   hubpush.ps1
   naspush.ps1
   nasstart.ps1
   opstart.ps1
+  search_chats.ps1
+  sync_mp3.ps1
   tonasprompt.ps1
   trace.ps1
+  update_headers.ps1
+  upload_config.ps1
   upload_csv.ps1
   upload_web.ps1
   zip.ps1
 
 sdroot/webgui-src/
   build.ps1
+
+tools/ffmpeg/
+  prep_mp3.ps1
 
 ══════════════════════════════════════════════════════════════════
 OTHER

@@ -1,8 +1,8 @@
 /**
  * @file NasBackup.h
  * @brief Push pattern/color CSVs to NAS after save
- * @version 260213B
- * @date 2026-02-13
+ * @version 260220B
+ * @date 2026-02-20
  */
 #pragma once
 
@@ -12,7 +12,8 @@ namespace NasBackup {
     void requestPush(const char* filename);
 
     /// Probe NAS health (GET /api/health). Updates AlertState SC_NAS.
-    /// Called from WiFiBoot after connect. On success schedules next check in 57 min.
-    /// On failure: fast retries (2 min × 3), then WiFi reconnect + one more try.
     void checkHealth();
+
+    /// Start infinite repeating health check timer (every 2 min). Call once from WiFiBoot.
+    void startHealthTimer();
 }

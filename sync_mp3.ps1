@@ -65,16 +65,42 @@ function Send-Delete([string]$sdPath) {
 }
 
 function Send-Upload([string]$localPath, [string]$sdDir) {
-    try {
-        $result = curl -s -X POST -F "file=@$localPath" "$baseUrl/api/sd/upload?path=$sdDir" 2>&1
-        $json = $result | ConvertFrom-Json -ErrorAction Stop
-        if ($json.status -eq "ok") { return $true }
-        Write-Host "  FAIL: $($json.error)" -ForegroundColor Red
-        return $false
-    } catch {
-        Write-Host "  FAIL upload $localPath : $_" -ForegroundColor Red
-        return $false
+    $maxRetries = 3
+    for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
+        try {
+            $result = curl -s -X POST -F "file=@$localPath" "$baseUrl/api/sd/upload?path=$sdDir" 2>&1
+            $text = ($result | Out-String).Trim()
+            try {
+                $json = $text | ConvertFrom-Json -ErrorAction Stop
+            } catch {
+                # ESP32 sendError returns plain text, not JSON
+                if ($attempt -lt $maxRetries) {
+                    Write-Host " retry(${attempt}: $text)" -NoNewline -ForegroundColor Yellow
+                    Start-Sleep -Seconds 2
+                    continue
+                }
+                Write-Host "  FAIL: $text" -ForegroundColor Red
+                return $false
+            }
+            if ($json.status -eq "ok") { return $true }
+            if ($attempt -lt $maxRetries) {
+                Write-Host " retry(${attempt}: $($json.error))" -NoNewline -ForegroundColor Yellow
+                Start-Sleep -Seconds 2
+                continue
+            }
+            Write-Host "  FAIL: $($json.error)" -ForegroundColor Red
+            return $false
+        } catch {
+            if ($attempt -lt $maxRetries) {
+                Write-Host " retry(${attempt})" -NoNewline -ForegroundColor Yellow
+                Start-Sleep -Seconds 2
+                continue
+            }
+            Write-Host "  FAIL upload $localPath : $_" -ForegroundColor Red
+            return $false
+        }
     }
+    return $false
 }
 
 function Send-SyncStart {
@@ -288,6 +314,7 @@ if ($toDelete.Count -gt 0) {
 # -- Phase 6: Execute uploads ------------------------------------
 
 $uploaded = 0
+$failed = 0
 if ($toUpload.Count -gt 0) {
     Write-Host "`nUploading $($toUpload.Count) files..." -ForegroundColor Cyan
     $i = 0
@@ -299,7 +326,11 @@ if ($toUpload.Count -gt 0) {
         if (Send-Upload $u.nasPath $dirStr) {
             Write-Host " OK" -ForegroundColor Green
             $uploaded++
+        } else {
+            $failed++
         }
+        # Pace uploads - give ESP32 SD card breathing room
+        Start-Sleep -Milliseconds 200
     }
 }
 
@@ -334,4 +365,8 @@ if ($attempts -ge 30) {
 
 # -- Summary -----------------------------------------------------
 
-Write-Host "`nDone: $uploaded uploaded, $deleted deleted. Indices rebuilt at boot." -ForegroundColor Cyan
+$msg = "Done: $uploaded uploaded, $deleted deleted"
+if ($failed -gt 0) { $msg += ", $failed FAILED" }
+$msg += ". Indices rebuilt at boot."
+$color = if ($failed -gt 0) { "Yellow" } else { "Cyan" }
+Write-Host "`n$msg" -ForegroundColor $color

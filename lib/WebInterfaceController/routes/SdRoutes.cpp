@@ -1,8 +1,8 @@
 /**
  * @file SdRoutes.cpp
  * @brief SD card API endpoint routes
- * @version 260218A
- * @date 2026-02-18
+ * @version 260220A
+ * @date 2026-02-20
  */
 #include "SdRoutes.h"
 #include "../WebUtils.h"
@@ -188,9 +188,17 @@ void routeUploadData(AsyncWebServerRequest *request, const String &filename,
         SDController::lockSD();
         state->sdBusyClaimed = true;
 
-        // Auto-create directory if needed
+        // Auto-create directory if needed (strip trailing slash for mkdir)
         if (dir.length() > 1 && !SD.exists(dir)) {
-            SD.mkdir(dir);
+            String mkdirPath = dir;
+            if (mkdirPath.endsWith("/")) mkdirPath.remove(mkdirPath.length() - 1);
+            if (!SD.mkdir(mkdirPath)) {
+                state->failed = true;
+                state->error = F("Cannot create directory");
+                SDController::unlockSD();
+                state->sdBusyClaimed = false;
+                return;
+            }
         }
 
         state->file = SD.open(state->target.c_str(), FILE_WRITE);

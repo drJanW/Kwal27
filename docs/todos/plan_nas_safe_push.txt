@@ -1,41 +1,36 @@
 NAS Safe Push — Action Plan
 ============================
+Status: COMPLETED (2026-02-20)
 
 Goal: Push edited CSVs from SD to NAS without blocking WiFi/SSE/audio.
 
-1. Health Check (Boot + Periodic)
+[x] 1. Health Check (Boot + Periodic)
    - After WiFi connects, probe NAS with a short-timeout HTTP GET /api/health.
    - Store result in status64 via setter/getter.
    - On fail: log once, set RGB alert color.
    - Repeat every 57 minutes (create once, repeat=0).
+   - Implemented in NasBackup.cpp checkHealth() + WiFiBoot.cpp initial probe.
 
-2. Upload (SD → NAS)
+[x] 2. Upload (SD → NAS)
    - When a CSV is saved on SD, set pendingPatterns/pendingColors = true.
    - cb_pushToNas runs on a repeating timer (create once, repeat=0).
-   - Each tick:
-     - WiFi not ok → return
-     - NAS status64 bit not ok → return
-     - SD busy or audio playing → return
-     - Pick first pending file, read from SD, POST to NAS (short timeout).
-     - On success: clear that pending flag.
-     - If nothing pending: cancel the timer.
-   - On new pending: create the timer (only if not already running).
+   - Implemented in NasBackup.cpp requestPush().
 
-3. Download (NAS → SD)
+[x] 3. Download (NAS → SD)
    - Only on boot or manual "sync now" trigger.
    - SD is authoritative for local edits.
    - NAS is authoritative on manual sync.
 
-4. csv_server.py
-   - Add GET /api/health endpoint (simple 200 OK).
+[x] 4. csv_server.py
+   - GET /api/health endpoint added.
    - POST /api/upload already exists with content-diff and history archiving.
 
-5. No extra flags
+[x] 5. No extra flags
    - Timer existence = "work in progress".
    - Pending bools = "what to push".
    - status64 bit = "NAS reachable" (set by health check).
 
-6. Rules
+[x] 6. Rules
    - Never block the main loop.
    - Never push while audio is playing or SD is busy.
    - Short HTTP timeout (1-2 seconds).
