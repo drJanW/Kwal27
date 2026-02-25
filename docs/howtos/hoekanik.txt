@@ -1,203 +1,80 @@
 ============================================================
-HOE KAN IK - VEELGESTELDE VRAGEN (WERKVERSIE)
+HOE KAN IK - SNELLE HANDLEIDING
 ============================================================
 
 Doel:
-  Korte, praktische antwoorden op veel voorkomende operator-vragen.
-  Format per vraag:
-  - Probleem
-  - Oplossing (kort)
-  - Stappen (hands-on)
-  - Controle
-  - Als het niet werkt
+  Korte antwoorden voor dagelijks gebruik.
+  Hoofdtekst = alleen normale stappen.
+  Problemen = alleen in voetnoten onderaan.
 
 
 ============================================================
-VRAAG 1 - De Kwal zegt te vaak de tijd. Minder vaak laten spreken?
-============================================================
-
-Probleem:
-  De tijdmelding komt te vaak voorbij.
-
-Oplossing (kort):
-  Verhoog de minimale en maximale tijd-interval in globals.csv.
-  De firmware kiest telkens random tussen min en max.
-
-Waar dit echt zit (huidige implementatie):
-  - sdroot\globals.csv:
-      minSaytimeIntervalMs
-      maxSaytimeIntervalMs
-  - RunManager plant cb_sayTime telkens opnieuw met random(min,max).
-
-Stappen (hands-on):
-1) Open bestand:
-      sdroot\globals.csv
-
-2) Zoek deze regels (staan meestal uitgecommentarieerd):
-      #minSaytimeIntervalMs;u;2700000;shortest wait between time announcements
-      #maxSaytimeIntervalMs;u;8700000;longest wait, keeps it unpredictable
-
-3) Activeer ze door # weg te halen, en zet ruimere waarden.
-   Voorbeeld "minder vaak":
-      minSaytimeIntervalMs;u;5400000;min 90 min
-      maxSaytimeIntervalMs;u;10800000;max 180 min
-
-4) Upload aangepaste CSV naar HOUT (189):
-      .\upload_csv.ps1 189
-
-5) Reboot de ESP32 (via WebGUI of stroom-reset).
-
-Controle:
-  - Verwacht: tijdmelding gemiddeld duidelijk minder vaak.
-  - Let op: interval is random tussen min en max, dus niet exact op vaste minuten.
-
-Als het niet werkt:
-  - Check of # echt weg is op beide regels.
-  - Check of upload naar 189 is gedaan (niet 188).
-  - Check syntax: key;type;value;comment (puntkomma's behouden).
-  - Check dat min <= max.
-
-Notities:
-  - Helemaal uitzetten van tijdmelding heeft nu geen aparte operator-knop.
-  - "Praktisch uit" kan door zeer hoge intervallen te kiezen.
-
-
-============================================================
-VRAAG 2 - 's Avonds minder fragmenten (deze avond)
-============================================================
-
-Probleem:
-  Vanavond moeten er minder vaak nieuwe audiofragmenten starten.
-
-Oplossing (kort):
-  Verhoog tijdelijk de globale audio-intervals in globals.csv.
-  Daarna upload + reboot. Morgen kun je de waarden terugzetten.
-
-Waar dit echt zit (huidige implementatie):
-  - sdroot\globals.csv:
-      minAudioIntervalMs
-      maxAudioIntervalMs
-  - RunManager plant cb_playFragment telkens opnieuw met random(min,max).
-  - audioShifts.csv stuurt volume/fade/theme-add, niet fragmentfrequentie.
-
-Stappen (hands-on):
-1) Open bestand:
-      sdroot\globals.csv
-
-2) Zoek deze regels (meestal uitgecommentarieerd):
-      #minAudioIntervalMs;u;360000;lower=more frequent, creature feels restless
-      #maxAudioIntervalMs;u;1080000;higher=longer silence, creature feels calm
-
-3) Activeer ze door # weg te halen en zet tijdelijk ruimere waarden.
-   Voorbeeld "deze avond rustiger":
-      minAudioIntervalMs;u;900000;min 15 min
-      maxAudioIntervalMs;u;2700000;max 45 min
-
-4) Upload aangepaste CSV naar HOUT (189):
-      .\upload_csv.ps1 189
-
-5) Reboot de ESP32 (via WebGUI of stroom-reset).
-
-6) Morgen terugzetten:
-  - Of originele waarden terugplaatsen en opnieuw uploaden.
-  - Of regels weer uitcommentariëren (# ervoor) om code-defaults te gebruiken.
-
-Controle:
-  - In de Audio tab zie je dat fragmentwissels duidelijk minder vaak komen.
-  - Let op: timing blijft random tussen min en max, dus nooit exact vast.
-
-Als het niet werkt:
-  - Check of # echt weg is op beide regels.
-  - Check syntax: key;type;value;comment met ; als scheiding.
-  - Check dat min <= max.
-  - Check dat de upload naar 189 gelukt is en daarna echt reboot is gedaan.
-
-
-============================================================
-VRAAG 3 - Hoe kan ik een colors-set aanpassen en bewaren?
-============================================================
-
-Probleem:
-  Je wilt bestaande kleuren aanpassen en die wijziging blijvend opslaan.
-
-Oplossing (kort):
-  Doe dit in de WebGUI bij Colors en gebruik daarna Save.
-  De wijziging wordt direct in /light_colors.csv op SD opgeslagen.
-
-Waar dit echt zit (huidige implementatie):
-  - WebGUI colors editor: aanpassen + preview + save
-  - Save route: POST /api/colors
-  - Firmware schrijft naar: /light_colors.csv
-
-Stappen (hands-on):
-1) Open WebGUI:
-      http://192.168.2.189
-
-2) Ga naar Colors en selecteer de set die je wilt aanpassen.
-
-3) Klik op kleurvak A en B en kies nieuwe kleuren.
-   Tijdens aanpassen zie je direct preview.
-
-4) Klik onderaan op Save (save-colors bar).
-
-5) Kies naam in het popup-veld en bevestig.
-   - Zelfde naam laten staan = bestaande set bijwerken.
-   - Andere naam invullen = nieuwe colors-set aanmaken.
-
-Controle:
-  - De set staat in de Colors-lijst met de nieuwe kleuren.
-  - Na refresh van de pagina blijft de wijziging bestaan.
-  - Extra check: open in browser
-      http://192.168.2.189/api/sd/file?path=/light_colors.csv
-    en kijk of de nieuwe waarde erin staat.
-
-Als het niet werkt:
-  - Geen Save-balk zichtbaar? Dan is er nog geen wijziging gedetecteerd:
-    verander beide kleurvakken (A en B) minimaal 1x.
-  - Save foutmelding? Check of SD beschikbaar is (⚙ → SD status).
-  - Lege/rare naam voorkomen: geef een korte duidelijke labelnaam.
-
-Notities:
-  - Reboot is normaal niet nodig voor colors-save.
-  - Verwijderen van colors-set kan alleen als er meer dan 1 set bestaat.
-
-BELANGRIJK (persistentie SD vs NAS):
-  - Na Save is je wijziging meteen zichtbaar en werkt direct.
-  - Maar: als je daarna herstart, kan een oudere centrale versie de wijziging terugzetten.
-
-Snelle vuistregel voor operators:
-  Save = meteen actief.
-  Definitief = Save, check NAS = ✅, 20 seconden wachten, dán pas reboot.
-
-Uitzonderingen/foutgevallen:
-  - Zie voetnotenblok achterin.
-
-
-============================================================
-VRAAG 4 - Hoe kan ik alleen fragmenten uit 1 directory afspelen?
+VRAAG 1 - Minder vaak de tijd laten zeggen
 ============================================================
 
 Kort antwoord:
-  Zet de Kwal in "single directory" via de Audio Grid.
+  Dit is een beheerder-instelling in globals.csv.
 
-Stappen (simpel):
+Stappen:
+1) Open: sdroot\globals.csv
+2) Zet aan:
+     minSaytimeIntervalMs;u;5400000
+     maxSaytimeIntervalMs;u;10800000
+3) Upload:
+     .\upload_csv.ps1 189
+4) Herstart de Kwal.
+5) Controleer of tijdmeldingen duidelijk minder vaak komen.
+
+
+============================================================
+VRAAG 2 - Vanavond minder fragmenten
+============================================================
+
+Kort antwoord:
+  Ook dit is een beheerder-instelling in globals.csv.
+
+Stappen:
+1) Open: sdroot\globals.csv
+2) Zet tijdelijk:
+     minAudioIntervalMs;u;900000
+     maxAudioIntervalMs;u;2700000
+3) Upload:
+     .\upload_csv.ps1 189
+4) Herstart de Kwal.
+5) Morgen waarden terugzetten als je weer normaal wilt.
+
+
+============================================================
+VRAAG 3 - Colors-set aanpassen en bewaren
+============================================================
+
+Stappen:
 1) Open WebGUI: http://192.168.2.189
-2) Klik op het tandwiel (⚙) rechtsonder.
-3) Klik op MP3 Grid.
-4) Kies de gewenste map (dir), bijvoorbeeld 142.
-5) Klik op DIR (label of dir-nummer in het grid-scherm).
-6) Vanaf nu speelt de Kwal alleen fragmenten uit die ene map.
-
-Snelle directe link (zelfde effect):
-  http://192.168.2.189/api/audio/themebox?dir=142
+2) ⚙ → Colors
+3) Pas kleur A en B aan
+4) Klik Save
+5) Check NAS = ✅, wacht 20 seconden, herstart pas daarna
 
 Controle:
-  - In Audio zie je dat dir steeds dezelfde blijft.
-  - Volgende fragmenten komen uit diezelfde map.
+  - Na refresh en na reboot blijven de nieuwe kleuren staan.
+
+
+============================================================
+VRAAG 4 - Alleen fragmenten uit 1 directory afspelen
+============================================================
+
+Stappen:
+1) Open WebGUI: http://192.168.2.189
+2) Klik op ⚙
+3) Klik op MP3 Grid
+4) Kies de gewenste dir
+5) Klik op DIR
+
+Snelle link (zelfde effect):
+  http://192.168.2.189/api/audio/themebox?dir=142
 
 Terug naar normaal:
-  - Kies in de grid een andere dir en klik weer op DIR,
-    of laat de dagplanning het later weer overnemen,
+  - Kies later een andere dir via MP3 Grid,
     of herstart de Kwal.
 
 
@@ -205,30 +82,29 @@ Terug naar normaal:
 VOETNOTEN - ALLEEN BIJ PROBLEMEN
 ============================================================
 
-1) Colors-set valt terug na reboot
-  - Niet opnieuw blijven proberen.
-  - Meld: "colors-set is teruggevallen na reboot" en stuur screenshot mee.
+1) Colors valt terug na reboot
+  - Meld: "colors-set is teruggevallen na reboot".
+  - Voeg screenshot toe.
   - Beheerder zet daarna de juiste versie opnieuw vast.
 
-2) Voor beheerder: colors-set definitief vastzetten
-  1. Open in browser:
+2) Save werkte, maar NAS niet op ✅
+  - Wacht tot NAS = ✅.
+  - Klik Save opnieuw.
+  - Wacht 20 seconden.
+  - Herstart daarna pas.
+
+3) Voor beheerder: colors definitief vastzetten
+  1. Open:
        http://192.168.2.189/api/sd/file?path=/light_colors.csv
-  2. Sla op als: light_colors.csv
-  3. Overschrijf op centrale opslag de oude light_colors.csv
-     (zelfde map als calendar.csv en theme_boxes.csv).
-  4. Wacht 10 seconden.
-  5. Herstart de Kwal.
-  6. Controleer in WebGUI of kleuren goed blijven.
-
-  Als stap 3 onduidelijk is:
-    - Laat één keer de juiste map aanwijzen.
-    - Schrijf dat pad daarna op papier bij de Kwal-pc.
+  2. Sla op als light_colors.csv
+  3. Overschrijf centrale light_colors.csv
+  4. Wacht 10 seconden
+  5. Herstart de Kwal
 
 
 ============================================================
-IDEEËNLIJST UITBREIDING (NOG NIET GEBOUWD)
+IDEEËNLIJST UITBREIDING (LATER)
 ============================================================
 
-- WebGUI Audio/Speech instelling:
-    "Tijdmelding frequentie" met keuzes Uit / Zelden / Normaal / Vaak
-  die intern minSaytimeIntervalMs en maxSaytimeIntervalMs zet.
+- WebGUI knop voor tijdfrequentie (zonder bestand wijzigen)
+- WebGUI knop voor avond-rustiger modus (tijdelijk)

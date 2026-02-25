@@ -4,11 +4,12 @@ year;month;day;tts_sentence;tts_interval_min;theme_box_id;light_pattern_id;light
 2026;2;14;Valentijns en verlovingsdag;70;24;6;42
 2026;2;15;Carnaval, Tadaaaaah - tadaaaah;95;24;3;7
 2026;2;16;RosenMoontach, Agge mar leut heht;98;24;3;7
+2026;2;17;Laatste Carnavalsdag, Agge mar leut heht;180;24;3;7
 2026;2;18;Aswoensdag ,  - het is  uit met de carnavalspret;262;21;5;21
 2026;3;1;Eerste van de maand maart;287;23;4;7
 2026;3;14;piedag - drie komma een vier enzovoortsen nog meer decimalen;95;9;28;6
-2026;3;19;Suikerfeest;171;10;7;1
 2026;3;19;Suikerfeest;249;10;7;1
+2026;3;19;Suikerfeest;171;10;7;1
 2026;3;21;Hartelijk gefeliciteerd,  Thomas;73;15;3;14
 2026;4;1;Eerste van de maand april, een april, kikker in je bil!;265;23;4;7
 2026;4;3;Goede Vrijdag,  - bijna Pasen;245;13;2;13
@@ -40,6 +41,7 @@ year;month;day;tts_sentence;tts_interval_min;theme_box_id;light_pattern_id;light
 2027;2;1;Eerste van de maand februari;249;23;4;7
 2027;2;7;Carnaval, Alaaf!!;80;24;3;7
 2027;2;8;RosenMoontach, Tadaaaaah - tadaaaah;88;24;3;7
+2027;2;9;Laatste Carnavalsdag, Tadaaaaah - tadaaaah;219;24;3;7
 2027;2;10;Aswoensdag ,  - en dan nu: vasten;227;21;5;21
 2027;2;14;Valentijns en verlovingsdag;70;24;6;42
 2027;3;1;Eerste van de maand maart;287;23;4;7
@@ -80,6 +82,7 @@ year;month;day;tts_sentence;tts_interval_min;theme_box_id;light_pattern_id;light
 2028;2;26;Suikerfeest;210;10;7;1
 2028;2;27;Carnaval, Keiebijters!!;82;24;3;7
 2028;2;28;RosenMoontach, Alaaf!!;99;24;3;7
+2028;2;29;Laatste Carnavalsdag, Alaaf!!;250;24;3;7
 2028;3;1;Eerste van de maand maart;287;23;4;7
 2028;3;1;Aswoensdag ,  - en nu begint de katholieke ramadan;187;21;5;21
 2028;3;14;piedag - drie komma een vier enzovoortsen nog meer decimalen;95;9;28;6
@@ -114,10 +117,11 @@ year;month;day;tts_sentence;tts_interval_min;theme_box_id;light_pattern_id;light
 2029;2;1;Eerste van de maand februari;249;23;4;7
 2029;2;11;Carnaval, En deh hittie naw gedonn umdettie Hellemonder is;99;24;3;7
 2029;2;12;RosenMoontach, Keiebijters!!;121;24;3;7
-2029;2;14;Aswoensdag ,  - het is  uit met de carnavalspret;179;21;5;21
+2029;2;13;Laatste Carnavalsdag, Keiebijters!!;245;24;3;7
 2029;2;14;Suikerfeest;175;10;7;1
-2029;2;14;Valentijns en verlovingsdag;70;24;6;42
 2029;2;14;Suikerfeest;252;10;7;1
+2029;2;14;Valentijns en verlovingsdag;70;24;6;42
+2029;2;14;Aswoensdag ,  - het is  uit met de carnavalspret;179;21;5;21
 2029;3;1;Eerste van de maand maart;287;23;4;7
 2029;3;14;piedag - drie komma een vier enzovoortsen nog meer decimalen;95;9;28;6
 2029;3;21;Hartelijk gefeliciteerd,  Thomas;73;15;3;14
@@ -155,6 +159,7 @@ year;month;day;tts_sentence;tts_interval_min;theme_box_id;light_pattern_id;light
 2030;3;1;Eerste van de maand maart;287;23;4;7
 2030;3;3;Carnaval, Agge mar leut heht;116;24;3;7
 2030;3;4;RosenMoontach, En deh hittie naw gedonn umdettie Hellemonder is;133;24;3;7
+2030;3;5;Laatste Carnavalsdag, En deh hittie naw gedonn umdettie Hellemonder is;208;24;3;7
 2030;3;6;Aswoensdag ,  - en dan nu: vasten;210;21;5;21
 2030;3;14;piedag - drie komma een vier enzovoortsen nog meer decimalen;95;9;28;6
 2030;3;21;Hartelijk gefeliciteerd,  Thomas;73;15;3;14
@@ -185,12 +190,13 @@ year;month;day;tts_sentence;tts_interval_min;theme_box_id;light_pattern_id;light
 2030;12;26;Tweede Kerstdag;108;8;5;20
 2030;12;28;Onnozele Kinderen;77;10;26;35
 2031;1;1;Gelukkig Nieuwjaar;77;24;2;40
-2031;1;24;Suikerfeest;186;10;7;1
 2031;1;24;Suikerfeest;205;10;7;1
+2031;1;24;Suikerfeest;186;10;7;1
 2031;2;1;Eerste van de maand februari;249;23;4;7
 2031;2;14;Valentijns en verlovingsdag;70;24;6;42
 2031;2;23;Carnaval, Alaaf!!;116;24;3;7
 2031;2;24;RosenMoontach, Agge mar leut heht;124;24;3;7
+2031;2;25;Laatste Carnavalsdag, Agge mar leut heht;174;24;3;7
 2031;2;26;Aswoensdag ,  - en nu begint de katholieke ramadan;251;21;5;21
 2031;3;1;Eerste van de maand maart;287;23;4;7
 2031;3;14;piedag - drie komma een vier enzovoortsen nog meer decimalen;95;9;28;6
@@ -227,6 +233,7 @@ year;month;day;tts_sentence;tts_interval_min;theme_box_id;light_pattern_id;light
 2032;2;1;Eerste van de maand februari;249;23;4;7
 2032;2;8;Carnaval, Keiebijters!!;101;24;3;7
 2032;2;9;RosenMoontach, Alaaf!!;103;24;3;7
+2032;2;10;Laatste Carnavalsdag, Alaaf!!;173;24;3;7
 2032;2;11;Aswoensdag ,  - het is  uit met de carnavalspret;265;21;5;21
 2032;2;14;Valentijns en verlovingsdag;70;24;6;42
 2032;3;1;Eerste van de maand maart;287;23;4;7
@@ -260,11 +267,13 @@ year;month;day;tts_sentence;tts_interval_min;theme_box_id;light_pattern_id;light
 2032;12;28;Onnozele Kinderen;77;10;26;35
 2033;1;1;Gelukkig Nieuwjaar;77;24;2;40
 2033;1;2;Suikerfeest;251;10;7;1
+2033;1;2;Suikerfeest;190;10;7;1
 2033;2;1;Eerste van de maand februari;249;23;4;7
 2033;2;14;Valentijns en verlovingsdag;70;24;6;42
 2033;2;27;Carnaval, En deh hittie naw gedonn umdettie Hellemonder is;83;24;3;7
 2033;2;28;RosenMoontach, Keiebijters!!;89;24;3;7
 2033;3;1;Eerste van de maand maart;287;23;4;7
+2033;3;1;Laatste Carnavalsdag, Keiebijters!!;207;24;3;7
 2033;3;2;Aswoensdag ,  - en dan nu: vasten;239;21;5;21
 2033;3;14;piedag - drie komma een vier enzovoortsen nog meer decimalen;95;9;28;6
 2033;3;21;Hartelijk gefeliciteerd,  Thomas;73;15;3;14
@@ -299,6 +308,7 @@ year;month;day;tts_sentence;tts_interval_min;theme_box_id;light_pattern_id;light
 2034;2;14;Valentijns en verlovingsdag;70;24;6;42
 2034;2;19;Carnaval, Agge mar leut heht;80;24;3;7
 2034;2;20;RosenMoontach, En deh hittie naw gedonn umdettie Hellemonder is;94;24;3;7
+2034;2;21;Laatste Carnavalsdag, En deh hittie naw gedonn umdettie Hellemonder is;244;24;3;7
 2034;2;22;Aswoensdag ,  - en nu begint de katholieke ramadan;197;21;5;21
 2034;3;1;Eerste van de maand maart;287;23;4;7
 2034;3;14;piedag - drie komma een vier enzovoortsen nog meer decimalen;95;9;28;6
@@ -325,6 +335,7 @@ year;month;day;tts_sentence;tts_interval_min;theme_box_id;light_pattern_id;light
 2034;11;1;Eerste van de maand november;221;23;4;7
 2034;12;1;Eerste van de maand december;165;23;4;7
 2034;12;5;Sinterklaas;113;12;6;28
+2034;12;11;Suikerfeest;230;10;7;1
 2034;12;11;Suikerfeest;222;10;7;1
 2034;12;13;Hartelijk gefeliciteerd,  lieve Marit;114;15;3;14
 2034;12;25;Vrolijk Kerstfeest;95;8;26;30
@@ -334,6 +345,151 @@ year;month;day;tts_sentence;tts_interval_min;theme_box_id;light_pattern_id;light
 2035;2;1;Eerste van de maand februari;249;23;4;7
 2035;2;4;Carnaval, Alaaf!!;94;24;3;7
 2035;2;5;RosenMoontach, Agge mar leut heht;115;24;3;7
+2035;2;6;Laatste Carnavalsdag, Agge mar leut heht;250;24;3;7
 2035;2;7;Aswoensdag ,  - het is  uit met de carnavalspret;177;21;5;21
 2035;2;14;Valentijns en verlovingsdag;70;24;6;42
 2035;3;1;Eerste van de maand maart;287;23;4;7
+2035;3;14;piedag - drie komma een vier enzovoortsen nog meer decimalen;95;9;28;6
+2035;3;21;Hartelijk gefeliciteerd,  Thomas;73;15;3;14
+2035;3;23;Goede Vrijdag;204;13;2;13
+2035;3;25;Vrolijk Pasen;75;17;9;5
+2035;3;26;Tweede Paasdag;365;17;13;19
+2035;4;1;Eerste van de maand april, een april, kikker in je bil!;265;23;4;7
+2035;4;30;Hartelijk gefeliciteerd,  Paul;98;15;3;14
+2035;5;1;Eerste van de maand mei- leggen alle vogeltjes een ei;202;23;4;7
+2035;5;3;Hemelvaart;90;11;2;29
+2035;5;4;Dodenherdenking;102;21;2;31
+2035;5;5;Bevrijdingsdag;64;24;3;3
+2035;5;10;Hartelijk gefeliciteerd,  Gaia;73;15;3;14
+2035;5;13;Pinksteren,  - iets met vurige tongen?;119;4;4;8
+2035;5;14;Nog steeds Pinksteren,  - iets met vurige tongen?;235;4;4;8
+2035;6;1;Eerste van de maand juni;157;23;4;7
+2035;6;24;SintJan;61;24;27;5
+2035;7;1;Eerste van de maand juli;171;23;4;7
+2035;8;1;Eerste van de maand augustus;231;23;4;7
+2035;9;1;Eerste van de maand september;282;23;4;7
+2035;10;1;Eerste van de maand oktober;277;23;4;7
+2035;10;8;Hartelijk gefeliciteerd,  Jan;105;15;3;14
+2035;11;1;Eerste van de maand november;221;23;4;7
+2035;12;1;Eerste van de maand december;165;23;4;7
+2035;12;1;Suikerfeest;182;10;7;1
+2035;12;1;Suikerfeest;253;10;7;1
+2035;12;5;Sinterklaas;113;12;6;28
+2035;12;13;Hartelijk gefeliciteerd,  lieve Marit;114;15;3;14
+2035;12;25;Vrolijk Kerstfeest;95;8;26;30
+2035;12;26;Tweede Kerstdag;108;8;5;20
+2035;12;28;Onnozele Kinderen;77;10;26;35
+2036;1;1;Gelukkig Nieuwjaar;77;24;2;40
+2036;2;1;Eerste van de maand februari;249;23;4;7
+2036;2;14;Valentijns en verlovingsdag;70;24;6;42
+2036;2;24;Carnaval, Keiebijters!!;112;24;3;7
+2036;2;25;RosenMoontach, Alaaf!!;131;24;3;7
+2036;2;26;Laatste Carnavalsdag, Alaaf!!;220;24;3;7
+2036;2;27;Aswoensdag ,  - en dan nu: vasten;198;21;5;21
+2036;3;1;Eerste van de maand maart;287;23;4;7
+2036;3;14;piedag - drie komma een vier enzovoortsen nog meer decimalen;95;9;28;6
+2036;3;21;Hartelijk gefeliciteerd,  Thomas;73;15;3;14
+2036;4;1;Eerste van de maand april, een april, kikker in je bil!;265;23;4;7
+2036;4;11;Goede Vrijdag;248;13;2;13
+2036;4;13;Vrolijk Pasen;64;17;9;5
+2036;4;14;Tweede Paasdag;366;17;13;19
+2036;4;30;Hartelijk gefeliciteerd,  Paul;98;15;3;14
+2036;5;1;Eerste van de maand mei- leggen alle vogeltjes een ei;202;23;4;7
+2036;5;4;Dodenherdenking;102;21;2;31
+2036;5;5;Bevrijdingsdag;64;24;3;3
+2036;5;10;Hartelijk gefeliciteerd,  Gaia;73;15;3;14
+2036;5;22;Hemelvaart;92;11;2;29
+2036;6;1;Pinksteren,  - de Heilige Geest zien vliegen???;142;4;4;8
+2036;6;1;Eerste van de maand juni;157;23;4;7
+2036;6;2;Nog steeds Pinksteren,  - de Heilige Geest zien vliegen???;253;4;4;8
+2036;6;24;SintJan;61;24;27;5
+2036;7;1;Eerste van de maand juli;171;23;4;7
+2036;8;1;Eerste van de maand augustus;231;23;4;7
+2036;9;1;Eerste van de maand september;282;23;4;7
+2036;10;1;Eerste van de maand oktober;277;23;4;7
+2036;10;8;Hartelijk gefeliciteerd,  Jan;105;15;3;14
+2036;11;1;Eerste van de maand november;221;23;4;7
+2036;11;19;Suikerfeest;236;10;7;1
+2036;11;19;Suikerfeest;169;10;7;1
+2036;12;1;Eerste van de maand december;165;23;4;7
+2036;12;5;Sinterklaas;113;12;6;28
+2036;12;13;Hartelijk gefeliciteerd,  lieve Marit;114;15;3;14
+2036;12;25;Vrolijk Kerstfeest;95;8;26;30
+2036;12;26;Tweede Kerstdag;108;8;5;20
+2036;12;28;Onnozele Kinderen;77;10;26;35
+2037;1;1;Gelukkig Nieuwjaar;77;24;2;40
+2037;2;1;Eerste van de maand februari;249;23;4;7
+2037;2;14;Valentijns en verlovingsdag;70;24;6;42
+2037;2;15;Carnaval, En deh hittie naw gedonn umdettie Hellemonder is;118;24;3;7
+2037;2;16;RosenMoontach, Keiebijters!!;129;24;3;7
+2037;2;17;Laatste Carnavalsdag, Keiebijters!!;181;24;3;7
+2037;2;18;Aswoensdag ,  - en nu begint de katholieke ramadan;241;21;5;21
+2037;3;1;Eerste van de maand maart;287;23;4;7
+2037;3;14;piedag - drie komma een vier enzovoortsen nog meer decimalen;95;9;28;6
+2037;3;21;Hartelijk gefeliciteerd,  Thomas;73;15;3;14
+2037;4;1;Eerste van de maand april, een april, kikker in je bil!;265;23;4;7
+2037;4;3;Goede Vrijdag;279;13;2;13
+2037;4;5;Vrolijk Pasen;67;17;9;5
+2037;4;6;Tweede Paasdag;316;17;13;19
+2037;4;30;Hartelijk gefeliciteerd,  Paul;98;15;3;14
+2037;5;1;Eerste van de maand mei- leggen alle vogeltjes een ei;202;23;4;7
+2037;5;4;Dodenherdenking;102;21;2;31
+2037;5;5;Bevrijdingsdag;64;24;3;3
+2037;5;10;Hartelijk gefeliciteerd,  Gaia;73;15;3;14
+2037;5;14;Hemelvaart;111;11;2;29
+2037;5;24;Pinksteren;168;4;4;8
+2037;5;25;Nog steeds Pinksteren;232;4;4;8
+2037;6;1;Eerste van de maand juni;157;23;4;7
+2037;6;24;SintJan;61;24;27;5
+2037;7;1;Eerste van de maand juli;171;23;4;7
+2037;8;1;Eerste van de maand augustus;231;23;4;7
+2037;9;1;Eerste van de maand september;282;23;4;7
+2037;10;1;Eerste van de maand oktober;277;23;4;7
+2037;10;8;Hartelijk gefeliciteerd,  Jan;105;15;3;14
+2037;11;1;Eerste van de maand november;221;23;4;7
+2037;11;8;Suikerfeest;193;10;7;1
+2037;11;8;Suikerfeest;196;10;7;1
+2037;12;1;Eerste van de maand december;165;23;4;7
+2037;12;5;Sinterklaas;113;12;6;28
+2037;12;13;Hartelijk gefeliciteerd,  lieve Marit;114;15;3;14
+2037;12;25;Vrolijk Kerstfeest;95;8;26;30
+2037;12;26;Tweede Kerstdag;108;8;5;20
+2037;12;28;Onnozele Kinderen;77;10;26;35
+2038;1;1;Gelukkig Nieuwjaar;77;24;2;40
+2038;2;1;Eerste van de maand februari;249;23;4;7
+2038;2;14;Valentijns en verlovingsdag;70;24;6;42
+2038;3;1;Eerste van de maand maart;287;23;4;7
+2038;3;7;Carnaval, Agge mar leut heht;106;24;3;7
+2038;3;8;RosenMoontach, En deh hittie naw gedonn umdettie Hellemonder is;110;24;3;7
+2038;3;9;Laatste Carnavalsdag,  de laatste - allerlaatste keer;169;24;3;7
+2038;3;10;Aswoensdag ,  - het is  uit met de carnavalspret;266;21;5;21
+2038;3;14;piedag - drie komma een vier enzovoortsen nog meer decimalen;95;9;28;6
+2038;3;21;Hartelijk gefeliciteerd,  Thomas;73;15;3;14
+2038;4;1;Eerste van de maand april, een april, kikker in je bil!;265;23;4;7
+2038;4;23;Goede Vrijdag;268;13;2;13
+2038;4;25;Vrolijk Pasen;82;17;9;5
+2038;4;26;Tweede Paasdag;261;17;13;19
+2038;4;30;Hartelijk gefeliciteerd,  Paul;98;15;3;14
+2038;5;1;Eerste van de maand mei- leggen alle vogeltjes een ei;202;23;4;7
+2038;5;4;Dodenherdenking;102;21;2;31
+2038;5;5;Bevrijdingsdag;64;24;3;3
+2038;5;10;Hartelijk gefeliciteerd,  Gaia;73;15;3;14
+2038;6;1;Eerste van de maand juni;157;23;4;7
+2038;6;3;Hemelvaart;129;11;2;29
+2038;6;13;Pinksteren,  - wat is dat ook weer??;173;4;4;8
+2038;6;14;Nog steeds Pinksteren,  - wat is dat ook weer??;191;4;4;8
+2038;6;24;SintJan;61;24;27;5
+2038;7;1;Eerste van de maand juli;171;23;4;7
+2038;8;1;Eerste van de maand augustus;231;23;4;7
+2038;9;1;Eerste van de maand september;282;23;4;7
+2038;10;1;Eerste van de maand oktober;277;23;4;7
+2038;10;8;Hartelijk gefeliciteerd,  Jan;105;15;3;14
+2038;10;29;Suikerfeest;234;10;7;1
+2038;10;29;Suikerfeest;169;10;7;1
+2038;11;1;Eerste van de maand november;221;23;4;7
+2038;12;1;Eerste van de maand december;165;23;4;7
+2038;12;5;Sinterklaas;113;12;6;28
+2038;12;13;Hartelijk gefeliciteerd,  lieve Marit;114;15;3;14
+2038;12;25;Vrolijk Kerstfeest;95;8;26;30
+2038;12;26;Tweede Kerstdag;108;8;5;20
+2038;12;28;Onnozele Kinderen;77;10;26;35
