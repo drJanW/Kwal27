@@ -1,8 +1,8 @@
 /**
  * @file TodayRoutes.cpp
  * @brief Today API endpoint routes
- * @version 260202A
- $12026-02-05
+ * @version 260221A
+ * @date 2026-02-21
  */
 #include "TodayRoutes.h"
 #include "../WebUtils.h"
@@ -63,11 +63,9 @@ void routeToday(AsyncWebServerRequest *request)
             colorObj["label"] = ctx.colors.label;
         }
         const String colorAHex = rgbToHex(ctx.colors.colorA.r, ctx.colors.colorA.g, ctx.colors.colorA.b);
-        colorObj["colorA_hex"] = colorAHex;
-        colorObj["rgb1_hex"] = colorAHex; // legacy alias
+        colorObj["rgb1_hex"] = colorAHex;
         const String colorBHex = rgbToHex(ctx.colors.colorB.r, ctx.colors.colorB.g, ctx.colors.colorB.b);
-        colorObj["colorB_hex"] = colorBHex;
-        colorObj["rgb2_hex"] = colorBHex; // legacy alias
+        colorObj["rgb2_hex"] = colorBHex;
     }
     if (ctx.entry.colorId != 0) {
         colorObj["calendar_id"] = static_cast<uint32_t>(ctx.entry.colorId);

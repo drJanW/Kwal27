@@ -153,8 +153,8 @@ Header: `X-Pattern: rainbow` (active pattern ID)
 Response:
 ```json
 [
-  { "id": "sunset", "label": "Warm Sunset", "colorA_hex": "#FF7F00", "colorB_hex": "#552200" },
-  { "id": "ocean", "label": "Ocean Blue", "colorA_hex": "#0066FF", "colorB_hex": "#003366" }
+  { "id": "sunset", "label": "Warm Sunset", "rgb1_hex": "#FF7F00", "rgb2_hex": "#552200" },
+  { "id": "ocean", "label": "Ocean Blue", "rgb1_hex": "#0066FF", "rgb2_hex": "#003366" }
 ]
 ```
 
@@ -164,13 +164,13 @@ Header: `X-Color: sunset` (active color ID)
 
 | Endpoint | Methode | Body | Response | Side effect |
 |----------|---------|------|----------|-------------|
-| `/api/colors` | POST | `{ label, colorA_hex, ... }` | Updated list | → SSE colors + state |
+| `/api/colors` | POST | `{ label, rgb1_hex, ... }` | Updated list | → SSE colors + state |
 | `/api/colors` | POST | `{ id, label, ... }` | Updated list | Update existing → SSE |
 | `/api/colors/select` | POST | `{ "id": "sunset" }` | `"OK"` | → SSE state |
 | `/api/colors/delete` | POST | `{ "id": "sunset" }` | Updated list | → SSE colors + state |
 | `/api/colors/next` | POST | - | `"OK"` | → SSE state |
 | `/api/colors/prev` | POST | - | `"OK"` | → SSE state |
-| `/api/colors/preview` | POST | `{ colorA_hex, colorB_hex }` | `{ "status": "ok" }` | Transient, geen SSE |
+| `/api/colors/preview` | POST | `{ rgb1_hex, rgb2_hex }` | `{ "status": "ok" }` | Transient, geen SSE |
 
 ---
 

@@ -71,8 +71,8 @@ Kwal.colors = (function() {
       item.className = 'color-item' + (c.id === activeId ? ' active' : '');
       
       // Use current editing values if this is the item being edited
-      var displayA = (c.id === editingId && currentA) ? currentA : c.colorA_hex;
-      var displayB = (c.id === editingId && currentB) ? currentB : c.colorB_hex;
+      var displayA = (c.id === editingId && currentA) ? currentA : c.rgb1_hex;
+      var displayB = (c.id === editingId && currentB) ? currentB : c.rgb2_hex;
       
       var swatchA = createSwatchBox(c, 'a', displayA);
       var swatchB = createSwatchBox(c, 'b', displayB);
@@ -186,8 +186,8 @@ Kwal.colors = (function() {
     if (editingId === colorSet.id) return;
     editingId = colorSet.id;
     originalLabel = colorSet.label;
-    currentA = colorSet.colorA_hex;
-    currentB = colorSet.colorB_hex;
+    currentA = colorSet.rgb1_hex;
+    currentB = colorSet.rgb2_hex;
 
     // Store original for revert
     if (Kwal.state && !Kwal.state.isColorsModified()) {
@@ -216,7 +216,7 @@ Kwal.colors = (function() {
     fetch('/api/colors/preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ colorA_hex: currentA, colorB_hex: currentB })
+      body: JSON.stringify({ rgb1_hex: currentA, rgb2_hex: currentB })
     });
   }
 
@@ -225,8 +225,8 @@ Kwal.colors = (function() {
     if (!currentA || !currentB) return Promise.reject('No colors');
     var payload = {
       label: label,
-      colorA_hex: currentA,
-      colorB_hex: currentB,
+      rgb1_hex: currentA,
+      rgb2_hex: currentB,
       select: true
     };
     // Only include id if label unchanged (update existing), omit id to create new

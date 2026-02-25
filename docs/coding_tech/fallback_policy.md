@@ -104,6 +104,7 @@ Runtime flags set during boot. Check with `if (hwStatus & HW_xxx)`.
 
 | Fallback | File |
 |----------|------|
+| LED map fallback (circular) | LEDMap.cpp (buildFallbackLEDMap) |
 | SD fail ambient show | LightController.cpp |
 | Fallback date config | Globals.h/cpp (fallbackMonth/Day/Hour) |
 | Sunrise calculation | FetchController.cpp |

@@ -1,8 +1,8 @@
 /**
  * @file ColorsCatalog.cpp
  * @brief LED color palette storage implementation
- * @version 260205A
- $12026-02-10
+ * @version 260221A
+ * @date 2026-02-21
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "ColorsCatalog.h"
@@ -122,11 +122,11 @@ String ColorsCatalog::buildColorsJson(const char* source) const {
             out += '"';
         }
         snprintf(buff, sizeof(buff), "#%02X%02X%02X", entry.colorA.r, entry.colorA.g, entry.colorA.b);
-        out += F(",\"colorA_hex\":\"");
+        out += F(",\"rgb1_hex\":\"");
         out += buff;
         out += '"';
         snprintf(buff, sizeof(buff), "#%02X%02X%02X", entry.colorB.r, entry.colorB.g, entry.colorB.b);
-        out += F(",\"colorB_hex\":\"");
+        out += F(",\"rgb2_hex\":\"");
         out += buff;
         out += F("\"}");
     }
@@ -602,8 +602,8 @@ bool ColorsCatalog::parseColorPayload(JsonVariantConst src, CRGB& a, CRGB& b, St
         return String();
     };
 
-    const String colorAHex = readColorHex("colorA_hex", "colorA", "rgb1_hex", "primary");
-    const String colorBHex = readColorHex("colorB_hex", "colorB", "rgb2_hex", "secondary");
+    const String colorAHex = readColorHex("rgb1_hex", "colorA_hex", "colorA", "primary");
+    const String colorBHex = readColorHex("rgb2_hex", "colorB_hex", "colorB", "secondary");
 
     if (!parseHexColor(colorAHex, a) || !parseHexColor(colorBHex, b)) {
         errorMessage = F("bad color");

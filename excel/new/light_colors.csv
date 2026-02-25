@@ -1,10 +1,10 @@
-light_colors_id;light_colors_name;rgb1_hex;rgb2_hex;
+light_colors_id;light_colors_name;rgb1_hex;rgb2_hex
 1;Warm Sunset;#FF7F00;#552200
 2;Cool Ocean;#007FFF;#005552
 3;Forest Green;#228B22;#114411
-4;Royal Purple;#800080;#400040          
+4;Royal Purple;#800080;#400040
 5;Sunny Yellow;#FFFF00;#AAAA00
-6;Deep Space;#000000;#222222            
+6;Deep Space;#000000;#222222
 7;Candy Pink;#FF69B4;#AA3355
 8;Electric Blue;#00FFFF;#005555
 9;Fiery Red;#FF4500;#552200
@@ -17,7 +17,7 @@ light_colors_id;light_colors_name;rgb1_hex;rgb2_hex;
 16;Lavender Mist;#E6E6FA;#AAAAFF
 17;Crimson Tide;#DC143C;#551111
 18;Golden Glow;#FFD700;#AAAA00
-19;Turquoise Wave;#40E0D0;#116666   
+19;Turquoise Wave;#40E0D0;#116666
 20;Rose Blossom;#FF007F;#550033
 21;Slate Gray;#708090;#444455
 22;Amber Light;#FFBF00;#554400
@@ -41,5 +41,3 @@ light_colors_id;light_colors_name;rgb1_hex;rgb2_hex;
 40;Ice White;#F0F8FF;#AAAAFF
 41;Lemon Yellow;#FFF44F;#AAAA22
 42;Inner White Outer Red;#FFFFFF;#FF0000
-
-

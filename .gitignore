@@ -28,3 +28,6 @@ Thumbs.db
 *.mp3
 sd_downloads/
 
+# Debug output
+sse_*.txt
+

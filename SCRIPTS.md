@@ -52,6 +52,12 @@ Upload all CSV files from `sdroot/` to ESP32 SD card.
 .\upload_csv.ps1 189        # Custom last octet
 ```
 
+### `upload_config.ps1`
+Upload `sdroot/config.txt` to ESP32 SD card.
+```
+.\upload_config.ps1 192.168.2.189
+```
+
 ## Backup & Archive
 
 ### `zip.ps1`
@@ -73,7 +79,7 @@ The NAS server checks:
 Backed-up files: `light_patterns.csv`, `light_colors.csv`.
 History lives at `/shares/Public/Kwal/csv/history/`.
 
-**Requires:** `csv_server.py` running on the NAS (`.\nasstart.ps1`).
+**Requires:** `tools\csv_server.py` running on the NAS (`.\tools\nasstart.ps1`).
 
 ## Git Sync (NAS & GitHub)
 
@@ -119,19 +125,40 @@ Workflow:
 
 ## Utility
 
-### `dirtree.ps1`
+### `tools\dirtree.ps1`
 Generate directory tree listing (skips dot-folders like .git).
 ```
-.\dirtree.ps1                     # Current directory
-.\dirtree.ps1 lib                 # Specific folder
-.\dirtree.ps1 -Files              # Include files
-.\dirtree.ps1 -Out tree.txt       # Save to file
+.\tools\dirtree.ps1                     # Current directory
+.\tools\dirtree.ps1 lib                 # Specific folder
+.\tools\dirtree.ps1 -Files              # Include files
+.\tools\dirtree.ps1 -Out tree.txt       # Save to file
 ```
 
 ### `build_js.ps1`
 (Compat wrapper) Runs the current WebGUI build script (`sdroot/webgui-src/build.ps1`) from project root.
 
-### `export_chat.ps1`
+### `tools\search_chats.ps1`
+Search all VS Code Copilot chat sessions for this workspace by keyword.
+```
+.\tools\search_chats.ps1 "brightness"
+```
+
+### `tools\update_headers.ps1`
+Add/update standard Doxygen headers in all `.cpp`/`.h` files using git log dates.
+
+### `tools\sync_mp3.ps1`
+Sync MP3 directories from NAS to ESP32 SD card (vote-preserving, dry-run supported).
+```
+.\tools\sync_mp3.ps1
+```
+
+### `tools\nasstart.ps1`
+SSH into NAS to start `csv_server.py` in background.
+
+### `tools\tonasprompt.ps1`
+Open an SSH session to the NAS in a new window.
+
+### `tools\export_chat.ps1`
 Export Copilot chat JSON to readable text format.
 
 **Chat sessions locatie:**
@@ -149,8 +176,8 @@ Get-ChildItem "$sessionsPath\*.json" | ForEach-Object {
 }
 
 # Export specifieke chat (kopieer ID uit lijst hierboven)
-.\export_chat.ps1 -JsonPath "$sessionsPath\<chat-id>.json"
-.\export_chat.ps1 -JsonPath "$sessionsPath\<chat-id>.json" -OutPath "docs\session.txt"
+.\tools\export_chat.ps1 -JsonPath "$sessionsPath\<chat-id>.json"
+.\tools\export_chat.ps1 -JsonPath "$sessionsPath\<chat-id>.json" -OutPath "docs\session.txt"
 ```
 
 ## Quick Reference
@@ -158,14 +185,14 @@ Get-ChildItem "$sessionsPath\*.json" | ForEach-Object {
 | Task | Command | Beschrijving |
 |------|---------|--------------|
 | Upload firmware (fast) | `.\go.ps1` | Upload bestaande build zonder rebuild |
-| Build + OTA upload | `.\ota.ps1` | Build + draadloos uploaden via WiFi |
+| OTA upload | `.\deploy.ps1 marmer` | Build + draadloos uploaden via WiFi |
 | Serial monitor | `.\trace.ps1` | Log output bekijken op COM poort |
 | Build JS | `cd sdroot\webgui-src; .\build.ps1` | WebGUI JavaScript bundelen |
 | Upload web files | `.\upload_web.ps1` | HTML/CSS/JS naar SD via HTTP |
 | Upload CSVs | `.\upload_csv.ps1` | Alle CSV's van sdroot naar SD |
 | Download CSVs | `.\download_csv.ps1` | CSV's van SD naar sd_downloads |
 | Create ZIP backup | `.\zip.ps1` | Hele project zippen (.gitignore aware) |
-| Export chat | `.\export_chat.ps1 -JsonPath x.json` | Copilot chat naar leesbaar tekstbestand |
+| Export chat | `.\tools\export_chat.ps1 -JsonPath x.json` | Copilot chat naar leesbaar tekstbestand |
 | Start sessie | `.\opstart.ps1` | Pull van NAS (check Excel locks) |
 | Push naar NAS | `.\naspush.ps1 "beschrijving"` | Commit + pull --rebase + push naar NAS |
 | Push naar GitHub | `.\hubpush.ps1 "beschrijving"` | Commit + push naar GitHub |

@@ -1,5 +1,5 @@
 todo list
-Updated: 2026-02-20
+Updated: 2026-02-21
 
 REGEL: Geen "Completed" sectie. Succes = delete uit todo.
 
@@ -18,6 +18,11 @@ F1. Sensor + Speak architecture completion
 
 
 === Housekeeping ===
+
+H10. Remove snake_case legacy fallbacks in patternShifts parser
+    - ShiftTable.cpp parsePatternParam() accepts both camelCase and snake_case
+    - All CSVs use camelCase consistently — snake_case paths are dead code
+    - Remove snake_case alternatives (color_cycle_sec, bright_cycle_sec, etc.)
 
 H9. Normalize say → speak naming in time/temperature paths
     - Replace sayTime/saytime usage with speak naming

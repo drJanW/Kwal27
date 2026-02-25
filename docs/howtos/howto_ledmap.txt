@@ -1,0 +1,105 @@
+============================================================
+HOW TO: ledmap.bin genereren vanuit KiCAD PCB
+============================================================
+
+=== DOEL ===
+
+ledmap.bin bevat de fysieke (x,y) posities van alle 160 WS2812B
+LEDs op de dome PCB. De firmware gebruikt deze posities voor
+afstandsgebaseerde lichtpatronen (fade rings, gradients, golven).
+
+Zonder ledmap.bin gebruikt de firmware een circulaire fallback
+(alle LEDs op één ring) — dat ziet er veel minder mooi uit.
+
+
+=== VEREISTEN ===
+
+- Python 3.x geïnstalleerd
+- KiCAD PCB bestand: docs/kwal25.kicad_pcb
+- Terminal in project root (D:\...\Kwal27)
+
+
+=== STAP 1: GENEREREN ===
+
+Open terminal in VS Code en type:
+
+    python tools/generate_ledmap.py
+
+Output:
+    Extracted 160 WS2812 LEDs from docs\kwal25.kicad_pcb
+    Written 160 LED positions to sdroot\ledmap.bin (1280 bytes)
+
+Het bestand sdroot/ledmap.bin wordt overschreven.
+
+
+=== STAP 2: VERIFIËREN ===
+
+Controleer of het resultaat klopt:
+
+    python tools/generate_ledmap.py --verify
+
+Of met het aparte verify-script:
+
+    python tools/verify_ledmap.py
+
+Verwachte output:
+    Extracted 160 WS2812 LEDs from docs\kwal25.kicad_pcb
+    Max error: 0.001369
+    VERIFIED - all positions match!
+
+
+=== STAP 3: UPLOADEN NAAR ESP32 ===
+
+    .\upload_csv.ps1 189        (HOUT)
+
+ledmap.bin zit in sdroot/ en wordt mee-geüpload.
+
+
+=== WAT DOET HET SCRIPT? ===
+
+1. Leest alle WS2812B footprints uit het KiCAD PCB bestand
+2. Haalt per LED het referentienummer (D1-D160) en positie op
+3. Sorteert op referentienummer (D1=index 0, D160=index 159)
+4. Past coördinaat-transformatie toe:
+       ledmap_x =  (pcb_x - 99.937)
+       ledmap_y = -(pcb_y - 100.001)
+   - 99.937, 100.001 = PCB centrum (dome midden in KiCAD)
+   - Y-flip: KiCAD Y wijst naar beneden, firmware Y naar boven
+5. Schrijft 160 × 2 float32 waarden (little-endian) = 1280 bytes
+
+
+=== ANDER AANTAL LEDS (bijv. 200) ===
+
+De pipeline schaalt automatisch mee met een ander PCB.
+Twee plekken aanpassen:
+
+1. Zet het nieuwe .kicad_pcb bestand in docs/
+2. Pas in tools/generate_ledmap.py aan:
+       PCB_PATH      → pad naar nieuw PCB bestand
+       CENTER_X/Y    → PCB centrum van de nieuwe dome
+       EXPECTED_LEDS → nieuw aantal (alleen waarschuwing)
+3. Genereer:  python tools/generate_ledmap.py
+4. Pas in lib/Globals/HWconfig.h aan:
+       #define NUM_LEDS 200
+5. Compileer firmware en upload
+
+De firmware leest exact NUM_LEDS entries uit ledmap.bin.
+Array, fallback en loader schalen allemaal automatisch mee.
+
+
+=== BIJ PROBLEMEN ===
+
+- "kwal25.kicad_pcb not found" → PCB bestand mist in docs/
+- "expected 160, got N" → PCB heeft ander aantal WS2812 LEDs
+- Grote verification errors → PCB centrum is verschoven,
+  pas CENTER_X/CENTER_Y aan in generate_ledmap.py
+
+
+=== GERELATEERDE BESTANDEN ===
+
+    docs/kwal25.kicad_pcb           KiCAD bronbestand
+    sdroot/ledmap.bin               Gegenereerd binair bestand
+    tools/generate_ledmap.py        Generator script
+    tools/verify_ledmap.py          Verificatie script
+    docs/readmes/ledmap_readme.md   Technische documentatie
+    lib/LightController/LEDMap.cpp  Firmware loader + fallback

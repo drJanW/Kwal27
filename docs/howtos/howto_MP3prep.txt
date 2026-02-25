@@ -1,0 +1,190 @@
+============================================================
+HOW TO: MP3 Prep (nieuwe MP3's klaarmaken voor de Kwal)
+============================================================
+
+Wat het doet:
+  Bereidt ruwe MP3-bestanden voor op de Kwal:
+  - Converteert naar mono, 44100 Hz, 128 kbps
+  - Normaliseert volume (loudnorm)
+  - Verwijdert alle metadata (ID3, Xing headers)
+  - Splitst lange bestanden in ~42s stukken
+  - Verdeelt output over genummerde NAS-mappen (max 99 per map)
+
+============================================================
+STAP 1: Ruwe MP3's klaarzetten
+============================================================
+
+Zet de bronbestanden in:
+
+    D:\sounds\new\
+
+Elk formaat is OK: stereo, hoge bitrate, willekeurige lengte.
+Het script regelt de conversie.
+
+Duurregels:
+  < 15 seconden  → wordt overgeslagen (te kort)
+  15 - 104 sec   → wordt genormaliseerd, niet gesplitst
+  >= 105 sec     → wordt gesplitst in ~42s stukken
+
+============================================================
+STAP 2: Bepaal het eerste vrije dir-nummer
+============================================================
+
+Kijk op de NAS welke nummers al bezet zijn:
+
+    V:\Kwal\SDcard\
+
+De mappen heten 001\, 002\, ... 141\, etc.
+Kies het eerstvolgende vrije nummer als -SdDir parameter.
+
+Voorbeeld: als 141\ de hoogste is, gebruik -SdDir 142.
+Maximum: 200 mappen, max 99 bestanden per map.
+
+============================================================
+STAP 3: prep_mp3.ps1 draaien
+============================================================
+
+Open een terminal in VS Code (Ctrl+`) en type:
+
+    cd tools\ffmpeg
+    .\prep_mp3.ps1 -SdDir 142
+
+Het script:
+1. Leest alle .mp3 uit D:\sounds\new\
+2. Converteert elk bestand (mono, loudnorm, geen headers)
+3. Korte bestanden worden heel gelaten, lange gesplitst
+4. Restjes <15s aan het eind van een split worden weggegooid
+5. Output gaat naar D:\sounds\prepped\ (staging, 001.mp3-099.mp3)
+6. Bij 99 bestanden → flush naar V:\Kwal\SDcard\<dir>\
+7. Hernummert naar 001.mp3-099.mp3 in elke NAS-map
+8. Volgende map krijgt dir+1, staging begint weer bij 001
+
+Optionele parameters:
+  -Source "D:\other"    # andere bronmap (default: D:\sounds\new)
+  -Seg 30               # splitlengte in sec (default: 42)
+  -Threshold 90         # splitdrempel in sec (default: 105)
+  -MinDur 10            # minimale duur in sec (default: 15)
+  -MaxPerDir 99         # max bestanden per map (default: 99)
+  -SdRoot "X:\pad"      # ander NAS-pad (default: V:\Kwal\SDcard)
+
+Voorbeeld output:
+  [23/1033] song.mp3 (187.4s) → split 4+1 (stub 11.4s removed)
+  [24/1033] birds.mp3 (45.2s) → norm
+  [25/1033] beep.mp3 (8.1s) → skip (<15s)
+  ...
+  --- Flush 99 files → V:\Kwal\SDcard\142\ ---
+  --- Flush 99 files → V:\Kwal\SDcard\143\ ---
+  Done: 1033 sources → 1414 files, dirs 142-156
+
+============================================================
+STAP 4: Resultaat controleren
+============================================================
+
+Na het script staan de bestanden op de NAS:
+
+    V:\Kwal\SDcard\142\001.mp3 t/m 099.mp3
+    V:\Kwal\SDcard\143\001.mp3 t/m 099.mp3
+    ... etc.
+
+Steekproef: speel een paar bestanden af en controleer
+volume, mono, en dat er geen stilte-stukken zitten.
+
+============================================================
+STAP 5: Theme boxes bijwerken
+============================================================
+
+Bewerk sdroot\theme_boxes.csv om de nieuwe mappen toe te
+voegen aan de gewenste themaboxen (DEFAULT, BIRDS, etc.)
+en eventueel nieuwe sub-boxen aan te maken.
+
+Upload daarna:
+    .\upload_csv.ps1 189
+
+Als de nieuwe mappen in een BESTAANDE themebox passen
+(bijv. toevoegen aan BIRDS), is dit voldoende.
+
+Als je een NIEUWE themebox aanmaakt, zijn er extra stappen:
+
+  5a. theme_boxes.csv — nieuwe box toevoegen
+      Formaat: boxId,naam,kleur,dir1;dir2;dir3;...
+      Kies een vrij boxId (kijk welke nummers al bezet zijn).
+      Kies een hex kleur voor het grid (bijv. #33691E).
+
+  5b. calendar.csv — (optioneel) box inplannen
+      Als de nieuwe box op bepaalde dagen moet draaien,
+      voeg het boxId toe aan de juiste dagen in calendar.csv.
+      Zonder kalenderregel wordt de box alleen handmatig
+      afgespeeld via het grid.
+
+  5c. audioShifts.csv — (optioneel) shifts instellen
+      Als de nieuwe box eigen volume/tempo-shifts moet
+      krijgen op bepaalde tijden of weercondities,
+      voeg regels toe aan audioShifts.csv.
+      Zonder shifts gebruikt de box de standaard instellingen.
+
+  5d. Upload alle gewijzigde CSVs:
+      .\upload_csv.ps1 189
+
+============================================================
+STAP 6: Sync naar ESP32
+============================================================
+
+    .\sync_mp3.ps1 189          # HOUT
+    .\sync_mp3.ps1 188          # MARMER (alleen na expliciete opdracht!)
+
+Dit uploadt de nieuwe mappen naar de SD-kaart en herbouwt
+de index automatisch na reboot. Zie howto_MP3sync.txt.
+
+Snelheid: ~2-4 MB/s. 1000 MB duurt ~5-8 minuten.
+
+============================================================
+STAP 7: Afspelen
+============================================================
+
+Na sync + reboot zijn de nieuwe mappen direct beschikbaar.
+
+Via de WebGUI (http://192.168.2.189):
+  → Audio tab → Grid
+  → Nieuwe mappen verschijnen automatisch in het grid
+  → Klik op een map-tegel om die map af te spelen
+
+Via kalender (automatisch):
+  Als de nieuwe mappen in een themebox zitten die in
+  calendar.csv staat (bijv. ALLBIRDS), worden ze
+  automatisch meegenomen in de dagelijkse afspeellijst.
+
+Handmatig testen van één map:
+  Open browser → http://192.168.2.189/api/audio/play?dir=142
+  (vervang 142 door het gewenste mapnummer)
+
+============================================================
+LOCATIES SAMENVATTING
+============================================================
+
+Bron MP3's:         D:\sounds\new\
+Staging (tijdelijk): D:\sounds\prepped\
+Temp (splits):      D:\sounds\prep_tmp\
+NAS (definitief):   V:\Kwal\SDcard\<NNN>\
+Script:             tools\ffmpeg\prep_mp3.ps1
+FFmpeg:             D:\Programs\FFmpeg\bin\
+
+============================================================
+VEREISTEN
+============================================================
+
+- FFmpeg geïnstalleerd op D:\Programs\FFmpeg\bin\
+  (ffmpeg.exe + ffprobe.exe)
+- NAS gemount op V:\Kwal\SDcard\
+- Voldoende ruimte op NAS en D:\sounds\
+- Max 200 mappen op SD (firmware limiet)
+- Max 99 bestanden per map (101 firmware max, 99 voor veiligheid)
+
+============================================================
+TROUBLESHOOTING
+============================================================
+
+- "ffmpeg not found" → Check D:\Programs\FFmpeg\bin\ffmpeg.exe
+- "Source not found" → Check of D:\sounds\new\ bestaat en MP3's bevat
+- "SD root not found" → Check of V:\Kwal\SDcard\ gemount is
+- Staging loopt vol → Normaal, flush naar NAS bij 99 files
+- Restjes/stubs → Stukken <15s aan eind van split worden automatisch verwijderd

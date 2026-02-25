@@ -66,3 +66,7 @@ python tools/verify_ledmap.py            # compare existing bin vs PCB
 - **Load**: `LightBoot.cpp` calls `loadLEDMapFromSD("/ledmap.bin")` at boot
 - **Fallback**: if the file is missing, `buildFallbackLEDMap()` generates a simple circular layout (all 160 LEDs on one ring at radius ~12.6) — this is a rough approximation, not the real dome geometry
 - **Consumer**: `LightController.cpp` calls `getLEDPos(i)` for each LED during pattern rendering
+
+## See Also
+
+- `docs/howtos/howto_ledmap.txt` — step-by-step guide (Dutch)
