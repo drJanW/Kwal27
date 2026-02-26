@@ -1,7 +1,7 @@
 /**
  * @file RunManager.h
  * @brief Central coordinator header for all Kwal modules
- * @version 260226A
+ * @version 260226B
  * @date 2026-02-26
  */
 #pragma once

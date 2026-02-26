@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.cpp
  * @brief TTS sentence playback with word dictionary and VoiceRSS API
- * @version 260219C
- * @date 2026-02-19
+ * @version 260226D
+ * @date 2026-02-26
  * 
  * Implements sequential word playback from /000/ directory.
  * Uses unified SpeakItem queue for mixing MP3 words and TTS sentences.
@@ -63,8 +63,10 @@ uint8_t mp3Scratchpad[8];
 bool forceMax = false;
 
 constexpr uint16_t WORD_FALLBACK_MS = 800;
-constexpr uint16_t TTS_CHAR_INTERVAL_MS = 114;   // scaled ~1.2x for r=-2 speech rate
-constexpr uint16_t TTS_TAIL_INTERVAL_MS = 2100;   // scaled ~1.2x for r=-2 speech rate
+constexpr uint16_t TTS_CHAR_INTERVAL_MS = 95;    // base values for r=0 (normal speed)
+constexpr uint16_t TTS_TAIL_INTERVAL_MS = 1750;   // base values for r=0 (normal speed)
+constexpr uint16_t TTS_WORD_INTERVAL_MS = 420;    // base values for r=0 (normal speed)
+int lastTtsRate = -2;  // last chosen TTS rate, used for duration scaling
 
 uint16_t countWords(const char* sentence) {
     if (!sentence) return 0;
@@ -86,9 +88,11 @@ uint16_t countWords(const char* sentence) {
 }
 
 uint32_t calcTtsDurationMs(const char* sentence) {
-    uint32_t charMs = strlen(sentence) * TTS_CHAR_INTERVAL_MS + TTS_TAIL_INTERVAL_MS;
+    // Each VoiceRSS rate step ≈ 10% speed change; negative = slower
+    float rateScale = 1.0f - lastTtsRate * 0.10f;
+    uint32_t charMs = static_cast<uint32_t>(strlen(sentence) * TTS_CHAR_INTERVAL_MS * rateScale) + TTS_TAIL_INTERVAL_MS;
     uint16_t words = countWords(sentence);
-    uint32_t wordMs = static_cast<uint32_t>(words) * 504U + TTS_TAIL_INTERVAL_MS;  // scaled ~1.2x for r=-2
+    uint32_t wordMs = static_cast<uint32_t>(words * TTS_WORD_INTERVAL_MS * rateScale) + TTS_TAIL_INTERVAL_MS;
     return (charMs > wordMs) ? charMs : wordMs;
 }
 
@@ -262,9 +266,12 @@ constexpr uint8_t TTS_VOICE_COUNT = sizeof(ttsVoices) / sizeof(ttsVoices[0]);
 String makeVoiceRSSUrl(const String& text) {
     const TtsVoice& v = ttsVoices[random(0, TTS_VOICE_COUNT)];
     PF("[PlaySentence] TTS voice: %s / %s\n", v.lang, v.name);
+    int ttsRate = random(-3, 2);  // -3, -2, -1, 0, or 1
+    lastTtsRate = ttsRate;
+    PF("[PlaySentence] TTS rate: %d\n", ttsRate);
     return String("http://api.voicerss.org/?key=") + VOICERSS_API_KEY +
            "&hl=" + v.lang + "&v=" + v.name +
-           "&r=-2&c=MP3&f=44khz_16bit_mono&src=" + urlencode(text);
+           "&r=" + String(ttsRate) + "&c=MP3&f=44khz_16bit_mono&src=" + urlencode(text);
 }
 
 bool voicerss_ok(const String& url, String& err) {

@@ -1,7 +1,7 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260226A
+ * @version 260226B
  * @date 2026-02-26
  */
 #pragma once
@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260226A"
+#define FIRMWARE_VERSION_CODE "260226D"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -206,6 +206,11 @@ struct Globals {
     inline static uint8_t  fallbackDay             = 20U;         // Fallback day
     inline static uint8_t  fallbackHour            = 4U;          // Fallback hour (04:00)
     inline static uint16_t fallbackYear            = 2026U;       // Fallback year
+
+    // ─────────────────────────────────────────────────────────────
+    // DAILY REBOOT (1 param)
+    // ─────────────────────────────────────────────────────────────
+    inline static uint8_t  dailyRebootHour          = 4U;          // Hour (1-23) for daily auto-reboot (0 = disabled, so midnight reboot not possible)
 
     // ─────────────────────────────────────────────────────────────
     // SD HEALTH (1 param)

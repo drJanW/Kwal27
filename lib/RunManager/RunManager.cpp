@@ -1,7 +1,7 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260226A
+ * @version 260226B
  * @date 2026-02-26
  */
 #include <Arduino.h>
@@ -81,9 +81,60 @@ void RunManager::requestLuxMeasurement() {
 
 namespace {
 
+// ─── Daily auto-reboot ──────────────────────────────────────
+
+uint8_t rebootRetries = 0;
+constexpr uint8_t kMaxRebootRetries = 30;
+
+void cb_dailyReboot() {
+    // Guard: don't reboot mid-write or mid-speech
+    if (AlertState::isSdBusy() || isSentencePlaying() || isFragmentPlaying()) {
+        if (++rebootRetries <= kMaxRebootRetries) {
+            PF("[Reboot] busy, retry %u/%u in 1 min\n", rebootRetries, kMaxRebootRetries);
+            timers.restart(MINUTES(1), 1, cb_dailyReboot);
+        } else {
+            PL("[Reboot] still busy after 30 min — rebooting anyway");
+            Serial.flush();
+            ESP.restart();
+        }
+        return;
+    }
+    PL("[Reboot] Daily scheduled reboot");
+    Serial.flush();
+    ESP.restart();
+}
+
+// Calculate ms from now until target hour (next occurrence)
+uint32_t calcMsUntilHour(uint8_t targetHour) {
+    const int16_t nowMin = static_cast<int16_t>(prtClock.getHour()) * 60
+                         + prtClock.getMinute();
+    const int16_t targetMin = static_cast<int16_t>(targetHour) * 60;
+    int16_t deltaMin = targetMin - nowMin;
+    if (deltaMin <= 5) deltaMin += 1440;  // Next day (skip if <5 min away)
+    return static_cast<uint32_t>(deltaMin) * 60000UL;
+}
+
+void armDailyReboot() {
+    if (Globals::dailyRebootHour == 0) return;  // Disabled
+    if (timers.isActive(cb_dailyReboot)) return; // Already armed
+    if (!prtClock.isTimeFetched()) return;        // No valid time yet
+
+    rebootRetries = 0;
+    const uint32_t delayMs = calcMsUntilHour(Globals::dailyRebootHour);
+    timers.create(delayMs, 1, cb_dailyReboot);
+    const uint16_t totalMin = static_cast<uint16_t>(delayMs / 60000UL);
+    PF("[Reboot] Armed at %02u:00, in %uu%02u\n",
+       Globals::dailyRebootHour, totalMin / 60, totalMin % 60);
+}
+
+// ─── Clock tick ─────────────────────────────────────────────
+
 void cb_clockUpdate() {
     static uint8_t lastDay = 0;
     prtClock.update();
+
+    // Arm daily reboot once clock is valid (idempotent)
+    armDailyReboot();
 
     // Detect day change → reload calendar for new day
     const uint8_t currentDay = prtClock.getDay();
