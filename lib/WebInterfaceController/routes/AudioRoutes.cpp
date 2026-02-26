@@ -1,8 +1,8 @@
 /**
  * @file AudioRoutes.cpp
  * @brief Audio API endpoint routes
- * @version 260219E
- * @date 2026-02-19
+ * @version 260226A
+ * @date 2026-02-26
  */
 #include <Arduino.h>
 #include "AudioRoutes.h"
@@ -122,6 +122,51 @@ void routeThemeBox(AsyncWebServerRequest *request)
     request->send(200, "text/plain", "OK");
 }
 
+void routeSetIntervals(AsyncWebServerRequest *request)
+{
+    uint32_t speakMinMs = 0, speakMaxMs = 0;
+    uint32_t fragMinMs = 0, fragMaxMs = 0;
+    uint32_t durationMs = Globals::defaultWebExpiryMs;
+    bool silence = false;
+    bool hasSpeakRange = false;
+    bool hasFragRange = false;
+
+    // Slider sends center value in minutes; firmware expands to ±30% range
+    if (request->hasParam("speak")) {
+        int raw = request->getParam("speak")->value().toInt();
+        uint32_t centerMs = MINUTES(static_cast<uint32_t>(clamp(raw, 1, 720)));
+        speakMinMs = static_cast<uint32_t>(centerMs * 0.7f);
+        speakMaxMs = static_cast<uint32_t>(centerMs * 1.3f);
+        hasSpeakRange = true;
+    }
+    if (request->hasParam("frag")) {
+        int raw = request->getParam("frag")->value().toInt();
+        uint32_t centerMs = MINUTES(static_cast<uint32_t>(clamp(raw, 2, 720)));
+        fragMinMs = static_cast<uint32_t>(centerMs * 0.7f);
+        fragMaxMs = static_cast<uint32_t>(centerMs * 1.3f);
+        hasFragRange = true;
+    }
+    if (request->hasParam("dur")) {
+        int raw = request->getParam("dur")->value().toInt();
+        durationMs = MINUTES(static_cast<uint32_t>(clamp(raw, 5, 780)));
+    }
+
+    RunManager::requestSetAudioIntervals(
+        speakMinMs, speakMaxMs, hasSpeakRange,
+        fragMinMs, fragMaxMs, hasFragRange,
+        silence, durationMs);
+
+    request->send(200, "text/plain", "OK");
+}
+
+void routeSetSilence(AsyncWebServerRequest *request)
+{
+    bool active = request->hasParam("active")
+                  && request->getParam("active")->value() == "1";
+    RunManager::requestSetSilence(active);
+    request->send(200, "text/plain", "OK");
+}
+
 void attachRoutes(AsyncWebServer &server)
 {
     server.on("/setWebAudioLevel", HTTP_GET, routeSetLevel);
@@ -132,6 +177,10 @@ void attachRoutes(AsyncWebServer &server)
     server.on("/api/audio/play", HTTP_GET, routePlay);
     server.on("/api/audio/themebox", HTTP_GET, routeThemeBox);
     server.on("/api/audio/grid", HTTP_GET, routeGrid);
+    server.on("/api/audio/intervals", HTTP_GET,  routeSetIntervals);
+    server.on("/api/audio/intervals", HTTP_POST, routeSetIntervals);
+    server.on("/api/audio/silence", HTTP_GET,  routeSetSilence);
+    server.on("/api/audio/silence", HTTP_POST, routeSetSilence);
 }
 
 void routeGrid(AsyncWebServerRequest *request)

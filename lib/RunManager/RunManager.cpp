@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260219E
- * @date 2026-02-19
+ * @version 260226A
+ * @date 2026-02-26
  */
 #include <Arduino.h>
 #include <math.h>
@@ -17,6 +17,9 @@
 #include "BootManager.h"
 #include "AudioManager.h"
 #include "AudioState.h"
+#include "PlaySentence.h"
+#include "PlayFragment.h"
+#include "WebGuiStatus.h"
 #include "Status/StatusBoot.h"
 #include "Status/StatusRun.h"
 #include "Status/StatusPolicy.h"
@@ -96,7 +99,7 @@ void cb_sayTime() {
     TimeStyle style = (random(0, 4) < 3) ? TimeStyle::INFORMAL : static_cast<TimeStyle>(random(0, 2));
     RunManager::requestSayTime(style);
     // Schedule next with fresh random interval - unpredictable time announcements
-    timers.restart(random(Globals::minSaytimeIntervalMs, Globals::maxSaytimeIntervalMs + 1), 1, cb_sayTime);
+    timers.restart(random(AudioPolicy::effectiveSpeakMin(), AudioPolicy::effectiveSpeakMax() + 1), 1, cb_sayTime);
 }
 
 String buildTemperatureSentence(float tempC) {
@@ -122,17 +125,18 @@ String buildTemperatureSentence(float tempC) {
 void cb_sayRTCtemperature() {
     RUN_LOG_INFO("[ClockRun] cb_sayRTCtemperature\n");
     RunManager::requestSayRTCtemperature();
-    timers.restart(random(Globals::minTemperatureSpeakIntervalMs,
-                          Globals::maxTemperatureSpeakIntervalMs + 1),
+    timers.restart(random(AudioPolicy::effectiveSpeakMin(),
+                          AudioPolicy::effectiveSpeakMax() + 1),
                    1, cb_sayRTCtemperature);
 }
 
 void cb_playFragment() {
     RunManager::requestPlayFragment();
-    // Schedule next: shorter intervals during single-dir web override
-    uint32_t lo = Globals::minAudioIntervalMs;
-    uint32_t hi = Globals::maxAudioIntervalMs;
-    if (AudioPolicy::themeBoxId().startsWith("web-")) {
+    // Schedule next: explicit web range wins, then web-singleDir, then Globals
+    uint32_t lo = AudioPolicy::effectiveFragmentMin();
+    uint32_t hi = AudioPolicy::effectiveFragmentMax();
+    if (!AudioPolicy::isWebFragmentRangeActive()
+        && AudioPolicy::themeBoxId().startsWith("web-")) {
         lo = Globals::singleDirMinIntervalMs;
         hi = Globals::singleDirMaxIntervalMs;
     }
@@ -180,6 +184,79 @@ void cb_stopThenPlayPending() {
 void cb_startSync() {
     PlayAudioFragment::stop(0);  // Immediate stop — no fade during sync
     AlertState::setSyncMode(true);
+}
+
+// ─── Web audio interval/silence support ─────────────────────
+
+uint32_t webExpiryMs = Globals::defaultWebExpiryMs;
+
+struct PendingAudioIntervals {
+    uint32_t speakMinMs   = 0;
+    uint32_t speakMaxMs   = 0;
+    uint32_t fragMinMs    = 0;
+    uint32_t fragMaxMs    = 0;
+    uint32_t durationMs   = 0;
+    bool     silence      = false;
+    bool     hasSpeakRange = false;
+    bool     hasFragRange  = false;
+} pendingIntervals;
+
+void cb_clearWebAudio();  // forward declare for cb_applyAudioIntervals
+
+void cb_applyAudioIntervals() {
+    auto& p = pendingIntervals;
+
+    if (p.hasSpeakRange)
+        AudioPolicy::setWebSpeakRange(p.speakMinMs, p.speakMaxMs);
+    if (p.hasFragRange)
+        AudioPolicy::setWebFragmentRange(p.fragMinMs, p.fragMaxMs);
+    AudioPolicy::setWebSilence(p.silence);
+
+    webExpiryMs = p.durationMs;
+
+    // Arm expiry timer — external arming → cancel + create
+    timers.cancel(cb_clearWebAudio);
+    timers.create(p.durationMs, 1, cb_clearWebAudio);
+
+    if (p.silence) {
+        PlayAudioFragment::stop(0);
+        PlaySentence::stop();
+    }
+
+    // Reschedule speak/fragment timers with new ranges
+    timers.cancel(cb_sayTime);
+    timers.create(
+        random(AudioPolicy::effectiveSpeakMin(),
+               AudioPolicy::effectiveSpeakMax() + 1),
+        1, cb_sayTime);
+    timers.cancel(cb_playFragment);
+    timers.create(
+        random(AudioPolicy::effectiveFragmentMin(),
+               AudioPolicy::effectiveFragmentMax() + 1),
+        1, cb_playFragment);
+}
+
+void cb_clearWebAudio() {
+    AudioPolicy::clearWebSpeakRange();
+    AudioPolicy::clearWebFragmentRange();
+    AudioPolicy::setWebSilence(false);
+    audio.setVolumeWebMultiplier(1.0f);
+    webExpiryMs = Globals::defaultWebExpiryMs;
+
+    // Reschedule with Globals defaults
+    timers.cancel(cb_sayTime);
+    timers.create(
+        random(Globals::minSaytimeIntervalMs,
+               Globals::maxSaytimeIntervalMs + 1),
+        1, cb_sayTime);
+    timers.cancel(cb_playFragment);
+    timers.create(
+        random(Globals::minAudioIntervalMs,
+               Globals::maxAudioIntervalMs + 1),
+        1, cb_playFragment);
+
+    // Trigger SSE push so WebGUI sliders snap back to defaults
+    WebGuiStatus::pushState();
 }
 
 } // namespace
@@ -363,8 +440,33 @@ void RunManager::requestSayRTCtemperature() {
 void RunManager::requestSetAudioLevel(float value) {
     // F9 pattern: webMultiplier can be >1.0, no clamp
     audio.setVolumeWebMultiplier(value);
+    // Arm/reset shared expiry — any web audio change resets countdown
+    timers.cancel(cb_clearWebAudio);
+    timers.create(webExpiryMs, 1, cb_clearWebAudio);
     RUN_LOG_INFO("[AudioRun] webMultiplier=%.2f\n",
                      static_cast<double>(value));
+}
+
+void RunManager::requestSetAudioIntervals(
+    uint32_t speakMinMs, uint32_t speakMaxMs, bool hasSpeakRange,
+    uint32_t fragMinMs,  uint32_t fragMaxMs,  bool hasFragRange,
+    bool silence, uint32_t durationMs)
+{
+    pendingIntervals = {speakMinMs, speakMaxMs, fragMinMs, fragMaxMs,
+                        durationMs, silence, hasSpeakRange, hasFragRange};
+    timers.cancel(cb_applyAudioIntervals);
+    timers.create(1, 1, cb_applyAudioIntervals);
+}
+
+void RunManager::requestSetSilence(bool active) {
+    AudioPolicy::setWebSilence(active);
+    if (active) {
+        PlayAudioFragment::stop(0);
+        PlaySentence::stop();
+    }
+    // Arm/reset shared expiry
+    timers.cancel(cb_clearWebAudio);
+    timers.create(webExpiryMs, 1, cb_clearWebAudio);
 }
 
 bool RunManager::requestStartClockTick(bool fallbackEnabled) {

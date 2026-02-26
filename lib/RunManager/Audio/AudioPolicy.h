@@ -1,8 +1,8 @@
 /**
  * @file AudioPolicy.h
  * @brief Audio playback business logic
- * @version 260202A
- $12026-02-05
+ * @version 260226A
+ * @date 2026-02-26
  */
 #pragma once
 #include <Arduino.h>
@@ -30,9 +30,27 @@ namespace AudioPolicy {
     const String& themeBoxId();
 
     // Mix additional theme box directories into current pool
-    // Returns number of dirs actually added (may be limited by capacity)
     size_t mergeThemeBoxDirs(const uint8_t* dirs, size_t count);
 
     // Reset to base theme box (removes any merged dirs)
     void resetToBaseThemeBox();
+
+    // Web silence (temporary mute from WebGUI)
+    bool isWebSilenceActive();
+    void setWebSilence(bool active);
+
+    // Web speak interval (temporary from WebGUI)
+    void setWebSpeakRange(uint32_t minMs, uint32_t maxMs);
+    void clearWebSpeakRange();
+    uint32_t effectiveSpeakMin();
+    uint32_t effectiveSpeakMax();
+    uint32_t webSpeakCenterMin();   // center in minutes for SSE round-trip
+
+    // Web fragment interval (temporary from WebGUI)
+    void setWebFragmentRange(uint32_t minMs, uint32_t maxMs);
+    void clearWebFragmentRange();
+    uint32_t effectiveFragmentMin();
+    uint32_t effectiveFragmentMax();
+    bool isWebFragmentRangeActive();
+    uint32_t webFragCenterMin();    // center in minutes for SSE round-trip
 }

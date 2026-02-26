@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260221A - Built 2026-02-21 13:08
+ * Kwal WebGUI v260226A - Built 2026-02-26 22:11
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260221A';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260226A';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -133,6 +133,23 @@ Kwal.audio = (function() {
   var loPct = 0;      // Grey zone left boundary (visual only)
   var hiPct = 100;    // Grey zone right boundary (visual only)
 
+  // Interval control elements
+  var muteBtn, speakSlider, fragSlider, durSlider;
+  var speakLabel, fragLabel, durLabel;
+  var debounceTimer = null;
+
+  // Non-linear step tables (logarithmic distribution)
+  var speakSteps = [1,2,3,5,10,15,20,30,45,60,90,120,180,240,360,480,720];
+  var fragSteps  = [2,3,5,10,15,20,30,45,60,90,120,180,240,360,480,720];
+  var durSteps   = [5,10,15,30,45,60,120,240,360,480,720,780];
+
+  function formatMinutes(min) {
+    if (min < 60) return min + 'm';
+    var h = Math.floor(min / 60);
+    var m = min % 60;
+    return m === 0 ? h + 'u' : h + 'u' + m;
+  }
+
   function updateGradient() {
     if (!slider) return;
     var style = 'linear-gradient(to right, ' +
@@ -228,6 +245,7 @@ Kwal.audio = (function() {
     }
     
     // No load() - initial state comes from SSE
+    initIntervalControls();
   }
 
   function vote(delta) {
@@ -296,7 +314,102 @@ Kwal.audio = (function() {
     }
   }
 
-  return { init: init, updateVolumeFromState: updateVolumeFromState, updateFragment: updateFragment };
+  // ─── Interval / silence controls ──────────────────────────
+
+  function initIntervalControls() {
+    muteBtn = document.getElementById('audio-mute');
+    speakSlider = document.getElementById('speak-interval');
+    fragSlider = document.getElementById('frag-interval');
+    durSlider = document.getElementById('interval-duration');
+    speakLabel = document.getElementById('speak-num');
+    fragLabel = document.getElementById('frag-num');
+    durLabel = document.getElementById('dur-num');
+
+    // Silence toggle — instant
+    if (muteBtn) {
+      muteBtn.onclick = function() {
+        var isMuted = muteBtn.classList.toggle('muted');
+        muteBtn.textContent = isMuted ? '🔇' : '🔊';
+        fetch('/api/audio/silence?active=' + (isMuted ? '1' : '0'),
+              {method:'POST'}).catch(function(){});
+      };
+    }
+
+    function bindSlider(sl, steps, lbl) {
+      if (!sl || !lbl) return;
+      sl.oninput = function() {
+        var val = steps[parseInt(sl.value, 10)];
+        lbl.textContent = formatMinutes(val);
+        scheduleIntervalSend();
+      };
+    }
+    bindSlider(speakSlider, speakSteps, speakLabel);
+    bindSlider(fragSlider, fragSteps, fragLabel);
+    bindSlider(durSlider, durSteps, durLabel);
+  }
+
+  function scheduleIntervalSend() {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(sendIntervals, 3000);
+  }
+
+  function sendIntervals() {
+    var speakMin = speakSteps[parseInt(speakSlider.value, 10)];
+    var fragMin  = fragSteps[parseInt(fragSlider.value, 10)];
+    var durMin   = durSteps[parseInt(durSlider.value, 10)];
+    var url = '/api/audio/intervals'
+      + '?speak=' + speakMin
+      + '&frag=' + fragMin
+      + '&dur=' + durMin;
+    fetch(url, {method:'POST'})
+      .then(function() { flashConfirm(); })
+      .catch(function(){});
+  }
+
+  function flashConfirm() {
+    [speakLabel, fragLabel, durLabel].forEach(function(el) {
+      if (!el) return;
+      var orig = el.textContent;
+      el.textContent = '✓';
+      el.style.color = '#4f4';
+      setTimeout(function() {
+        el.textContent = orig;
+        el.style.color = '';
+      }, 1000);
+    });
+  }
+
+  function updateIntervalsFromState(data) {
+    if (typeof data.silence === 'boolean' && muteBtn) {
+      muteBtn.textContent = data.silence ? '🔇' : '🔊';
+      muteBtn.classList.toggle('muted', data.silence);
+    }
+    function findStep(steps, val) {
+      for (var i = steps.length - 1; i >= 0; i--) {
+        if (steps[i] <= val) return i;
+      }
+      return 0;
+    }
+    if (typeof data.speakMin === 'number' && speakSlider && speakLabel) {
+      speakSlider.value = findStep(speakSteps, data.speakMin);
+      speakLabel.textContent = formatMinutes(data.speakMin);
+    }
+    if (typeof data.fragMin === 'number' && fragSlider && fragLabel) {
+      fragSlider.value = findStep(fragSteps, data.fragMin);
+      fragLabel.textContent = formatMinutes(data.fragMin);
+    }
+    if (typeof data.durMin === 'number' && durSlider && durLabel) {
+      durSlider.value = findStep(durSteps, data.durMin);
+      durLabel.textContent = formatMinutes(data.durMin);
+    }
+  }
+
+  return {
+    init: init,
+    updateVolumeFromState: updateVolumeFromState,
+    updateFragment: updateFragment,
+    updateIntervalsFromState: updateIntervalsFromState
+  };
 })();
 
 
@@ -2383,6 +2496,8 @@ Kwal.mp3grid = (function() {
           Kwal.mp3grid.setSelection(data.fragment.dir, data.fragment.file, false);
         }
       }
+      // Audio interval/silence state
+      Kwal.audio.updateIntervalsFromState(data);
     });
     
     // Legacy callbacks (still fired by firmware during transition)

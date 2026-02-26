@@ -1,8 +1,8 @@
 /**
  * @file AudioPolicy.cpp
  * @brief Audio playback business logic implementation
- * @version 260131A
- $12026-02-05
+ * @version 260226A
+ * @date 2026-02-26
  */
 #include "AudioPolicy.h"
 #include "AudioState.h"  // isAudioBusy, isSentencePlaying
@@ -28,6 +28,17 @@ String  themeId;
 // Base theme box (before any merges)
 uint8_t baseThemeDirs[kMaxThemeDirs];
 size_t  baseThemeDirCount = 0;
+
+// Web audio state (temporary settings from WebGUI)
+bool     webSilence = false;
+bool     webSpeakActive = false;
+uint32_t webSpeakMin = 0;
+uint32_t webSpeakMax = 0;
+uint32_t webSpeakCenter = 0;    // center value in minutes for SSE
+bool     webFragActive = false;
+uint32_t webFragMin = 0;
+uint32_t webFragMax = 0;
+uint32_t webFragCenter = 0;     // center value in minutes for SSE
 
 } // namespace
 
@@ -155,6 +166,58 @@ float updateDistancePlaybackVolume(float distanceMm) {
 
     distanceVolume = clamp(mapped, Globals::pingVolumeMin, Globals::pingVolumeMax);
     return distanceVolume;
+}
+
+// ─── Web audio state (temporary settings from WebGUI) ───────
+
+bool isWebSilenceActive()       { return webSilence; }
+void setWebSilence(bool active) { webSilence = active; }
+
+void setWebSpeakRange(uint32_t minMs, uint32_t maxMs) {
+    webSpeakMin = minMs;
+    webSpeakMax = MathUtils::maxVal(minMs, maxMs);
+    // Back-calculate center from min (center = min / 0.7), in minutes
+    webSpeakCenter = static_cast<uint32_t>(static_cast<float>(minMs) / 60000.0f / 0.7f + 0.5f);
+    webSpeakActive = true;
+}
+
+void clearWebSpeakRange() { webSpeakActive = false; }
+
+uint32_t effectiveSpeakMin() {
+    return webSpeakActive ? webSpeakMin : Globals::minSaytimeIntervalMs;
+}
+
+uint32_t effectiveSpeakMax() {
+    return webSpeakActive ? webSpeakMax : Globals::maxSaytimeIntervalMs;
+}
+
+void setWebFragmentRange(uint32_t minMs, uint32_t maxMs) {
+    webFragMin = minMs;
+    webFragMax = MathUtils::maxVal(minMs, maxMs);
+    webFragCenter = static_cast<uint32_t>(static_cast<float>(minMs) / 60000.0f / 0.7f + 0.5f);
+    webFragActive = true;
+}
+
+void clearWebFragmentRange() { webFragActive = false; }
+
+uint32_t effectiveFragmentMin() {
+    return webFragActive ? webFragMin : Globals::minAudioIntervalMs;
+}
+
+uint32_t effectiveFragmentMax() {
+    return webFragActive ? webFragMax : Globals::maxAudioIntervalMs;
+}
+
+bool isWebFragmentRangeActive() { return webFragActive; }
+
+uint32_t webSpeakCenterMin() {
+    return webSpeakActive ? webSpeakCenter
+                          : static_cast<uint32_t>(Globals::minSaytimeIntervalMs / 60000UL);
+}
+
+uint32_t webFragCenterMin() {
+    return webFragActive ? webFragCenter
+                         : static_cast<uint32_t>(Globals::minAudioIntervalMs / 60000UL);
 }
 
 }

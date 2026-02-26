@@ -18,6 +18,7 @@
 
     <section class="panel">
       <div class="row audio-header-row">
+        <button id="audio-mute" class="btn-icon">🔊</button>
         <h2 id="audio-box-label" class="audio-box-label">Audio</h2>
         <span class="fragment-id"><span id="audio-dir" class="clickable">---</span>/<span id="audio-file"
             class="clickable">---</span></span>
@@ -28,11 +29,28 @@
         <button id="vote-up" class="btn-icon">👍</button>
       </div>
       <div class="row">
-        <label>Volume</label>
+        <label>Audio-volume</label>
         <input type="range" id="volume" min="0" max="100" value="100">
         <span id="vol-num">100%</span>
       </div>
+      <div class="row row-gap">
+        <label>Audio-interval</label>
+        <input type="range" id="frag-interval" min="0" max="15" value="7">
+        <span id="frag-num">30m</span>
+      </div>
+      <div class="row">
+        <label class="label-brown">Tijdspraak-interval</label>
+        <input type="range" id="speak-interval" class="slider-brown" min="0" max="16" value="9">
+        <span id="speak-num">60m</span>
+      </div>
+      <div class="row row-gap">
+        <label class="label-gold">Geldigheids&shy;duur</label>
+        <input type="range" id="interval-duration" class="slider-gold" min="0" max="11" value="11">
+        <span id="dur-num">13u</span>
+      </div>
     </section>
+
+    <hr class="panel-sep">
 
     <section class="panel">
       <h2>Licht</h2>
@@ -225,7 +243,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260221A"></script>
+  <script src="kwal.js?v=260226A"></script>
 </body>
 
 </html>

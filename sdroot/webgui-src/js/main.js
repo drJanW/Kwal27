@@ -95,6 +95,8 @@
           Kwal.mp3grid.setSelection(data.fragment.dir, data.fragment.file, false);
         }
       }
+      // Audio interval/silence state
+      Kwal.audio.updateIntervalsFromState(data);
     });
     
     // Legacy callbacks (still fired by firmware during transition)

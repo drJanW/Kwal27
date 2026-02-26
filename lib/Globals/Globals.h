@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260219C
- * @date 2026-02-19
+ * @version 260226A
+ * @date 2026-02-26
  */
 #pragma once
 
@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260221A"
+#define FIRMWARE_VERSION_CODE "260226A"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -74,6 +74,7 @@ struct Globals {
     inline static uint32_t maxSaytimeIntervalMs   = MINUTES(145); // Max wait between time announcements
     inline static uint32_t minTemperatureSpeakIntervalMs = MINUTES(60); // Min wait between temperature announcements
     inline static uint32_t maxTemperatureSpeakIntervalMs = MINUTES(140); // Max wait between temperature announcements
+    inline static uint32_t defaultWebExpiryMs     = HOURS(13);    // Web audio settings auto-reset after 13 hours
 
     // ─────────────────────────────────────────────────────────────
     // LIGHT/PATTERN (5 params)

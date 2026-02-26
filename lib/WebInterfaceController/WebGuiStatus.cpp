@@ -1,8 +1,8 @@
 /**
  * @file WebGuiStatus.cpp
  * @brief Centralized WebGUI state management implementation
- * @version 260211A
- * @date 2026-02-11
+ * @version 260226A
+ * @date 2026-02-26
  */
 #include "WebGuiStatus.h"
 #include "Globals.h"
@@ -11,6 +11,7 @@
 #include "Light/LightPolicy.h"
 #include "LightController.h"
 #include "AudioState.h"
+#include "Audio/AudioPolicy.h"
 #include "SensorController.h"
 #include "TodayState.h"
 #include <ESPAsyncWebServer.h>
@@ -124,7 +125,7 @@ void pushState() {
     
     // Build JSON manually for efficiency (avoid ArduinoJson allocation)
     String json;
-    json.reserve(450);
+    json.reserve(550);
     json = F("{\"sliderPct\":");
     json += sliderPct;
     json += F(",\"brightnessLo\":");
@@ -173,6 +174,19 @@ void pushState() {
     json += F(",\"boxName\":\"");
     json += boxName;
     json += F("\"}}");
+    
+    // Web audio interval/silence state
+    // Remove trailing '}' to add fields inside outer object
+    json.remove(json.length() - 1);  // remove final '}'
+    json += F(",\"silence\":");
+    json += AudioPolicy::isWebSilenceActive() ? F("true") : F("false");
+    json += F(",\"speakMin\":");
+    json += AudioPolicy::webSpeakCenterMin();
+    json += F(",\"fragMin\":");
+    json += AudioPolicy::webFragCenterMin();
+    json += F(",\"durMin\":");
+    json += static_cast<uint32_t>(Globals::defaultWebExpiryMs / 60000UL);
+    json += '}';
     
     eventsPtr_->send(json.c_str(), "state", millis());
     WEBIF_LOG("[SSE] state sliderPct=%d audio=%d pat=%s col=%s\n", sliderPct, audioSliderPct, patternId.c_str(), colorId.c_str());

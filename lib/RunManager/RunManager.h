@@ -1,8 +1,8 @@
 /**
  * @file RunManager.h
  * @brief Central coordinator header for all Kwal modules
- * @version 260219E
- * @date 2026-02-19
+ * @version 260226A
+ * @date 2026-02-26
  */
 #pragma once
 #include <Arduino.h>
@@ -32,6 +32,11 @@ public:
     static void requestSayTime(TimeStyle style = TimeStyle::NORMAL);
     static void requestSayRTCtemperature();
     static void requestSetAudioLevel(float value);
+    static void requestSetAudioIntervals(
+        uint32_t speakMinMs, uint32_t speakMaxMs, bool hasSpeakRange,
+        uint32_t fragMinMs,  uint32_t fragMaxMs,  bool hasFragRange,
+        bool silence, uint32_t durationMs);
+    static void requestSetSilence(bool active);
     static bool requestStartClockTick(bool fallbackEnabled);
     static bool isClockRunning();
     static bool isClockInFallback();

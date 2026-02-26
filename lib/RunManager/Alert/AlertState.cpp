@@ -1,8 +1,8 @@
 /**
  * @file AlertState.cpp
  * @brief Hardware status state storage implementation
- * @version 260218A
- * @date 2026-02-18
+ * @version 260226A
+ * @date 2026-02-26
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -11,6 +11,7 @@
 #include "AlertPolicy.h"
 #include "AlertRGB.h"
 #include "Speak/SpeakRun.h"
+#include "Audio/AudioPolicy.h"
 #include "Globals.h"
 #include "HWConfig.h"
 
@@ -289,7 +290,8 @@ bool canPlayMP3Words() {
 }
 
 bool canPlayFragment() {
-    return isStatusOK(SC_SD) && isStatusOK(SC_AUDIO) && isStatusOK(SC_CALENDAR) && !isSyncMode();
+    return isStatusOK(SC_SD) && isStatusOK(SC_AUDIO) && isStatusOK(SC_CALENDAR) && !isSyncMode()
+           && !AudioPolicy::isWebSilenceActive();
 }
 
 bool canFetch() {
