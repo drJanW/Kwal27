@@ -1,7 +1,7 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260226E
+ * @version 260227A
  * @date 2026-02-26
  */
 #include <Arduino.h>
@@ -258,8 +258,8 @@ void cb_applyAudioIntervals() {
     auto& p = pendingIntervals;
 
     PF("[WebAudio] speak=%s frag=%s dur=%um\n",
-       p.hasSpeakRange ? String(p.speakMinMs / 60000U).c_str() : "-",
-       p.hasFragRange  ? String(p.fragMinMs  / 60000U).c_str() : "-",
+       p.hasSpeakRange ? String((p.speakMinMs + p.speakMaxMs) / 2U / 60000U).c_str() : "-",
+       p.hasFragRange  ? String((p.fragMinMs  + p.fragMaxMs)  / 2U / 60000U).c_str() : "-",
        static_cast<unsigned>(p.durationMs / 60000U));
 
     if (p.hasSpeakRange)
