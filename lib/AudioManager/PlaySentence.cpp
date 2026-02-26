@@ -1,7 +1,7 @@
 /**
  * @file PlaySentence.cpp
  * @brief TTS sentence playback with word dictionary and VoiceRSS API
- * @version 260226D
+ * @version 260226E
  * @date 2026-02-26
  * 
  * Implements sequential word playback from /000/ directory.
@@ -29,11 +29,6 @@
 #include <SD.h>
 
 extern const char* getMP3Path(uint8_t dirIdx, uint8_t fileIdx);
-
-// --------- Forward declarations to prevent link/scope errors ----------
-namespace PlayAudioFragment {
-    void stop(uint16_t fadeOutMs = 0xFFFF);
-}
 
 // ---------------- Anonymous namespace for internal state and callbacks ---------
 namespace {
@@ -265,10 +260,9 @@ constexpr uint8_t TTS_VOICE_COUNT = sizeof(ttsVoices) / sizeof(ttsVoices[0]);
 
 String makeVoiceRSSUrl(const String& text) {
     const TtsVoice& v = ttsVoices[random(0, TTS_VOICE_COUNT)];
-    PF("[PlaySentence] TTS voice: %s / %s\n", v.lang, v.name);
     int ttsRate = random(-3, 2);  // -3, -2, -1, 0, or 1
     lastTtsRate = ttsRate;
-    PF("[PlaySentence] TTS rate: %d\n", ttsRate);
+    PF("[PlaySentence] TTS voice: %s / %s  rate: %d\n", v.lang, v.name, ttsRate);
     return String("http://api.voicerss.org/?key=") + VOICERSS_API_KEY +
            "&hl=" + v.lang + "&v=" + v.name +
            "&r=" + String(ttsRate) + "&c=MP3&f=44khz_16bit_mono&src=" + urlencode(text);
@@ -358,11 +352,6 @@ void playNextSpeakItem() {
         setAudioBusy(false);
         setSentencePlaying(false);
         return;
-    }
-    
-    // Stop fragment if playing
-    if (isFragmentPlaying()) {
-        PlayAudioFragment::stop();
     }
     
     SpeakItem& item = speakQueue[speakQueueHead];
@@ -500,7 +489,7 @@ void addWords(const uint8_t* words) {
     enqueue(SpeakItemType::MP3_WORDS, words);
     PF("[PlaySentence] Queued MP3 words\n");
     
-    if (wasEmpty && !isAudioBusy()) {
+    if (wasEmpty) {
         playNextSpeakItem();
     }
 }
@@ -509,7 +498,7 @@ void addTTS(const char* sentence) {
     bool wasEmpty = (speakQueueHead == speakQueueTail);
     enqueue(SpeakItemType::TTS_SENTENCE, sentence);
     
-    if (wasEmpty && !isAudioBusy()) {
+    if (wasEmpty) {
         playNextSpeakItem();
     }
 }

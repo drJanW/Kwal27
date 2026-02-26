@@ -1,0 +1,49 @@
+AUDIO PREEMPTION — ARCHITECTURAL RECOVERY
+============================================
+Recovery from Copilot architecture violations introduced during earlier edits.
+
+ROOT CAUSE (Copilot error)
+--------------------------
+PlaySentence (Controller layer) violates architecture in two ways:
+
+1. Cross-subsystem call: playNextSpeakItem() calls PlayAudioFragment::stop()
+   → Controller calling into unrelated Controller. Forbidden.
+   Location: PlaySentence.cpp playNextSpeakItem() line 363
+
+2. Policy decision in Controller: addTTS() checks isAudioBusy() before
+   starting playback → Controller decides priority. That is Run/Policy work.
+   Location: PlaySentence.cpp addTTS() line 510
+
+SYMPTOM
+-------
+When a fragment is playing and cb_sayTime fires:
+- addTTS() enqueues the TTS item
+- wasEmpty=true but isAudioBusy()=true → playNextSpeakItem() never called
+- Next addTTS() sees wasEmpty=false → also skips
+- Items pile up → "Queue full, dropping" after 8 items
+- No TTS plays until reboot
+
+REQUIRED FIX
+------------
+1. RunManager (cb_sayTime): stop fragment before requesting TTS
+   - cb_sayTime already owns the "speak preempts fragment" decision
+   - Add: if (isFragmentPlaying()) PlayAudioFragment::stop(0);
+   - Then call AudioPolicy::requestSentence() as before
+
+2. PlaySentence: remove cross-subsystem call
+   - playNextSpeakItem(): remove the isFragmentPlaying/stop block
+   - Fragment is already stopped by RunManager before TTS is enqueued
+
+3. PlaySentence addTTS(): remove isAudioBusy() guard
+   - If wasEmpty → always call playNextSpeakItem()
+   - PlaySentence is a dumb queue+player, no policy decisions
+   - Same fix needed in addWords()
+
+4. Verify: PlaySentence no longer includes PlayFragment.h
+   - Remove cross-subsystem dependency entirely
+
+FILES TO EDIT
+-------------
+- lib/RunManager/RunManager.cpp        (cb_sayTime: add fragment stop)
+- lib/AudioManager/PlaySentence.cpp    (remove isAudioBusy guard, remove PlayAudioFragment::stop)
+- lib/AudioManager/PlaySentence.cpp    (remove PlayFragment.h include if present)

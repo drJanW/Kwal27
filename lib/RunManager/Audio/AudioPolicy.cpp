@@ -1,12 +1,13 @@
 /**
  * @file AudioPolicy.cpp
  * @brief Audio playback business logic implementation
- * @version 260226A
+ * @version 260226E
  * @date 2026-02-26
  */
 #include "AudioPolicy.h"
 #include "AudioState.h"  // isAudioBusy, isSentencePlaying
 #include "PlaySentence.h"
+#include "PlayFragment.h"
 #include "Globals.h" // only for constants like MAX_VOLUME
 
 namespace {
@@ -58,7 +59,10 @@ bool requestFragment(const AudioFragment& frag) {
 }
 
 void requestSentence(const String& phrase) {
-    // Route naar PlaySentence unified queue
+    // Speech preempts fragment — RunManager policy decision
+    if (isFragmentPlaying()) {
+        PlayAudioFragment::stop(0);
+    }
     PlaySentence::addTTS(phrase.c_str());
 }
 
