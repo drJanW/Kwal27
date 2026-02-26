@@ -1,0 +1,641 @@
+===========================================================
+AUDIOPLUS — Web Audio Interval Control
+Feature: temporary override of speak/fragment intervals + silence
+Status:  PLAN (no code yet)
+Date:    2026-02-26
+===========================================================
+
+GOAL
+----
+Add 4 WebGUI controls to temporarily adjust audio behavior:
+  1. Speak frequency   — override minSaytimeIntervalMs / maxSaytimeIntervalMs
+  2. Fragment frequency — override minAudioIntervalMs / maxAudioIntervalMs
+  3. Silence toggle     — suppress all audio output
+  4. Duration           — how long the override lasts before auto-reset
+
+After the duration expires, everything returns to Globals defaults.
+No persistent state, no SD writes, no config changes.
+
+===========================================================
+DESIGN
+===========================================================
+
+LAYER MAP
+---------
+  WebGUI (JS)
+    │  fetch("/api/audio/intervals?speak=..&frag=..&silence=1&dur=30")
+    ▼
+  AudioRoutes (WebInterfaceController)
+    │  validate params, call RunManager::requestSetAudioIntervals(...)
+    ▼
+  RunManager (Run layer)
+    │  store pending values in namespace statics
+    │  timers.restart(1, 1, cb_applyAudioIntervals)
+    ▼
+  cb_applyAudioIntervals (Run layer, deferred from web context)
+    │  copy pending → active override state
+    │  arm expiry timer: timers.restart(durationMs, 1, cb_clearAudioIntervals)
+    │  if silence: PlayAudioFragment::stop(0) + PlaySentence::stop()
+    │  reschedule cb_sayTime + cb_playFragment with new ranges
+    ▼
+  AudioPolicy (Policy layer) — NEW helpers
+    │  effectiveSpeakMin/Max()  — returns override or Globals default
+    │  effectiveFragmentMin/Max() — returns override or Globals default
+    │  isWebSilenceActive()    — pure getter, no side effects
+    │  setWebSilence(bool)     — called only from Run layer
+    │  setWebSpeakRange(min, max) / clearWebSpeakRange()
+    │  setWebFragmentRange(min, max) / clearWebFragmentRange()
+    ▼
+  Existing flow unchanged:
+    cb_sayTime   → requestSayTime → AudioPolicy::requestSentence
+    cb_playFragment → requestPlayFragment → AlertState::canPlayFragment
+                                          → AudioPolicy::requestFragment
+
+SILENCE GATING
+--------------
+  Option A: Add isWebSilenceActive() check to AlertState::canPlayFragment()
+            and SpeakPolicy::canSpeak().
+            Pro: zero changes to cb_sayTime/cb_playFragment.
+            Con: timers keep firing and silently get rejected.
+
+  Option B: Check in cb_sayTime/cb_playFragment before calling request*.
+            Pro: avoids unnecessary request overhead.
+            Con: policy logic leaks into Run layer.
+
+  → RECOMMENDED: Option A (pure policy gate). The timer overhead is
+    negligible (fires once per 6-145 min). This keeps Run layer clean
+    and silence works for ALL audio paths, not just timer-driven ones.
+
+  Implementation:
+    AlertState::canPlayFragment():
+      return isStatusOK(SD) && isStatusOK(AUDIO) && isStatusOK(CALENDAR)
+             && !isSyncMode() && !AudioPolicy::isWebSilenceActive();
+
+    SpeakPolicy::canSpeak(SpeakRequest req):       // ← signature change
+      if (isSentencePlaying()) return false;
+      if (AudioPolicy::isWebSilenceActive()
+          && !isHealthAlert(req)) return false;   // ← NEW: *_FAIL exempt
+      return true;
+
+    // Helper (in SpeakPolicy or SpeakRun):
+    bool isHealthAlert(SpeakRequest req) {
+        return req <= SpeakRequest::CALENDAR_FAIL;  // all *_FAIL enums are first
+    }
+
+INTERVAL OVERRIDE
+-----------------
+  Policy layer owns the "what interval should we use?" question.
+  Run layer asks Policy and uses the answer.
+
+  AudioPolicy (new functions):
+    void setWebSpeakRange(uint32_t minMs, uint32_t maxMs);
+    void clearWebSpeakRange();
+    uint32_t effectiveSpeakMin();  // returns override or Globals default
+    uint32_t effectiveSpeakMax();  // returns override or Globals default
+    void setWebFragmentRange(uint32_t minMs, uint32_t maxMs);
+    void clearWebFragmentRange();
+    uint32_t effectiveFragmentMin();
+    uint32_t effectiveFragmentMax();
+
+  Storage: namespace statics inside AudioPolicy.cpp (like themeBox state).
+  No side effects, pure getters/setters.
+
+  Run layer changes (cb_sayTime, cb_playFragment):
+    Replace Globals::minSaytimeIntervalMs with AudioPolicy::effectiveSpeakMin()
+    Replace Globals::maxSaytimeIntervalMs with AudioPolicy::effectiveSpeakMax()
+    Replace Globals::minAudioIntervalMs with AudioPolicy::effectiveFragmentMin()
+    Replace Globals::maxAudioIntervalMs with AudioPolicy::effectiveFragmentMax()
+
+  Note: cb_playFragment already has a themeBox override path (singleDir ranges).
+  The effective helpers must respect that: if themeBox is web-single-dir AND
+  web override is active, web override wins (it's explicitly user-requested).
+
+DURATION / AUTO-RESET
+---------------------
+  One-shot timer: timers.restart(durationMs, 1, cb_clearAudioIntervals)
+  On fire:
+    AudioPolicy::clearWebSpeakRange()
+    AudioPolicy::clearWebFragmentRange()
+    AudioPolicy::setWebSilence(false)
+    Reschedule cb_sayTime + cb_playFragment with normal Globals ranges
+
+  If user sends new request while one is active:
+    cb_applyAudioIntervals does cancel(cb_clear) + create(dur, 1, cb_clear).
+    New values + new duration take effect immediately.
+
+  Timer convention (per codebase):
+    - Self-reschedule inside own cb_ with varying interval → restart()
+    - External arming from request handler or other cb_ → cancel() + create()
+    - First arm at boot                                  → create()
+
+===========================================================
+FILE CHANGE LIST
+===========================================================
+
+FIRMWARE (version bump required before any edit)
+------------------------------------------------
+  Globals.h                              — version bump only
+  AudioPolicy.h                          — add 8 new function declarations
+  AudioPolicy.cpp                        — add web interval/silence state + getters/setters
+  AlertState.cpp                         — add isWebSilenceActive() check in canPlayFragment()
+  SpeakPolicy.cpp                        — add isWebSilenceActive() check in canSpeak()
+  RunManager.h                           — add requestSetAudioIntervals() declaration
+  RunManager.cpp                         — add request handler + cb_apply/cb_clear + use effective*()
+                                           + refactor cb_sayRTCtemperature to use effectiveSpeak*()
+  AudioRoutes.h                          — add routeSetIntervals declaration
+  AudioRoutes.cpp                        — add /api/audio/intervals route + validation
+
+WEBGUI (JS version bump in build.ps1 before any edit)
+-----------------------------------------------------
+  sdroot/webgui-src/js/audio.js          — add interval/silence controls + debounce logic
+  sdroot/index.html                      — add 3 slider rows + silence toggle + <hr> to audio panel
+  sdroot/styles.css                      — styling for mute button + <hr> separator
+
+===========================================================
+PSEUDOCODE (corrected, per layer)
+===========================================================
+
+--- AudioPolicy.cpp (Policy layer, no side effects) ---
+
+namespace {
+  bool    webSilence = false;
+  bool    webSpeakOverride = false;
+  uint32_t webSpeakMin = 0;
+  uint32_t webSpeakMax = 0;
+  bool    webFragOverride = false;
+  uint32_t webFragMin = 0;
+  uint32_t webFragMax = 0;
+}
+
+bool isWebSilenceActive()          { return webSilence; }
+void setWebSilence(bool active)    { webSilence = active; }
+
+void setWebSpeakRange(uint32_t minMs, uint32_t maxMs) {
+    webSpeakMin = minMs;
+    webSpeakMax = maxVal(minMs, maxMs);  // ensure min <= max
+    webSpeakOverride = true;
+}
+void clearWebSpeakRange()          { webSpeakOverride = false; }
+
+uint32_t effectiveSpeakMin() {
+    return webSpeakOverride ? webSpeakMin : Globals::minSaytimeIntervalMs;
+}
+uint32_t effectiveSpeakMax() {
+    return webSpeakOverride ? webSpeakMax : Globals::maxSaytimeIntervalMs;
+}
+
+void setWebFragmentRange(uint32_t minMs, uint32_t maxMs) {
+    webFragMin = minMs;
+    webFragMax = maxVal(minMs, maxMs);
+    webFragOverride = true;
+}
+void clearWebFragmentRange()       { webFragOverride = false; }
+
+uint32_t effectiveFragmentMin() {
+    return webFragOverride ? webFragMin : Globals::minAudioIntervalMs;
+}
+uint32_t effectiveFragmentMax() {
+    return webFragOverride ? webFragMax : Globals::maxAudioIntervalMs;
+}
+
+
+--- AlertState.cpp (Policy gate) ---
+
+bool canPlayFragment() {
+    return isStatusOK(SC_SD) && isStatusOK(SC_AUDIO) && isStatusOK(SC_CALENDAR)
+           && !isSyncMode()
+           && !AudioPolicy::isWebSilenceActive();      // ← NEW
+}
+
+
+--- SpeakPolicy.cpp (Policy gate) ---
+
+bool canSpeak() {
+    if (isSentencePlaying()) return false;
+    if (AudioPolicy::isWebSilenceActive()) return false;  // ← NEW
+    return true;
+}
+
+
+--- RunManager.cpp (Run layer) ---
+
+// Pending state (set by web handler, consumed by cb_)
+namespace {
+  struct PendingAudioIntervals {
+    uint32_t speakMinMs   = 0;
+    uint32_t speakMaxMs   = 0;
+    uint32_t fragMinMs    = 0;
+    uint32_t fragMaxMs    = 0;
+    uint32_t durationMs   = 0;
+    bool     silence      = false;
+    bool     hasSpeakOverride = false;
+    bool     hasFragOverride  = false;
+  } pendingIntervals;
+}
+
+void cb_applyAudioIntervals() {
+    auto& p = pendingIntervals;
+
+    if (p.hasSpeakOverride)
+        AudioPolicy::setWebSpeakRange(p.speakMinMs, p.speakMaxMs);
+    if (p.hasFragOverride)
+        AudioPolicy::setWebFragmentRange(p.fragMinMs, p.fragMaxMs);
+    AudioPolicy::setWebSilence(p.silence);
+
+    // Arm expiry timer — external arming → cancel + create
+    timers.cancel(cb_clearAudioIntervals);
+    timers.create(p.durationMs, 1, cb_clearAudioIntervals);
+
+    if (p.silence) {
+        PlayAudioFragment::stop(0);
+        PlaySentence::stop();
+    }
+
+    // Reschedule speak/fragment timers — external arming → cancel + create
+    timers.cancel(cb_sayTime);
+    timers.create(
+        random(AudioPolicy::effectiveSpeakMin(),
+               AudioPolicy::effectiveSpeakMax() + 1),
+        1, cb_sayTime);
+    timers.cancel(cb_playFragment);
+    timers.create(
+        random(AudioPolicy::effectiveFragmentMin(),
+               AudioPolicy::effectiveFragmentMax() + 1),
+        1, cb_playFragment);
+}
+
+void cb_clearAudioIntervals() {
+    AudioPolicy::clearWebSpeakRange();
+    AudioPolicy::clearWebFragmentRange();
+    AudioPolicy::setWebSilence(false);
+
+    // Reschedule with Globals defaults — external arming → cancel + create
+    timers.cancel(cb_sayTime);
+    timers.create(
+        random(Globals::minSaytimeIntervalMs,
+               Globals::maxSaytimeIntervalMs + 1),
+        1, cb_sayTime);
+    timers.cancel(cb_playFragment);
+    timers.create(
+        random(Globals::minAudioIntervalMs,
+               Globals::maxAudioIntervalMs + 1),
+        1, cb_playFragment);
+}
+
+// Public request (called from AudioRoutes handler)
+void RunManager::requestSetAudioIntervals(
+    uint32_t speakMinMs, uint32_t speakMaxMs, bool hasSpeakOverride,
+    uint32_t fragMinMs,  uint32_t fragMaxMs,  bool hasFragOverride,
+    bool silence, uint32_t durationMs)
+{
+    pendingIntervals = {speakMinMs, speakMaxMs, fragMinMs, fragMaxMs,
+                        durationMs, silence, hasSpeakOverride, hasFragOverride};
+    // External arming from request → cancel + create
+    timers.cancel(cb_applyAudioIntervals);
+    timers.create(1, 1, cb_applyAudioIntervals);
+}
+
+
+--- RunManager.cpp (existing cb_ changes) ---
+
+// cb_sayTime — replace Globals:: with AudioPolicy::effective*()
+void cb_sayTime() {
+    TimeStyle style = (random(0, 4) < 3) ? TimeStyle::INFORMAL
+                      : static_cast<TimeStyle>(random(0, 2));
+    RunManager::requestSayTime(style);
+    timers.restart(
+        random(AudioPolicy::effectiveSpeakMin(),
+               AudioPolicy::effectiveSpeakMax() + 1),
+        1, cb_sayTime);
+}
+
+// cb_playFragment — replace Globals:: with AudioPolicy::effective*()
+void cb_playFragment() {
+    RunManager::requestPlayFragment();
+    uint32_t lo = AudioPolicy::effectiveFragmentMin();
+    uint32_t hi = AudioPolicy::effectiveFragmentMax();
+    // Single-dir web theme override gets tighter intervals
+    // but explicit web interval override wins (user-requested)
+    if (!AudioPolicy::isWebFragmentRangeActive()
+        && AudioPolicy::themeBoxId().startsWith("web-")) {
+        lo = Globals::singleDirMinIntervalMs;
+        hi = Globals::singleDirMaxIntervalMs;
+    }
+    timers.restart(random(lo, hi + 1), 1, cb_playFragment);
+}
+
+
+--- AudioRoutes.cpp (Web layer, memory only) ---
+
+void routeSetIntervals(AsyncWebServerRequest *request) {
+    // Parse query params
+    uint32_t speakMinMs = 0, speakMaxMs = 0;
+    uint32_t fragMinMs = 0, fragMaxMs = 0;
+    uint32_t durationMs = MINUTES(30);  // default 30 min
+    bool silence = false;
+    bool hasSpeakOverride = false;
+    bool hasFragOverride = false;
+
+    if (request->hasParam("speakMin") && request->hasParam("speakMax")) {
+        speakMinMs = clamp(request->getParam("speakMin")->value().toInt(),
+                           MINUTES(1), HOURS(4));
+        speakMaxMs = clamp(request->getParam("speakMax")->value().toInt(),
+                           MINUTES(1), HOURS(4));
+        hasSpeakOverride = true;
+    }
+    if (request->hasParam("fragMin") && request->hasParam("fragMax")) {
+        fragMinMs = clamp(request->getParam("fragMin")->value().toInt(),
+                          MINUTES(1), HOURS(2));
+        fragMaxMs = clamp(request->getParam("fragMax")->value().toInt(),
+                          MINUTES(1), HOURS(2));
+        hasFragOverride = true;
+    }
+    if (request->hasParam("silence"))
+        silence = request->getParam("silence")->value() == "1";
+    if (request->hasParam("dur"))
+        durationMs = clamp(request->getParam("dur")->value().toInt(),
+                           MINUTES(1), HOURS(12));
+
+    RunManager::requestSetAudioIntervals(
+        speakMinMs, speakMaxMs, hasSpeakOverride,
+        fragMinMs, fragMaxMs, hasFragOverride,
+        silence, durationMs);
+
+    request->send(200, "text/plain", "OK");
+}
+
+// In attachRoutes:
+server.on("/api/audio/intervals", HTTP_GET,  routeSetIntervals);
+server.on("/api/audio/intervals", HTTP_POST, routeSetIntervals);
+
+
+===========================================================
+WEBGUI PLAN
+===========================================================
+
+PLACEMENT
+  All controls inside the existing Audio <section class="panel">.
+  No separate panel, no modal, no dev menu — this is user-facing.
+  <hr> below audio panel to visually separate audio from light panel.
+
+LAYOUT (index.html)
+  Audio panel:
+    [🔊] [Audio]  [dir/file] [⏭]  ...  [👎 score 👍]    ← 🔊 toggle added left
+    Volume         [====slider====] 100%                   ← existing
+    Tijdspraak     [====slider====] 30m                    ← NEW
+    Audio-interval [====slider====] 15m                    ← NEW
+    Geldig         [====slider====] 1u                     ← NEW
+  <hr>
+
+  Labels are Dutch (user-facing). Slider value labels show human-readable
+  time: 5m, 10m, 15m, 30m, 45m, 1u, 1u30, 2u, 3u, 4u.
+
+CONTROLS
+  🔊/🔇 Silence toggle
+    - Button in audio-header-row, leftmost position (before Audio label)
+    - 🔊 = normal (audio active), 🔇 = muted (silence active)
+    - Instant send on click — no debounce
+    - fetch('/api/audio/silence?active=0|1', {method:'POST'})
+
+  Tijdspraak slider (speak interval)
+    - Range: 1 min – 12 hr, non-linear/logarithmic steps
+    - Steps: [1,2,3,5,10,15,20,30,45,60,90,120,180,240,360,480,720]
+    - Slider maps position 0-16 → step value
+    - Debounce 3 sec after last slide → auto-send
+    - Firmware expands single value to ±30% range (min=val*0.7, max=val*1.3)
+
+  Audio-interval slider (fragment interval)
+    - Range: 2 min – 12 hr, non-linear/logarithmic steps
+    - Steps: [2,3,5,10,15,20,30,45,60,90,120,180,240,360,480,720]
+    - Same debounce pattern as tijdspraak
+
+  Geldig slider (duration / validity)
+    - Range: 5 min – 12 uur, non-linear/logarithmic steps
+    - Steps: [5,10,15,30,45,60,120,240,360,480,720] (minutes)
+    - Same debounce pattern
+    - Default position: 30m
+
+  Visual feedback: after debounce fires and fetch succeeds,
+  briefly flash the value label green ("✓") for 1 second.
+
+INTERACTION
+  No Apply button, no Reset button.
+  Each slider auto-sends after 3 sec debounce.
+  All three interval values sent together in one fetch
+  (collect current slider positions on debounce fire).
+
+  Reset = slide back to default position. Slider at default = no override.
+  Firmware detects "default" value and clears the override.
+
+  Silence toggle is independent — instant, separate endpoint.
+
+HTML CHANGES (index.html)
+  Before:
+    <div class="row audio-header-row">
+      <h2 id="audio-box-label" ...>Audio</h2>
+      ...
+    </div>
+  After:
+    <div class="row audio-header-row">
+      <button id="audio-mute" class="btn-icon">🔊</button>
+      <h2 id="audio-box-label" ...>Audio</h2>
+      ...
+    </div>
+
+  After the Volume row, add:
+    <div class="row">
+      <label>Tijdspraak</label>
+      <input type="range" id="speak-interval" min="0" max="16" value="9">
+      <span id="speak-num">60m</span>
+    </div>
+    <div class="row">
+      <label>Audio-interval</label>
+      <input type="range" id="frag-interval" min="0" max="15" value="7">
+      <span id="frag-num">30m</span>
+    </div>
+    <div class="row">
+      <label>Geldig</label>
+      <input type="range" id="interval-duration" min="0" max="10" value="3">
+      <span id="dur-num">30m</span>
+    </div>
+
+  After </section> (audio panel close), add:
+    <hr class="panel-sep">
+
+CSS CHANGES (styles.css)
+  .panel-sep { border: none; border-top: 1px solid #3a3a5a; margin: 0.2rem 0; }
+  #audio-mute { font-size: 1.1rem; }
+  #audio-mute.muted { opacity: 0.5; }
+
+JS PSEUDOCODE (audio.js additions)
+
+  // Non-linear step tables (logarithmic distribution)
+  var speakSteps = [1,2,3,5,10,15,20,30,45,60,90,120,180,240,360,480,720];
+  var fragSteps  = [2,3,5,10,15,20,30,45,60,90,120,180,240,360,480,720];
+  var durSteps   = [5,10,15,30,45,60,120,240,360,480,720];
+
+  var debounceTimer = null;
+  var muteBtn, speakSlider, fragSlider, durSlider;
+  var speakLabel, fragLabel, durLabel;
+
+  function formatMinutes(min) {
+    if (min < 60) return min + 'm';
+    var h = Math.floor(min / 60);
+    var m = min % 60;
+    return m === 0 ? h + 'u' : h + 'u' + m;
+  }
+
+  function initIntervalControls() {
+    muteBtn = document.getElementById('audio-mute');
+    speakSlider = document.getElementById('speak-interval');
+    fragSlider = document.getElementById('frag-interval');
+    durSlider = document.getElementById('interval-duration');
+    speakLabel = document.getElementById('speak-num');
+    fragLabel = document.getElementById('frag-num');
+    durLabel = document.getElementById('dur-num');
+
+    // Silence toggle — instant
+    if (muteBtn) {
+      muteBtn.onclick = function() {
+        var isMuted = muteBtn.classList.toggle('muted');
+        muteBtn.textContent = isMuted ? '🔇' : '🔊';
+        fetch('/api/audio/silence?active=' + (isMuted ? '1' : '0'),
+              {method:'POST'}).catch(function(){});
+      };
+    }
+
+    // Slider oninput — update label immediately
+    function bindSlider(slider, steps, label) {
+      if (!slider || !label) return;
+      slider.oninput = function() {
+        var val = steps[parseInt(slider.value, 10)];
+        label.textContent = formatMinutes(val);
+        scheduleIntervalSend();
+      };
+    }
+    bindSlider(speakSlider, speakSteps, speakLabel);
+    bindSlider(fragSlider, fragSteps, fragLabel);
+    bindSlider(durSlider, durSteps, durLabel);
+  }
+
+  function scheduleIntervalSend() {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(sendIntervals, 3000);
+  }
+
+  function sendIntervals() {
+    var speakMin = speakSteps[parseInt(speakSlider.value, 10)];
+    var fragMin  = fragSteps[parseInt(fragSlider.value, 10)];
+    var durMin   = durSteps[parseInt(durSlider.value, 10)];
+    var url = '/api/audio/intervals'
+      + '?speak=' + speakMin
+      + '&frag=' + fragMin
+      + '&dur=' + durMin;
+    fetch(url, {method:'POST'})
+      .then(function() { flashConfirm(); })
+      .catch(function(){});
+  }
+
+  function flashConfirm() {
+    // briefly show ✓ on all labels
+    [speakLabel, fragLabel, durLabel].forEach(function(el) {
+      if (!el) return;
+      var orig = el.textContent;
+      el.textContent = '✓';
+      el.style.color = '#4f4';
+      setTimeout(function() {
+        el.textContent = orig;
+        el.style.color = '';
+      }, 1000);
+    });
+  }
+
+  // SSE: update slider positions on state event
+  function updateIntervalsFromState(data) {
+    // data.speakMin, data.fragMin, data.durMin, data.silence
+    if (typeof data.silence === 'boolean' && muteBtn) {
+      muteBtn.textContent = data.silence ? '🔇' : '🔊';
+      muteBtn.classList.toggle('muted', data.silence);
+    }
+    // Map value back to slider step index
+    function findStep(steps, val) {
+      for (var i = steps.length - 1; i >= 0; i--) {
+        if (steps[i] <= val) return i;
+      }
+      return 0;
+    }
+    if (typeof data.speakMin === 'number' && speakSlider && speakLabel) {
+      speakSlider.value = findStep(speakSteps, data.speakMin);
+      speakLabel.textContent = formatMinutes(data.speakMin);
+    }
+    if (typeof data.fragMin === 'number' && fragSlider && fragLabel) {
+      fragSlider.value = findStep(fragSteps, data.fragMin);
+      fragLabel.textContent = formatMinutes(data.fragMin);
+    }
+    if (typeof data.durMin === 'number' && durSlider && durLabel) {
+      durSlider.value = findStep(durSteps, data.durMin);
+      durLabel.textContent = formatMinutes(data.durMin);
+    }
+  }
+
+  // Call initIntervalControls() from existing init() function.
+  // Expose updateIntervalsFromState in return object for SSE.
+
+SSE EXTENSION
+  Add silence + interval fields to the existing 'state' SSE event:
+    { ...existing fields..., silence: bool, speakMin: number,
+      fragMin: number, durMin: number }
+  Handled by Kwal.audio.updateIntervalsFromState(data) in
+  the existing onState callback chain.
+
+API NOTE — SIMPLIFICATION
+  Because sliders send a single center value (not min+max pair),
+  the firmware route and RunManager request can be simplified:
+  - Route receives: speak (center min), frag (center min), dur (min)
+  - Firmware calculates: speakMin = val*0.7, speakMax = val*1.3
+  - This eliminates hasSpeakOverride/hasFragOverride booleans
+  - Override active = slider value differs from Globals default
+  - Silence is a separate route (/api/audio/silence) — instant, no debounce
+
+===========================================================
+TIMER SLOT BUDGET
+===========================================================
+  New timer slots needed:
+    1  cb_applyAudioIntervals  — one-shot, immediate, auto-freed
+    1  cb_clearAudioIntervals  — one-shot, auto-freed after duration
+  Total: 2 transient slots (never concurrent with each other in steady state)
+  Current pool: 40 slots. Impact: negligible.
+
+===========================================================
+RISK ASSESSMENT
+===========================================================
+  Low:   No SD I/O, no network I/O, no blocking.
+  Low:   No new permanent timers; 1 transient during override.
+  Low:   Policy changes are additive (existing gates get one more AND clause).
+  Low:    Silence exempts *_FAIL health alerts — they always speak through.
+          Implementation: isHealthAlert(req) check in canSpeak().
+
+===========================================================
+OPEN QUESTIONS (for user)
+===========================================================
+  1. DECIDED: NO — silence does NOT block health/error speech.
+     *_FAIL requests (SD_FAIL, WIFI_FAIL, etc.) always speak through.
+  2. DECIDED: 1 min – 12 hr (non-linear/logarithmic steps)
+  3. DECIDED: 2 min – 12 hr (non-linear/logarithmic steps)
+  4. DECIDED: YES — override also affects cb_sayRTCtemperature (same pattern).
+  5. DECIDED: Fold into existing audio panel. <hr> below to separate from light.
+
+===========================================================
+IMPLEMENTATION ORDER
+===========================================================
+  1. AudioPolicy: add web interval/silence state (8 functions)
+  2. AlertState + SpeakPolicy: add isWebSilenceActive() gate
+  3. RunManager: add requestSetAudioIntervals + cb_apply/cb_clear
+  4. RunManager: refactor cb_sayTime + cb_playFragment + cb_sayRTCtemperature
+     to use effective*()
+  5. AudioRoutes: add /api/audio/intervals route
+  6. WebGUI JS: build control panel + fetch logic
+  7. SSE: extend pushState with override info
+  8. Test on HOUT
+
+===========================================================
