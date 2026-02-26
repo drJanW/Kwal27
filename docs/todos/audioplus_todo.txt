@@ -1,6 +1,6 @@
 ===========================================================
-AUDIOPLUS — Web Audio Interval Control
-Feature: temporary override of speak/fragment intervals + silence
+AUDIOPLUS — Web Audio Override Control
+Feature: temporary override of ALL web audio settings
 Status:  PLAN (no code yet)
 Date:    2026-02-26
 ===========================================================
@@ -11,10 +11,16 @@ Add 4 WebGUI controls to temporarily adjust audio behavior:
   1. Speak frequency   — override minSaytimeIntervalMs / maxSaytimeIntervalMs
   2. Fragment frequency — override minAudioIntervalMs / maxAudioIntervalMs
   3. Silence toggle     — suppress all audio output
-  4. Duration           — how long the override lasts before auto-reset
+  4. Duration           — how long ALL web audio overrides last before auto-reset
 
-After the duration expires, everything returns to Globals defaults.
+Unified expiry: volume slider, interval overrides, and silence toggle
+all share one "Geldig" timer. ANY web audio change resets the countdown.
+After the duration expires, everything returns to Globals defaults:
+  - Volume → webMultiplier = 1.0 (calendar/shift-based volume resumes)
+  - Intervals → Globals min/max values
+  - Silence → off
 No persistent state, no SD writes, no config changes.
+Default expiry duration: 13 hours (Globals::defaultWebOverrideDurationMs).
 
 ===========================================================
 DESIGN
@@ -23,20 +29,30 @@ DESIGN
 LAYER MAP
 ---------
   WebGUI (JS)
-    │  fetch("/api/audio/intervals?speak=..&frag=..&silence=1&dur=30")
+    │  fetch("/api/audio/intervals?speak=..&frag=..&dur=30")
+    │  fetch("/api/audio/level?value=75")        ← existing volume route
+    │  fetch("/api/audio/silence?active=1")      ← instant toggle
     ▼
-  AudioRoutes (WebInterfaceController)
+  AudioRoutes / existing volume route (WebInterfaceController)
     │  validate params, call RunManager::requestSetAudioIntervals(...)
+    │  existing volume route also arms shared expiry timer
+    │  silence route also arms shared expiry timer
     ▼
   RunManager (Run layer)
     │  store pending values in namespace statics
-    │  timers.restart(1, 1, cb_applyAudioIntervals)
+    │  timers.cancel(cb_applyAudioIntervals) + create(1, 1, cb_apply...)
+    │  ALL web audio routes arm/reset the shared expiry timer
     ▼
   cb_applyAudioIntervals (Run layer, deferred from web context)
     │  copy pending → active override state
-    │  arm expiry timer: timers.restart(durationMs, 1, cb_clearAudioIntervals)
+    │  arm expiry timer: cancel + create(durationMs, 1, cb_clearWebAudioOverrides)
     │  if silence: PlayAudioFragment::stop(0) + PlaySentence::stop()
     │  reschedule cb_sayTime + cb_playFragment with new ranges
+    ▼
+  cb_clearWebAudioOverrides (Run layer, fires after Geldig duration)
+    │  reset: webMultiplier = 1.0, clear intervals, silence = off
+    │  reschedule cb_sayTime + cb_playFragment with Globals defaults
+    │  trigger SSE push (sliders snap back to defaults)
     ▼
   AudioPolicy (Policy layer) — NEW helpers
     │  effectiveSpeakMin/Max()  — returns override or Globals default
@@ -110,18 +126,35 @@ INTERVAL OVERRIDE
   The effective helpers must respect that: if themeBox is web-single-dir AND
   web override is active, web override wins (it's explicitly user-requested).
 
-DURATION / AUTO-RESET
----------------------
-  One-shot timer: timers.restart(durationMs, 1, cb_clearAudioIntervals)
-  On fire:
+DURATION / AUTO-RESET (unified for ALL web audio overrides)
+-----------------------------------------------------------
+  One shared expiry timer: cb_clearWebAudioOverrides
+  Armed by ANY web audio change: intervals, volume, or silence.
+
+  Stored duration: RunManager namespace static `activeOverrideDurationMs`
+    - Initialized to Globals::defaultWebOverrideDurationMs (13 hours)
+    - Updated by interval route's `dur` param
+    - Used unchanged by volume/silence routes (they don't send dur)
+
+  On expiry fire (cb_clearWebAudioOverrides):
     AudioPolicy::clearWebSpeakRange()
     AudioPolicy::clearWebFragmentRange()
     AudioPolicy::setWebSilence(false)
+    setVolumeWebMultiplier(1.0f)        ← NEW: reset volume override
     Reschedule cb_sayTime + cb_playFragment with normal Globals ranges
+    Trigger SSE push (all sliders snap back to defaults)
 
   If user sends new request while one is active:
-    cb_applyAudioIntervals does cancel(cb_clear) + create(dur, 1, cb_clear).
+    cancel(cb_clearWebAudioOverrides) + create(dur, 1, cb_clear...).
     New values + new duration take effect immediately.
+
+  Volume route arming:
+    requestSetAudioLevel() already sets webMultiplier.
+    Now also: cancel + create expiry timer with activeOverrideDurationMs.
+
+  Silence route arming:
+    requestSetSilence() sets silence flag.
+    Also: cancel + create expiry timer with activeOverrideDurationMs.
 
   Timer convention (per codebase):
     - Self-reschedule inside own cb_ with varying interval → restart()
@@ -134,14 +167,16 @@ FILE CHANGE LIST
 
 FIRMWARE (version bump required before any edit)
 ------------------------------------------------
-  Globals.h                              — version bump only
+  Globals.h                              — version bump + defaultWebOverrideDurationMs = HOURS(13)
   AudioPolicy.h                          — add 8 new function declarations
   AudioPolicy.cpp                        — add web interval/silence state + getters/setters
   AlertState.cpp                         — add isWebSilenceActive() check in canPlayFragment()
   SpeakPolicy.cpp                        — add isWebSilenceActive() check in canSpeak()
   RunManager.h                           — add requestSetAudioIntervals() declaration
-  RunManager.cpp                         — add request handler + cb_apply/cb_clear + use effective*()
-                                           + refactor cb_sayRTCtemperature to use effectiveSpeak*()
+  RunManager.cpp                         — add request handler + cb_apply/cb_clearWebAudioOverrides
+                                           + use effective*() in cb_sayTime/cb_playFragment/cb_sayRTCtemperature
+                                           + requestSetAudioLevel also arms shared expiry timer
+                                           + add requestSetSilence + cb for silence route with expiry
   AudioRoutes.h                          — add routeSetIntervals declaration
   AudioRoutes.cpp                        — add /api/audio/intervals route + validation
 
@@ -219,6 +254,11 @@ bool canSpeak() {
 
 --- RunManager.cpp (Run layer) ---
 
+// Shared override duration — used by ALL web audio routes
+namespace {
+  uint32_t activeOverrideDurationMs = 0;  // init from Globals at boot
+}
+
 // Pending state (set by web handler, consumed by cb_)
 namespace {
   struct PendingAudioIntervals {
@@ -242,9 +282,12 @@ void cb_applyAudioIntervals() {
         AudioPolicy::setWebFragmentRange(p.fragMinMs, p.fragMaxMs);
     AudioPolicy::setWebSilence(p.silence);
 
+    // Update stored duration (interval route sends explicit dur)
+    activeOverrideDurationMs = p.durationMs;
+
     // Arm expiry timer — external arming → cancel + create
-    timers.cancel(cb_clearAudioIntervals);
-    timers.create(p.durationMs, 1, cb_clearAudioIntervals);
+    timers.cancel(cb_clearWebAudioOverrides);
+    timers.create(p.durationMs, 1, cb_clearWebAudioOverrides);
 
     if (p.silence) {
         PlayAudioFragment::stop(0);
@@ -264,10 +307,12 @@ void cb_applyAudioIntervals() {
         1, cb_playFragment);
 }
 
-void cb_clearAudioIntervals() {
+void cb_clearWebAudioOverrides() {
     AudioPolicy::clearWebSpeakRange();
     AudioPolicy::clearWebFragmentRange();
     AudioPolicy::setWebSilence(false);
+    setVolumeWebMultiplier(1.0f);           // ← NEW: reset volume to calendar default
+    activeOverrideDurationMs = Globals::defaultWebOverrideDurationMs;  // reset stored duration
 
     // Reschedule with Globals defaults — external arming → cancel + create
     timers.cancel(cb_sayTime);
@@ -280,6 +325,10 @@ void cb_clearAudioIntervals() {
         random(Globals::minAudioIntervalMs,
                Globals::maxAudioIntervalMs + 1),
         1, cb_playFragment);
+
+    // Trigger SSE push so WebGUI sliders snap back to defaults
+    WebGuiStatus::setAudioLevel(0.0f);  // triggers volume SSE
+    // interval SSE fields will read cleared policy state
 }
 
 // Public request (called from AudioRoutes handler)
@@ -293,6 +342,27 @@ void RunManager::requestSetAudioIntervals(
     // External arming from request → cancel + create
     timers.cancel(cb_applyAudioIntervals);
     timers.create(1, 1, cb_applyAudioIntervals);
+}
+
+
+// Existing requestSetAudioLevel — ADD expiry timer arming
+void RunManager::requestSetAudioLevel(float webMultiplier) {
+    audio.setVolumeWebMultiplier(webMultiplier);   // existing
+    // NEW: arm/reset shared expiry — any web audio change resets countdown
+    timers.cancel(cb_clearWebAudioOverrides);
+    timers.create(activeOverrideDurationMs, 1, cb_clearWebAudioOverrides);
+}
+
+// NEW: silence request (called from AudioRoutes silence endpoint)
+void RunManager::requestSetSilence(bool active) {
+    AudioPolicy::setWebSilence(active);
+    if (active) {
+        PlayAudioFragment::stop(0);
+        PlaySentence::stop();
+    }
+    // Arm/reset shared expiry
+    timers.cancel(cb_clearWebAudioOverrides);
+    timers.create(activeOverrideDurationMs, 1, cb_clearWebAudioOverrides);
 }
 
 
@@ -331,7 +401,7 @@ void routeSetIntervals(AsyncWebServerRequest *request) {
     // Parse query params
     uint32_t speakMinMs = 0, speakMaxMs = 0;
     uint32_t fragMinMs = 0, fragMaxMs = 0;
-    uint32_t durationMs = MINUTES(30);  // default 30 min
+    uint32_t durationMs = Globals::defaultWebOverrideDurationMs;  // 13 hours
     bool silence = false;
     bool hasSpeakOverride = false;
     bool hasFragOverride = false;
@@ -367,6 +437,16 @@ void routeSetIntervals(AsyncWebServerRequest *request) {
 // In attachRoutes:
 server.on("/api/audio/intervals", HTTP_GET,  routeSetIntervals);
 server.on("/api/audio/intervals", HTTP_POST, routeSetIntervals);
+
+void routeSetSilence(AsyncWebServerRequest *request) {
+    bool active = request->hasParam("active")
+                  && request->getParam("active")->value() == "1";
+    RunManager::requestSetSilence(active);
+    request->send(200, "text/plain", "OK");
+}
+
+server.on("/api/audio/silence", HTTP_GET,  routeSetSilence);
+server.on("/api/audio/silence", HTTP_POST, routeSetSilence);
 
 
 ===========================================================
@@ -410,10 +490,11 @@ CONTROLS
     - Same debounce pattern as tijdspraak
 
   Geldig slider (duration / validity)
-    - Range: 5 min – 12 uur, non-linear/logarithmic steps
-    - Steps: [5,10,15,30,45,60,120,240,360,480,720] (minutes)
+    - Range: 5 min – 13 hr, non-linear/logarithmic steps
+    - Steps: [5,10,15,30,45,60,120,240,360,480,720,780] (minutes)
     - Same debounce pattern
-    - Default position: 30m
+    - Default position: 780m (13u) — matches Globals::defaultWebOverrideDurationMs
+    - Applies to ALL web audio overrides: volume, intervals, AND silence
 
   Visual feedback: after debounce fires and fetch succeeds,
   briefly flash the value label green ("✓") for 1 second.
@@ -455,8 +536,8 @@ HTML CHANGES (index.html)
     </div>
     <div class="row">
       <label>Geldig</label>
-      <input type="range" id="interval-duration" min="0" max="10" value="3">
-      <span id="dur-num">30m</span>
+      <input type="range" id="interval-duration" min="0" max="11" value="11">
+      <span id="dur-num">13u</span>
     </div>
 
   After </section> (audio panel close), add:
@@ -472,7 +553,7 @@ JS PSEUDOCODE (audio.js additions)
   // Non-linear step tables (logarithmic distribution)
   var speakSteps = [1,2,3,5,10,15,20,30,45,60,90,120,180,240,360,480,720];
   var fragSteps  = [2,3,5,10,15,20,30,45,60,90,120,180,240,360,480,720];
-  var durSteps   = [5,10,15,30,45,60,120,240,360,480,720];
+  var durSteps   = [5,10,15,30,45,60,120,240,360,480,720,780];
 
   var debounceTimer = null;
   var muteBtn, speakSlider, fragSlider, durSlider;
@@ -597,14 +678,24 @@ API NOTE — SIMPLIFICATION
   - Override active = slider value differs from Globals default
   - Silence is a separate route (/api/audio/silence) — instant, no debounce
 
+UNIFIED EXPIRY NOTE
+  All three web audio routes share one expiry timer (cb_clearWebAudioOverrides):
+    1. /api/audio/intervals  — arms/resets with explicit dur param
+    2. /api/audio/level      — arms/resets with stored activeOverrideDurationMs
+    3. /api/audio/silence    — arms/resets with stored activeOverrideDurationMs
+  When ANY fires, the expiry countdown resets.
+  On expiry: webMultiplier → 1.0, intervals → Globals defaults, silence → off.
+  Volume slider JS does NOT need to send Geldig duration — firmware uses stored value.
+
 ===========================================================
 TIMER SLOT BUDGET
 ===========================================================
   New timer slots needed:
-    1  cb_applyAudioIntervals  — one-shot, immediate, auto-freed
-    1  cb_clearAudioIntervals  — one-shot, auto-freed after duration
+    1  cb_applyAudioIntervals    — one-shot, immediate, auto-freed
+    1  cb_clearWebAudioOverrides — one-shot, auto-freed after Geldig duration
   Total: 2 transient slots (never concurrent with each other in steady state)
   Current pool: 40 slots. Impact: negligible.
+  Note: shared expiry timer is armed by volume, intervals, AND silence routes.
 
 ===========================================================
 RISK ASSESSMENT
@@ -624,16 +715,22 @@ OPEN QUESTIONS (for user)
   3. DECIDED: 2 min – 12 hr (non-linear/logarithmic steps)
   4. DECIDED: YES — override also affects cb_sayRTCtemperature (same pattern).
   5. DECIDED: Fold into existing audio panel. <hr> below to separate from light.
+  6. DECIDED: Unified expiry — volume slider, interval sliders, and silence
+     toggle all share one "Geldig" timer. Default 13 hr (Globals.h).
+     Any web audio change resets the countdown. On expiry: volume → 1.0,
+     intervals → Globals defaults, silence → off.
 
 ===========================================================
 IMPLEMENTATION ORDER
 ===========================================================
   1. AudioPolicy: add web interval/silence state (8 functions)
   2. AlertState + SpeakPolicy: add isWebSilenceActive() gate
-  3. RunManager: add requestSetAudioIntervals + cb_apply/cb_clear
+  3. RunManager: add requestSetAudioIntervals + cb_apply/cb_clearWebAudioOverrides
   4. RunManager: refactor cb_sayTime + cb_playFragment + cb_sayRTCtemperature
      to use effective*()
-  5. AudioRoutes: add /api/audio/intervals route
+  4b. RunManager: extend requestSetAudioLevel to arm shared expiry timer
+  4c. RunManager: add requestSetSilence + arm shared expiry timer
+  5. AudioRoutes: add /api/audio/intervals + /api/audio/silence routes
   6. WebGUI JS: build control panel + fetch logic
   7. SSE: extend pushState with override info
   8. Test on HOUT
