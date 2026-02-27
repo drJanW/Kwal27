@@ -1,11 +1,11 @@
 /**
  * @file LEDMap.cpp
  * @brief Physical LED strip mapping implementation
- * @version 260205A
- * @date 2026-02-05
+ * @version 260227B
+ * @date 2026-02-27
  */
 #include "LEDMap.h"
-#include <SDController.h>
+#include <SdFileAccess.h>
 #include "HWconfig.h"  // for NUM_LEDS
 #include "Globals.h"
 #include <math.h>
@@ -34,11 +34,11 @@ bool loadLEDMapFromSD(const char* path) {
         PF("[LEDMap] Invalid path\n");
         return false;
     }
-    SDController::lockSD();
+    SdFileAccess::lock();
     File f = SD.open(path);
     if (!f) {
         PF("[LEDMap] %s not found, using fallback layout\n", path);
-        SDController::unlockSD();
+        SdFileAccess::unlock();
         return false;
     }
 
@@ -51,7 +51,7 @@ bool loadLEDMapFromSD(const char* path) {
     }
 
     f.close();
-    SDController::unlockSD();
+    SdFileAccess::unlock();
     if (loaded != NUM_LEDS) {
         PF("[LEDMap] Partial load: %d/%d entries\n", loaded, NUM_LEDS);
     } else {

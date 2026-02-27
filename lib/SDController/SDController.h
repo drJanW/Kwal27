@@ -1,8 +1,8 @@
 /**
  * @file SDController.h
  * @brief SD card control interface with directory scanning and file indexing
- * @version 260217D
- * @date 2026-02-17
+ * @version 260227B
+ * @date 2026-02-27
  */
 #pragma once
 #include <Arduino.h>
@@ -11,6 +11,7 @@
 #include <atomic>
 #include "Globals.h"
 #include "SDSettings.h"
+#include "SdFileAccess.h"
 
 // ===== index structs =====
 struct DirEntry {
@@ -46,8 +47,8 @@ public:
     // === State management ===
     static void setReady(bool ready);
     static bool checkPresent();  // Probe card presence (cardType check)
-    static void lockSD();        // Increment lock counter (reentrant)
-    static void unlockSD();      // Decrement lock counter
+    static void lockSD()  { SdFileAccess::lock(); }    // delegates to SdFileAccess
+    static void unlockSD() { SdFileAccess::unlock(); }  // delegates to SdFileAccess
 
     // === Index operations ===
     static void rebuildIndex();
@@ -63,24 +64,18 @@ public:
     static bool readFileEntry(uint8_t dir_num, uint8_t file_num, FileEntry* entry);
     static bool writeFileEntry(uint8_t dir_num, uint8_t file_num, const FileEntry* entry);
 
-    // === File operations ===
-    static bool   fileExists(const char* fullPath);
-    static bool   writeTextFile(const char* path, const char* text);
-    static String readTextFile(const char* path);
-    static bool   deleteFile(const char* path);
+    // === File operations (delegate to SdFileAccess) ===
+    static bool   fileExists(const char* fullPath) { return SdFileAccess::fileExists(fullPath); }
+    static bool   writeTextFile(const char* path, const char* text) { return SdFileAccess::writeTextFile(path, text); }
+    static String readTextFile(const char* path) { return SdFileAccess::readTextFile(path); }
+    static bool   deleteFile(const char* path) { return SdFileAccess::deleteFile(path); }
 
-    // === Streaming file access ===
-    // Returns invalid File() on failure
-    // On success: lockSD() is called, caller MUST call closeFile() when done
-    static File openFileRead(const char* path);
-    static File openFileWrite(const char* path);
-    static void closeFile(File& file);  // Calls unlockSD()
+    // === Streaming file access (delegate to SdFileAccess) ===
+    static File openFileRead(const char* path) { return SdFileAccess::openRead(path); }
+    static File openFileWrite(const char* path) { return SdFileAccess::openWrite(path); }
+    static void closeFile(File& file) { SdFileAccess::closeFile(file); }
 
 private:
     static std::atomic<bool> ready_;
-    static std::atomic<uint8_t> lockCount_;
     static uint8_t highestDirNum_;
 };
-
-// Path generator: "/DDD/FFF.mp3"
-const char* getMP3Path(uint8_t dirID, uint8_t fileID);

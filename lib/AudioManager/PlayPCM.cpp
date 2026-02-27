@@ -1,8 +1,8 @@
 /**
  * @file PlayPCM.cpp
  * @brief PCM WAV loading and playback implementation
- * @version 260205A
- * @date 2026-02-05
+ * @version 260227B
+ * @date 2026-02-27
  * 
  * Parses standard WAV headers, validates format against policy,
  * caches samples in heap, and feeds to AudioManager for I2S output.
@@ -11,7 +11,7 @@
 
 #include "Globals.h"
 #include "AudioState.h"
-#include "SDController.h"
+#include "SdFileAccess.h"
 #include "TimerManager.h"
 #include "MathUtils.h"
 #include "Alert/AlertState.h"
@@ -81,12 +81,12 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
     return false;
   }
 
-  SDController::lockSD();
+  SdFileAccess::lock();
 
   File file = SD.open(path, FILE_READ);
   if (!file) {
     PCM_LOG_WARN("[PlayPCM] Failed to open %s\n", path);
-    SDController::unlockSD();
+    SdFileAccess::unlock();
     return false;
   }
 
@@ -98,7 +98,7 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
       std::memcmp(header + 36, "data", 4) != 0) {
     PCM_LOG_WARN("[PlayPCM] %s has unexpected WAV header\n", path);
     file.close();
-    SDController::unlockSD();
+    SdFileAccess::unlock();
     return false;
   }
 
@@ -121,7 +121,7 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
                  static_cast<unsigned long>(sampleRate),
                  static_cast<unsigned long>(dataSize));
     file.close();
-    SDController::unlockSD();
+    SdFileAccess::unlock();
     return false;
   }
 
@@ -129,7 +129,7 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
   if (sampleCount == 0) {
     PCM_LOG_WARN("[PlayPCM] %s contains no samples\n", path);
     file.close();
-    SDController::unlockSD();
+    SdFileAccess::unlock();
     return false;
   }
 
@@ -137,7 +137,7 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
   if (!buffer) {
     PCM_LOG_ERROR("[PlayPCM] Out of memory loading %s\n", path);
     file.close();
-    SDController::unlockSD();
+    SdFileAccess::unlock();
     return false;
   }
 
@@ -145,12 +145,12 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
   if (file.read(reinterpret_cast<uint8_t*>(buffer.get()), bytesToRead) != bytesToRead) {
     PCM_LOG_WARN("[PlayPCM] Short read while loading %s\n", path);
     file.close();
-    SDController::unlockSD();
+    SdFileAccess::unlock();
     return false;
   }
 
   file.close();
-  SDController::unlockSD();
+  SdFileAccess::unlock();
 
   storage = std::move(buffer);
   outClip.samples = storage.get();

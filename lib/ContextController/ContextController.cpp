@@ -1,8 +1,8 @@
 /**
  * @file ContextController.cpp
  * @brief Central context coordination and TodayState management
- * @version 260205A
- * @date 2026-02-05
+ * @version 260227B
+ * @date 2026-02-27
  */
 #include <Arduino.h>
 #include "ContextController.h"
@@ -173,4 +173,57 @@ void ContextController::updateRtcTemperature(float tempC) {
 void ContextController::clearRtcTemperature() {
   rtcTemperatureValid = false;
   updateTimeState();
+}
+
+// === Clock-write API (delegates to PRTClock) ===
+
+static ContextController::ResyncCallback ntpResyncCb = nullptr;
+
+void ContextController::setClockTime(uint8_t h, uint8_t m, uint8_t s) {
+  prtClock.setHour(h);
+  prtClock.setMinute(m);
+  prtClock.setSecond(s);
+}
+
+void ContextController::setClockDate(uint8_t year2k, uint8_t month, uint8_t day) {
+  prtClock.setYear(year2k);
+  prtClock.setMonth(month);
+  prtClock.setDay(day);
+}
+
+void ContextController::setClockDayCalc(uint16_t fullYear, uint8_t month, uint8_t day) {
+  prtClock.setDoW(fullYear, month, day);
+  prtClock.setDoY(fullYear, month, day);
+}
+
+void ContextController::setSunrise(uint8_t h, uint8_t m) {
+  prtClock.setSunriseHour(h);
+  prtClock.setSunriseMinute(m);
+}
+
+void ContextController::setSunset(uint8_t h, uint8_t m) {
+  prtClock.setSunsetHour(h);
+  prtClock.setSunsetMinute(m);
+}
+
+void ContextController::setTimeSynced(bool value) {
+  prtClock.setTimeFetched(value);
+}
+
+bool ContextController::isTimeSynced() {
+  return prtClock.isTimeFetched();
+}
+
+void ContextController::computeMoonPhase() {
+  prtClock.setMoonPhaseValue();
+}
+
+void ContextController::setNtpResyncCallback(ResyncCallback cb) {
+  ntpResyncCb = cb;
+}
+
+void ContextController::requestNtpResync() {
+  if (ntpResyncCb) {
+    ntpResyncCb();
+  }
 }

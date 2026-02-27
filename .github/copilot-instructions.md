@@ -38,7 +38,7 @@ Run through this every time before making changes:
 - [ ] **Used existing utilities?** — check MathUtils.h (below) before writing any math/clamping/mapping logic
 - [ ] **Timer pattern correct?** — check TimerManager cheatsheet (below) before writing any timer code
 - [ ] **Source vs generated?** — if touching web: edit `webgui-src/js/`, never `kwal.js` directly
-- [ ] **Right layer?** — `cb_*` only in `lib/RunManager/`. Web handlers only set flags. Policy has no side effects.
+- [ ] **Right layer?** — orchestration `cb_*` in `lib/RunManager/`. Controller-internal `cb_*` (fades, sensor reads, timers touching only own state) may stay in their controller. Web handlers only set flags. Policy has no side effects.
 - [ ] **Glossary checked?** — read `docs/glossary_slider_semantics.md` before brightness/slider work
 - [ ] **Guards checked?** — if values don't propagate, grep for `#ifdef|DISABLE|SKIP|return;`
 
@@ -57,7 +57,7 @@ Controllers (hardware APIs)    Directors (context→requests)
 | Layer | Role | Constraints |
 |-------|------|-------------|
 | **Boot** | One-time init, register timers, seed caches | Runs once at startup |
-| **Run** (`lib/RunManager/`) | Owns `cb_*` callbacks, sequences work, raises requests | ONLY place for `cb_*` functions |
+| **Run** (`lib/RunManager/`) | Owns orchestration `cb_*` callbacks, sequences work, raises requests | Controller-internal `cb_*` (touching only own state) may stay in the controller |
 | **Policy** | Domain rules, approve/deny requests | NO side effects, NO timers, NO hardware |
 | **Director** | Build requests from context | NO policy decisions |
 | **Controller** | Hardware drivers (FastLED, I2S, SPI) | ONLY controllers touch hardware |
@@ -67,7 +67,7 @@ When adding new functionality:
 1. FIRST find the existing mechanism that does the same or similar thing
 2. THEN extend it with a public API if needed
 3. NEVER create a parallel mechanism in a different layer
-4. If you catch yourself writing `cb_*` outside `lib/RunManager/` — STOP. Wrong layer.
+4. If you catch yourself writing a `cb_*` that orchestrates across subsystems outside `lib/RunManager/` — STOP. Wrong layer. Controller-internal `cb_*` (fades, sensor reads, cycle timers) may stay local.
 5. Avoid treating symptoms — find and fix the root cause.
 
 ### Responsibility Separation

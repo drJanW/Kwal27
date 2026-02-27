@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.cpp
  * @brief TTS sentence playback with word dictionary and VoiceRSS API
- * @version 260226E
- * @date 2026-02-26
+ * @version 260227B
+ * @date 2026-02-27
  * 
  * Implements sequential word playback from /000/ directory.
  * Uses unified SpeakItem queue for mixing MP3 words and TTS sentences.
@@ -20,7 +20,6 @@
 #include "PlaySentence.h"
 #include "Globals.h"
 #include "AudioState.h"
-#include "WiFiController.h"
 #include "MathUtils.h"
 #include "TimerManager.h"
 #include "SDSettings.h"

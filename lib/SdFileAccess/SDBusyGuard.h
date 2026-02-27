@@ -3,21 +3,21 @@
 /**
  * @file SDBusyGuard.h
  * @brief RAII guard for SD card locking
- * @version 260201A
- $12026-02-05
+ * @version 260227B
+ * @date 2026-02-27
  */
-#include "SDController.h"
+#include "SdFileAccess.h"
 
 /**
  * @brief RAII guard for SD card locking
  * 
- * Automatically calls lockSD() on construction and unlockSD() on destruction.
+ * Automatically calls lock() on construction and unlock() on destruction.
  * Since SD locking is reentrant, this always succeeds.
  */
 class SDBusyGuard {
 public:
     SDBusyGuard() {
-        SDController::lockSD();
+        SdFileAccess::lock();
     }
 
     ~SDBusyGuard() {
@@ -31,7 +31,7 @@ public:
 
     void release() {
         if (!released_) {
-            SDController::unlockSD();
+            SdFileAccess::unlock();
             released_ = true;
         }
     }

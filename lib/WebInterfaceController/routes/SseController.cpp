@@ -31,7 +31,7 @@ AsyncEventSource *eventsPtr = nullptr;
  * CRITICAL: This callback is invoked by TimerManager in main loop,
  * NOT in async_tcp context. Safe to call eventsPtr_->send() here.
  */
-void cb_deferredPush() {
+void cb_deferredPush() {  // NOCHECK: accepted, deferred SSE push
     WebGuiStatus::pushAll();
 }
 

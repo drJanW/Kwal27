@@ -1,13 +1,12 @@
 /**
  * @file AlertPolicy.h
  * @brief Hardware failure alert business logic
- * @version 260131A
- $12026-02-11
+ * @version 260227B
+ * @date 2026-02-27
  */
 #pragma once
 
 #include <stdint.h>
-#include <FastLED.h>
 
 namespace AlertPolicy {
     void configure();

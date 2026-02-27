@@ -1,11 +1,14 @@
 /**
  * @file AudioState.cpp
  * @brief Thread-safe audio state storage using atomics
- * @version 260212C
- * @date 2026-02-12
+ * @version 260227B
+ * @date 2026-02-27
  * 
  * All state is stored in std::atomic variables with relaxed ordering
  * for safe cross-core access on ESP32 dual-core architecture.
+ * 
+ * Moved from AudioManager to Globals to allow cross-layer access
+ * without architecture violations.
  */
 #include "AudioState.h"
 #include "Globals.h"

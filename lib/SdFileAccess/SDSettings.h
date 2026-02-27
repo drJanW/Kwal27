@@ -1,8 +1,10 @@
 /**
  * @file SDSettings.h
  * @brief Centralized SD card configuration constants and index format definitions
- * @version 260218M
- * @date 2026-02-18
+ * @version 260227B
+ * @date 2026-02-27
+ * 
+ * Moved from SDController to Globals — pure constants, no controller coupling.
  */
 #pragma once
 

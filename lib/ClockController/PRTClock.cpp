@@ -8,7 +8,7 @@
 #include <atomic>
 #include <math.h>
 #include "PRTClock.h"
-#include "FetchController.h"
+#include "ContextController.h"
 #include "RTCController.h"
 #include "Globals.h"
 #include "LogBuffer.h"
@@ -102,7 +102,7 @@ void PRTClock::update() {
   uint8_t hh = getHour(), mm = getMinute(), ss = getSecond();
   if (hh == 0 && mm == 0 && ss > 1 && !synced_today) {
     setTimeFetched(false);
-    FetchController::requestNtpResync();
+    ContextController::requestNtpResync();
 
     setDoW(getYear(), getMonth(), getDay());
     setDoY(getYear(), getMonth(), getDay());

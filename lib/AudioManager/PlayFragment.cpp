@@ -1,8 +1,8 @@
 /**
  * @file PlayFragment.cpp
  * @brief MP3 fragment playback with sine-power fade curves
- * @version 260219E
- * @date 2026-02-19
+ * @version 260227B
+ * @date 2026-02-27
  * 
  * Implements fade-in/fade-out using shared Globals::fadeCurve (sine² curve).
  * Timer-driven: no polling, no loop() dependency.
@@ -14,7 +14,7 @@
 #include "AudioState.h"
 #include "AudioManager.h"
 #include "TimerManager.h"
-#include "SDController.h"
+#include "SdFileAccess.h"
 #include "WebGuiStatus.h"
 
 extern const char* getMP3Path(uint8_t dirIdx, uint8_t fileIdx);
@@ -76,7 +76,7 @@ bool start(const AudioFragment& fragment) {
 
     auto& state = fade();
 
-    SDController::lockSD();  // SD busy while streaming MP3
+    SdFileAccess::lock();  // SD busy while streaming MP3
     setAudioBusy(true);
 
     uint32_t maxFade = 1;
@@ -233,7 +233,7 @@ void stopPlayback() {
     setFadeFraction(0.0f);
     applyVolume();
 
-    SDController::unlockSD();  // SD no longer busy
+    SdFileAccess::unlock();  // SD no longer busy
     setAudioBusy(false);
     setFragmentPlaying(false);
     setSentencePlaying(false);

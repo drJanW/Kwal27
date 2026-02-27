@@ -1,16 +1,15 @@
 /**
  * @file FetchController.cpp
  * @brief HTTP fetch for weather/sunrise APIs and NTP time
- * @version 260214A
- * @date 2026-02-14
+ * @version 260227B
+ * @date 2026-02-27
  */
 #include <Arduino.h>
 #include "FetchController.h"
 #include "Globals.h"
 #include "TimerManager.h"
-#include "PRTClock.h"
 #include "ContextController.h"
-#include "SDController.h"
+#include "SdFileAccess.h"
 #include "RunManager.h"
 #include "AudioState.h"
 #include "Alert/AlertState.h"
@@ -54,7 +53,7 @@ static void cb_fetchWeather();
 static void cb_fetchSunrise();
 static bool fetchUrlToString(const char *url, String &output);
 static void saveTimeToSD(const struct tm &t);
-static bool loadTimeFromSD(PRTClock &clock);
+static bool loadTimeFromSD();
 
 
 
@@ -65,7 +64,7 @@ static void cb_fetchNTP() {
     static bool clientStarted = false;
     static bool wifiWarned = false;
 
-    if (prtClock.isTimeFetched()) {
+    if (ContextController::isTimeSynced()) {
         return;
     }
 
@@ -124,14 +123,9 @@ static void cb_fetchNTP() {
     struct tm t;
     localtime_r(&local, &t);
 
-    prtClock.setHour(t.tm_hour);
-    prtClock.setMinute(t.tm_min);
-    prtClock.setSecond(t.tm_sec);
-    prtClock.setYear(t.tm_year + 1900 - 2000);
-    prtClock.setMonth(t.tm_mon + 1);
-    prtClock.setDay(t.tm_mday);
-    prtClock.setDoW(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
-    prtClock.setDoY(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
+    ContextController::setClockTime(t.tm_hour, t.tm_min, t.tm_sec);
+    ContextController::setClockDate(t.tm_year + 1900 - 2000, t.tm_mon + 1, t.tm_mday);
+    ContextController::setClockDayCalc(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
 
     if (DEBUG_FETCH) {
         PF("[Fetch] Time update: %02d:%02d:%02d (%d-%02d-%02d)\n",
@@ -139,10 +133,10 @@ static void cb_fetchNTP() {
            t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
     }
 
-    prtClock.setTimeFetched(true);
+    ContextController::setTimeSynced(true);
     AlertState::setNtpStatus(true);
     timers.cancel(cb_fetchNTP);
-    prtClock.setMoonPhaseValue();
+    ContextController::computeMoonPhase();
     RunManager::requestSyncRtcFromClock();
 }
 
@@ -175,7 +169,7 @@ static void cb_fetchWeather() {
         }
         return;
     }
-    if (!prtClock.isTimeFetched()) {
+    if (!ContextController::isTimeSynced()) {
         if (DEBUG_FETCH) {
             PL("[Fetch] No NTP/time, skipping weather");
         }
@@ -249,31 +243,25 @@ static void cb_fetchSunrise() {
         if (DEBUG_FETCH) {
             PL("[Fetch] No WiFi, skipping sunrise");
         }
-        prtClock.setSunriseHour(0);
-        prtClock.setSunriseMinute(0);
-        prtClock.setSunsetHour(0);
-        prtClock.setSunsetMinute(0);
+        ContextController::setSunrise(0, 0);
+        ContextController::setSunset(0, 0);
         ContextController::refreshTimeRead();
         return;
     }
-    if (!prtClock.isTimeFetched()) {
+    if (!ContextController::isTimeSynced()) {
         if (DEBUG_FETCH) {
             PL("[Fetch] No NTP/time, skipping sunrise");
         }
-        prtClock.setSunriseHour(0);
-        prtClock.setSunriseMinute(0);
-        prtClock.setSunsetHour(0);
-        prtClock.setSunsetMinute(0);
+        ContextController::setSunrise(0, 0);
+        ContextController::setSunset(0, 0);
         ContextController::refreshTimeRead();
         return;
     }
 
     String response;
     if (!fetchUrlToString(sunUrl, response)) {
-        prtClock.setSunriseHour(0);
-        prtClock.setSunriseMinute(0);
-        prtClock.setSunsetHour(0);
-        prtClock.setSunsetMinute(0);
+        ContextController::setSunrise(0, 0);
+        ContextController::setSunset(0, 0);
         ContextController::refreshTimeRead();
         if (DEBUG_FETCH) {
             PL("[Fetch] Sunrise fetch failed, will retry");
@@ -284,10 +272,8 @@ static void cb_fetchSunrise() {
     int idxRise = response.indexOf("\"sunrise\":\"");
     int idxSet  = response.indexOf("\"sunset\":\"");
     if (idxRise == -1 || idxSet == -1) {
-        prtClock.setSunriseHour(0);
-        prtClock.setSunriseMinute(0);
-        prtClock.setSunsetHour(0);
-        prtClock.setSunsetMinute(0);
+        ContextController::setSunrise(0, 0);
+        ContextController::setSunset(0, 0);
         ContextController::refreshTimeRead();
         return;
     }
@@ -298,10 +284,8 @@ static void cb_fetchSunrise() {
     int setEnd    = response.indexOf("\"", setStart + 1);
 
     if (riseStart == -1 || riseEnd == -1 || setStart == -1 || setEnd == -1) {
-        prtClock.setSunriseHour(0);
-        prtClock.setSunriseMinute(0);
-        prtClock.setSunsetHour(0);
-        prtClock.setSunsetMinute(0);
+        ContextController::setSunrise(0, 0);
+        ContextController::setSunset(0, 0);
         ContextController::refreshTimeRead();
         return;
     }
@@ -312,10 +296,8 @@ static void cb_fetchSunrise() {
     const int riseT = sunriseUtc.indexOf('T');
     const int setT = sunsetUtc.indexOf('T');
     if (riseT < 0 || setT < 0) {
-        prtClock.setSunriseHour(0);
-        prtClock.setSunriseMinute(0);
-        prtClock.setSunsetHour(0);
-        prtClock.setSunsetMinute(0);
+        ContextController::setSunrise(0, 0);
+        ContextController::setSunset(0, 0);
         ContextController::refreshTimeRead();
         return;
     }
@@ -338,10 +320,8 @@ static void cb_fetchSunrise() {
         riseHour < 0 || riseHour > 23 || riseMinute < 0 || riseMinute > 59 || riseSecond < 0 || riseSecond > 59 ||
         setYear < 2000 || setMonth < 1 || setMonth > 12 || setDay < 1 || setDay > 31 ||
         setHour < 0 || setHour > 23 || setMinute < 0 || setMinute > 59 || setSecond < 0 || setSecond > 59) {
-        prtClock.setSunriseHour(0);
-        prtClock.setSunriseMinute(0);
-        prtClock.setSunsetHour(0);
-        prtClock.setSunsetMinute(0);
+        ContextController::setSunrise(0, 0);
+        ContextController::setSunset(0, 0);
         ContextController::refreshTimeRead();
         return;
     }
@@ -385,10 +365,8 @@ static void cb_fetchSunrise() {
         static_cast<int64_t>(setSecond);
 
     if (riseUtcSeconds <= 0 || setUtcSeconds <= 0) {
-        prtClock.setSunriseHour(0);
-        prtClock.setSunriseMinute(0);
-        prtClock.setSunsetHour(0);
-        prtClock.setSunsetMinute(0);
+        ContextController::setSunrise(0, 0);
+        ContextController::setSunset(0, 0);
         ContextController::refreshTimeRead();
         return;
     }
@@ -403,10 +381,8 @@ static void cb_fetchSunrise() {
     localtime_r(&riseLocal, &riseLocalTm);
     localtime_r(&setLocal, &setLocalTm);
 
-    prtClock.setSunriseHour(static_cast<uint8_t>(riseLocalTm.tm_hour));
-    prtClock.setSunriseMinute(static_cast<uint8_t>(riseLocalTm.tm_min));
-    prtClock.setSunsetHour(static_cast<uint8_t>(setLocalTm.tm_hour));
-    prtClock.setSunsetMinute(static_cast<uint8_t>(setLocalTm.tm_min));
+    ContextController::setSunrise(static_cast<uint8_t>(riseLocalTm.tm_hour), static_cast<uint8_t>(riseLocalTm.tm_min));
+    ContextController::setSunset(static_cast<uint8_t>(setLocalTm.tm_hour), static_cast<uint8_t>(setLocalTm.tm_min));
     ContextController::refreshTimeRead();
 
     if (DEBUG_FETCH) {
@@ -453,14 +429,14 @@ static void saveTimeToSD(const struct tm &t) {
     snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
              t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
              t.tm_hour, t.tm_min, t.tm_sec);
-    SDController::writeTextFile("/config/last_time.txt", buf);
+    SdFileAccess::writeTextFile("/config/last_time.txt", buf);
 }
 
-static bool loadTimeFromSD(PRTClock &clock) {
-    if (!SDController::fileExists("/config/last_time.txt")) {
+static bool loadTimeFromSD() {
+    if (!SdFileAccess::fileExists("/config/last_time.txt")) {
         return false;
     }
-    String content = SDController::readTextFile("/config/last_time.txt");
+    String content = SdFileAccess::readTextFile("/config/last_time.txt");
     if (content.length() < 19) {
         return false;
     }
@@ -472,14 +448,9 @@ static bool loadTimeFromSD(PRTClock &clock) {
     int min   = content.substring(14, 16).toInt();
     int sec   = content.substring(17, 19).toInt();
 
-    clock.setYear(year - 2000);
-    clock.setMonth(month);
-    clock.setDay(day);
-    clock.setHour(hour);
-    clock.setMinute(min);
-    clock.setSecond(sec);
-    clock.setDoW(year, month, day);
-    clock.setDoY(year, month, day);
+    ContextController::setClockTime(hour, min, sec);
+    ContextController::setClockDate(year - 2000, month, day);
+    ContextController::setClockDayCalc(year, month, day);
 
     return true;
 }
@@ -491,6 +462,9 @@ static bool loadTimeFromSD(PRTClock &clock) {
 bool bootFetchController() {
     buildLocationUrls();
 
+    // Register NTP resync callback so PRTClock can trigger re-sync via ContextController
+    ContextController::setNtpResyncCallback(FetchController::requestNtpResync);
+
     if (!AlertState::isWifiOk()) {
         if (DEBUG_FETCH) {
             PL("[Fetch] boot aborted, no WiFi");
@@ -499,8 +473,8 @@ bool bootFetchController() {
     }
 
     // Load time from SD if available before trying NTP
-    if (loadTimeFromSD(prtClock)) {
-        prtClock.setTimeFetched(true);
+    if (loadTimeFromSD()) {
+        ContextController::setTimeSynced(true);
         AlertState::setNtpStatus(true);
         if (DEBUG_FETCH) {
             PL("[Fetch] Time loaded from SD");
@@ -522,7 +496,7 @@ namespace FetchController {
 
 void requestNtpResync() {
     // Reset NTP status, re-enable timer
-    prtClock.setTimeFetched(false);
+    ContextController::setTimeSynced(false);
     timers.restart(Globals::clockBootstrapIntervalMs, Globals::wifiRetryCount, cb_fetchNTP, Globals::wifiRetryGrowth);
 }
 

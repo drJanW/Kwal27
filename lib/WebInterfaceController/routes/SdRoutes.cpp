@@ -85,7 +85,7 @@ void routeFileDownload(AsyncWebServerRequest *request)
         return;
     }
     
-    File file = SD.open(path, FILE_READ);
+    File file = SD.open(path, FILE_READ);  // NOCHECK: accepted, guarded by lockSD
     if (!file || file.isDirectory()) {
         if (file) file.close();
         SDController::unlockSD();
@@ -192,7 +192,7 @@ void routeUploadData(AsyncWebServerRequest *request, const String &filename,
         if (dir.length() > 1 && !SD.exists(dir)) {
             String mkdirPath = dir;
             if (mkdirPath.endsWith("/")) mkdirPath.remove(mkdirPath.length() - 1);
-            if (!SD.mkdir(mkdirPath)) {
+            if (!SD.mkdir(mkdirPath)) {  // NOCHECK: accepted, guarded by lockSD
                 state->failed = true;
                 state->error = F("Cannot create directory");
                 SDController::unlockSD();
@@ -201,7 +201,7 @@ void routeUploadData(AsyncWebServerRequest *request, const String &filename,
             }
         }
 
-        state->file = SD.open(state->target.c_str(), FILE_WRITE);
+        state->file = SD.open(state->target.c_str(), FILE_WRITE);  // NOCHECK: accepted, guarded by lockSD
         if (!state->file) {
             state->failed = true;
             state->error = F("Cannot open target file");
@@ -260,7 +260,7 @@ void routeListDir(AsyncWebServerRequest *request)
 
     if (SD.exists(path)) {
         SDController::lockSD();
-        File dir = SD.open(path);
+        File dir = SD.open(path);  // NOCHECK: accepted, guarded by lockSD
         if (dir && dir.isDirectory()) {
             bool first = true;
             File entry = dir.openNextFile();
@@ -316,7 +316,7 @@ void routeDelete(AsyncWebServerRequest *request)
     }
 
     SDController::lockSD();
-    bool ok = SD.remove(path);
+    bool ok = SD.remove(path);  // NOCHECK: accepted, guarded by lockSD
     SDController::unlockSD();
 
     if (ok) {

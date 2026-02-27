@@ -1,8 +1,8 @@
 /**
  * @file ContextController.h
  * @brief Central context coordination and TodayState management interface
- * @version 260204A
- $12026-02-10
+ * @version 260227B
+ * @date 2026-02-27
  */
 #pragma once
 #include <Arduino.h>
@@ -39,6 +39,22 @@ namespace ContextController {
   void updateRtcTemperature(float tempC);
   void clearRtcTemperature();
   void begin();  // Start periodic tick timer
+
+  // === Clock-write API (delegates to PRTClock via ContextController) ===
+  // Used by FetchController to set time without depending on ClockController.
+  void setClockTime(uint8_t h, uint8_t m, uint8_t s);
+  void setClockDate(uint8_t year2k, uint8_t month, uint8_t day);  // year offset from 2000
+  void setClockDayCalc(uint16_t fullYear, uint8_t month, uint8_t day);  // compute DoW + DoY
+  void setSunrise(uint8_t h, uint8_t m);
+  void setSunset(uint8_t h, uint8_t m);
+  void setTimeSynced(bool value);
+  bool isTimeSynced();
+  void computeMoonPhase();
+
+  // === NTP resync callback (decouples ClockController → WiFiController) ===
+  typedef void (*ResyncCallback)();
+  void setNtpResyncCallback(ResyncCallback cb);
+  void requestNtpResync();
 }
 
 // Webthread → post opdracht

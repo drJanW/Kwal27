@@ -1,8 +1,8 @@
 /**
  * @file NasBackup.cpp
  * @brief Push pattern/color CSVs to NAS csv_server.py after save
- * @version 260220B
- * @date 2026-02-20
+ * @version 260227B
+ * @date 2026-02-27
  *
  * Safe push design:
  *   requestPush(filename) sets a pending bool and starts a repeating timer.
@@ -19,7 +19,7 @@
 #include "NasBackup.h"
 #include "Globals.h"
 #include "TimerManager.h"
-#include "SDController.h"
+#include "SdFileAccess.h"
 #include "Alert/AlertState.h"
 #include "AudioState.h"
 #include <HTTPClient.h>
@@ -51,14 +51,14 @@ String serverRoot() {
 // ─────────────────────────────────────────────────────────────
 bool readFileFromSD(const char* path, String& content) {
     if (!AlertState::isSdOk()) return false;
-    SDController::lockSD();
-    File file = SDController::openFileRead(path);
-    if (!file) { SDController::unlockSD(); return false; }
+    SdFileAccess::lock();
+    File file = SdFileAccess::openRead(path);
+    if (!file) { SdFileAccess::unlock(); return false; }
 
     size_t fileSize = file.size();
     if (fileSize == 0 || fileSize > 65536) {
-        SDController::closeFile(file);
-        SDController::unlockSD();
+        SdFileAccess::closeFile(file);
+        SdFileAccess::unlock();
         return false;
     }
 
@@ -66,8 +66,8 @@ bool readFileFromSD(const char* path, String& content) {
     while (file.available()) {
         content += (char)file.read();
     }
-    SDController::closeFile(file);
-    SDController::unlockSD();
+    SdFileAccess::closeFile(file);
+    SdFileAccess::unlock();
     return true;
 }
 

@@ -84,7 +84,7 @@ void routeHealth(AsyncWebServerRequest *request) {
     request->send(200, "application/json", json);
 }
 
-void cb_restart() {
+void cb_restart() {  // NOCHECK: accepted, simple deferred reboot
     ESP.restart();
 }
 

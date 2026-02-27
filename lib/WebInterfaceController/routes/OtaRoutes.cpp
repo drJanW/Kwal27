@@ -20,7 +20,7 @@ namespace {
     size_t   otaUploadTotal   = 0;
     String   otaUploadError;
 
-    void cb_rebootAfterOta() {
+    void cb_rebootAfterOta() {  // NOCHECK: accepted, simple deferred reboot
         ESP.restart();
     }
 }

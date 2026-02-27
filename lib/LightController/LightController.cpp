@@ -1,8 +1,8 @@
 /**
  * @file LightController.cpp
  * @brief LED control implementation via FastLED library
- * @version 260212C
- * @date 2026-02-12
+ * @version 260227B
+ * @date 2026-02-27
  */
 #include <Arduino.h>
 #include "Globals.h"
@@ -11,7 +11,6 @@
 //#include <math.h>
 #include "AudioState.h"
 #include "MathUtils.h"
-#include "SensorController.h"
 #include "TimerManager.h"
 
 LightController lightController;

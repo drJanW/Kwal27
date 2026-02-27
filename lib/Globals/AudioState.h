@@ -1,8 +1,8 @@
 /**
  * @file AudioState.h
  * @brief Thread-safe audio state accessors shared between playback modules
- * @version 260212C
- * @date 2026-02-12
+ * @version 260227B
+ * @date 2026-02-27
  * 
  * Provides atomic getters/setters for audio state shared across modules:
  * - Volume levels (shiftedHi, webMultiplier)
@@ -11,6 +11,9 @@
  * - Audio meter level
  * 
  * All functions use relaxed memory ordering for cross-core ESP32 safety.
+ * 
+ * Moved from AudioManager to Globals to allow cross-layer access
+ * without architecture violations.
  */
 #pragma once
 

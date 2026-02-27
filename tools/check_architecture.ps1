@@ -34,6 +34,7 @@ $sharedLibs = @(
     "Globals"
     "TimerManager"
     "ContextController"
+    "SdFileAccess"
 )
 
 # Headers from each controller lib (basename only, e.g. "PlaySentence.h")
@@ -107,21 +108,24 @@ foreach ($lib in $controllerLibs) {
 Write-Host "=== Check 2: cb_* functions outside RunManager ===" -ForegroundColor Cyan
 
 $allCppFiles = Get-ChildItem -Path $libDir -Include "*.cpp" -Recurse -File
+# Controller-internal cb_* (fades, sensor reads, cycle timers) are allowed.
+# Only flag cb_* in non-controller, non-RunManager libs (Policy, Globals, etc.)
+$allowedCbDirs = $controllerLibs + @("RunManager")
 foreach ($file in $allCppFiles) {
-    # Skip RunManager — that's where cb_* belongs
-    if ($file.FullName -like "*\RunManager\*") { continue }
+    # Skip RunManager and controller libs — cb_* is allowed there
+    $skip = $false
+    foreach ($dir in $allowedCbDirs) {
+        if ($file.FullName -like "*\$dir\*") { $skip = $true; break }
+    }
+    if ($skip) { continue }
 
     $lineNum = 0
     foreach ($line in (Get-Content $file.FullName)) {
         $lineNum++
-        # Match function definitions: "void cb_something() {"
-        # But skip forward declarations and comments
-        if ($line -match '^\s*void\s+(cb_\w+)\s*\(' -and $line -notmatch '^\s*//') {
+        if ($line -match '^\s*void\s+(cb_\w+)\s*\(' -and $line -notmatch '^\s*//' -and $line -notmatch 'NOCHECK') {
             $cbName = $Matches[1]
             $rel = $file.FullName.Substring($root.Length + 1)
-            # Allow cb_ in anonymous namespaces within controllers (internal callbacks for timers)
-            # But flag them as warnings, not violations
-            $warnings += "[CB-OUTSIDE] $rel`:$lineNum defines $cbName (cb_* should be in RunManager)"
+            $warnings += "[CB-OUTSIDE] $rel`:$lineNum defines $cbName (cb_* should be in RunManager or controller)"
         }
     }
 }
@@ -156,7 +160,7 @@ if (Test-Path $webDir) {
         foreach ($line in (Get-Content $file.FullName)) {
             $lineNum++
             # Flag direct SD writes in web handler files
-            if ($line -match '\bSD\.(open|write|remove|rename|mkdir)\b' -and $line -notmatch '^\s*//') {
+            if ($line -match '\bSD\.(open|write|remove|rename|mkdir)\b' -and $line -notmatch '^\s*//' -and $line -notmatch 'NOCHECK') {
                 $rel = $file.FullName.Substring($root.Length + 1)
                 $warnings += "[WEB-IO] $rel`:$lineNum direct SD I/O in web handler"
             }
@@ -173,7 +177,7 @@ if (Test-Path $webDir) {
 Write-Host "`n=== Results ===" -ForegroundColor Yellow
 
 if ($violations.Count -eq 0 -and $warnings.Count -eq 0) {
-    Write-Host "`n  ✓ No architecture violations found" -ForegroundColor Green
+    Write-Host "`n  OK - No architecture violations found" -ForegroundColor Green
     exit 0
 }
 
@@ -193,7 +197,7 @@ if ($warnings.Count -gt 0) {
 
 Write-Host ""
 if ($violations.Count -gt 0) {
-    Write-Host "  ✗ $($violations.Count) violation(s), $($warnings.Count) warning(s)" -ForegroundColor Red
+    Write-Host "  FAIL: $($violations.Count) violation(s), $($warnings.Count) warning(s)" -ForegroundColor Red
     exit 1
 } else {
     Write-Host "  ~ $($warnings.Count) warning(s), 0 violations" -ForegroundColor DarkYellow

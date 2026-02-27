@@ -1,8 +1,8 @@
 /**
  * @file SDController.cpp
  * @brief SD card control implementation with directory scanning and file indexing
- * @version 260218C
- * @date 2026-02-18
+ * @version 260227B
+ * @date 2026-02-27
  */
 #include <Arduino.h>
 #include "SDController.h"
@@ -20,7 +20,6 @@ using SdPathUtils::removeSdPath;
 
 // === Static member definitions ===
 std::atomic<bool> SDController::ready_{false};
-std::atomic<uint8_t> SDController::lockCount_{0};
 uint8_t SDController::highestDirNum_{0};
 
 // === Initialization ===
@@ -46,22 +45,7 @@ bool SDController::checkPresent() {
     return SD.totalBytes() > 0;
 }
 
-void SDController::lockSD() {
-    uint8_t prev = lockCount_.fetch_add(1, std::memory_order_relaxed);
-    if (prev == 0) {
-        AlertState::setSdBusy(true);
-    }
-}
-
-void SDController::unlockSD() {
-    uint8_t prev = lockCount_.load(std::memory_order_relaxed);
-    if (prev > 0) {
-        uint8_t before = lockCount_.fetch_sub(1, std::memory_order_relaxed);
-        if (before == 1) {
-            AlertState::setSdBusy(false);
-        }
-    }
-}
+// lockSD/unlockSD now inline in header, delegating to SdFileAccess
 
 // === Index operations ===
 
@@ -393,87 +377,6 @@ bool SDController::writeFileEntry(uint8_t dir_num, uint8_t file_num, const FileE
     return ok;
 }
 
-// === File operations ===
-
-bool SDController::fileExists(const char* fullPath) {
-    lockSD();
-    bool exists = SD.exists(fullPath);
-    unlockSD();
-    return exists;
-}
-
-bool SDController::writeTextFile(const char* path, const char* text) {
-    lockSD();
-    File f = SD.open(path, FILE_WRITE);
-    if (!f) {
-        unlockSD();
-        return false;
-    }
-    f.print(text);
-    f.close();
-    unlockSD();
-    return true;
-}
-
-String SDController::readTextFile(const char* path) {
-    lockSD();
-    File f = SD.open(path, FILE_READ);
-    if (!f) {
-        unlockSD();
-        return "";
-    }
-    String s = f.readString();
-    f.close();
-    unlockSD();
-    return s;
-}
-
-bool SDController::deleteFile(const char* path) {
-    lockSD();
-    bool result = SD.exists(path) && SD.remove(path);
-    unlockSD();
-    return result;
-}
-
-// === Streaming file access ===
-
-File SDController::openFileRead(const char* path) {
-    if (!path) {
-        return File();
-    }
-    lockSD();
-    File f = SD.open(path, FILE_READ);
-    if (!f) {
-        unlockSD();
-    }
-    // Note: caller must call closeFile() to unlockSD()
-    return f;
-}
-
-File SDController::openFileWrite(const char* path) {
-    if (!path) {
-        return File();
-    }
-    lockSD();
-    File f = SD.open(path, FILE_WRITE);
-    if (!f) {
-        unlockSD();
-    }
-    // Note: caller must call closeFile() to unlockSD()
-    return f;
-}
-
-void SDController::closeFile(File& file) {
-    if (file) {
-        file.close();
-    }
-    unlockSD();
-}
-
-// === Free function ===
-
-const char* getMP3Path(uint8_t dirID, uint8_t fileID) {
-    static char path[SDPATHLENGTH];
-    snprintf(path, sizeof(path), "/%03u/%03u.mp3", dirID, fileID);
-    return path;
-}
+// File operations (fileExists, writeTextFile, readTextFile, deleteFile,
+// openFileRead, openFileWrite, closeFile, getMP3Path) are now inline
+// delegates in SDController.h → SdFileAccess, or in SdFileAccess.cpp.
