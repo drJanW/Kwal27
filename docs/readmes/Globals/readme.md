@@ -45,6 +45,12 @@ Configurable parameters for hardware error flash notifications in `Globals.h`:
 
 One flash burst = `black(1s) + color(1-2s) + black(1s)` ≈ 3-4s per failing component.
 
+## Daily reboot
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `dailyRebootHour` | 4 | Hour (1-23) for daily auto-reboot. 0 = disabled (midnight not possible since 0 means off). |
+
 ## Diagnostics flags
 
 `SHOW_TIMER_STATUS` (default 0): set to 1 to enable periodic timer slot diagnostics in the serial log. Useful for debugging timer exhaustion or slot leaks.

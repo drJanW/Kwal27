@@ -65,7 +65,19 @@ Files: `AlertPolicy.h`, `AlertRGB.cpp`, `AlertState.h`, `AlertState.cpp`
 - Use `PL("[Run][Plan] ...")` for lifecycle events and runner state changes so the boot log shows every registration in order.
 - Directors and policies log through `[AudioDirector]`, `[LightPolicy]`, etc. Keep rejection reasons explicit so runners can surface them upstream without guessing.
 - Timer churn stays visible by logging whenever a runner parks or re-arms a slot (especially for distance audio and OTA windows).
+## Daily Auto-Reboot
 
+The system reboots automatically once per day at a configurable hour (`Globals::dailyRebootHour`, default 04:00). This prevents long-term memory fragmentation, timer drift, or other weirdness in a permanent installation.
+
+### How it works
+
+1. `cb_clockUpdate()` calls `armDailyReboot()` every second — idempotent, arms once when clock is valid.
+2. `calcMsUntilHour()` computes ms until the target hour. If <5 min away, schedules for next day (prevents reboot loop after restart).
+3. `cb_dailyReboot()` checks guards (`isSdBusy`, `isSentencePlaying`, `isFragmentPlaying`) before calling `ESP.restart()`.
+4. If busy: retries every 1 min, up to 30 times. After 30 retries: reboots anyway.
+5. Setting `dailyRebootHour = 0` disables the feature (midnight reboot not possible — 0 means off).
+
+Timer cost: 1 transient slot.
 ## Do / Don’t Checklist
 
 - ✅ Run owns timers, sequencing, retries, and is the only layer that calls `TimerManager::restart`.
