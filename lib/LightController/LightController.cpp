@@ -1,7 +1,7 @@
 /**
  * @file LightController.cpp
  * @brief LED control implementation via FastLED library
- * @version 260227B
+ * @version 260227C
  * @date 2026-02-27
  */
 #include <Arduino.h>
@@ -13,6 +13,8 @@
 #include "MathUtils.h"
 #include "TimerManager.h"
 
+#include <atomic>
+
 LightController lightController;
 
 namespace {
@@ -23,35 +25,35 @@ namespace {
 // - brightnessBaseHi: base hi boundary before shifts
 // - brightnessShiftedHi:   hi boundary after shifts + webMultiplier
 // - webMultiplier:         user brightness multiplier (can be > 1.0)
-float   webMultiplier = 1.0f;
+std::atomic<float>   webMultiplier{1.0f};
 uint8_t brightnessBaseHi = 100;
-uint8_t brightnessShiftedHi = 100;
+std::atomic<uint8_t> brightnessShiftedHi{100};
 
 } // namespace
 
 // WebMultiplier: user brightness multiplier
 float getWebMultiplier() {
-  return webMultiplier;
+  return webMultiplier.load(std::memory_order_relaxed);
 }
 
 void setWebMultiplier(float value) {
-  webMultiplier = value;  // No clamp - can be >1.0
+  webMultiplier.store(value, std::memory_order_relaxed);  // No clamp - can be >1.0
 }
 
 // SliderPct: current shiftedHi as percentage of Lo..Hi range
 int getSliderPct() {
   return static_cast<int>(MathUtils::mapRange(
-    brightnessShiftedHi,
+    brightnessShiftedHi.load(std::memory_order_relaxed),
     Globals::brightnessLo, Globals::brightnessHi,
     Globals::loPct, Globals::hiPct));
 }
 
 uint8_t getBrightnessShiftedHi() {
-  return brightnessShiftedHi;
+  return brightnessShiftedHi.load(std::memory_order_relaxed);
 }
 
 void setBrightnessShiftedHi(float value) {
-  brightnessShiftedHi = static_cast<uint8_t>(constrain(value, 0, 255));
+  brightnessShiftedHi.store(static_cast<uint8_t>(constrain(value, 0, 255)), std::memory_order_relaxed);
 }
 
 uint8_t getBrightnessBaseHi() {
