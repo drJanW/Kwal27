@@ -170,6 +170,9 @@ cd ..\..
 ### Terminology — use these exact terms
 | Use | NOT |
 |-----|-----|
+| colors (= a palette/set from light_colors.csv) | colorSet, color set, colour |
+| colors's (plural of colors) | colorSets, color sets |
+| pattern (= a pattern from light_patterns.csv) | — |
 | interval | cadence, period |
 | fraction (0.0-1.0) | factor, mult |
 | multiplier (0.0+) | modifier |
@@ -179,6 +182,11 @@ cd ..\..
 | volume | gain (except I2S registers) |
 | speak | speech |
 | create | schedule |
+
+**Note on "colors":** In this codebase, `colors` means a palette (two RGB hex values).
+It is NOT the plural of "color". The plural of `colors` is `colors's`.
+A single RGB value is a `color` — but that concept is rarely used directly.
+Example: "Snow White" is a colors. The system has 42 colors's.
 
 - Never introduce new terms as synonyms. If a term exists, reuse it.
 - New terms must mean new concepts and require explicit approval.
