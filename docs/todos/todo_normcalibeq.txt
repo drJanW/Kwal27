@@ -5,12 +5,7 @@ Questions and Errors across the three source documents:
 ERRORS / Inconsistencies
 ═══════════════════════════════════════════════════════════════
 
-E8  IDs are String, not uint8_t
-    PatternCatalog::activeId() returns String. Need .toInt() + bounds.
-
-E10 PNF/CNF ordering requirement
-    NORMALISATION.txt says "freeze PNF/CNF BEFORE lux cal".
-    plan_b10 skips PNF/CNF as prerequisites, adds them as v2.
+(none remaining)
 
 ═══════════════════════════════════════════════════════════════
 ANSWERED
@@ -103,3 +98,13 @@ E9  maxBrightness vs brightnessHi ambiguity      NOT AN ERROR 2026-03-02
     Different concepts: maxBrightness = hardware ceiling (FastLED),
     brightnessHi = SNB pipeline ceiling (policy). Changed maxBrightness
     from 242 to 248 to make the distinction visible.
+
+E8  IDs are String, not uint8_t                  DEFERRED 2026-03-02
+    Not a current bug — all callers use String correctly today.
+    Design note for Part 2/3: when building PNF/CNF lookup tables,
+    need .toInt() + bounds check to convert to numeric index.
+
+E10 PNF/CNF ordering requirement                 RESOLVED 2026-03-02
+    SNB plan overrules plan_b10: Part 1 (freeze PNF/CNF) must
+    complete before Part 2 (lux calibration). Documented in
+    plan_snb.md ordering rule.
