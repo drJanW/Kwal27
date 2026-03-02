@@ -36,28 +36,28 @@ offline normalisation.
   ```
   predicted = base_model(sample.lux)
   residual = sample.luxBrightness - predicted
-  colorsCorrection[colorsId] = mean(residuals) / brightnessHi
+  cnf[colorsId] = mean(residuals) / brightnessHi
   ```
 - [ ] Result: a fraction per colors (e.g., Snow White = -0.24, Deep Space = +0.25)
-- [ ] Store in `colorsCorrection[99]` array (396 bytes)
+- [ ] Store in `cnf[99]` array (396 bytes)
 - [ ] Initialize all slots to 1.0f (no correction)
 - [ ] Apply in pipeline:
   ```
-  brightness = calcShiftedHi(lux, calShift, webMult) × (1 + colorsCorrection[activeColors])
+  brightness = calcShiftedHi(lux, calShift, webMult) × (1 + cnf[activeColors])
   ```
 
 ### 3.2 Per-pattern correction factor
 - [ ] Computed AFTER colors corrections are applied (order matters — see B10 3g)
 - [ ] For each patternId with ≥3 non-clamped, non-seed samples:
   ```
-  predicted = base_model(sample.lux) × (1 + colorsCorrection[sample.colorsId])
+  predicted = base_model(sample.lux) × (1 + cnf[sample.colorsId])
   residual = sample.luxBrightness - predicted
-  patternCorrection[patternId] = mean(residuals) / brightnessHi
+  pnf[patternId] = mean(residuals) / brightnessHi
   ```
-- [ ] Store in `patternCorrection[99]` array (396 bytes)
+- [ ] Store in `pnf[99]` array (396 bytes)
 - [ ] Apply in pipeline AFTER colors correction:
   ```
-  brightness = calcShiftedHi(...) × (1 + colorsCorrection[c]) × (1 + patternCorrection[p])
+  brightness = calcShiftedHi(...) × (1 + cnf[c]) × (1 + pnf[p])
   ```
 
 ### 3.3 Data collection protocol for colors calibration
@@ -81,7 +81,7 @@ offline normalisation.
 - [ ] Optional: "Download CSV" link for manual inspection
 
 ### 3.6 Persist correction arrays
-- [ ] Save colorsCorrection[] and patternCorrection[] to SD
+- [ ] Save cnf[] and pnf[] to SD
   (either in globals.csv or a separate corrections.csv)
 - [ ] Reload on boot
 - [ ] OR: recalculate from luxcal.csv on every boot (~170ms, trivial)
@@ -120,8 +120,8 @@ luxShift = luxShiftLo + (luxShiftHi - luxShiftLo) × luxT
 combinedMultiplier = (1 + luxShift/100)
                    × (1 + calendarShift/100)
                    × webMultiplier
-                   × (1 + colorsCorrection[activeColors])   // Part 3 addition
-                   × (1 + patternCorrection[activePattern])  // Part 3 addition
+                   × cnf[activeColors]                      // Part 3 addition
+                   × pnf[activePattern]                      // Part 3 addition
 
 brightness = brightnessHi × combinedMultiplier
            → clamped to [brightnessLo, brightnessHi]

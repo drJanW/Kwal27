@@ -53,19 +53,19 @@ calibration (Part 2) only has to deal with ambient light.
 - [ ] For each colors entry: parse `rgb1_hex`, `rgb2_hex`
 - [ ] Compute CIE luminance: `Y = 0.2126*R + 0.7152*G + 0.0722*B` (both colors, average)
 - [ ] Normalize to reference (Snow White = 1.0): `CNF = Y_white / Y_colors`
-- [ ] Store as `colorsCorrection[]` array at boot
+- [ ] Store as `cnf[]` array at boot
 - [ ] This is a STATIC correction — computed once, no calibration needed
 
-### 1.2 Decide where PNF comes from
-- [ ] Option: skip PNF entirely in v1 (patterns are too complex to model without measurement)
-- [ ] Option: use `calculate_unscaled_power_mW()` from FastLED to estimate per-pattern power
-  BUT: this only works at runtime with a running pattern, not offline
-- [ ] Decision: defer PNF to Part 2 (data-driven from thumbs-up residuals)
+### 1.2 PNF stub (all 1.0f, calibrated later)
+- [ ] Create `pnf[]` array alongside `cnf[]`, initialized to 1.0f for all patterns
+- [ ] Multiply into pipeline: `brightness = ... × cnf[activeColors] × pnf[activePattern]`
+- [ ] Later: fill via `calculate_unscaled_power_mW()` runtime sampling or thumbs-up residuals
+- [ ] This costs one extra float[] (~120 bytes) and one multiply — zero behavioral change until calibrated
 
-### 1.3 Integrate CNF into brightness pipeline
+### 1.3 Integrate CNF + PNF into brightness pipeline
 - [ ] Modify `calcShiftedHi()` in LightPolicy.cpp:
   ```
-  brightness = brightnessHi × combinedMultiplier × colorsCorrection[activeColors]
+  brightness = brightnessHi × combinedMultiplier × cnf[activeColors] × pnf[activePattern]
   ```
 - [ ] Or: multiply into `combinedMultiplier` before clamping
 - [ ] Ensure clamp still applies AFTER correction
