@@ -1,7 +1,7 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260302A
+ * @version 260302B
  * @date 2026-03-02
  */
 #pragma once
@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260302A"
+#define FIRMWARE_VERSION_CODE "260302B"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -89,7 +89,7 @@ struct Globals {
     // BRIGHTNESS/LUX (10 params)
     // ─────────────────────────────────────────────────────────────
     inline static uint8_t  minBrightness           = 6U;          // Hardware minimum (never fully off)
-    inline static uint8_t  maxBrightness           = 242U;        // Hardware maximum
+    inline static uint8_t  maxBrightness           = 248U;        // Hardware maximum
     inline static uint8_t  brightnessLo            = 70U;         // Operational Lo boundary
     inline static uint8_t  brightnessHi            = 242U;        // Operational Hi boundary
     inline static uint8_t  defaultBrightnessSliderPct = 60U;      // Boot default brightness slider position (0-100%); CSV-overridable
