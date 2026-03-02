@@ -1,8 +1,8 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260216J
- * @date 2026-02-16
+ * @version 260302A
+ * @date 2026-03-02
  */
 #include "LightRun.h"
 
@@ -261,7 +261,7 @@ void LightRun::cb_fadeBrightnessOut() {
     if (fadeStep >= Globals::fadeStepCount) {
         applyFadeBrightness(0);
         brightnessFading = false;
-        cb_measureLux();   // LEDs dark → read sensor
+        timers.create(Globals::luxMeasurementDelayMs, 1, LightRun::cb_measureLux);  // Sensor settling delay
     }
 }
 

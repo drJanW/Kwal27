@@ -5,24 +5,6 @@ Questions and Errors across the three source documents:
 ERRORS / Inconsistencies
 ═══════════════════════════════════════════════════════════════
 
-E1  Model mismatch                              RESOLVED 2026-03-02
-    NORMALISATION.txt + calibration.txt used a*(lux+b)^c.
-    plan_b10_lux_calibration.md uses the current shift pipeline
-    (Stevens' power law). Decision: keep Stevens' power law (Model B).
-    Rationale: already implemented, human-readable params, natural
-    grid search, low-lux emphasis via gamma<1. Approach named "SNB"
-    (Stevens Normalized Brightness). See plan_snb.md.
-
-E2  MAX_AUDIO_VOLUME in brightness formula       FIXED 2026-03-02
-    Was: baseGain = MAX_AUDIO_VOLUME × fContext × fWebsite × fOptional
-    Fixed to: baseGain = brightnessHi × calendarShift × webMultiplier
-    in both NORMALISATION.txt and calibration.txt.
-
-E3  luxMeasurementDelayMs mismatch
-    plan_b10 says default = 200ms. Globals.h default = 800ms.
-    globals.csv sets 200. CSV overrides at runtime.
-    Plan says "may be too short". Needs decision.
-
 E4  brightnessLo mismatch
     Globals.h default = 70. globals.csv sets 16. CSV wins at runtime.
 
@@ -51,23 +33,6 @@ E10 PNF/CNF ordering requirement
     plan_b10 skips PNF/CNF as prerequisites, adds them as v2.
 
 ═══════════════════════════════════════════════════════════════
-OPEN QUESTIONS
-═══════════════════════════════════════════════════════════════
-
-Q5  What happens with the clamping problem (E5)?
-    Options: (a) pre-clamp value, (b) capture multiplier,
-    (c) reconstruct from slider+lux, (d) detect+exclude clamped.
-
-Q6  Dedup or FIFO — pick one?
-    Both in plan_b10. Need priority rule.
-
-Q7  Is 500 seeds excessive?
-    Even at 10/week → 1 year to fully replace.
-
-Q8  Per-pattern/color corrections: 99 slots enough?
-    Currently 30 patterns + 42 colors. Silent fail if >99.
-
-═══════════════════════════════════════════════════════════════
 ANSWERED
 ═══════════════════════════════════════════════════════════════
 
@@ -90,3 +55,50 @@ Q3  HOUT has no lux sensor — how to develop/test?
 Q4  Should a*(lux+b)^c replace the current shift pipeline?
     ANSWERED 2026-03-02: No. Keep Stevens' power law. See E1 resolution.
     The a*(lux+b)^c model in NORMALISATION.txt will be updated to match.
+
+Q5  What happens with the clamping problem (E5)?
+    ANSWERED 2026-03-02: Solved by calibration-mode. Web GUI gets a
+    calibration panel (toggle on/off). While active, calcShiftedHi()
+    stores the pre-clamp float in a side variable. Thumbs-up logs
+    (lux, unclampedBrightness). No runtime overhead when inactive.
+    Calibration UI is needed anyway for the thumbs-up button.
+
+Q7  Is 500 seeds excessive?
+    ANSWERED 2026-03-02: The 500-seed FIFO belongs to plan_b10's
+    pre-PNF/CNF approach. With SNB, calibration data model will
+    change. Revisit buffer size when designing the SNB data store.
+
+Q8  Per-pattern/color corrections: 99 slots enough?
+    ANSWERED 2026-03-02: 99 is arbitrary, 43 (30+42 rounded) also.
+    The real question is not the number but the overflow strategy:
+    FIFO? LRU? Reject? This merges with Q6. Decide buffer policy
+    when designing the SNB calibration data store.
+
+═══════════════════════════════════════════════════════════════
+RESOLVED ERRORS
+═══════════════════════════════════════════════════════════════
+
+E1  Model mismatch                              RESOLVED 2026-03-02
+    NORMALISATION.txt + calibration.txt used a*(lux+b)^c.
+    plan_b10_lux_calibration.md uses the current shift pipeline
+    (Stevens' power law). Decision: keep Stevens' power law (Model B).
+    Rationale: already implemented, human-readable params, natural
+    grid search, low-lux emphasis via gamma<1. Approach named "SNB"
+    (Stevens Normalized Brightness). See plan_snb.md.
+
+E2  MAX_AUDIO_VOLUME in brightness formula       FIXED 2026-03-02
+    Was: baseGain = MAX_AUDIO_VOLUME × fContext × fWebsite × fOptional
+    Fixed to: baseGain = brightnessHi × calendarShift × webMultiplier
+    in both NORMALISATION.txt and calibration.txt.
+
+E3  luxMeasurementDelayMs mismatch              FIXED 2026-03-02
+    Was dead config — declared in Globals.h, parsed from CSV, but
+    never used. cb_fadeBrightnessOut() called cb_measureLux() directly.
+    Fix: replaced direct call with timers.create(luxMeasurementDelayMs,
+    1, cb_measureLux) to give VEML7700 settling time after LEDs go dark.
+    800 vs 200 default mismatch is irrelevant — CSV wins at runtime.
+
+Q6  Dedup or FIFO — pick one?
+    DEFERRED 2026-03-02: No implementation exists yet. Decide buffer
+    policy (dedup vs FIFO, overflow strategy) when designing the
+    SNB calibration data store in Part 2.
