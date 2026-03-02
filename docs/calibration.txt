@@ -1,0 +1,131 @@
+KWAL2 CALIBRATION ARCHITECTURE
+
+Purpose
+
+The calibration subsystem defines all brightness-related normalization
+and adaptive scaling parameters in a deterministic and reproducible way.
+
+The goals are:
+
+1)  Normalize intrinsic brightness differences between patterns (PNF).
+2)  Normalize luminance differences between colorSets (CNF).
+3)  Adapt display brightness to ambient lux while preserving contrast.
+
+Important invariant: Lux is measured only when all RGB LEDs are OFF
+(black state). Therefore lux represents ambient light only and must
+never be influenced by display output.
+
+PNF and CNF must be frozen before lux-curve fitting. If PNF or CNF
+changes, lux calibration must be redone.
+
+============================================================ PART 1 –
+Pattern Normalization Factor (PNF)
+============================================================
+
+Objective: Compensate intrinsic energy differences between patterns.
+
+Definition: PNF(pattern) = TargetPower / MeanPatternPower
+
+Where MeanPatternPower is the time-averaged LED power over a fixed
+window.
+
+Measurement Window: - Fixed duration (e.g. 5 minutes) - Fixed update
+interval (e.g. 100 ms) - Fixed reference colorSet (typically white)
+
+Method: - During runtime, accumulate FastLED power estimate:
+calculate_unscaled_power_mW(leds, NUM_LEDS)
+
+-   Accumulate: totalPower += currentPower sampleCount++
+
+-   After window: meanPower = totalPower / sampleCount PNF = TargetPower
+    / meanPower
+
+Store: pnfTable[patternId] = PNF Persist in NVS or SD.
+
+No lux measurement involved.
+
+Pseudo-code:
+
+startPNF(patternId): setColorSet(WHITE_REFERENCE) totalPower = 0
+sampleCount = 0 startTimer(5 minutes)
+
+onSample(): power = calculate_unscaled_power_mW(leds, NUM_LEDS)
+totalPower += power sampleCount++
+
+onTimerEnd(): meanPower = totalPower / sampleCount pnf = TargetPower /
+meanPower storePNF(patternId, pnf) ————————————————————
+
+============================================================ PART 2 –
+Color Normalization Factor (CNF)
+============================================================
+
+Objective: Compensate intrinsic luminance differences between colorSets.
+
+Definition: CNF(colorSet) = ReferenceColorPower / MeanColorPower
+
+Where: - ReferenceColorPower is measured with reference colorSet -
+MeanColorPower is measured with tested colorSet - Pattern is fixed to
+referencePattern
+
+Method identical to PNF measurement except pattern fixed.
+
+Pseudo-code:
+
+startCNF(colorSetId): setPattern(REFERENCE_PATTERN) totalPower = 0
+sampleCount = 0 startTimer(5 minutes)
+
+onSample(): power = calculate_unscaled_power_mW(leds, NUM_LEDS)
+totalPower += power sampleCount++
+
+onTimerEnd(): meanPower = totalPower / sampleCount cnf = referencePower
+/ meanPower storeCNF(colorSetId, cnf) ————————————————————
+
+============================================================ PART 3 –
+Lux Adaptive Curve Calibration
+============================================================
+
+Objective: Determine LuxScale(lux; a,b,c) such that visual contrast
+remains subjectively correct across ambient lux conditions.
+
+Procedure: 1) Ensure PNF and CNF are frozen. 2) Activate reference
+pattern + white colorSet. 3) Measure ambient lux (display black). 4)
+User adjusts webBrightness until visually correct. 5) Record pair:
+(luxAmbient, appliedGain)
+
+Repeat for multiple lux levels (6–10 recommended).
+
+Curve Model: Choose fixed functional form, e.g.:
+
+    LuxScale(lux) = a * (lux + b)^c
+
+Parameters (a,b,c) must be fitted from stored points.
+
+Fitting Strategy: - Nonlinear least squares OR - Log-linear transform if
+appropriate
+
+Store parameters in persistent storage.
+
+Pseudo-code:
+
+startLuxCalibration(): clearLuxDataset()
+
+recordLuxPoint(): lux = measureLuxAtBlack() gain = currentAppliedGain()
+appendDataset(lux, gain)
+
+fitLuxCurve(): (a,b,c) = fitModel(dataset) storeLuxParameters(a,b,c)
+————————————————————
+
+============================================================ FINAL
+RUNTIME FORMULA
+============================================================
+
+baseGain = brightnessHi * calendarShift * webMultiplier
+
+finalGain = baseGain * LuxScale(luxAmbient) * PNF(patternId) *
+CNF(colorSetId)
+
+Fades are applied after finalGain. Channel shifts remain per-channel and
+separate.
+
+============================================================ END OF
+DOCUMENT ============================================================

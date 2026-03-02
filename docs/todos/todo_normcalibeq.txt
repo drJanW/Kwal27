@@ -1,0 +1,86 @@
+Questions and Errors across the three source documents:
+  BRIGHTNESS NORMALISATION.txt, calibration.txt, plan_b10_lux_calibration.md
+
+═══════════════════════════════════════════════════════════════
+ERRORS / Inconsistencies
+═══════════════════════════════════════════════════════════════
+
+E1  Model mismatch                              OPEN — discuss next
+    NORMALISATION.txt + calibration.txt use Brightness = a*(lux+b)^c
+    with multiplicative PNF×CNF.
+    plan_b10_lux_calibration.md keeps the current pipeline
+    (percentage-shift via Stevens' power law).
+    These are fundamentally different models. Which one wins?
+
+E2  MAX_AUDIO_VOLUME in brightness formula       FIXED 2026-03-02
+    Was: baseGain = MAX_AUDIO_VOLUME × fContext × fWebsite × fOptional
+    Fixed to: baseGain = brightnessHi × calendarShift × webMultiplier
+    in both NORMALISATION.txt and calibration.txt.
+
+E3  luxMeasurementDelayMs mismatch
+    plan_b10 says default = 200ms. Globals.h default = 800ms.
+    globals.csv sets 200. CSV overrides at runtime.
+    Plan says "may be too short". Needs decision.
+
+E4  brightnessLo mismatch
+    Globals.h default = 70. globals.csv sets 16. CSV wins at runtime.
+
+E5  Clamping breaks luxBrightness normalization
+    calcShiftedHi() clamps to [brightnessLo, brightnessHi] before
+    returning. If clamped, dividing out calShift×webMult produces
+    a wrong number.
+
+E6  SEED marker vs uint8_t
+    CSV uses patternId="SEED" (string), RAM struct uses uint8_t.
+    Fix: use 0 as sentinel (IDs start at 1).
+
+E7  Deduplication vs FIFO conflict
+    plan_b10 2b = strict FIFO, 2c = replace if lux ±10%.
+    Can't coexist without priority rules.
+
+E8  IDs are String, not uint8_t
+    PatternCatalog::activeId() returns String. Need .toInt() + bounds.
+
+E9  maxBrightness vs brightnessHi ambiguity
+    Globals.h has both (both 242). applyBrightnessRules() uses
+    maxBrightness; calcShiftedHi() uses brightnessHi.
+
+E10 PNF/CNF ordering requirement
+    NORMALISATION.txt says "freeze PNF/CNF BEFORE lux cal".
+    plan_b10 skips PNF/CNF as prerequisites, adds them as v2.
+
+═══════════════════════════════════════════════════════════════
+QUESTIONS
+═══════════════════════════════════════════════════════════════
+
+Q1  Do NORMALISATION.txt + calibration.txt supersede plan_b10?
+    ANSWERED: PNF/CNF are fresh untested ideas. If approved after
+    review, the normalisation concept overrules plan_b10. Both docs
+    remain active — they serve different purposes (theory vs impl).
+
+Q2  Do PNF and CNF need to exist as separate pre-steps?
+    ANSWERED: Same as Q1 — PNF/CNF concept needs approval first.
+    If approved, they become mandatory prerequisites for lux cal.
+
+Q3  HOUT has no lux sensor — how to develop/test?
+    ANSWERED: Development split across devices:
+    - HOUT (189): normalisation code, web GUI, implementation logic
+    - MARMER (188): lux calibration (real sensor, user deploys)
+    - HOUT implementation: needs strategy for missing lux sensor
+      (dummy lux? simulated readings? skip lux path?)
+
+Q4  Should a*(lux+b)^c replace the current shift pipeline?
+    Depends on E1 resolution — discuss next.
+
+Q5  What happens with the clamping problem (E5)?
+    Options: (a) pre-clamp value, (b) capture multiplier,
+    (c) reconstruct from slider+lux, (d) detect+exclude clamped.
+
+Q6  Dedup or FIFO — pick one?
+    Both in plan_b10. Need priority rule.
+
+Q7  Is 500 seeds excessive?
+    Even at 10/week → 1 year to fully replace.
+
+Q8  Per-pattern/color corrections: 99 slots enough?
+    Currently 30 patterns + 42 colors. Silent fail if >99.

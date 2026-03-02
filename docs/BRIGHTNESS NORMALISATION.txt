@@ -1,0 +1,159 @@
+BRIGHTNESS NORMALISATION AND LUX ADAPTATION ARCHITECTURE For use with
+Copilot – Detailed Design Description
+
+============================================================ OVERVIEW
+============================================================
+
+The system separates brightness control into three strictly independent
+layers:
+
+1)  Pattern Normalisation Factor (PNF)
+2)  Color Normalisation Factor (CNF)
+3)  Lux-based Adaptive Scaling (LuxScale)
+
+The goal is contrast preservation under varying ambient light, NOT room
+illumination.
+
+Lux is measured ONLY when the display is black (all RGB off). Therefore:
+
+    Measured lux = ambient light only
+    Display brightness does NOT affect lux measurement
+
+This separation is fundamental and must never be violated.
+
+============================================================ PART 1 –
+PNF (Pattern Normalisation Factor)
+============================================================
+
+Purpose: PNF compensates for intrinsic brightness differences between
+patterns.
+
+Different patterns produce different time-distributed light output due
+to: - Duty cycle differences - Spatial LED activation density - Temporal
+pulsing - Motion patterns
+
+PNF must ensure that, for identical base brightness, all patterns have
+comparable perceived output.
+
+  ---------------------------------------
+  How to compute PNF (offline in Excel)
+  ---------------------------------------
+
+Step 1 – Fix colorSet to WHITE reference. Step 2 – Fix global brightness
+to a known reference value (e.g. 1.0). Step 3 – Run each pattern for a
+fixed analysis window (e.g. 5 minutes). Step 4 – For each frame, compute
+a perceptual brightness proxy:
+
+    - Apply gamma correction (e.g. gamma = 2.2)
+    - Compute luminance proxy:
+          Y = wR*R_lin + wG*G_lin + wB*B_lin
+
+Step 5 – Compute time-weighted mean brightness over the window. Step 6 –
+Store this scalar as PerceivedOutput(pattern).
+
+Choose a global Target value (e.g. median of all patterns).
+
+Then:
+
+    PNF(pattern) = Target / PerceivedOutput(pattern)
+
+Store PNF in a lookup table indexed by pattern ID.
+
+No lux measurement is used here.
+
+============================================================ PART 2 –
+CNF (Color Normalisation Factor)
+============================================================
+
+Purpose: CNF compensates for luminance differences between colorSets.
+
+Example: White appears much brighter than deep blue at identical numeric
+brightness.
+
+  ---------------------------------------
+  How to compute CNF (offline in Excel)
+  ---------------------------------------
+
+Step 1 – Fix pattern to a neutral reference pattern. Step 2 – Fix
+brightness to reference level. Step 3 – For each colorSet: - Run for
+same fixed window (e.g. 5 minutes). - Compute perceptual brightness
+proxy exactly as for PNF. Step 4 – Compute time-weighted mean
+brightness.
+
+Choose color reference (typically white).
+
+Then:
+
+    CNF(colorSet) = ReferenceColorOutput / PerceivedOutput(colorSet)
+
+Store CNF in lookup table indexed by colorSet ID.
+
+============================================================ PART 3 –
+Lux Adaptive Scaling
+============================================================
+
+Purpose: Maintain visual contrast under varying ambient light.
+
+Lux is measured at black state (RGB = 0). Thus lux is independent of
+display brightness.
+
+  -----------------------
+  Calibration Procedure
+  -----------------------
+
+1)  Select reference pattern and white colorSet.
+2)  Measure ambient lux.
+3)  Manually adjust WebBrightness until visually “correct”.
+4)  Record pair: (ambient_lux, applied_display_gain)
+
+Repeat for 6–10 distinct lux levels spanning realistic indoor range.
+
+  ---------------
+  Curve Fitting
+  ---------------
+
+Fit a smooth monotonic function such as:
+
+    Brightness = a * (lux + b)^c
+
+or logarithmic equivalent.
+
+3 parameters are typically sufficient.
+
+This function must be color-independent because PNF and CNF have already
+removed pattern/color variability.
+
+Store parameters (a, b, c).
+
+============================================================ PART 4 –
+FINAL RUNTIME IMPLEMENTATION
+============================================================
+
+Base gain (existing system):
+
+    baseGain = brightnessHi * calendarShift * webMultiplier
+
+Adaptive gain:
+
+    finalGain =
+        baseGain
+        * LuxScale(lux)
+        * PNF(pattern)
+        * CNF(colorSet)
+
+Fades are applied AFTER this multiplication.
+
+Channel shifts / white balance are separate per-channel multipliers and
+must NOT be merged into global gain.
+
+============================================================ IMPORTANT
+RULES ============================================================
+
+1)  Lux is ambient-only.
+2)  PNF and CNF are computed once and then fixed.
+3)  LuxScale is calibrated once after PNF/CNF are frozen.
+4)  If PNF/CNF change, Lux calibration must be redone.
+5)  No circular recalibration loops.
+
+============================================================ END OF
+DOCUMENT ============================================================
