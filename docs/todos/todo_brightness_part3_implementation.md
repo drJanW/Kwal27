@@ -2,7 +2,7 @@
 
 ## Status: Planning — depends on Part 2 base fit being stable
 ## Date: 2026-03-02
-## Source: plan_b10_lux_calibration.md (Phases 3f, 3g, 4, 5)
+## Source: plan_b10_lux_calibration.md (Phases 3f, 3g, 4, 5), plan_snb.md
 
 ---
 
@@ -87,10 +87,13 @@ offline normalisation.
 - [ ] OR: recalculate from luxcal.csv on every boot (~170ms, trivial)
 
 ### 3.7 Cleanup (B10 Phase 5)
-- [ ] Remove `#luxBeta;f;0.005` from globals.csv line 44
-- [ ] Remove luxBeta comment from Globals.cpp line 277
+- [ ] Remove `#luxBeta;f;0.005` from globals.csv (also listed in Part 1 task 1.5)
+- [ ] Remove luxBeta comment from Globals.cpp
 - [ ] Move B10 off todo sidelined list
 - [ ] Optionally hide calibration UI behind a toggle after done
+
+> **Note**: luxBeta cleanup is shared with Part 1 task 1.5. Do it in whichever
+> part gets implemented first.
 
 ---
 
@@ -143,11 +146,11 @@ brightness = brightnessHi × combinedMultiplier
 
 ---
 
-## Open Issues
+## Resolved Issues
 
-| # | Issue | Status |
-|---|-------|--------|
-| Q4 | Stick with shift model or switch to a*(lux+b)^c? | Depends on E1 |
-| Q8 | 99 correction slots enough? | Yes for now |
-| E2 | NORMALISATION.txt + calibration.txt had MAX_AUDIO_VOLUME | FIXED 2026-03-02 |
-| E1 | Model mismatch between docs | OPEN — discuss next |
+| # | Issue | Resolution |
+|---|-------|------------|
+| E1 | Model mismatch | Keep Stevens' power law (SNB). See plan_snb.md |
+| E2 | MAX_AUDIO_VOLUME in formula | FIXED — replaced with brightnessHi × calShift × webMult |
+| Q4 | Shift model vs a*(lux+b)^c? | Keep shift model (SNB) |
+| Q8 | 99 correction slots enough? | Yes for now; overflow policy deferred to Q6 |

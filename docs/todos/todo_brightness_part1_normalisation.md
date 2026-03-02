@@ -2,7 +2,7 @@
 
 ## Status: Planning — PNF/CNF concept awaiting approval
 ## Date: 2026-03-02
-## Source: BRIGHTNESS NORMALISATION.txt, calibration.txt
+## Source: BRIGHTNESS NORMALISATION.txt, calibration.txt, plan_snb.md
 
 ---
 
@@ -70,10 +70,9 @@ calibration (Part 2) only has to deal with ambient light.
 - [ ] Or: multiply into `combinedMultiplier` before clamping
 - [ ] Ensure clamp still applies AFTER correction
 
-### 1.4 Resolve maxBrightness vs brightnessHi (E9)
-- [ ] Clarify: `maxBrightness` = hardware cap, `brightnessHi` = operational ceiling?
-- [ ] Document the distinction or merge if redundant
-- [ ] Ensure normalisation multiplies against the right one
+### ~~1.4 Resolve maxBrightness vs brightnessHi (E9)~~ DONE 2026-03-02
+- [x] maxBrightness = 248 (hardware), brightnessHi = 242 (policy). Distinct values.
+- [x] Documented in todo_normcalibeq.txt E9.
 
 ### 1.5 Clean up dead globals
 - [ ] Remove `#luxBeta;f;0.005` from globals.csv line 44
@@ -83,17 +82,16 @@ calibration (Part 2) only has to deal with ambient light.
 
 ## Dependencies
 
-- Must be done BEFORE Part 2 (lux calibration) starts collecting real data
-  (NORMALISATION.txt rule 3: "LuxScale is calibrated after PNF/CNF frozen")
-- OR: skip this step entirely and accept that Part 2 data includes
-  colors/pattern bias (plan_b10's approach — correct after the fact)
+- Must be done BEFORE Part 2 (lux calibration) starts collecting real data.
+  SNB ordering rule: "Freeze PNF and CNF first → then calibrate lux curve."
+  See plan_snb.md.
 
 ---
 
-## Open Issues
+## Resolved Issues
 
-| # | Issue | Status |
-|---|-------|--------|
-| E9 | maxBrightness vs brightnessHi ambiguity | Needs decision |
-| E10 | PNF/CNF ordering vs plan_b10's skip-and-correct-later | Depends on Q1/Q2 approval |
-| Q2 | Separate PNF/CNF or data-driven corrections? | PNF/CNF awaiting approval |
+| # | Issue | Resolution |
+|---|-------|------------|
+| E9 | maxBrightness vs brightnessHi | NOT AN ERROR — distinct concepts, values now differ (248 vs 242) |
+| E10 | PNF/CNF ordering vs plan_b10 | RESOLVED — SNB plan overrules: Part 1 before Part 2 |
+| Q2 | Separate PNF/CNF or data-driven? | ANSWERED — PNF/CNF awaiting approval; if approved, mandatory |
