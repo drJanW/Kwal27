@@ -5,12 +5,13 @@ Questions and Errors across the three source documents:
 ERRORS / Inconsistencies
 ═══════════════════════════════════════════════════════════════
 
-E1  Model mismatch                              OPEN — discuss next
-    NORMALISATION.txt + calibration.txt use Brightness = a*(lux+b)^c
-    with multiplicative PNF×CNF.
-    plan_b10_lux_calibration.md keeps the current pipeline
-    (percentage-shift via Stevens' power law).
-    These are fundamentally different models. Which one wins?
+E1  Model mismatch                              RESOLVED 2026-03-02
+    NORMALISATION.txt + calibration.txt used a*(lux+b)^c.
+    plan_b10_lux_calibration.md uses the current shift pipeline
+    (Stevens' power law). Decision: keep Stevens' power law (Model B).
+    Rationale: already implemented, human-readable params, natural
+    grid search, low-lux emphasis via gamma<1. Approach named "SNB"
+    (Stevens Normalized Brightness). See plan_snb.md.
 
 E2  MAX_AUDIO_VOLUME in brightness formula       FIXED 2026-03-02
     Was: baseGain = MAX_AUDIO_VOLUME × fContext × fWebsite × fOptional
@@ -50,27 +51,8 @@ E10 PNF/CNF ordering requirement
     plan_b10 skips PNF/CNF as prerequisites, adds them as v2.
 
 ═══════════════════════════════════════════════════════════════
-QUESTIONS
+OPEN QUESTIONS
 ═══════════════════════════════════════════════════════════════
-
-Q1  Do NORMALISATION.txt + calibration.txt supersede plan_b10?
-    ANSWERED: PNF/CNF are fresh untested ideas. If approved after
-    review, the normalisation concept overrules plan_b10. Both docs
-    remain active — they serve different purposes (theory vs impl).
-
-Q2  Do PNF and CNF need to exist as separate pre-steps?
-    ANSWERED: Same as Q1 — PNF/CNF concept needs approval first.
-    If approved, they become mandatory prerequisites for lux cal.
-
-Q3  HOUT has no lux sensor — how to develop/test?
-    ANSWERED: Development split across devices:
-    - HOUT (189): normalisation code, web GUI, implementation logic
-    - MARMER (188): lux calibration (real sensor, user deploys)
-    - HOUT implementation: needs strategy for missing lux sensor
-      (dummy lux? simulated readings? skip lux path?)
-
-Q4  Should a*(lux+b)^c replace the current shift pipeline?
-    Depends on E1 resolution — discuss next.
 
 Q5  What happens with the clamping problem (E5)?
     Options: (a) pre-clamp value, (b) capture multiplier,
@@ -84,3 +66,27 @@ Q7  Is 500 seeds excessive?
 
 Q8  Per-pattern/color corrections: 99 slots enough?
     Currently 30 patterns + 42 colors. Silent fail if >99.
+
+═══════════════════════════════════════════════════════════════
+ANSWERED
+═══════════════════════════════════════════════════════════════
+
+Q1  Do NORMALISATION.txt + calibration.txt supersede plan_b10?
+    ANSWERED 2026-03-02: PNF/CNF are fresh untested ideas. If approved
+    after review, the normalisation concept overrules plan_b10. Both
+    docs remain active — they serve different purposes (theory vs impl).
+
+Q2  Do PNF and CNF need to exist as separate pre-steps?
+    ANSWERED 2026-03-02: Same as Q1 — PNF/CNF concept needs approval
+    first. If approved, they become mandatory prerequisites for lux cal.
+
+Q3  HOUT has no lux sensor — how to develop/test?
+    ANSWERED 2026-03-02: Development split across devices:
+    - HOUT (189): normalisation code, web GUI, implementation logic
+    - MARMER (188): lux calibration (real sensor, user deploys)
+    - HOUT implementation: needs strategy for missing lux sensor
+      (dummy lux? simulated readings? skip lux path?)
+
+Q4  Should a*(lux+b)^c replace the current shift pipeline?
+    ANSWERED 2026-03-02: No. Keep Stevens' power law. See E1 resolution.
+    The a*(lux+b)^c model in NORMALISATION.txt will be updated to match.
