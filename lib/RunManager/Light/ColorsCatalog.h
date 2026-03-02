@@ -1,8 +1,8 @@
 /**
  * @file ColorsCatalog.h
  * @brief LED color palette storage
- * @version 260201A
- $12026-02-10
+ * @version 260302D
+ * @date 2026-03-02
  */
 #pragma once
 
@@ -45,6 +45,9 @@ public:
     // Get active colors (or defaults if none selected)
     void getActiveColors(CRGB& colorA, CRGB& colorB) const;
 
+    // CNF for a colors id. Returns effective value (CIE fallback if CSV=0, else CSV value).
+    float cnf(const String& id) const;
+
     // Parse color payload from JSON (public for LightRun::previewPattern)
     static bool parseColorPayload(JsonVariantConst src, CRGB& a, CRGB& b, String& errorMessage);
 
@@ -56,10 +59,15 @@ private:
         String label;
         CRGB colorA;
         CRGB colorB;
+        float cnf{0.0f};  // 0 in CSV = compute CIE and save back
     };
+
+    /// Reference colors id for CNF normalisation (Snow White)
+    static constexpr uint8_t kReferenceColorsId = 10;
 
     bool loadColorsFromSD();
     bool saveColorsToSD() const;
+    void ensureCnf(ColorEntry& entry);
 
     const ColorEntry* findColor(const String& id) const;
     ColorEntry* findColor(const String& id);

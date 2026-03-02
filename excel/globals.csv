@@ -41,7 +41,6 @@ patternChangeIntervalMs;u;17640000;pick new random pattern (4.9 hours)
 # ═══════════════════════════════════════════════════════════════════
 brightnessLo;u;16;slider left boundary (fraction of MAX_BRIGHTNESS)
 #defaultBrightnessSliderPct;u;60;boot default brightness slider position (0-100%)
-#luxBeta;f;0.005;curve steepness: higher=faster response to light
 #luxMax;f;800.0;lux reading at which brightness reaches Hi
 #maxMilliamps;u;1200;power budget, prevents PSU overload
 

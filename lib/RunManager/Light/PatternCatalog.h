@@ -1,8 +1,8 @@
 /**
  * @file PatternCatalog.h
  * @brief LED pattern storage
- * @version 260201A
- $12026-02-10
+ * @version 260302E
+ * @date 2026-03-02
  */
 #pragma once
 
@@ -38,6 +38,9 @@ public:
     bool getParamsForId(const String& id, LightShowParams& out) const;
     String getLabelForId(const String& id) const;  // Returns label or empty string if not found
 
+    // PNF for a pattern id. Returns effective value (0 in CSV → 1.0f stub).
+    float pnf(const String& id) const;
+
 private:
     PatternCatalog() = default;
 
@@ -45,10 +48,12 @@ private:
         String id;
         String label;
         LightShowParams params;
+        float pnf{0.0f};  // 0 = stub (use 1.0f), calibrated later
     };
 
     bool loadFromSD();
     bool saveToSD() const;
+    void ensurePnf(PatternEntry& entry);
 
     PatternEntry* findEntry(const String& id);
     const PatternEntry* findEntry(const String& id) const;

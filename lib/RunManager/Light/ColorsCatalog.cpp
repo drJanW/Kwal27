@@ -1,8 +1,8 @@
 /**
  * @file ColorsCatalog.cpp
  * @brief LED color palette storage implementation
- * @version 260221A
- * @date 2026-02-21
+ * @version 260302D
+ * @date 2026-03-02
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "ColorsCatalog.h"
@@ -12,6 +12,7 @@
 
 #include "SDController.h"
 #include "CsvUtils.h"
+#include "MathUtils.h"
 #include "SdPathUtils.h"
 #include "LightController.h"
 #include "PatternCatalog.h"  // For previewColors only
@@ -25,22 +26,20 @@ constexpr uint8_t kSchemaVersion = 1;
 
 // No hardcoded defaults - CSV on SD is the single source of truth
 
+/// CIE luminance Y for one CRGB (linear sRGB approximation)
+float cieLuminance(const CRGB& c) {
+    return 0.2126f * c.r + 0.7152f * c.g + 0.0722f * c.b;
+}
+
+/// Average CIE luminance of two colors (the palette pair)
+float avgLuminance(const CRGB& a, const CRGB& b) {
+    return (cieLuminance(a) + cieLuminance(b)) * 0.5f;
+}
+
 CRGB toCRGB(uint32_t value) {
     return CRGB(static_cast<uint8_t>((value >> 16) & 0xFF),
                 static_cast<uint8_t>((value >> 8) & 0xFF),
                 static_cast<uint8_t>(value & 0xFF));
-}
-
-bool isNumericId(const String& id) {
-    if (id.isEmpty()) {
-        return false;
-    }
-    for (size_t i = 0; i < id.length(); ++i) {
-        if (!isdigit(static_cast<unsigned char>(id[i]))) {
-            return false;
-        }
-    }
-    return true;
 }
 
 } // namespace
@@ -128,7 +127,9 @@ String ColorsCatalog::buildColorsJson(const char* source) const {
         snprintf(buff, sizeof(buff), "#%02X%02X%02X", entry.colorB.r, entry.colorB.g, entry.colorB.b);
         out += F(",\"rgb2_hex\":\"");
         out += buff;
-        out += F("\"}");
+        out += F("\",\"cnf\":");
+        out += String(entry.cnf, 4);
+        out += '}';
     }
     out += F("]}");
     return out;
@@ -481,10 +482,27 @@ bool ColorsCatalog::loadColorsFromSD() {
             PF("[ColorsCatalog] invalid hex in CSV id=%s\n", entry.id.c_str());
             continue;
         }
+        // Column 4: cnf (0 = not yet computed)
+        if (columns.size() > 4) {
+            entry.cnf = columns[4].toFloat();
+        }
         colors_.push_back(entry);
     }
 
     SDController::closeFile(file);
+
+    // Compute CIE for entries with cnf == 0, then save once
+    bool needsSave = false;
+    for (auto& e : colors_) {
+        if (MathUtils::nearlyEqual(e.cnf, 0.0f, 0.0001f)) {
+            ensureCnf(e);
+            needsSave = true;
+        }
+    }
+    if (needsSave) {
+        saveColorsToSD();
+    }
+
     return !colors_.empty();
 }
 
@@ -503,13 +521,13 @@ bool ColorsCatalog::saveColorsToSD() const {
         file.println(activeColorId_);
     }
 
-    file.println(F("light_colors_id;light_colors_name;rgb1_hex;rgb2_hex"));
+    file.println(F("light_colors_id;light_colors_name;rgb1_hex;rgb2_hex;cnf"));
     for (const auto& entry : colors_) {
         file.print(entry.id);
         file.print(';');
         file.print(entry.label);
         file.print(';');
-        char buff[7];
+        char buff[16];
         snprintf(buff, sizeof(buff), "%02X%02X%02X", entry.colorA.r, entry.colorA.g, entry.colorA.b);
         file.print('#');
         file.print(buff);
@@ -517,6 +535,8 @@ bool ColorsCatalog::saveColorsToSD() const {
         snprintf(buff, sizeof(buff), "%02X%02X%02X", entry.colorB.r, entry.colorB.g, entry.colorB.b);
         file.print('#');
         file.print(buff);
+        file.print(';');
+        file.print(entry.cnf, 4);
         file.println();
     }
 
@@ -538,6 +558,32 @@ ColorsCatalog::ColorEntry* ColorsCatalog::findColor(const String& id) {
         return nullptr;
     }
     return &(*it);
+}
+
+float ColorsCatalog::cnf(const String& id) const {
+    const ColorEntry* entry = findColor(id);
+    if (!entry) {
+        return 1.0f;  // unknown id → no correction
+    }
+    return entry->cnf;
+}
+
+void ColorsCatalog::ensureCnf(ColorEntry& entry) {
+    if (!MathUtils::nearlyEqual(entry.cnf, 0.0f, 0.0001f)) {
+        return;  // already has a value from CSV
+    }
+    // Compute CIE fallback: Y_ref / Y_colors
+    const String refId = String(kReferenceColorsId);
+    const ColorEntry* ref = findColor(refId);
+    float refY = (ref) ? avgLuminance(ref->colorA, ref->colorB) : 0.0f;
+    if (refY <= 0.0f) {
+        entry.cnf = 1.0f;
+        PF("[ColorsCatalog] ensureCnf: ref missing, cnf=1.0 for id=%s\n", entry.id.c_str());
+    } else {
+        float entryY = avgLuminance(entry.colorA, entry.colorB);
+        entry.cnf = (entryY > 0.0f) ? (refY / entryY) : 1.0f;
+        PF("[ColorsCatalog] ensureCnf: computed cnf=%.4f for id=%s\n", entry.cnf, entry.id.c_str());
+    }
 }
 
 bool ColorsCatalog::parseHexColor(const String& hex, CRGB& color) {
@@ -622,7 +668,7 @@ String ColorsCatalog::generateColorId() const {
         if (id.startsWith("color")) {
             sawPrefixed = true;
             idx = id.substring(5).toInt();
-        } else if (isNumericId(id)) {
+        } else if (csv::isNumericId(id)) {
             sawNumeric = true;
             idx = id.toInt();
         }

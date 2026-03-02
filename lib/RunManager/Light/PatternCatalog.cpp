@@ -1,8 +1,8 @@
 /**
  * @file PatternCatalog.cpp
  * @brief LED pattern storage implementation
- * @version 260218E
- * @date 2026-02-18
+ * @version 260302E
+ * @date 2026-03-02
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "PatternCatalog.h"
@@ -22,18 +22,6 @@ constexpr size_t kActivePatternPrefixLen = sizeof("# active_pattern=") - 1;
 constexpr uint8_t kSchemaVersion = 1;
 
 // CSV on SD is primary source; inline fallback in getActiveParams() for SD-absent boot
-
-bool isNumericId(const String& id) {
-    if (id.isEmpty()) {
-        return false;
-    }
-    for (size_t i = 0; i < id.length(); ++i) {
-        if (!isdigit(static_cast<unsigned char>(id[i]))) {
-            return false;
-        }
-    }
-    return true;
-}
 
 } // namespace
 
@@ -125,7 +113,9 @@ String PatternCatalog::buildJson(const char* source) const {
         out += F(",\"y_amp\":");          out += String(entry.params.yAmp, 3);
         out += F(",\"x_cycle_sec\":");    out += entry.params.xCycleSec;
         out += F(",\"y_cycle_sec\":");    out += entry.params.yCycleSec;
-        out += F("}}");
+        out += F("},\"pnf\":");
+        out += String(entry.pnf, 4);
+        out += '}';
     }
     out += F("]}");
     return out;
@@ -481,7 +471,16 @@ bool PatternCatalog::loadFromSD() {
         params.yCycleSec      = static_cast<uint8_t>(toFloat(columns[15]));
 
         entry.params = params;
+        // Column 16: pnf (0 = stub, use 1.0f)
+        if (columns.size() > 16) {
+            entry.pnf = columns[16].toFloat();
+        }
         patterns_.push_back(entry);
+    }
+
+    // Ensure all entries have a valid pnf (0 → 1.0f stub, memory only)
+    for (auto& entry : patterns_) {
+        ensurePnf(entry);
     }
 
     SDController::closeFile(file);
@@ -503,7 +502,7 @@ bool PatternCatalog::saveToSD() const {
         file.println(activePatternId_);
     }
 
-    file.println(F("light_pattern_id;light_pattern_name;color_cycle_sec;bright_cycle_sec;fade_width;min_brightness;gradient_speed;center_x;center_y;radius;window_width;radius_osc;x_amp;y_amp;x_cycle_sec;y_cycle_sec"));
+    file.println(F("light_pattern_id;light_pattern_name;color_cycle_sec;bright_cycle_sec;fade_width;min_brightness;gradient_speed;center_x;center_y;radius;window_width;radius_osc;x_amp;y_amp;x_cycle_sec;y_cycle_sec;pnf"));
 
     for (const auto& entry : patterns_) {
         file.print(entry.id);
@@ -537,6 +536,8 @@ bool PatternCatalog::saveToSD() const {
         file.print(entry.params.xCycleSec);
         file.print(';');
         file.print(entry.params.yCycleSec);
+        file.print(';');
+        file.print(entry.pnf, 4);
         file.println();
     }
 
@@ -560,6 +561,20 @@ const PatternCatalog::PatternEntry* PatternCatalog::findEntry(const String& id) 
     return &(*it);
 }
 
+float PatternCatalog::pnf(const String& id) const {
+    const PatternEntry* entry = findEntry(id);
+    if (!entry) {
+        return 1.0f;  // unknown id → no correction
+    }
+    return entry->pnf;  // ensurePnf() guarantees non-zero
+}
+
+void PatternCatalog::ensurePnf(PatternEntry& entry) {
+    if (entry.pnf == 0.0f) {
+        entry.pnf = 1.0f;  // stub: no calibration yet, memory only
+    }
+}
+
 String PatternCatalog::generateId() const {
     int maxIndex = 0;
     bool sawPrefixed = false;
@@ -570,7 +585,7 @@ String PatternCatalog::generateId() const {
         if (id.startsWith("pattern")) {
             sawPrefixed = true;
             idx = id.substring(7).toInt();
-        } else if (isNumericId(id)) {
+        } else if (csv::isNumericId(id)) {
             sawNumeric = true;
             idx = id.toInt();
         }

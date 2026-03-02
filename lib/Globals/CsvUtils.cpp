@@ -1,8 +1,8 @@
 /**
  * @file CsvUtils.cpp
  * @brief CSV parsing utilities implementation
- * @version 260202A
- $12026-02-05
+ * @version 260302C
+ * @date 2026-03-02
  */
 #include "CsvUtils.h"
 
@@ -62,6 +62,18 @@ void splitColumns(const String& line, std::vector<String>& columns, char delimit
     for (auto& column : columns) {
         column.trim();
     }
+}
+
+bool isNumericId(const String& id) {
+    if (id.isEmpty()) {
+        return false;
+    }
+    for (size_t i = 0; i < id.length(); ++i) {
+        if (!isdigit(static_cast<unsigned char>(id[i]))) {
+            return false;
+        }
+    }
+    return true;
 }
 
 } // namespace csv

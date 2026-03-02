@@ -1,7 +1,7 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260302A
+ * @version 260302C
  * @date 2026-03-02
  */
 #include "LightRun.h"
@@ -223,7 +223,9 @@ void LightRun::cb_measureLux() {
     int8_t calendarShift = 0;
 #endif
     
-    uint8_t shiftedHi = LightPolicy::calcShiftedHi(lux, calendarShift, getWebMultiplier());
+    uint8_t shiftedHi = LightPolicy::calcShiftedHi(lux, calendarShift, getWebMultiplier(),
+        getColorsCatalog().cnf(getColorsCatalog().getActiveColorId()),
+        getPatternCatalog().pnf(getPatternCatalog().activeId()));
     setBrightnessShiftedHi(shiftedHi);
     
     PF("[LightRun] Lux=%.1f calShift=%d webMultiplier=%.2f → shiftedHi=%u\n", lux, calendarShift, getWebMultiplier(), shiftedHi);

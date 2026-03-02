@@ -274,7 +274,6 @@ static void applyOverride(const char* key, char type, const char* value) {
     // BRIGHTNESS/LUX
     // ═══════════════════════════════════════════════════════════
     // brightnessFloor REMOVED - use brightnessLo instead
-    // luxBeta REMOVED - replaced by luxShiftLo/luxShiftHi
     else if (strcmp(key, "luxMin") == 0 && type == 'f') {
         if (parseFloat(value, &f32)) {
             Globals::luxMin = f32;
