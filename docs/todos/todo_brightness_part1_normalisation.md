@@ -1,6 +1,6 @@
 # TODO Part 1: Brightness Normalisation (PNF + CNF)
 
-## Status: Planning — PNF/CNF concept awaiting approval
+## Status: DONE
 ## Date: 2026-03-02
 ## Source: BRIGHTNESS NORMALISATION.txt, calibration.txt, plan_snb.md
 
@@ -49,34 +49,27 @@ calibration (Part 2) only has to deal with ambient light.
 
 ## Tasks (assuming Option C or B — no Excel workflow)
 
-### 1.1 Compute initial CNF from light_colors.csv hex values
-- [ ] For each colors entry: parse `rgb1_hex`, `rgb2_hex`
-- [ ] Compute CIE luminance: `Y = 0.2126*R + 0.7152*G + 0.0722*B` (both colors, average)
-- [ ] Normalize to reference (Snow White = 1.0): `CNF = Y_white / Y_colors`
-- [ ] Store as `cnf[]` array at boot
-- [ ] This is a STATIC correction — computed once, no calibration needed
+### ~~1.1 Compute initial CNF from light_colors.csv hex values~~ DONE 2026-03-02
+- [x] ColorsCatalog::ensureCnf() computes CIE luminance ratio per colors
+- [x] Reference = Snow White (cnf=1.0), computed at CSV load, saved to SD
+- [x] Static correction — computed once, no calibration needed
 
-### 1.2 PNF stub (all 1.0f, calibrated later)
-- [ ] Create `pnf[]` array alongside `cnf[]`, initialized to 1.0f for all patterns
-- [ ] Multiply into pipeline: `brightness = ... × cnf[activeColors] × pnf[activePattern]`
-- [ ] Later: fill via `calculate_unscaled_power_mW()` runtime sampling or thumbs-up residuals
-- [ ] This costs one extra float[] (~120 bytes) and one multiply — zero behavioral change until calibrated
+### ~~1.2 PNF stub (all 1.0f, calibrated later)~~ DONE 2026-03-02
+- [x] PatternCatalog::ensurePnf() sets 0→1.0f in memory after CSV load
+- [x] pnf() accessor returns entry->pnf directly (ensurePnf guarantees non-zero)
+- [x] Zero behavioral change until calibrated
 
-### 1.3 Integrate CNF + PNF into brightness pipeline
-- [ ] Modify `calcShiftedHi()` in LightPolicy.cpp:
-  ```
-  brightness = brightnessHi × combinedMultiplier × cnf[activeColors] × pnf[activePattern]
-  ```
-- [ ] Or: multiply into `combinedMultiplier` before clamping
-- [ ] Ensure clamp still applies AFTER correction
+### ~~1.3 Integrate CNF + PNF into brightness pipeline~~ DONE 2026-03-02
+- [x] calcShiftedHi() multiplies with cnf and pnf
+- [x] LightRun and WebInterfaceController pass pnf through
+- [x] Clamp applies after correction
 
 ### ~~1.4 Resolve maxBrightness vs brightnessHi (E9)~~ DONE 2026-03-02
 - [x] maxBrightness = 248 (hardware), brightnessHi = 242 (policy). Distinct values.
 - [x] Documented in todo_normcalibeq.txt E9.
 
-### 1.5 Clean up dead globals
-- [ ] Remove `#luxBeta;f;0.005` from globals.csv line 44
-- [ ] Remove corresponding comment in Globals.cpp line 277
+### ~~1.5 Clean up dead globals~~ DONE 2026-03-02
+- [x] luxBeta already removed from globals.csv and Globals.cpp (prior session)
 
 ---
 
