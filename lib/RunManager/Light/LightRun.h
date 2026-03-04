@@ -1,8 +1,8 @@
 /**
  * @file LightRun.h
  * @brief LED show state management
- * @version 260303A
- * @date 2026-03-03
+ * @version 260304E
+ * @date 2026-03-04
  */
 #pragma once
 
@@ -38,7 +38,15 @@ public:
     static void cb_changeColor();
     static void cb_changePattern();
 
+    // PNF calibration callbacks
+    static void cb_pnfCalNext();
+    static void cb_pnfCalSample();
 
+    // Boot continuation after optional PNF calibration
+    static void continuePlan();
+
+    // Start pattern/colors rotation timers (deferred until PNF calibration done)
+    static void startRotationTimers();
 
     // Slider-triggered lux measurement (B6: debounce + 100ms cooldown)
     static void requestLuxMeasurement();
@@ -69,6 +77,9 @@ public:
     
     // Reapply current pattern/color (used by AlertRGB to restore after alert)
     static void reapplyCurrentShow();
+
+    // PNF calibration state query (used by AlertRGB to suppress flashing during cal)
+    static bool isPnfCalibrating();
 
     static bool selectPattern(const String &id, String &errorMessage);
     static bool selectNextPattern(String &errorMessage);

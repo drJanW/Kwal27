@@ -1,14 +1,15 @@
 /**
  * @file LightPolicy.cpp
  * @brief LED show business logic implementation
- * @version 260303A
- * @date 2026-03-03
+ * @version 260304B
+ * @date 2026-03-04
  */
 #include <Arduino.h>
 #include <math.h>
 
 #include "LightPolicy.h"
 #include "Globals.h"
+#include "PatternCatalog.h"
 
 namespace LightPolicy {
 
@@ -57,6 +58,10 @@ bool distanceAnimationFor(float distanceMm,
     intensity = 0.0f;
     paletteId = 0;
     return false;
+}
+
+bool areAllPnfsCalibrated() {
+    return PatternCatalog::instance().countUncalibrated() == 0;
 }
 
 }

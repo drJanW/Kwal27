@@ -478,11 +478,6 @@ bool PatternCatalog::loadFromSD() {
         patterns_.push_back(entry);
     }
 
-    // Ensure all entries have a valid pnf (0 → 1.0f stub, memory only)
-    for (auto& entry : patterns_) {
-        ensurePnf(entry);
-    }
-
     SDController::closeFile(file);
     return !patterns_.empty();
 }
@@ -563,16 +558,33 @@ const PatternCatalog::PatternEntry* PatternCatalog::findEntry(const String& id) 
 
 float PatternCatalog::pnf(const String& id) const {
     const PatternEntry* entry = findEntry(id);
-    if (!entry) {
-        return 1.0f;  // unknown id → no correction
+    if (!entry || entry->pnf == 0.0f) {
+        return 1.0f;  // unknown or uncalibrated → neutral
     }
-    return entry->pnf;  // ensurePnf() guarantees non-zero
+    return entry->pnf;
 }
 
-void PatternCatalog::ensurePnf(PatternEntry& entry) {
-    if (entry.pnf == 0.0f) {
-        entry.pnf = 1.0f;  // stub: no calibration yet, memory only
+uint8_t PatternCatalog::countUncalibrated() const {
+    uint8_t count = 0;
+    for (const auto& e : patterns_) {
+        if (e.pnf == 0.0f) count++;
     }
+    return count;
+}
+
+std::vector<String> PatternCatalog::getUncalibratedIds() const {
+    std::vector<String> ids;
+    for (const auto& e : patterns_) {
+        if (e.pnf == 0.0f) ids.push_back(e.id);
+    }
+    return ids;
+}
+
+bool PatternCatalog::setPnf(const String& id, float value) {
+    PatternEntry* entry = findEntry(id);
+    if (!entry) return false;
+    entry->pnf = value;
+    return true;
 }
 
 String PatternCatalog::generateId() const {

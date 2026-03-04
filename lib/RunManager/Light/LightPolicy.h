@@ -1,8 +1,8 @@
 /**
  * @file LightPolicy.h
  * @brief LED show business logic
- * @version 260303A
- * @date 2026-03-03
+ * @version 260304B
+ * @date 2026-03-04
  */
 #pragma once
 #include <Arduino.h>
@@ -24,5 +24,8 @@ namespace LightPolicy {
                               uint32_t& frameIntervalMs,
                               float& intensity,
                               uint8_t& paletteId);
+
+    // PNF calibration gate: true when all patterns have pnf > 0
+    bool areAllPnfsCalibrated();
 
 }

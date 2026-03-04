@@ -1,8 +1,8 @@
 /**
  * @file PatternCatalog.h
  * @brief LED pattern storage
- * @version 260302E
- * @date 2026-03-02
+ * @version 260304B
+ * @date 2026-03-04
  */
 #pragma once
 
@@ -38,8 +38,14 @@ public:
     bool getParamsForId(const String& id, LightShowParams& out) const;
     String getLabelForId(const String& id) const;  // Returns label or empty string if not found
 
-    // PNF for a pattern id. Returns effective value (0 in CSV → 1.0f stub).
+    // PNF for a pattern id. Returns effective value (0 → 1.0f uncalibrated).
     float pnf(const String& id) const;
+
+    // PNF calibration API (used by LightRun)
+    uint8_t countUncalibrated() const;
+    std::vector<String> getUncalibratedIds() const;
+    bool setPnf(const String& id, float value);
+    bool saveToSD() const;
 
 private:
     PatternCatalog() = default;
@@ -48,12 +54,10 @@ private:
         String id;
         String label;
         LightShowParams params;
-        float pnf{0.0f};  // 0 = stub (use 1.0f), calibrated later
+        float pnf{0.0f};  // 0 = uncalibrated, >0 = calibrated
     };
 
     bool loadFromSD();
-    bool saveToSD() const;
-    void ensurePnf(PatternEntry& entry);
 
     PatternEntry* findEntry(const String& id);
     const PatternEntry* findEntry(const String& id) const;

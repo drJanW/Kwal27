@@ -1,8 +1,8 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260303A
- * @date 2026-03-03
+ * @version 260304E
+ * @date 2026-03-04
  */
 #include "LightRun.h"
 
@@ -22,6 +22,7 @@
 #include "NasBackup.h"
 #include "LuxCalibration.h"
 #include <FastLED.h>
+#include <algorithm>
 
 // Alias for readability — Globals::brightnessFading
 static inline bool& brightnessFading = Globals::brightnessFading;
@@ -58,6 +59,25 @@ LightSource colorSource = LightSource::CONTEXT;
 uint64_t lastStatusBits = 0;
 
 ShiftTable& shiftTable = ShiftTable::instance();
+
+// ─── PNF calibration constants ───────────────────────────────
+// All hardcoded together to protect calibration integrity.
+static const CRGB PNF_CAL_COLOR_A(0xFF, 0xFF, 0xFF);        // Snow White primary
+static const CRGB PNF_CAL_COLOR_B(0xAA, 0xAA, 0xAA);        // Snow White secondary
+constexpr float PNF_CAL_EXPONENT = 0.3f;                     // Perceptual compression
+constexpr uint32_t PNF_CAL_DURATION_MS = 300000;              // 5 min per pattern
+constexpr uint32_t PNF_CAL_SAMPLE_INTERVAL_MS = 100;          // 100ms → 10 Hz
+constexpr uint16_t PNF_CAL_SAMPLE_COUNT = PNF_CAL_DURATION_MS / PNF_CAL_SAMPLE_INTERVAL_MS; // 3000
+constexpr uint8_t  PNF_CAL_PERCENTILE = 90;                   // 90th percentile
+
+// PNF calibration runtime state
+static float*   pnfCalSamples = nullptr;      // heap-allocated sample buffer
+static uint16_t pnfCalSampleIndex = 0;
+static size_t   pnfCalQueueIndex = 0;
+static std::vector<String> pnfCalQueue;       // pattern IDs to calibrate
+static String   pnfCalSavedPatternId;         // restore after calibration
+static String   pnfCalSavedColorId;           // restore after calibration
+static bool     pnfCalActive = false;          // true during PNF calibration
 
 const char* sourceToString(LightSource src) {
     switch (src) {
@@ -135,23 +155,46 @@ void LightRun::plan() {
     shiftTable.begin();
 
     // Preload pattern/color catalogs while SD is still uncontended.
-    // This avoids lazy SD reads inside web request handlers during audio playback.
     getPatternCatalog();
     getColorsCatalog();
     
-    // Apply immediately and start periodic check timer
+    // Check if PNF calibration needed — if so, defer everything
+    if (!LightPolicy::areAllPnfsCalibrated()) {
+        PF("[LightRun] PNF calibration needed for %u patterns\n",
+           PatternCatalog::instance().countUncalibrated());
+        pnfCalSavedPatternId = PatternCatalog::instance().activeId();
+        pnfCalSavedColorId   = getColorsCatalog().getActiveColorId();
+        pnfCalQueue = PatternCatalog::instance().getUncalibratedIds();
+        pnfCalQueueIndex = 0;
+        // Set brightness high for calibration visibility
+        setBrightnessShiftedHi(Globals::brightnessHi);
+        pnfCalActive = true;
+        timers.create(500, 1, cb_pnfCalNext);
+        return;  // continuePlan() called when calibration completes
+    }
+    
+    continuePlan();
+}
+
+void LightRun::continuePlan() {
+    pnfCalActive = false;
+    // Apply lights and start all runtime timers
     lastStatusBits = StatusFlags::getFullStatusBits();
     applyToLights();
     scheduleShiftTimer();
     
-    // Periodic lux measurement (Light's responsibility)
+    // Periodic lux measurement
     timers.create(Globals::luxMeasurementIntervalMs, 0, LightRun::cb_luxMeasure);
     
-    // Periodic random color/pattern changes (independent timers)
-    timers.create(Globals::colorChangeIntervalMs, 0, LightRun::cb_changeColor);
-    timers.create(Globals::patternChangeIntervalMs, 0, LightRun::cb_changePattern);
+    startRotationTimers();
     
     // NOTE: Status flash handled by AlertRGB reminder system (61 min interval)
+}
+
+void LightRun::startRotationTimers() {
+    timers.create(Globals::colorChangeIntervalMs, 0, LightRun::cb_changeColor);
+    timers.create(Globals::patternChangeIntervalMs, 0, LightRun::cb_changePattern);
+    PL("[LightRun] Rotation timers started");
 }
 
 void LightRun::updateDistance(float distanceMm) {
@@ -751,6 +794,10 @@ void LightRun::reapplyCurrentShow() {
     applyToLights();
 }
 
+bool LightRun::isPnfCalibrating() {
+    return pnfCalActive;
+}
+
 void LightRun::cb_changeColor() {
     if (colorSource != LightSource::MANUAL) {
         ColorsCatalog& colCat = getColorsCatalog();
@@ -772,5 +819,102 @@ void LightRun::cb_changePattern() {
             applyToLights();
             PL("[LightRun] Timer: new random pattern");
         }
+    }
+}
+
+// ─── PNF calibration callbacks ──────────────────────────────
+
+void LightRun::cb_pnfCalNext() {
+    PatternCatalog& catalog = getPatternCatalog();
+
+    // All done?
+    if (pnfCalQueueIndex >= pnfCalQueue.size()) {
+        // Free sample buffer
+        delete[] pnfCalSamples;
+        pnfCalSamples = nullptr;
+        pnfCalQueue.clear();
+
+        // Restore original pattern + color
+        String err;
+        if (!pnfCalSavedPatternId.isEmpty()) {
+            catalog.select(pnfCalSavedPatternId, err);
+        }
+
+        PL("[PnfCal] Calibration complete");
+        continuePlan();
+        return;
+    }
+
+    // Allocate sample buffer on first call
+    if (!pnfCalSamples) {
+        pnfCalSamples = new (std::nothrow) float[PNF_CAL_SAMPLE_COUNT];
+        if (!pnfCalSamples) {
+            PL("[PnfCal] ALLOC FAIL — skipping calibration");
+            continuePlan();
+            return;
+        }
+    }
+
+    // Activate next pattern with hardcoded calibration colors
+    const String& patternId = pnfCalQueue[pnfCalQueueIndex];
+    String err;
+    catalog.select(patternId, err);
+
+    // Override colors directly in the show params
+    LightShowParams params = catalog.getActiveParams();
+    params.RGB1 = PNF_CAL_COLOR_A;
+    params.RGB2 = PNF_CAL_COLOR_B;
+    PlayLightShow(params);
+
+    String label = catalog.getLabelForId(patternId);
+    PF("[PnfCal] Sampling %s '%s' (%u/%u)\n",
+       patternId.c_str(), label.c_str(),
+       static_cast<unsigned>(pnfCalQueueIndex + 1),
+       static_cast<unsigned>(pnfCalQueue.size()));
+
+    pnfCalSampleIndex = 0;
+    timers.create(PNF_CAL_SAMPLE_INTERVAL_MS, 0, cb_pnfCalSample);  // infinite; stops via cancel
+}
+
+void LightRun::cb_pnfCalSample() {
+    // Compute average CIE luminance across all LEDs
+    float sum = 0.0f;
+    for (uint16_t i = 0; i < NUM_LEDS; i++) {
+        const CRGB& px = leds[i];
+        // CIE luminance: Y = 0.2126*R + 0.7152*G + 0.0722*B
+        sum += 0.2126f * px.r + 0.7152f * px.g + 0.0722f * px.b;
+    }
+    float avgLuminance = sum / NUM_LEDS;
+
+    // Apply perceptual compression
+    float perceptual = powf(avgLuminance / 255.0f, PNF_CAL_EXPONENT);
+
+    if (pnfCalSamples && pnfCalSampleIndex < PNF_CAL_SAMPLE_COUNT) {
+        pnfCalSamples[pnfCalSampleIndex++] = perceptual;
+    }
+
+    // All samples collected? Compute 90th percentile
+    if (pnfCalSampleIndex >= PNF_CAL_SAMPLE_COUNT) {
+        timers.cancel(cb_pnfCalSample);
+        // Sort samples
+        std::sort(pnfCalSamples, pnfCalSamples + pnfCalSampleIndex);
+        uint16_t idx90 = static_cast<uint16_t>(
+            pnfCalSampleIndex * PNF_CAL_PERCENTILE / 100);
+        if (idx90 >= pnfCalSampleIndex) idx90 = pnfCalSampleIndex - 1;
+        float pnf = pnfCalSamples[idx90];
+
+        // Store PNF and save to CSV immediately
+        PatternCatalog& catalog = getPatternCatalog();
+        const String& patternId = pnfCalQueue[pnfCalQueueIndex];
+        catalog.setPnf(patternId, pnf);
+        catalog.saveToSD();
+
+        String label = catalog.getLabelForId(patternId);
+        PF("[PnfCal] %s '%s' pnf=%.4f (%u samples) — saved\n",
+           patternId.c_str(), label.c_str(),
+           pnf, pnfCalSampleIndex);
+
+        pnfCalQueueIndex++;
+        timers.create(500, 1, cb_pnfCalNext);  // Next pattern after short settle
     }
 }

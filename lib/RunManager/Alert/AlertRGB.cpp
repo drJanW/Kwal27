@@ -1,8 +1,8 @@
 /**
  * @file AlertRGB.cpp
  * @brief RGB LED status flash coordination implementation
- * @version 260215B
- * @date 2026-02-15
+ * @version 260304E
+ * @date 2026-03-04
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "AlertRGB.h"
@@ -138,6 +138,9 @@ void cb_flash() {
 namespace AlertRGB {
 
 void startFlashing() {
+    // Suppress flashing during PNF calibration — Snow White show must not be overridden
+    if (LightRun::isPnfCalibrating()) return;
+
     // Flash burst: configurable via globals.csv
     // Interval between bursts, repeats, and optional growth multiplier for exponential backoff
     // Only start if not already flashing (create fails if timer exists)
