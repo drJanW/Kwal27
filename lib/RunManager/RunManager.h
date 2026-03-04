@@ -1,8 +1,8 @@
 /**
  * @file RunManager.h
  * @brief Central coordinator header for all Kwal modules
- * @version 260226B
- * @date 2026-02-26
+ * @version 260304F
+ * @date 2026-03-04
  */
 #pragma once
 #include <Arduino.h>
@@ -46,11 +46,10 @@ public:
     // Lux measurement request (Run-compliant)
     static void requestLuxMeasurement();
 
-    // Called by WiFiBoot after CSV fetch completes or times out
-    static void resumeAfterWiFiBoot();
+    // Start periodic audio timers (called by BootSequencer verdict)
+    static void armAudioTimers();
 
-private:
-    friend class SDBoot;
-    // Internal helpers
+    // Legacy boot handoffs — now no-ops (sequencer handles this)
     static void resumeAfterSDBoot();
+    static void resumeAfterWiFiBoot();
 };

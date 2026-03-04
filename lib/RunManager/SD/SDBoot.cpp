@@ -14,6 +14,8 @@
 #include "Alert/AlertRun.h"
 #include "Alert/AlertState.h"
 #include "BootManager.h"
+#include "Boot/BootSequencer.h"
+#include "Boot/Cap.h"
 #include <FastLED.h>
 
 namespace {
@@ -198,7 +200,7 @@ bool SDBoot::plan() {
     // Already OK?
     if (AlertState::isSdOk()) {
         reportSdOk();
-        RunManager::resumeAfterSDBoot();
+        BootSequencer::grant(Cap::SD | Cap::CONFIG);
         return true;
     }
 
@@ -213,7 +215,7 @@ bool SDBoot::plan() {
 
     if (AlertState::isSdOk()) {
         reportSdOk();
-        RunManager::resumeAfterSDBoot();
+        BootSequencer::grant(Cap::SD | Cap::CONFIG);
         return true;
     }
 
@@ -229,7 +231,7 @@ void SDBoot::cb_retryBoot() {
     if (AlertState::isSdOk()) {
         timers.cancel(cb_retryBoot);
         reportSdOk();
-        RunManager::resumeAfterSDBoot();
+        BootSequencer::grant(Cap::SD | Cap::CONFIG);
         return;
     }
 
@@ -242,14 +244,16 @@ void SDBoot::cb_retryBoot() {
     if (AlertState::isSdOk()) {
         timers.cancel(cb_retryBoot);
         reportSdOk();
-        RunManager::resumeAfterSDBoot();
+        BootSequencer::grant(Cap::SD | Cap::CONFIG);
         return;
     }
 
     // Last retry exhausted?
     if (remaining <= 1) {
         reportSdFail();
-        RunManager::resumeAfterSDBoot();  // Continue boot without SD
+        Globals::begin();  // NVS fallback — ensure config available without SD
+        BootSequencer::fail(Cap::SD);
+        BootSequencer::grant(Cap::CONFIG);  // Config loaded from NVS
     }
 }
 

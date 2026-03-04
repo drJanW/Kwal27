@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260304E"
+#define FIRMWARE_VERSION_CODE "260304F"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -152,6 +152,7 @@ struct Globals {
     inline static uint32_t clockBootstrapIntervalMs  = 500UL;     // Clock init retry interval
     inline static uint32_t ntpFallbackTimeoutMs      = SECONDS(15); // NTP timeout before RTC fallback
     inline static uint32_t bootPhaseMs               = 500UL;     // Delay between boot phases
+    inline static uint32_t bootTimeoutMs             = SECONDS(30); // Max wait for sequencer before verdict
     inline static uint32_t rtcTemperatureIntervalMs  = MINUTES(3); // RTC temperature read interval
 
     // ─────────────────────────────────────────────────────────────

@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260227A
- * @date 2026-02-26
+ * @version 260304F
+ * @date 2026-03-04
  */
 #include <Arduino.h>
 #include <math.h>
@@ -57,6 +57,8 @@
 #include "Clock/ClockBoot.h"
 #include "Clock/ClockRun.h"
 #include "Light/LightRun.h"
+#include "Boot/BootSequencer.h"
+#include "Boot/Cap.h"
 
 // === Lux Measurement - delegated to LightRun ===
 void RunManager::requestLuxMeasurement() {
@@ -321,51 +323,14 @@ void cb_clearWebAudio() {
 static bool clockRunning = false;
 static bool clockInFallback = false;
 
-static StatusRun statusRun;
-static ClockBoot clockBoot;
-static ClockRun clockRun;
-static SDBoot sdBoot;
-static SDRun sdRun;
-static WiFiBoot wifiBoot;
-static WiFiRun wifiRun;
-static WebBoot webBoot;
-static WebRun webRun;
-static AudioBoot audioBoot;
-static AudioRun audioRun;
-static LightBoot lightBoot;
-static LightRun lightRun;
-static SensorsBoot sensorsBoot;
-static SensorsRun sensorsRun;
-static SpeakBoot speakBoot;
-static SpeakRun speakRun;
-static bool sdPostBootCompleted = false;
-static bool wifiPostBootCompleted = false;
-
 void RunManager::begin() {
-    // I2C already initialized in systemBootStage1()
-    // First sayTime after random 45-145 min, then reschedules itself
-    timers.create(random(Globals::minSaytimeIntervalMs, Globals::maxSaytimeIntervalMs + 1), 1, cb_sayTime);
-    timers.create(random(Globals::minTemperatureSpeakIntervalMs, Globals::maxTemperatureSpeakIntervalMs + 1),
-                  1, cb_sayRTCtemperature);
-    // First audio after random 6-18 min, then reschedules itself
-    timers.create(random(Globals::minAudioIntervalMs, Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
+    // Compute pre-granted capabilities from Stage0/1
+    uint16_t preGranted = 0;
+    if (hwStatus & HW_I2C) preGranted |= Cap::I2C;
+    if (prtClock.isTimeFetched()) preGranted |= Cap::RTC;
 
-    // Note: Periodic lux measurement is now handled by LightRun::plan()
-    bootManager.begin();
-
-    ContextController::begin();
-    heartbeatBoot.plan();
-    heartbeatRun.plan();
-    statusBoot.plan();
-    statusRun.plan();
-    clockBoot.plan();
-    clockRun.plan();
-
-    if (!sdBoot.plan()) {
-        return;
-    }
-
-    resumeAfterSDBoot();
+    // Delegate to BootSequencer — the manifest drives everything
+    BootSequencer::begin(preGranted);
 }
 
 void RunManager::update() {
@@ -542,6 +507,12 @@ bool RunManager::requestStartClockTick(bool fallbackEnabled) {
     clockRunning = true;
     clockInFallback = fallbackEnabled;
     RUN_LOG_INFO("[ClockRun] tick started (%s)\n", fallbackEnabled ? "fallback" : "normal");
+
+    // Grant clock capability to BootSequencer (triggers dependent steps)
+    if (!BootSequencer::isBootDone()) {
+        BootSequencer::grant(Cap::CLOCK);
+    }
+
     return true;
 }
 
@@ -554,60 +525,32 @@ bool RunManager::isClockInFallback() {
 }
 
 bool RunManager::requestSeedClockFromRtc() {
-    return clockRun.seedClockFromRtc(prtClock);
+    static ClockRun clockRunSeed;
+    return clockRunSeed.seedClockFromRtc(prtClock);
 }
 
 void RunManager::requestSyncRtcFromClock() {
-    clockRun.syncRtcFromClock(prtClock);
+    static ClockRun clockRunSync;
+    clockRunSync.syncRtcFromClock(prtClock);
 }
 
+void RunManager::armAudioTimers() {
+    // Create the periodic audio timers (first fire after random interval)
+    timers.create(random(Globals::minSaytimeIntervalMs,
+                         Globals::maxSaytimeIntervalMs + 1), 1, cb_sayTime);
+    timers.create(random(Globals::minTemperatureSpeakIntervalMs,
+                         Globals::maxTemperatureSpeakIntervalMs + 1), 1, cb_sayRTCtemperature);
+    timers.create(random(Globals::minAudioIntervalMs,
+                         Globals::maxAudioIntervalMs + 1), 1, cb_playFragment);
+}
+
+// Legacy resume functions — kept as no-ops for any stale callsites
 void RunManager::resumeAfterSDBoot() {
-    if (sdPostBootCompleted) {
-        return;
-    }
-
-    sdPostBootCompleted = true;
-
-    // When SD failed, load NVS WiFi cache BEFORE WiFi connects
-    // (normal SD path already loaded config.txt via Globals::begin() in SDBoot::initSD)
-    if (!AlertState::isSdOk()) {
-        Globals::begin();
-        PF("\n=== DEGRADED MODE (no SD) ===\n");
-        PF("  Device:  %s\n", Globals::deviceName);
-        PF("  IP:      %s\n", strlen(Globals::staticIp) > 0 ? Globals::staticIp : "DHCP");
-        PF("  Active:  LED fallback, TTS, WebGUI fallback, OTA\n");
-        PF("  Missing: music, animated light shows (and calendar, config)\n");
-        PF("  Action:  insert SD card and restart\n");
-        PF("=============================\n\n");
-    }
-
-    sdRun.plan();
-    wifiBoot.plan();
-    wifiRun.plan();
-    webBoot.plan();
-    webRun.plan();
-    WebDirector::instance().plan();
-    sensorsBoot.plan();
-    sensorsRun.plan();
-    speakBoot.plan();
-    speakRun.plan();
+    // Boot sequencer handles this now
 }
 
 void RunManager::resumeAfterWiFiBoot() {
-    if (wifiPostBootCompleted) {
-        return;
-    }
-
-    wifiPostBootCompleted = true;
-
-    // Globals::begin() already called during SD boot (or SD-fail fallback)
-    bootManager.restartBootTimer();
-    calendarBoot.plan();
-    calendarRun.plan();
-    lightBoot.plan();
-    lightRun.plan();
-    audioBoot.plan();
-    audioRun.plan();
+    // Boot sequencer handles this now
 }
 
 void RunManager::requestWebAudioNext(uint16_t fadeMs) {

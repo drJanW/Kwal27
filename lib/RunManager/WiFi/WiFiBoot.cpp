@@ -1,9 +1,10 @@
 /**
  * @file WiFiBoot.cpp
  * @brief WiFi connection one-time initialization implementation
- * @version 260212G
- * @date 2026-02-12
+ * @version 260304F
+ * @date 2026-03-04
  */
+#include <Arduino.h>
 #include "WiFiBoot.h"
 #include "Globals.h"
 #include "WiFiController.h"
@@ -15,6 +16,8 @@
 #include "Alert/AlertState.h"
 #include "SDController.h"
 #include "NasBackup.h"
+#include "Boot/BootSequencer.h"
+#include "Boot/Cap.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <WiFiClient.h>
@@ -187,7 +190,7 @@ namespace {
         csvFetchCompleted = true;
         PL("[WiFiBoot] NAS timeout, using SD");
         removeAllNasCsvFiles();
-        RunManager::resumeAfterWiFiBoot();
+        BootSequencer::grant(Cap::CSV);
     }
 
     void cb_moduleInit() {
@@ -215,6 +218,7 @@ namespace {
         if (wifiUp && !lastWiFiState) {
             hwStatus |= HW_WIFI;
             AlertRun::report(AlertRequest::WIFI_OK);
+            BootSequencer::grant(Cap::WIFI);
         } else if (!wifiUp && lastWiFiState) {
             PL("[Main] WiFi lost, retrying");
             hwStatus &= ~HW_WIFI;
@@ -244,7 +248,7 @@ namespace {
                 // in TIME_WAIT (~120s), each holding ~6-11KB heap. Adding another
                 // HTTP connection here causes OOM during audio+webserver.
                 timers.create(SECONDS(30), 1, []() { NasBackup::startHealthTimer(); });
-                RunManager::resumeAfterWiFiBoot();
+                BootSequencer::grant(Cap::CSV);
             }
 
             if (!fetchCreated) {

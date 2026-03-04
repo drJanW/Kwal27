@@ -1,9 +1,10 @@
 /**
  * @file BootManager.cpp
  * @brief Boot sequence coordinator implementation
- * @version 260205A
- $12026-02-10
+ * @version 260304F
+ * @date 2026-03-04
  */
+#include <Arduino.h>
 #include "BootManager.h"
 #include "Globals.h"
 #include "TimerManager.h"
@@ -11,18 +12,12 @@
 #include "RunManager.h"
 #include "Alert/AlertRun.h"
 #include "Alert/AlertState.h"
-#include "Sensors/SensorsRun.h"
 
 BootManager bootManager;
 
 namespace {
 
-void cb_endOfBoot() {
-    if (!AlertState::isBootPhase()) return;  // already ended
-    SensorsRun::readRtcTemperature();
-    PL("[BootManager] Ready");
-    AlertRun::report(AlertRequest::START_RUNTIME);
-}
+// cb_endOfBoot removed — BootSequencer manages the boot timeout
 
 } // namespace
 
@@ -33,17 +28,12 @@ bool BootManager::begin() {
         PL("[BootManager] Failed to arm bootstrap timer");
         return false;
     }
-    // Boot timeout: force START_RUNTIME after bootPhaseMs regardless of clock
-    // Uses code default; restartBootTimer() updates after globals.csv load
-    timers.create(Globals::bootPhaseMs, 1, cb_endOfBoot);
+    // Boot timeout managed by BootSequencer
     return true;
 }
 
 void BootManager::restartBootTimer() {
-    if (!AlertState::isBootPhase()) return;  // already ended
-    timers.cancel(cb_endOfBoot);
-    timers.create(Globals::bootPhaseMs, 1, cb_endOfBoot);
-    PF_BOOT("[BootManager] bootPhaseMs=%u\n", Globals::bootPhaseMs);
+    // Boot timeout managed by BootSequencer — nothing to restart
 }
 
 void BootManager::cb_bootstrapThunk() {
