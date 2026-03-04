@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260302E
- * @date 2026-03-02
+ * @version 260303A
+ * @date 2026-03-03
  */
 #pragma once
 
@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260302E"
+#define FIRMWARE_VERSION_CODE "260303A"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -236,6 +236,16 @@ struct Globals {
     // flag the repaint would stomp the fade curve mid-step. Set by LightRun,
     // read by LightController. Lives in Globals for cross-library visibility.
     inline static bool brightnessFading = false;
+
+    // ─────────────────────────────────────────────────────────────
+    // LUX CALIBRATION — cross-library state for Part 2
+    // ─────────────────────────────────────────────────────────────
+    // When true: calcShiftedHi() stores pre-clamp brightness in lastUnclampedBrightness
+    inline static bool luxCalibrationMode = false;
+    // Pre-clamp brightness float, written by calcShiftedHi when luxCalibrationMode is true
+    inline static float lastUnclampedBrightness = 0.0f;
+    // Flag: web handler sets true, cb_measureLux captures sample then clears
+    inline static bool luxCalSampleRequested = false;
 
     // Initialize: load CSV overrides (call after SD init)
     static void begin();

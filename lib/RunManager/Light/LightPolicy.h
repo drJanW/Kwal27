@@ -1,8 +1,8 @@
 /**
  * @file LightPolicy.h
  * @brief LED show business logic
- * @version 260302C
- * @date 2026-03-02
+ * @version 260303A
+ * @date 2026-03-03
  */
 #pragma once
 #include <Arduino.h>

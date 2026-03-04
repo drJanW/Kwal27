@@ -1,8 +1,8 @@
 /**
  * @file WebInterfaceController.cpp
  * @brief Async web server setup, routes index.html and API endpoints
- * @version 260302C
- * @date 2026-03-02
+ * @version 260303A
+ * @date 2026-03-03
  */
 #include <Arduino.h>
 #include "WebInterfaceController.h"
@@ -27,6 +27,7 @@
 #include "routes/TodayRoutes.h"
 #include "routes/HealthRoutes.h"
 #include "routes/LogRoutes.h"
+#include "routes/LuxCalRoutes.h"
 #include "routes/SseController.h"
 #include "Light/LightPolicy.h"
 #include "Light/ColorsCatalog.h"
@@ -166,6 +167,7 @@ void beginWebInterface()
     TodayRoutes::attachRoutes(server);
     HealthRoutes::attachRoutes(server);
     LogRoutes::attachRoutes(server);
+    LuxCalRoutes::attachRoutes(server);
 
     // Serve UI assets from SD card
     server.serveStatic("/styles.css", SD, "/styles.css");

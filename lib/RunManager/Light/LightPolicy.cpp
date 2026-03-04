@@ -1,8 +1,8 @@
 /**
  * @file LightPolicy.cpp
  * @brief LED show business logic implementation
- * @version 260302C
- * @date 2026-03-02
+ * @version 260303A
+ * @date 2026-03-03
  */
 #include <Arduino.h>
 #include <math.h>
@@ -35,6 +35,12 @@ uint8_t calcShiftedHi(float lux, int8_t calendarShift, float webMultiplier,
     
     // Apply SNB normalisation: cnf × pnf scales perceived brightness
     float brightness = Globals::brightnessHi * combinedMultiplier * cnf * pnf;
+
+    // Calibration mode: store pre-clamp value for lux calibration samples
+    if (Globals::luxCalibrationMode) {
+        Globals::lastUnclampedBrightness = brightness;
+    }
+
     return static_cast<uint8_t>(clamp(brightness, Globals::brightnessLo, Globals::brightnessHi));
 }
 

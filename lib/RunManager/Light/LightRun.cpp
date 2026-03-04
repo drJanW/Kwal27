@@ -1,8 +1,8 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260302C
- * @date 2026-03-02
+ * @version 260303A
+ * @date 2026-03-03
  */
 #include "LightRun.h"
 
@@ -20,6 +20,7 @@
 #include "Alert/AlertState.h"
 #include "WebGuiStatus.h"
 #include "NasBackup.h"
+#include "LuxCalibration.h"
 #include <FastLED.h>
 
 // Alias for readability — Globals::brightnessFading
@@ -230,6 +231,21 @@ void LightRun::cb_measureLux() {
     
     PF("[LightRun] Lux=%.1f calShift=%d webMultiplier=%.2f → shiftedHi=%u\n", lux, calendarShift, getWebMultiplier(), shiftedHi);
     
+    // Lux calibration: capture sample if requested by web handler
+    if (Globals::luxCalSampleRequested) {
+        Globals::luxCalSampleRequested = false;
+        LuxCalSample sample;
+        sample.lux        = lux;
+        sample.brightness  = Globals::lastUnclampedBrightness;
+        sample.patternId   = static_cast<uint8_t>(getPatternCatalog().activeId().toInt());
+        sample.colorsId    = static_cast<uint8_t>(getColorsCatalog().getActiveColorId().toInt());
+        LuxCalibration::instance().addSample(sample);
+        // Defer SD write to avoid blocking in callback
+        if (!AlertState::isSdBusy()) {
+            LuxCalibration::instance().saveToSd();
+        }
+    }
+
     // Repaint LED buffer with current pattern/colors, but keep brightness at 0
     // The fader will ramp up to shiftedHi smoothly
     applyToLights();
