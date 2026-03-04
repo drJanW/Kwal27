@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260226A - Built 2026-02-26 22:11
+ * Kwal WebGUI v260304A - Built 2026-03-04 06:58
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260226A';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260304A';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -506,7 +506,9 @@ Kwal.modal = (function() {
     for (var i = 0; i < openBtns.length; i++) {
       (function(btn) {
         btn.onclick = function() {
-          close('dev-modal');
+          // Close parent modal (if any)
+          var parentModal = btn.closest('.modal');
+          if (parentModal) parentModal.classList.remove('open');
           var targetId = btn.getAttribute('data-open');
           open(targetId);
           // Trigger load for specific modals

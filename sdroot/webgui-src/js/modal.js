@@ -18,7 +18,9 @@ Kwal.modal = (function() {
     for (var i = 0; i < openBtns.length; i++) {
       (function(btn) {
         btn.onclick = function() {
-          close('dev-modal');
+          // Close parent modal (if any)
+          var parentModal = btn.closest('.modal');
+          if (parentModal) parentModal.classList.remove('open');
           var targetId = btn.getAttribute('data-open');
           open(targetId);
           // Trigger load for specific modals

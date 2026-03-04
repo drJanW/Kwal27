@@ -33,21 +33,6 @@
         <input type="range" id="volume" min="0" max="100" value="100">
         <span id="vol-num">100%</span>
       </div>
-      <div class="row row-gap">
-        <label>Audio-interval</label>
-        <input type="range" id="frag-interval" min="0" max="15" value="7">
-        <span id="frag-num">30m</span>
-      </div>
-      <div class="row">
-        <label class="label-brown">Tijdspraak-interval</label>
-        <input type="range" id="speak-interval" class="slider-brown" min="0" max="16" value="9">
-        <span id="speak-num">60m</span>
-      </div>
-      <div class="row row-gap">
-        <label class="label-gold">Geldigheids&shy;duur</label>
-        <input type="range" id="interval-duration" class="slider-gold" min="0" max="11" value="11">
-        <span id="dur-num">13u</span>
-      </div>
     </section>
 
     <hr class="panel-sep">
@@ -95,13 +80,69 @@
     <div class="modal-box">
       <span class="modal-close" data-close>✕</span>
       <h3>Dev</h3>
-      <button data-open="sd-modal">SD</button>
-      <button data-open="ota-modal">OTA</button>
+      <button data-open="audio-settings-modal">Audio</button>
+      <button data-open="light-settings-modal">Light</button>
+      <button data-open="system-settings-modal">System</button>
+    </div>
+  </div>
+
+  <div id="audio-settings-modal" class="modal">
+    <div class="modal-box">
+      <span class="modal-close" data-close data-return="dev-modal">✕</span>
+      <h3>Audio</h3>
+      <button data-open="mp3grid-modal">MP3 Grid</button>
+      <hr>
+      <div class="row">
+        <label>Audio-interval</label>
+        <input type="range" id="frag-interval" min="0" max="15" value="7">
+        <span id="frag-num">30m</span>
+      </div>
+      <div class="row">
+        <label class="label-brown">Tijdspraak-interval</label>
+        <input type="range" id="speak-interval" class="slider-brown" min="0" max="16" value="9">
+        <span id="speak-num">60m</span>
+      </div>
+      <div class="row">
+        <label class="label-gold">Geldigheids&shy;duur</label>
+        <input type="range" id="interval-duration" class="slider-gold" min="0" max="11" value="11">
+        <span id="dur-num">13u</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="light-settings-modal" class="modal">
+    <div class="modal-box">
+      <span class="modal-close" data-close data-return="dev-modal">✕</span>
+      <h3>Light</h3>
       <button data-open="pattern-modal">Pattern</button>
       <button data-open="colors-modal">Colors</button>
+      <hr>
+      <div class="row">
+        <label class="label-gold">Geldigheids&shy;duur</label>
+        <input type="range" id="light-duration" class="slider-gold" min="0" max="11" value="11" disabled>
+        <span id="light-dur-num">-</span>
+      </div>
+      <hr>
+      <button data-open="luxcal-modal">Cal Lux</button>
+    </div>
+  </div>
+
+  <div id="system-settings-modal" class="modal">
+    <div class="modal-box">
+      <span class="modal-close" data-close data-return="dev-modal">✕</span>
+      <h3>System</h3>
+      <button data-open="sd-modal">SD</button>
+      <button data-open="ota-modal">OTA</button>
       <button data-open="health-modal">Status</button>
-      <button data-open="log-modal">View Log</button>
-      <button data-open="mp3grid-modal">MP3 Grid</button>
+      <button data-open="log-modal">Log</button>
+    </div>
+  </div>
+
+  <div id="luxcal-modal" class="modal">
+    <div class="modal-box">
+      <span class="modal-close" data-close>✕</span>
+      <h3>Cal Lux</h3>
+      <p>Lux calibration — coming soon</p>
     </div>
   </div>
 
@@ -113,13 +154,13 @@
         <input type="text" id="save-colors-name" maxlength="48">
       </div>
       <button id="save-colors-confirm" class="btn-ok">Save</button>
-      <button data-close data-return="dev-modal">Cancel</button>
+      <button data-close>Cancel</button>
     </div>
   </div>
 
   <div id="sd-modal" class="modal">
     <div class="modal-box">
-      <span class="modal-close" data-close data-return="dev-modal">✕</span>
+      <span class="modal-close" data-close>✕</span>
       <h3>SD Card</h3>
       <p>Upload file to SD root:</p>
       <div class="upload-box">
@@ -135,7 +176,7 @@
 
   <div id="ota-modal" class="modal">
     <div class="modal-box">
-      <span class="modal-close" data-close data-return="dev-modal">✕</span>
+      <span class="modal-close" data-close>✕</span>
       <h3>OTA Update</h3>
       <p>Kies firmware .bin en upload via browser.</p>
       <div style="margin:8px 0">
@@ -149,7 +190,7 @@
 
   <div id="pattern-modal" class="modal">
     <div class="modal-box wide">
-      <span class="modal-close" data-close data-return="dev-modal">✕</span>
+      <span class="modal-close" data-close>✕</span>
       <h3>Pattern</h3>
       <div id="pattern-list" class="pattern-list"></div>
     </div>
@@ -157,7 +198,7 @@
 
   <div id="colors-modal" class="modal">
     <div class="modal-box wide">
-      <span class="modal-close" data-close data-return="dev-modal">✕</span>
+      <span class="modal-close" data-close>✕</span>
       <h3>Colors</h3>
       <div id="colors-list" class="color-list"></div>
     </div>
@@ -193,7 +234,7 @@
 
   <div id="health-modal" class="modal">
     <div class="modal-box">
-      <span class="modal-close" data-close data-return="dev-modal">✕</span>
+      <span class="modal-close" data-close>✕</span>
       <h3 id="health-title"><span id="health-refresh" class="btn-icon" style="cursor:pointer;margin-right:4px">🔄</span>Status</h3>
       <div id="health-content"></div>
       <span id="restart-btn" style="position:absolute;bottom:12px;right:16px;cursor:pointer;font-size:1.2rem" title="Restart ESP">⚠️</span>
@@ -202,7 +243,7 @@
 
   <div id="log-modal" class="modal">
     <div class="modal-box modal-wide">
-      <span class="modal-close" data-close data-return="dev-modal">✕</span>
+      <span class="modal-close" data-close>✕</span>
       <h3>Serial Log</h3>
       <pre id="log-content" class="log-view"></pre>
       <button id="log-refresh">Refresh</button>
@@ -212,7 +253,7 @@
 
   <div id="mp3grid-modal" class="modal">
     <div class="modal-box wide">
-      <span class="modal-close" data-close data-return="dev-modal">✕</span>
+      <span class="modal-close" data-close>✕</span>
       <div class="mg-card">
         <div class="mg-hdr">
           <div class="mg-toprow">
@@ -243,7 +284,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260226A"></script>
+  <script src="kwal.js?v=260304A"></script>
 </body>
 
 </html>
