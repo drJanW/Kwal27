@@ -16,6 +16,7 @@
     Kwal.ota.init();
     Kwal.status.init();
     Kwal.health.init();
+    Kwal.luxcal.init();
     Kwal.mp3grid.init();
     
     // Health modal: load on open, refresh button
@@ -47,6 +48,25 @@
         });
       });
       mp3gridObserver.observe(mp3gridModal, { attributes: true });
+    }
+    
+    // Lux cal modal: save+load on open, restore on close (100% isolated)
+    var luxcalModal = document.getElementById('luxcal-modal');
+    if (luxcalModal) {
+      var luxcalWasOpen = false;
+      var luxcalObserver = new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+          if (m.attributeName !== 'class') return;
+          var isOpen = luxcalModal.classList.contains('open');
+          if (isOpen && !luxcalWasOpen) {
+            Kwal.luxcal.loadStatus();
+          } else if (!isOpen && luxcalWasOpen) {
+            Kwal.luxcal.onModalClose();
+          }
+          luxcalWasOpen = isOpen;
+        });
+      });
+      luxcalObserver.observe(luxcalModal, { attributes: true });
     }
     
     // Initialize SSE and wire up live update listeners

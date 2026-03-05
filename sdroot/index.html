@@ -79,40 +79,41 @@
   <div id="dev-modal" class="modal">
     <div class="modal-box">
       <span class="modal-close" data-close>✕</span>
-      <h3>Dev</h3>
-      <button data-open="audio-settings-modal">Audio</button>
-      <button data-open="light-settings-modal">Light</button>
-      <button data-open="system-settings-modal">System</button>
+      <div class="row" style="justify-content:center;gap:1.5rem;margin:1rem 0">
+        <button data-open="audio-settings-modal" style="font-size:2rem;padding:0.5rem 1rem">🎵</button>
+        <button data-open="light-settings-modal" style="font-size:2rem;padding:0.5rem 1rem">💡</button>
+        <button data-open="system-settings-modal" style="font-size:2rem;padding:0.5rem 1rem">⚙</button>
+      </div>
     </div>
   </div>
 
   <div id="audio-settings-modal" class="modal">
-    <div class="modal-box">
-      <span class="modal-close" data-close data-return="dev-modal">✕</span>
-      <h3>Audio</h3>
-      <button data-open="mp3grid-modal">MP3 Grid</button>
-      <hr>
-      <div class="row">
-        <label>Audio-interval</label>
-        <input type="range" id="frag-interval" min="0" max="15" value="7">
-        <span id="frag-num">30m</span>
-      </div>
-      <div class="row">
-        <label class="label-brown">Tijdspraak-interval</label>
-        <input type="range" id="speak-interval" class="slider-brown" min="0" max="16" value="9">
-        <span id="speak-num">60m</span>
-      </div>
-      <div class="row">
-        <label class="label-gold">Geldigheids&shy;duur</label>
-        <input type="range" id="interval-duration" class="slider-gold" min="0" max="11" value="11">
-        <span id="dur-num">13u</span>
+    <div class="modal-box modal-wide" style="min-height:60vh">
+      <span class="modal-close" data-close>✕</span>
+      <span data-open="mp3grid-modal" style="font-size:2rem;cursor:pointer;position:absolute;left:1.2rem;top:1rem">🎶</span>
+      <div style="margin-top:3rem">
+        <div class="row" style="margin-bottom:1.5rem">
+          <label style="font-size:1.4rem">🔊⏱</label>
+          <input type="range" id="frag-interval" min="0" max="15" value="7">
+          <span id="frag-num">30m</span>
+        </div>
+        <div class="row" style="margin-bottom:1.5rem">
+          <label class="label-brown" style="font-size:1.4rem">🗣⏱</label>
+          <input type="range" id="speak-interval" class="slider-brown" min="0" max="16" value="9">
+          <span id="speak-num">60m</span>
+        </div>
+        <div class="row">
+          <label class="label-gold" style="font-size:1.4rem">⏳</label>
+          <input type="range" id="interval-duration" class="slider-gold" min="0" max="11" value="11">
+          <span id="dur-num">13u</span>
+        </div>
       </div>
     </div>
   </div>
 
   <div id="light-settings-modal" class="modal">
     <div class="modal-box">
-      <span class="modal-close" data-close data-return="dev-modal">✕</span>
+      <span class="modal-close" data-close>✕</span>
       <h3>Light</h3>
       <button data-open="pattern-modal">Pattern</button>
       <button data-open="colors-modal">Colors</button>
@@ -129,12 +130,13 @@
 
   <div id="system-settings-modal" class="modal">
     <div class="modal-box">
-      <span class="modal-close" data-close data-return="dev-modal">✕</span>
-      <h3>System</h3>
-      <button data-open="sd-modal">SD</button>
-      <button data-open="ota-modal">OTA</button>
-      <button data-open="health-modal">Status</button>
-      <button data-open="log-modal">Log</button>
+      <span class="modal-close" data-close>✕</span>
+      <div class="row" style="justify-content:center;gap:1.5rem;margin:1rem 0">
+        <button data-open="sd-modal" style="font-size:2rem;padding:0.5rem 1rem">💾</button>
+        <button data-open="ota-modal" style="font-size:2rem;padding:0.5rem 1rem">📡</button>
+        <button data-open="health-modal" style="font-size:2rem;padding:0.5rem 1rem">📊</button>
+        <button data-open="log-modal" style="font-size:2rem;padding:0.5rem 1rem">📜</button>
+      </div>
     </div>
   </div>
 
@@ -142,7 +144,27 @@
     <div class="modal-box">
       <span class="modal-close" data-close>✕</span>
       <h3>Cal Lux</h3>
-      <p>Lux calibration — coming soon</p>
+      <div class="row">
+        <label>Helderheid</label>
+        <input type="range" id="luxcal-brightness" min="0" max="100" value="50">
+        <span id="luxcal-bri-num">50%</span>
+      </div>
+      <div class="row" style="justify-content:space-between">
+        <button id="luxcal-sample" style="width:100%" disabled>👍 Sample</button>
+      </div>
+      <div class="row" style="margin-top:0.5rem;gap:1rem;font-size:0.85rem;color:#aaa">
+        <span id="luxcal-count">0 samples</span>
+        <span>☀️ <span id="luxcal-lux">-</span></span>
+        <span>💡 <span id="luxcal-bri">-</span></span>
+      </div>
+      <hr>
+      <div class="row" style="justify-content:space-between">
+        <button id="luxcal-fit" style="width:31%">Fit</button>
+        <button id="luxcal-download" style="width:31%">⬇ CSV</button>
+        <button id="luxcal-clear" style="width:31%">🗑 Wis</button>
+      </div>
+      <div id="luxcal-fitresult" style="margin-top:0.5rem;font-size:0.8rem;color:#aaa;word-break:break-all">-</div>
+      <div id="luxcal-status" style="margin-top:0.3rem;font-size:0.8rem;color:#8f8"></div>
     </div>
   </div>
 
@@ -244,10 +266,8 @@
   <div id="log-modal" class="modal">
     <div class="modal-box modal-wide">
       <span class="modal-close" data-close>✕</span>
-      <h3>Serial Log</h3>
+      <h3>Serial Log <button id="log-refresh" style="font-size:1rem;padding:0.2rem 0.5rem;margin-left:0.5rem">🔄</button><button id="log-clear" style="font-size:1rem;padding:0.2rem 0.5rem;margin-left:0.3rem">🗑</button></h3>
       <pre id="log-content" class="log-view"></pre>
-      <button id="log-refresh">Refresh</button>
-      <button id="log-clear">Clear</button>
     </div>
   </div>
 
@@ -284,7 +304,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260304A"></script>
+  <script src="kwal.js?v=260304H"></script>
 </body>
 
 </html>

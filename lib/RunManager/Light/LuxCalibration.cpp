@@ -1,8 +1,8 @@
 /**
  * @file LuxCalibration.cpp
  * @brief Lux calibration sample buffer and grid search fit implementation
- * @version 260303A
- * @date 2026-03-03
+ * @version 260304H
+ * @date 2026-03-04
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -235,6 +235,8 @@ String LuxCalibration::buildJson() const {
     json += String(SensorController::ambientLux(), 1);
     json += F(",\"lastBrightness\":");
     json += String(Globals::lastUnclampedBrightness, 1);
+    json += F(",\"hasLuxSensor\":");
+    json += Globals::luxSensorPresent ? F("true") : F("false");
     json += '}';
     return json;
 }

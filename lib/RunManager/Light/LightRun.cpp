@@ -178,6 +178,10 @@ void LightRun::plan() {
 
 void LightRun::continuePlan() {
     pnfCalActive = false;
+
+    // Load any previously collected lux calibration samples
+    LuxCalibration::instance().loadFromSd();
+
     // Apply lights and start all runtime timers
     lastStatusBits = StatusFlags::getFullStatusBits();
     applyToLights();

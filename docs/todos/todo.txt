@@ -54,3 +54,4 @@ H1. Refactor codebase according to glossary terminology rules
 
 ### not ordered new issues/ideas
 
+WebGUI geldigheidsduur koppelen
