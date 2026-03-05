@@ -53,7 +53,7 @@ void LightBoot::plan() {
         ? (targetBri / Globals::brightnessHi)
         : 1.0f;
     setWebMultiplier(initWebMult);
-    PF("[LightBoot] Slider=%u → webMultiplier=%.3f\n",
+    PF("[LightBoot] Slider=%u → wM=%.3f\n",
        Globals::defaultBrightnessSliderPct, initWebMult);
     WebGuiStatus::pushState();  // Push initial brightness
 }

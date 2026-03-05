@@ -58,7 +58,7 @@ void AudioBoot::plan() {
         ? (targetVol / MAX_VOLUME)
         : 1.0f;
     setVolumeWebMultiplier(initVolMult);
-    PF("[AudioBoot] Slider=%u → WebMultiplier=%.3f\n",
+    PF("[AudioBoot] Slider=%u → wM=%.3f\n",
        Globals::defaultAudioSliderPct, initVolMult);
 
     PlaySentence::speakNext();  // Kickstart queue if items waiting

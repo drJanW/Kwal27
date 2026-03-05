@@ -53,8 +53,10 @@ bool requestFragment(const AudioFragment& frag) {
     if (audio.isPCMClipActive()) {
         audio.stopPCMClip();
     }
-    // No arbitration check - caller (AudioRun) determines timing
-    // PlaySentence handles graceful takeover if TTS starts
+    // Don't interrupt TTS — speech always takes priority
+    if (isSentencePlaying()) {
+        return false;
+    }
     return audio.startFragment(frag);
 }
 

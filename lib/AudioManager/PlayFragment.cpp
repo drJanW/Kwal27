@@ -155,7 +155,7 @@ bool start(const AudioFragment& fragment) {
         LOG_WARN("[Audio] Failed to create fragment completion timer\n");
     }
 
-    PF("[audio][%s] %u-%u (fade=%.1fs vol=%.2f)\n",
+    PF("[Audio][%s] %u-%u (fade=%.1fs vol=%.2f)\n",
        fragment.source[0] ? fragment.source : "?",
        fragment.dirIndex, fragment.fileIndex,
        static_cast<double>(state.effectiveMs) / 1000.0, static_cast<double>(getVolumeShiftedHi() * getVolumeWebMultiplier()));

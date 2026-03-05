@@ -113,9 +113,12 @@ void reset() {
     setStatusOK(SC_WIFI, false);     // Not yet connected
     setStatusOK(SC_RTC, false);      // Not yet probed
     setStatusOK(SC_NTP, false);      // Not yet fetched
-    setStatusOK(SC_DIST, false);     // Not yet probed
-    setStatusOK(SC_LUX, false);      // Not yet probed
-    setStatusOK(SC_SENSOR3, false);  // No sensor3 hardware
+    // Only track sensors that are actually installed.
+    // Absent sensors stay at default (0 = OK) — never set to NOT_OK,
+    // so they don't trigger alerts or pollute getHardwareFailBits().
+    if (Globals::distanceSensorPresent) setStatusOK(SC_DIST, false);
+    if (Globals::luxSensorPresent)      setStatusOK(SC_LUX, false);
+    if (Globals::sensor3Present)        setStatusOK(SC_SENSOR3, false);
     setStatusOK(SC_AUDIO, false);    // Not yet initialized
     setStatusOK(SC_WEATHER, false);  // Not yet fetched
     setStatusOK(SC_CALENDAR, false); // Not yet loaded
