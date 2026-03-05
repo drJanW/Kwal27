@@ -673,7 +673,7 @@ static void saveConfigToNvs() {
     prefs.putBool("dist", Globals::distanceSensorPresent);
     prefs.putBool("s3", Globals::sensor3Present);
     prefs.end();
-    PL_BOOT("[NVS] Config cached");
+    PL_BOOT("[Flash] Config cached");
 }
 
 void Globals::saveWifiToNvs() {
@@ -823,7 +823,7 @@ static bool loadConfigTxt() {
 void Globals::begin() {
     // ── Step 1: Always load NVS first (device identity baseline) ──
     bool hadNvs = loadConfigFromNvs();
-    const char* source = hadNvs ? "NVS" : "defaults";
+    const char* source = hadNvs ? "Flash" : "defaults";
 
     // ── Step 2: If SD available, config.txt overrides NVS and re-caches ──
     if (AlertState::isSdOk()) {
@@ -835,10 +835,10 @@ void Globals::begin() {
         }
     }
 
-    PF("[boot][%s] %s ssid=%s pw=%s ip=%s gw=%s\n",
+    PF("[Boot][%s] %s ssid=%s pw=%s ip=%s gw=%s\n",
        source, Globals::deviceName, Globals::wifiSsid, Globals::wifiPassword,
        Globals::staticIp, Globals::staticGateway);
-    PF("[boot][%s] %s rtc=%d lux=%d dist=%d s3=%d\n",
+    PF("[Boot][%s] %s rtc=%d lux=%d dist=%d s3=%d\n",
        source, Globals::deviceName,
        Globals::rtcPresent, Globals::luxSensorPresent,
        Globals::distanceSensorPresent, Globals::sensor3Present);

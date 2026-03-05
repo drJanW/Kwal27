@@ -50,7 +50,7 @@ void BootManager::cb_bootstrap() {
             if (!wasRunning || wasFallback) {
             if (RunManager::requestStartClockTick(false)) {
                 if (!wasRunning) {
-                    PL("[Clock] NTP ready");
+                    PL("[Clock] \xE2\x9C\x93 NTP");
                     AlertRun::report(AlertRequest::NTP_OK);
                 } else if (wasFallback) {
                     PF_BOOT("[Clock] promoted to NTP\n");

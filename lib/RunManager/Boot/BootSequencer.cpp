@@ -1,8 +1,8 @@
 /**
  * @file BootSequencer.cpp
  * @brief Declarative boot sequence coordinator implementation
- * @version 260304F
- * @date 2026-03-04
+ * @version 260305B
+ * @date 2026-03-05
  *
  * The manifest table describes the entire boot sequence.
  * Each step declares deps (requiresAll) and output (provides).
@@ -158,15 +158,15 @@ StepResult initAudioHw() {
 static const BootStep manifest[] = {
     {"heartbeat",  0,                           0,                       initHeartbeat  },
     {"status",     0,                           0,                       initStatus     },
-    {"clockHw",    0,                           0,                       initClockHw    },
+    {"rtc",        0,                           0,                       initClockHw    },
     {"sd",         0,                           Cap::SD | Cap::CONFIG,   initSd         },
-    {"network",    0,                           Cap::WIFI | Cap::CSV,    initNetwork    },
+    {"wifi",       0,                           Cap::WIFI | Cap::CSV,    initNetwork    },
     {"web",        0,                           Cap::WEB,                initWeb        },
     {"sensors",    0,                           Cap::SENSORS,            initSensors    },
     {"speak",      0,                           Cap::SPEAK,              initSpeak      },
     {"calendar",   Cap::SD | Cap::CLOCK | Cap::CSV, Cap::CALENDAR,      initCalendar   },
-    {"lightHw",    Cap::SD | Cap::CONFIG,       Cap::LIGHT_HW,          initLightHw    },
-    {"audioHw",    Cap::SD | Cap::CONFIG,       Cap::AUDIO_HW,          initAudioHw    },
+    {"RGBs",      Cap::SD | Cap::CONFIG,       Cap::LIGHT_HW,          initLightHw    },
+    {"audio",     Cap::SD | Cap::CONFIG,       Cap::AUDIO_HW,          initAudioHw    },
 };
 
 static constexpr uint8_t MANIFEST_SIZE = sizeof(manifest) / sizeof(manifest[0]);
@@ -182,7 +182,7 @@ void BootSequencer::cb_evaluateSteps() {
         uint16_t provides = manifest[i].provides;
         if (provides != 0 && (granted_ & provides) == provides) {
             states_[i] = StepState::DONE;
-            PF("[Boot] \xE2\x9C\x93 %s \u2192 DONE\n", manifest[i].name);
+            PF("[Boot] \xE2\x9C\x93 %s\n", manifest[i].name);
         }
     }
 
@@ -192,7 +192,7 @@ void BootSequencer::cb_evaluateSteps() {
         if (manifest[i].provides == Cap::CALENDAR && AlertState::isCalendarOk()) {
             states_[i] = StepState::DONE;
             granted_ |= Cap::CALENDAR;
-            PF("[Boot] \xE2\x9C\x93 %s \u2192 DONE\n", manifest[i].name);
+            PF("[Boot] \xE2\x9C\x93 %s\n", manifest[i].name);
         }
     }
 
@@ -206,7 +206,7 @@ void BootSequencer::cb_expireBoot() {
     PL("[Boot] Timeout reached \u2014 forcing verdict");
     for (uint8_t i = 0; i < stepCount_; i++) {
         if (states_[i] == StepState::WAITING || states_[i] == StepState::RUNNING) {
-            PF("[Boot] \u23F0 %s \u2192 TIMED_OUT\n", manifest[i].name);
+            PF("[Boot] \u23F0 %s\n", manifest[i].name);
             states_[i] = StepState::FAILED;
         }
     }
@@ -245,6 +245,11 @@ void BootSequencer::begin(uint16_t preGranted) {
 void BootSequencer::evaluate() {
     if (verdictDone_) return;
 
+    // Steps without deps that always succeed instantly — no log value
+    auto isSilent = [](uint8_t i) {
+        return manifest[i].requiresAll == 0;
+    };
+
     bool changed = true;
     while (changed) {
         changed = false;
@@ -259,7 +264,7 @@ void BootSequencer::evaluate() {
                 uint16_t provides = manifest[i].provides;
                 if (provides != 0 && (granted_ & provides) == provides) {
                     states_[i] = StepState::DONE;
-                    PF("[Boot] \xE2\x9C\x93 %s \u2192 DONE\n", manifest[i].name);
+                    if (!isSilent(i)) PF("[Boot] \xE2\x9C\x93 %s\n", manifest[i].name);
                     changed = true;
                 }
                 continue;
@@ -273,7 +278,7 @@ void BootSequencer::evaluate() {
                     if ((failed_ & req) != 0) {
                         states_[i] = StepState::FAILED;
                         failed_ |= manifest[i].provides;
-                        PF("[Boot] \xE2\x9C\x97 %s \u2192 FAILED (dep)\n", manifest[i].name);
+                        PF("[Boot] \xE2\x9C\x97 %s (dep)\n", manifest[i].name);
                         changed = true;
                     }
                     continue;  // Deps not met yet
@@ -282,24 +287,23 @@ void BootSequencer::evaluate() {
                 // Deps met → mark RUNNING first to prevent re-entrancy
                 // (init() may call grant() which calls evaluate() recursively)
                 states_[i] = StepState::RUNNING;
-                PF("[Boot] \u25B6 %s\n", manifest[i].name);
                 StepResult result = manifest[i].init();
 
                 switch (result) {
                     case StepResult::DONE:
                         states_[i] = StepState::DONE;
                         granted_ |= manifest[i].provides;
-                        PF("[Boot] \xE2\x9C\x93 %s \u2192 DONE\n", manifest[i].name);
+                        if (!isSilent(i)) PF("[Boot] \xE2\x9C\x93 %s\n", manifest[i].name);
                         changed = true;
                         break;
                     case StepResult::PENDING:
                         states_[i] = StepState::RUNNING;
-                        PF("[Boot] ~ %s \u2192 PENDING\n", manifest[i].name);
+                        PF("[Boot] ~ %s\n", manifest[i].name);
                         break;
                     case StepResult::FAILED:
                         states_[i] = StepState::FAILED;
                         failed_ |= manifest[i].provides;
-                        PF("[Boot] \xE2\x9C\x97 %s \u2192 FAILED\n", manifest[i].name);
+                        PF("[Boot] \xE2\x9C\x97 %s\n", manifest[i].name);
                         changed = true;
                         break;
                 }
@@ -316,14 +320,12 @@ void BootSequencer::grant(uint16_t caps) {
     if (newCaps == 0) return;  // Already have these
 
     granted_ |= caps;
-    PF("[Boot] grant(0x%04X) \u2192 granted=0x%04X\n", caps, granted_);
     evaluate();
 }
 
 void BootSequencer::fail(uint16_t caps) {
     if (verdictDone_) return;
     failed_ |= caps;
-    PF("[Boot] fail(0x%04X)\n", caps);
 
     // Mark RUNNING steps that provide the failed cap as FAILED
     for (uint8_t i = 0; i < stepCount_; i++) {
@@ -331,7 +333,7 @@ void BootSequencer::fail(uint16_t caps) {
             manifest[i].provides != 0 &&
             (manifest[i].provides & caps) != 0) {
             states_[i] = StepState::FAILED;
-            PF("[Boot] \xE2\x9C\x97 %s \u2192 FAILED\n", manifest[i].name);
+            PF("[Boot] \xE2\x9C\x97 %s\n", manifest[i].name);
         }
     }
 
@@ -351,7 +353,7 @@ void BootSequencer::cascadeFailure(uint16_t failedCaps) {
                 states_[i] = StepState::FAILED;
                 failedCaps |= manifest[i].provides;
                 failed_ |= manifest[i].provides;
-                PF("[Boot] \xE2\x9C\x97 %s \u2192 FAILED (dep)\n", manifest[i].name);
+                PF("[Boot] \xE2\x9C\x97 %s (dep)\n", manifest[i].name);
                 changed = true;
             }
         }
@@ -424,19 +426,16 @@ void BootSequencer::enterSteadyState() {
     bool hasCalendar = has(Cap::CALENDAR);
     bool hasFull     = hasSd && hasWifi && hasClock && hasCsv;
 
-    // ─── Log verdict ────────────────────────────────────
-    PL("[Boot] \u2550\u2550\u2550 VERDICT \u2550\u2550\u2550");
-    PF("[Boot] SD=%c WiFi=%c Clock=%c CSV=%c LightHw=%c AudioHw=%c Calendar=%c\n",
-       hasSd ? 'Y' : 'n', hasWifi ? 'Y' : 'n', hasClock ? 'Y' : 'n',
-       hasCsv ? 'Y' : 'n', hasLightHw ? 'Y' : 'n', hasAudioHw ? 'Y' : 'n',
-       hasCalendar ? 'Y' : 'n');
-
-    if (!hasFull) {
-        PL("[Boot] DEGRADED mode:");
-        if (!hasSd)    PL("  - No SD card");
-        if (!hasWifi)  PL("  - No WiFi");
-        if (!hasClock) PL("  - No time source");
-        if (!hasCsv)   PL("  - No NAS data");
+    // ─── Log verdict (only when degraded) ─────────────
+    if (!hasFull || !hasLightHw || !hasAudioHw || !hasCalendar) {
+        PL("[Boot] DEGRADED:");
+        if (!hasSd)       PL("  - No SD");
+        if (!hasWifi)     PL("  - No WiFi");
+        if (!hasClock)    PL("  - No clock");
+        if (!hasCsv)      PL("  - No NAS data");
+        if (!hasLightHw)  PL("  - No RGBs");
+        if (!hasAudioHw)  PL("  - No audio");
+        if (!hasCalendar) PL("  - No calendar");
     }
 
     // ─── Start runtime layers (only what's available) ───

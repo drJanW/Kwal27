@@ -1,8 +1,8 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260304E
- * @date 2026-03-04
+ * @version 260305A
+ * @date 2026-03-05
  */
 #include "LightRun.h"
 
@@ -22,7 +22,7 @@
 #include "NasBackup.h"
 #include "LuxCalibration.h"
 #include <FastLED.h>
-#include <algorithm>
+#include <cstring>
 
 // Alias for readability — Globals::brightnessFading
 static inline bool& brightnessFading = Globals::brightnessFading;
@@ -67,12 +67,13 @@ static const CRGB PNF_CAL_COLOR_B(0xAA, 0xAA, 0xAA);        // Snow White second
 constexpr float PNF_CAL_EXPONENT = 0.3f;                     // Perceptual compression
 constexpr uint32_t PNF_CAL_DURATION_MS = 300000;              // 5 min per pattern
 constexpr uint32_t PNF_CAL_SAMPLE_INTERVAL_MS = 100;          // 100ms → 10 Hz
-constexpr uint16_t PNF_CAL_SAMPLE_COUNT = PNF_CAL_DURATION_MS / PNF_CAL_SAMPLE_INTERVAL_MS; // 3000
+constexpr uint16_t PNF_CAL_TOTAL_SAMPLES = PNF_CAL_DURATION_MS / PNF_CAL_SAMPLE_INTERVAL_MS; // 3000
 constexpr uint8_t  PNF_CAL_PERCENTILE = 90;                   // 90th percentile
+constexpr uint16_t PNF_CAL_BINS = 256;                        // histogram resolution
 
-// PNF calibration runtime state
-static float*   pnfCalSamples = nullptr;      // heap-allocated sample buffer
-static uint16_t pnfCalSampleIndex = 0;
+// PNF calibration runtime state (static — no heap allocation)
+static uint16_t pnfCalHistogram[PNF_CAL_BINS];                // frequency histogram (512 B)
+static uint16_t pnfCalSampleCount = 0;
 static size_t   pnfCalQueueIndex = 0;
 static std::vector<String> pnfCalQueue;       // pattern IDs to calibrate
 static String   pnfCalSavedPatternId;         // restore after calibration
@@ -833,9 +834,6 @@ void LightRun::cb_pnfCalNext() {
 
     // All done?
     if (pnfCalQueueIndex >= pnfCalQueue.size()) {
-        // Free sample buffer
-        delete[] pnfCalSamples;
-        pnfCalSamples = nullptr;
         pnfCalQueue.clear();
 
         // Restore original pattern + color
@@ -849,15 +847,9 @@ void LightRun::cb_pnfCalNext() {
         return;
     }
 
-    // Allocate sample buffer on first call
-    if (!pnfCalSamples) {
-        pnfCalSamples = new (std::nothrow) float[PNF_CAL_SAMPLE_COUNT];
-        if (!pnfCalSamples) {
-            PL("[PnfCal] ALLOC FAIL — skipping calibration");
-            continuePlan();
-            return;
-        }
-    }
+    // Reset histogram for next pattern
+    memset(pnfCalHistogram, 0, sizeof(pnfCalHistogram));
+    pnfCalSampleCount = 0;
 
     // Activate next pattern with hardcoded calibration colors
     const String& patternId = pnfCalQueue[pnfCalQueueIndex];
@@ -876,7 +868,6 @@ void LightRun::cb_pnfCalNext() {
        static_cast<unsigned>(pnfCalQueueIndex + 1),
        static_cast<unsigned>(pnfCalQueue.size()));
 
-    pnfCalSampleIndex = 0;
     timers.create(PNF_CAL_SAMPLE_INTERVAL_MS, 0, cb_pnfCalSample);  // infinite; stops via cancel
 }
 
@@ -893,19 +884,23 @@ void LightRun::cb_pnfCalSample() {
     // Apply perceptual compression
     float perceptual = powf(avgLuminance / 255.0f, PNF_CAL_EXPONENT);
 
-    if (pnfCalSamples && pnfCalSampleIndex < PNF_CAL_SAMPLE_COUNT) {
-        pnfCalSamples[pnfCalSampleIndex++] = perceptual;
-    }
+    // Record sample in histogram bin
+    uint8_t bin = static_cast<uint8_t>(MathUtils::clamp01(perceptual) * 255.0f);
+    pnfCalHistogram[bin]++;
+    pnfCalSampleCount++;
 
-    // All samples collected? Compute 90th percentile
-    if (pnfCalSampleIndex >= PNF_CAL_SAMPLE_COUNT) {
+    // All samples collected? Compute 90th percentile from histogram
+    if (pnfCalSampleCount >= PNF_CAL_TOTAL_SAMPLES) {
         timers.cancel(cb_pnfCalSample);
-        // Sort samples
-        std::sort(pnfCalSamples, pnfCalSamples + pnfCalSampleIndex);
-        uint16_t idx90 = static_cast<uint16_t>(
-            pnfCalSampleIndex * PNF_CAL_PERCENTILE / 100);
-        if (idx90 >= pnfCalSampleIndex) idx90 = pnfCalSampleIndex - 1;
-        float pnf = pnfCalSamples[idx90];
+        uint16_t target = static_cast<uint16_t>(
+            static_cast<uint32_t>(pnfCalSampleCount) * PNF_CAL_PERCENTILE / 100);
+        uint16_t cumulative = 0;
+        uint8_t  pBin = 0;
+        for (uint16_t b = 0; b < PNF_CAL_BINS; b++) {
+            cumulative += pnfCalHistogram[b];
+            if (cumulative >= target) { pBin = static_cast<uint8_t>(b); break; }
+        }
+        float pnf = pBin / 255.0f;
 
         // Store PNF and save to CSV immediately
         PatternCatalog& catalog = getPatternCatalog();
@@ -916,7 +911,7 @@ void LightRun::cb_pnfCalSample() {
         String label = catalog.getLabelForId(patternId);
         PF("[PnfCal] %s '%s' pnf=%.4f (%u samples) — saved\n",
            patternId.c_str(), label.c_str(),
-           pnf, pnfCalSampleIndex);
+           pnf, pnfCalSampleCount);
 
         pnfCalQueueIndex++;
         timers.create(500, 1, cb_pnfCalNext);  // Next pattern after short settle
