@@ -103,10 +103,7 @@ static void cb_checkWiFiConnection() {
 void bootWiFiConnect() {
     configureStation();
 
-    if (!loggedStart) {
-        PL("[WiFi] Connecting...");
-        loggedStart = true;
-    }
+    loggedStart = true;
 
     // Start a fresh connection attempt (STA only)
     WiFi.disconnect(false);

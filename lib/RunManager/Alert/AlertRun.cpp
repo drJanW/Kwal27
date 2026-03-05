@@ -67,7 +67,15 @@ void cb_statusReminder() {
     uint64_t failBits = StatusFlags::getHardwareFailBits();
     if (failBits == 0) return;
     
-    PF("[*Run] Reminder: failures exist (0x%llX)\n", failBits);
+    // Log which components are not OK
+    if (!AlertState::isSdOk())             PL("[Alert] SD not mounted");
+    if (!AlertState::isWifiOk())           PL("[Alert] WiFi not connected");
+    if (!AlertState::isRtcOk())            PL("[Alert] RTC not responding");
+    if (!AlertState::isNtpOk())            PL("[Alert] NTP not synced");
+    if (!AlertState::isDistanceSensorOk()) PL("[Alert] Distance sensor not responding");
+    if (!AlertState::isLuxSensorOk())      PL("[Alert] Lux sensor not responding");
+    if (!AlertState::isSensor3Ok())        PL("[Alert] Sensor3 not responding");
+    if (!AlertState::isNasOk())            PL("[Alert] NAS unreachable");
     AlertRGB::startFlashing();
     
     // Queue only truly FAILED components - not ones still retrying

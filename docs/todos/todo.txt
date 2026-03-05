@@ -1,9 +1,16 @@
 todo list
-Updated: 2026-02-28
+Updated: 2026-03-05
 
 REGEL: Geen "Completed" sectie. Succes = delete uit todo.
 
 === Active ===
+
+A1. Excel light_patterns.csv voorzien van PNF column
+    - Huidige Excel export mist PNF waarden
+    - NAS download overschrijft SD, wist 2.5 uur kalibratie
+    - Tijdelijke fix: light_patterns.csv verwijderd van NAS
+    - Permanente fix: PNF column toevoegen in Excel, dan weer op NAS
+    - CNF hoeft NIET in Excel (wordt automatisch berekend uit hex waarden)
 
 === Future ===
 F1. Sensor + Speak architecture completion

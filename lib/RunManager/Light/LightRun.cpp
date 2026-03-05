@@ -199,7 +199,6 @@ void LightRun::continuePlan() {
 void LightRun::startRotationTimers() {
     timers.create(Globals::colorChangeIntervalMs, 0, LightRun::cb_changeColor);
     timers.create(Globals::patternChangeIntervalMs, 0, LightRun::cb_changePattern);
-    PL("[LightRun] Rotation timers started");
 }
 
 void LightRun::updateDistance(float distanceMm) {

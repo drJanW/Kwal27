@@ -261,7 +261,7 @@ String makeVoiceRSSUrl(const String& text) {
     const TtsVoice& v = ttsVoices[random(0, TTS_VOICE_COUNT)];
     int ttsRate = random(-3, 2);  // -3, -2, -1, 0, or 1
     lastTtsRate = ttsRate;
-    PF("[PlaySentence] TTS voice: %s / %s  rate: %d\n", v.lang, v.name, ttsRate);
+    PF("[PlaySentence] %s  rate: %d\n", v.name, ttsRate);
     return String("http://api.voicerss.org/?key=") + VOICERSS_API_KEY +
            "&hl=" + v.lang + "&v=" + v.name +
            "&r=" + String(ttsRate) + "&c=MP3&f=44khz_16bit_mono&src=" + urlencode(text);

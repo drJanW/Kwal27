@@ -129,22 +129,19 @@ void reset() {
 void setSdStatus(bool status) {
     if (get(SC_SD) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_SD, status);
-    if (status) { PL_BOOT("[*State] SD: OK"); }
-    else SpeakRun::speak(SpeakRequest::SD_FAIL);
+    if (!status) SpeakRun::speak(SpeakRequest::SD_FAIL);
 }
 
 void setWifiStatus(bool status) {
     if (get(SC_WIFI) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_WIFI, status);
-    if (status) { PL_BOOT("[*State] WiFi: OK"); }
-    else SpeakRun::speak(SpeakRequest::WIFI_FAIL);
+    if (!status) SpeakRun::speak(SpeakRequest::WIFI_FAIL);
 }
 
 void setRtcStatus(bool status) {
     if (get(SC_RTC) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_RTC, status);
-    if (status) { PL_BOOT("[*State] RTC: OK"); }
-    else {
+    if (!status) {
         PL("[RTC] Failed");
         SpeakRun::speak(SpeakRequest::RTC_FAIL);
     }
@@ -153,8 +150,7 @@ void setRtcStatus(bool status) {
 void setNtpStatus(bool status) {
     if (get(SC_NTP) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_NTP, status);
-    if (status) { PL_BOOT("[*State] NTP: OK"); }
-    else SpeakRun::speak(SpeakRequest::NTP_FAIL);
+    if (!status) SpeakRun::speak(SpeakRequest::NTP_FAIL);
 }
 
 void setDistanceSensorStatus(bool status) {

@@ -48,7 +48,6 @@ bool systemBootStage1() {
     if (wireOk) {
         Wire.setClock(I2C_CLOCK_HZ);
         hwStatus |= HW_I2C;
-        PL(" I2C: OK");
 
         // Pre-boot exception: read RTC before RunManager starts
         // so time is known for all subsequent boot stages.
@@ -60,8 +59,6 @@ bool systemBootStage1() {
                 prtClock.setTimeFetched(true);
                 if (RTCController::wasPowerLost()) {
                     PL(" RTC: power lost");
-                } else {
-                    PL(" RTC: OK");
                 }
             } else {
                 PL(" RTC: FAIL");

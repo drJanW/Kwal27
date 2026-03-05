@@ -177,7 +177,6 @@ void beginWebInterface()
     SDVoting::attachVoteRoute(server);
 
     server.begin();
-    PL("[WebInterface] Server started");
 }
 
 void updateWebInterface()

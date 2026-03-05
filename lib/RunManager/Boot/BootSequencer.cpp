@@ -225,9 +225,6 @@ void BootSequencer::begin(uint16_t preGranted) {
         states_[i] = (i < stepCount_) ? StepState::WAITING : StepState::DONE;
     }
 
-    PF("[Boot] Sequencer started (%u steps, pre-granted=0x%04X)\n",
-       stepCount_, granted_);
-
     // BootManager handles NTP/fallback clock; runs independently
     bootManager.begin();
     ContextController::begin();
@@ -245,11 +242,6 @@ void BootSequencer::begin(uint16_t preGranted) {
 void BootSequencer::evaluate() {
     if (verdictDone_) return;
 
-    // Steps without deps that always succeed instantly — no log value
-    auto isSilent = [](uint8_t i) {
-        return manifest[i].requiresAll == 0;
-    };
-
     bool changed = true;
     while (changed) {
         changed = false;
@@ -264,7 +256,6 @@ void BootSequencer::evaluate() {
                 uint16_t provides = manifest[i].provides;
                 if (provides != 0 && (granted_ & provides) == provides) {
                     states_[i] = StepState::DONE;
-                    if (!isSilent(i)) PF("[Boot] \xE2\x9C\x93 %s\n", manifest[i].name);
                     changed = true;
                 }
                 continue;
@@ -293,7 +284,6 @@ void BootSequencer::evaluate() {
                     case StepResult::DONE:
                         states_[i] = StepState::DONE;
                         granted_ |= manifest[i].provides;
-                        if (!isSilent(i)) PF("[Boot] \xE2\x9C\x93 %s\n", manifest[i].name);
                         changed = true;
                         break;
                     case StepResult::PENDING:
@@ -488,5 +478,5 @@ void BootSequencer::enterSteadyState() {
     // Signal runtime start (stops boot phase flashing, starts reminders)
     AlertRun::report(AlertRequest::START_RUNTIME);
 
-    PL("[Boot] Runtime started");
+    PL("[Boot] \xE2\x9C\x93 Boot");
 }
