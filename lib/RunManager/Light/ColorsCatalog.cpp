@@ -1,8 +1,8 @@
 /**
  * @file ColorsCatalog.cpp
  * @brief LED color palette storage implementation
- * @version 260302D
- * @date 2026-03-02
+ * @version 260305G
+ * @date 2026-03-05
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "ColorsCatalog.h"
@@ -522,6 +522,8 @@ bool ColorsCatalog::saveColorsToSD() const {
     }
 
     file.println(F("light_colors_id;light_colors_name;rgb1_hex;rgb2_hex;cnf"));
+    file.flush();  // commit header to SD before data (prevents sector-boundary corruption)
+
     for (const auto& entry : colors_) {
         file.print(entry.id);
         file.print(';');

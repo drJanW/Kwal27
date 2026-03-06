@@ -169,16 +169,16 @@ uint64_t getTimeOfDayBits() {
 // ============================================================
 uint64_t getHardwareFailBits() {
     uint64_t bits = 0;
-    // SD and WiFi always required
+    // Absent sensors are never set to NOT_OK (see AlertState::reset()),
+    // so no Present guards needed here — status is correct at source.
     if (!AlertState::isSdOk())             bits |= (1ULL << STATUS_SD_OK);
     if (!AlertState::isWifiOk())           bits |= (1ULL << STATUS_WIFI_OK);
-    // Optional hardware: only count as fail if PRESENT
-    if (Globals::rtcPresent && !AlertState::isRtcOk())                       bits |= (1ULL << STATUS_RTC_OK);
-    if (!AlertState::isNtpOk())                                      bits |= (1ULL << STATUS_NTP_OK);
-    if (Globals::distanceSensorPresent && !AlertState::isDistanceSensorOk()) bits |= (1ULL << STATUS_DISTANCE_SENSOR_OK);
-    if (Globals::luxSensorPresent && !AlertState::isLuxSensorOk())           bits |= (1ULL << STATUS_LUX_SENSOR_OK);
-    if (Globals::sensor3Present && !AlertState::isSensor3Ok())                bits |= (1ULL << STATUS_SENSOR3_OK);
-    if (!AlertState::isNasOk())                                       bits |= (1ULL << STATUS_NAS_OK);
+    if (!AlertState::isRtcOk())            bits |= (1ULL << STATUS_RTC_OK);
+    if (!AlertState::isNtpOk())            bits |= (1ULL << STATUS_NTP_OK);
+    if (!AlertState::isDistanceSensorOk()) bits |= (1ULL << STATUS_DISTANCE_SENSOR_OK);
+    if (!AlertState::isLuxSensorOk())      bits |= (1ULL << STATUS_LUX_SENSOR_OK);
+    if (!AlertState::isSensor3Ok())        bits |= (1ULL << STATUS_SENSOR3_OK);
+    if (!AlertState::isNasOk())            bits |= (1ULL << STATUS_NAS_OK);
     return bits;
 }
 

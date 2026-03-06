@@ -1,8 +1,8 @@
 /**
  * @file PatternCatalog.cpp
  * @brief LED pattern storage implementation
- * @version 260302E
- * @date 2026-03-02
+ * @version 260305G
+ * @date 2026-03-05
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "PatternCatalog.h"
@@ -498,6 +498,7 @@ bool PatternCatalog::saveToSD() const {
     }
 
     file.println(F("light_pattern_id;light_pattern_name;color_cycle_sec;bright_cycle_sec;fade_width;min_brightness;gradient_speed;center_x;center_y;radius;window_width;radius_osc;x_amp;y_amp;x_cycle_sec;y_cycle_sec;pnf"));
+    file.flush();  // commit header to SD before data (prevents sector-boundary corruption)
 
     for (const auto& entry : patterns_) {
         file.print(entry.id);
@@ -537,6 +538,31 @@ bool PatternCatalog::saveToSD() const {
     }
 
     SDController::closeFile(file);
+
+    // Verify header integrity — retry once on sector corruption
+    static bool retrying = false;
+    if (!retrying) {
+        File check = SDController::openFileRead(kPatternPath);
+        if (check) {
+            String line;
+            bool headerOk = false;
+            while (csv::readLine(check, line)) {
+                line.trim();
+                if (line.isEmpty() || line.charAt(0) == '#') continue;
+                headerOk = line.endsWith(F(";pnf"));
+                break;
+            }
+            SDController::closeFile(check);
+            if (!headerOk) {
+                LOG_WARN("[PatCat] Header corrupt after save, retrying\n");
+                retrying = true;
+                bool ok = saveToSD();
+                retrying = false;
+                return ok;
+            }
+        }
+    }
+
     return true;
 }
 

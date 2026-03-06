@@ -1,8 +1,8 @@
 /**
  * @file PatternCatalog.h
  * @brief LED pattern storage
- * @version 260304B
- * @date 2026-03-04
+ * @version 260305G
+ * @date 2026-03-05
  */
 #pragma once
 

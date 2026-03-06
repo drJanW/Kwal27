@@ -111,11 +111,11 @@ void reset() {
     // STATUS_OK=0, so bootStatus=0 means all OK - must explicitly set NOT OK
     setStatusOK(SC_SD, false);       // Not yet mounted
     setStatusOK(SC_WIFI, false);     // Not yet connected
-    setStatusOK(SC_RTC, false);      // Not yet probed
-    setStatusOK(SC_NTP, false);      // Not yet fetched
-    // Only track sensors that are actually installed.
-    // Absent sensors stay at default (0 = OK) — never set to NOT_OK,
+    // Only track hardware that is actually installed.
+    // Absent devices stay at default (0 = OK) — never set to NOT_OK,
     // so they don't trigger alerts or pollute getHardwareFailBits().
+    if (Globals::rtcPresent)            setStatusOK(SC_RTC, false);
+    setStatusOK(SC_NTP, false);      // Not yet fetched
     if (Globals::distanceSensorPresent) setStatusOK(SC_DIST, false);
     if (Globals::luxSensorPresent)      setStatusOK(SC_LUX, false);
     if (Globals::sensor3Present)        setStatusOK(SC_SENSOR3, false);
