@@ -123,6 +123,9 @@ Kwal.health = (function() {
     if (data.heapFree !== undefined) {
       html += '<tr><td>🧠 Heap</td><td>' + data.heapFree + '>' + data.heapMin + 'KB (' + data.heapBlock + ')</td></tr>';
     }
+    if (data.psramMin !== undefined) {
+      html += '<tr><td>🧠 PSRAM</td><td>min ' + data.psramMin + 'KB</td></tr>';
+    }
 
     // Timers as component row
     if (data.maxActiveTimers !== undefined) {

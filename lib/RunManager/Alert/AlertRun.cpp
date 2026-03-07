@@ -146,9 +146,8 @@ void cb_healthStatus() {
        static_cast<unsigned>(ESP.getMinFreeHeap() / 1024),
        static_cast<unsigned>(ESP.getMaxAllocHeap() / 1024));
 
-    // PSRAM: current > minimum
-    PF("  🧠 PSRAM      %u>%uKB\n",
-       static_cast<unsigned>(ESP.getFreePsram() / 1024),
+    // PSRAM: minimum since boot
+    PF("  🧠 PSRAM      min %uKB\n",
        static_cast<unsigned>(ESP.getMinFreePsram() / 1024));
 
     // Timers: max active since boot

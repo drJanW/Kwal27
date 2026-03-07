@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260306C - Built 2026-03-06 14:39
+ * Kwal WebGUI v260307B - Built 2026-03-07 07:33
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260306C';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260307B';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -1829,6 +1829,9 @@ Kwal.health = (function() {
     // Heap as component row
     if (data.heapFree !== undefined) {
       html += '<tr><td>🧠 Heap</td><td>' + data.heapFree + '>' + data.heapMin + 'KB (' + data.heapBlock + ')</td></tr>';
+    }
+    if (data.psramMin !== undefined) {
+      html += '<tr><td>🧠 PSRAM</td><td>min ' + data.psramMin + 'KB</td></tr>';
     }
 
     // Timers as component row
