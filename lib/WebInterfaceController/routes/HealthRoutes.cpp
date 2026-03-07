@@ -55,7 +55,9 @@ void routeHealth(AsyncWebServerRequest *request) {
     json += ",\"heapFree\":" + String(ESP.getFreeHeap() / 1024);
     json += ",\"heapMin\":" + String(ESP.getMinFreeHeap() / 1024);
     json += ",\"heapBlock\":" + String(ESP.getMaxAllocHeap() / 1024);
-    json += ",\"psramMin\":" + String(ESP.getMinFreePsram() / 1024);
+    if (ESP.getPsramSize() > 0) {
+        json += ",\"psramMin\":" + String(ESP.getMinFreePsram() / 1024);
+    }
 
     TodayState today;
     if (calendarRun.todayRead(today) && today.entry.valid) {

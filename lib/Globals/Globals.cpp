@@ -1,8 +1,8 @@
 /**
  * @file Globals.cpp
  * @brief CSV override loader for Globals
- * @version 260219A
- * @date 2026-02-19
+ * @version 260307C
+ * @date 2026-03-07
  */
 #include "Arduino.h"
 #include "Globals.h"
@@ -626,6 +626,33 @@ static void applyOverride(const char* key, char type, const char* value) {
         if (parseUint32(value, &u32) && u32 >= 10000) {
             Globals::sdHealthCheckIntervalMs = u32;
             PF_BOOT("[Globals] sdHealthCheckIntervalMs = %lu\n", (unsigned long)u32);
+        }
+    }
+    // ═══════════════════════════════════════════════════════════
+    // TV SIMULATOR
+    // ═══════════════════════════════════════════════════════════
+    else if (strcmp(key, "tvThemeBoxId") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 <= 255) {
+            Globals::tvThemeBoxId = static_cast<uint8_t>(u32);
+            PF_BOOT("[Globals] tvThemeBoxId = %u\n", Globals::tvThemeBoxId);
+        }
+    }
+    else if (strcmp(key, "tvMaxBrightness") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 <= 255) {
+            Globals::tvMaxBrightness = static_cast<uint8_t>(u32);
+            PF_BOOT("[Globals] tvMaxBrightness = %u\n", Globals::tvMaxBrightness);
+        }
+    }
+    else if (strcmp(key, "tvAudioMinMs") == 0 && type == 'u') {
+        if (parseUint32(value, &u32)) {
+            Globals::tvAudioMinMs = u32;
+            PF_BOOT("[Globals] tvAudioMinMs = %lu\n", (unsigned long)u32);
+        }
+    }
+    else if (strcmp(key, "tvAudioMaxMs") == 0 && type == 'u') {
+        if (parseUint32(value, &u32)) {
+            Globals::tvAudioMaxMs = u32;
+            PF_BOOT("[Globals] tvAudioMaxMs = %lu\n", (unsigned long)u32);
         }
     }
     // ═══════════════════════════════════════════════════════════

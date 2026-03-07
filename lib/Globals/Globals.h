@@ -1,7 +1,7 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260307A
+ * @version 260307C
  * @date 2026-03-07
  */
 #pragma once
@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260307B"
+#define FIRMWARE_VERSION_CODE "260307C"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -214,8 +214,12 @@ struct Globals {
     inline static uint8_t  dailyRebootHour          = 4U;          // Hour (1-23) for daily auto-reboot (0 = disabled, so midnight reboot not possible)
 
     // ─────────────────────────────────────────────────────────────
-    // TV SIMULATOR
+    // TV SIMULATOR (4 params + 1 runtime)
     // ─────────────────────────────────────────────────────────────
+    inline static uint8_t  tvThemeBoxId             = 34U;         // Theme box ID for TVSIM audio
+    inline static uint8_t  tvMaxBrightness          = 250U;        // FastLED brightness during TV mode
+    inline static uint32_t tvAudioMinMs             = SECONDS(5);  // Min wait between TV audio fragments
+    inline static uint32_t tvAudioMaxMs             = SECONDS(15); // Max wait between TV audio fragments
     inline static bool     tvMode                   = false;       // TV simulator active (RAM only — power loss clears)
 
     // ─────────────────────────────────────────────────────────────

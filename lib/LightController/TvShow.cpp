@@ -1,7 +1,7 @@
 /**
  * @file TvShow.cpp
- * @brief TV simulator renderer — 4 index-based color zones with smooth lerping
- * @version 260307A
+ * @brief TV simulator renderer — 6 ring zones matching PMMA circles
+ * @version 260307C
  * @date 2026-03-07
  */
 #include <Arduino.h>
@@ -19,13 +19,17 @@ static CRGB    zoneTarget[TV_ZONES]     = {};
 static uint8_t zoneBriCurrent[TV_ZONES] = {};
 static uint8_t zoneBriTarget[TV_ZONES]  = {};
 
-// Lerp speed: fraction per 50ms frame. 0.08 ≈ smooth ~600ms transition
-static constexpr float kLerpSpeed = 0.08f;
+// Lerp speed: fraction per 50ms frame. 0.20 ≈ brisk ~250ms transition
+static constexpr float kLerpSpeed = 0.20f;
 
 void setTvZoneTargets(const TvZoneTarget targets[TV_ZONES]) {
     for (int z = 0; z < TV_ZONES; z++) {
         zoneTarget[z]    = targets[z].color;
         zoneBriTarget[z] = targets[z].brightness;
+        if (targets[z].instant) {
+            zoneCurrent[z]    = targets[z].color;
+            zoneBriCurrent[z] = targets[z].brightness;
+        }
     }
 }
 

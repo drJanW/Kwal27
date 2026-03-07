@@ -1,7 +1,7 @@
 /**
  * @file TvShow.h
- * @brief TV simulator light renderer — 4 index-based color zones with smooth lerping
- * @version 260307A
+ * @brief TV simulator light renderer — 6 ring zones matching PMMA circles
+ * @version 260307C
  * @date 2026-03-07
  */
 #pragma once
@@ -14,6 +14,7 @@
 struct TvZoneTarget {
     CRGB  color;
     uint8_t brightness;
+    bool instant;       // true = hard cut (no lerp), false = smooth fade
 };
 
 // Ring boundaries: 6 concentric PMMA circles

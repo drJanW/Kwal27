@@ -1,7 +1,7 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260307A
+ * @version 260307C
  * @date 2026-03-07
  */
 #include <Arduino.h>
@@ -61,14 +61,6 @@
 #include "Light/LightRun.h"
 #include "Boot/BootSequencer.h"
 #include "Boot/Cap.h"
-
-// TV Simulator constants (used by cb_playFragment and enterTvMode)
-namespace TvConfig {
-    constexpr uint8_t  themeBoxId    = 34;
-    constexpr uint8_t  maxBrightness = 250;
-    constexpr uint32_t audioMinMs    = SECONDS(5);
-    constexpr uint32_t audioMaxMs    = SECONDS(15);
-}
 
 // === Lux Measurement - delegated to LightRun ===
 void RunManager::requestLuxMeasurement() {
@@ -203,8 +195,8 @@ void cb_playFragment() {
     // Schedule next: TV sim uses short intervals, else normal logic
     uint32_t lo, hi;
     if (Globals::tvMode) {
-        lo = TvConfig::audioMinMs;
-        hi = TvConfig::audioMaxMs;
+        lo = Globals::tvAudioMinMs;
+        hi = Globals::tvAudioMaxMs;
     } else {
         lo = AudioPolicy::effectiveFragmentMin();
         hi = AudioPolicy::effectiveFragmentMax();
@@ -606,8 +598,15 @@ void cb_tvScene() {
     for (int z = 0; z < TV_ZONES; z++) {
         CRGB color;
         uint8_t bri;
+        bool instant = (random(100) < 35);  // 35% hard cut
 
-        if (random(100) < 65) {
+        int roll = random(100);
+        if (roll < 15) {
+            // Dark/black zone — simulates edge of screen or scene cut
+            color = CRGB::Black;
+            bri = random(0, 15);
+            instant = true;  // black is always instant
+        } else if (roll < 65) {
             // Cool white/blue — typical TV glow
             uint8_t hue = random(140, 180);
             color = CHSV(hue, random(15, 70), random(200, 255));
@@ -621,10 +620,11 @@ void cb_tvScene() {
 
         targets[z].color      = color;
         targets[z].brightness = bri;
+        targets[z].instant    = instant;
     }
 
     setTvZoneTargets(targets);
-    timers.restart(random(150, 1200), 1, cb_tvScene);
+    timers.restart(random(100, 900), 1, cb_tvScene);
 }
 
 void RunManager::enterTvMode(uint8_t hours) {
@@ -633,7 +633,7 @@ void RunManager::enterTvMode(uint8_t hours) {
     // Activate TVSIM theme box for audio
     const auto& boxes = GetAllThemeBoxes();
     for (const auto& box : boxes) {
-        if (box.id == TvConfig::themeBoxId) {
+        if (box.id == Globals::tvThemeBoxId) {
             std::vector<uint8_t> dirs8(box.entries.begin(), box.entries.end());
             AudioPolicy::setThemeBox(dirs8.data(), dirs8.size(), "tvsim");
             PF("[TvSim] Audio theme box %u (%s), %u dirs\n",
@@ -642,7 +642,7 @@ void RunManager::enterTvMode(uint8_t hours) {
         }
     }
 
-    FastLED.setBrightness(TvConfig::maxBrightness);
+    FastLED.setBrightness(Globals::tvMaxBrightness);
 
     // Stop PNF calibration if running — it overwrites light patterns
     timers.cancel(LightRun::cb_pnfCalSample);
