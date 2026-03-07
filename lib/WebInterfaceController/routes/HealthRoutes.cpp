@@ -1,8 +1,8 @@
 /**
  * @file HealthRoutes.cpp
  * @brief Health API endpoint routes
- * @version 260219A
- * @date 2026-02-19
+ * @version 260307B
+ * @date 2026-03-07
  */
 #include <Arduino.h>
 #include "HealthRoutes.h"
@@ -55,6 +55,8 @@ void routeHealth(AsyncWebServerRequest *request) {
     json += ",\"heapFree\":" + String(ESP.getFreeHeap() / 1024);
     json += ",\"heapMin\":" + String(ESP.getMinFreeHeap() / 1024);
     json += ",\"heapBlock\":" + String(ESP.getMaxAllocHeap() / 1024);
+    json += ",\"psramFree\":" + String(ESP.getFreePsram() / 1024);
+    json += ",\"psramMin\":" + String(ESP.getMinFreePsram() / 1024);
 
     TodayState today;
     if (calendarRun.todayRead(today) && today.entry.valid) {

@@ -1,8 +1,8 @@
 /**
  * @file LightController.cpp
  * @brief LED control implementation via FastLED library
- * @version 260306D
- * @date 2026-03-06
+ * @version 260307A
+ * @date 2026-03-07
  */
 #include <Arduino.h>
 #include "Globals.h"
@@ -12,6 +12,7 @@
 #include "AudioState.h"
 #include "MathUtils.h"
 #include "TimerManager.h"
+#include "TvShow.h"
 
 #include <atomic>
 
@@ -88,6 +89,8 @@ static void cb_yPhase() { yPhase++; }
 
 // === Update ===
 void updateLightController() {
+  if (Globals::tvMode) { updateTvShow(); return; }
+
   applyBrightness();
 
   float baseRadius = showParams.radius;

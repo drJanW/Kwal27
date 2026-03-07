@@ -1,8 +1,8 @@
 /**
  * @file AlertRun.cpp
  * @brief Hardware failure alert state management implementation
- * @version 260213A
- * @date 2026-02-13
+ * @version 260307B
+ * @date 2026-03-07
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -145,6 +145,11 @@ void cb_healthStatus() {
        static_cast<unsigned>(ESP.getFreeHeap() / 1024),
        static_cast<unsigned>(ESP.getMinFreeHeap() / 1024),
        static_cast<unsigned>(ESP.getMaxAllocHeap() / 1024));
+
+    // PSRAM: current > minimum
+    PF("  🧠 PSRAM      %u>%uKB\n",
+       static_cast<unsigned>(ESP.getFreePsram() / 1024),
+       static_cast<unsigned>(ESP.getMinFreePsram() / 1024));
 
     // Timers: max active since boot
     timers.getActiveCount();  // update max

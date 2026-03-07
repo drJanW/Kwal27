@@ -1,8 +1,8 @@
 /**
  * @file RunManager.h
  * @brief Central coordinator header for all Kwal modules
- * @version 260306A
- * @date 2026-03-06
+ * @version 260307A
+ * @date 2026-03-07
  */
 #pragma once
 #include <Arduino.h>

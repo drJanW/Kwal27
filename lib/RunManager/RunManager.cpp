@@ -1,12 +1,13 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260306H
- * @date 2026-03-06
+ * @version 260307A
+ * @date 2026-03-07
  */
 #include <Arduino.h>
 #include <math.h>
 #include "LightController.h"
+#include "TvShow.h"
 #include "TimerManager.h"
 #include "SensorController.h"
 #include "RunManager.h"
@@ -600,40 +601,30 @@ void cb_tvTimeout() {
 }
 
 void cb_tvScene() {
-    // 70% cool white/blue, 30% colored scene
-    CRGB a, b;
-    if (random(100) < 70) {
-        // Cool white/blue — low saturation, high value
-        uint8_t hue = random(140, 180);            // blue-ish range
-        a = CHSV(hue,              random(20, 80),  random(200, 255));
-        b = CHSV(hue + random(0, 30), random(10, 60), random(180, 255));
-    } else {
-        // Colored scene — any hue, moderate-high saturation
-        tvHue += random(40, 160);
-        a = CHSV(tvHue,                   random(120, 220), random(160, 250));
-        b = CHSV(tvHue + random(30, 100), random(100, 200), random(140, 240));
+    TvZoneTarget targets[TV_ZONES];
+
+    for (int z = 0; z < TV_ZONES; z++) {
+        CRGB color;
+        uint8_t bri;
+
+        if (random(100) < 65) {
+            // Cool white/blue — typical TV glow
+            uint8_t hue = random(140, 180);
+            color = CHSV(hue, random(15, 70), random(200, 255));
+            bri = random(140, 250);
+        } else {
+            // Colored scene — any hue
+            tvHue += random(30, 120);
+            color = CHSV(tvHue + random(0, 60), random(100, 220), random(150, 250));
+            bri = random(80, 220);
+        }
+
+        targets[z].color      = color;
+        targets[z].brightness = bri;
     }
 
-    // Randomize spatial params — keep radius small so color varies across LEDs
-    float cx   = random(-130, 131) / 10.0f;        // -13.0 to +13.0 (full map range)
-    float cy   = random(-130, 131) / 10.0f;
-    float r    = random(20, 90) / 10.0f;            // 2.0 to 9.0 (small spotlight, not full coverage)
-    float fw   = random(20, 80) / 10.0f;            // 2.0 to 8.0 (tight fade = visible gradient)
-    float rOsc = random(0, 51) / 10.0f;             // 0.0 to 5.0 (gentle pulsing)
-    float xA   = random(30, 121) / 10.0f;           // 3.0 to 12.0 (big sweeps)
-    float yA   = random(30, 121) / 10.0f;
-    int   ww   = random(2, 8);                      // 2 to 7 (narrower window)
-    uint8_t minB = random(0, 60);                   // dark areas stay dark
-    float gs   = random(5, 20) / 10.0f;             // 0.5 to 2.0 (always some gradient movement)
-
-    // Maximum speed — all cycles at 1s for fast TV flicker
-    uint8_t ccs = 1;
-    uint8_t bcs = 1;
-    uint8_t xcs = 1;
-    uint8_t ycs = 1;
-
-    PlayLightShow(LightShowParams(a, b, ccs, bcs, fw, minB, gs, cx, cy, r, ww, rOsc, xA, yA, xcs, ycs));
-    timers.restart(random(80, 800), 1, cb_tvScene);
+    setTvZoneTargets(targets);
+    timers.restart(random(150, 1200), 1, cb_tvScene);
 }
 
 void RunManager::enterTvMode(uint8_t hours) {

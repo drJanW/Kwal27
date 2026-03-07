@@ -1,8 +1,8 @@
 /**
  * @file LightController.h
  * @brief LED control interface via FastLED library
- * @version 260212C
- * @date 2026-02-12
+ * @version 260307A
+ * @date 2026-03-07
  */
 #pragma once
 
