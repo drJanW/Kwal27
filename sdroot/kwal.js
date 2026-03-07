@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260304H - Built 2026-03-04 21:42
+ * Kwal WebGUI v260306C - Built 2026-03-06 14:39
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260304H';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260306C';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -2360,6 +2360,55 @@ Kwal.mp3grid = (function() {
     load: load,
     setSelection: setSelection
   };
+})();
+
+
+// === js/tv.js ===
+// TV Simulator controls
+
+(function() {
+    const slider = document.getElementById('tvHours');
+    const label = document.getElementById('tvHoursLabel');
+    const btn = document.getElementById('btnTvMode');
+    if (!slider || !label || !btn) return;
+
+    slider.addEventListener('input', function() {
+        label.textContent = this.value + ' uur';
+    });
+
+    var panels = document.querySelectorAll('#app > .panel, #app > .panel-sep, #save-buttons');
+
+    function setActive(active) {
+        if (active) {
+            btn.textContent = '⏹ Stop TV';
+            btn.onclick = stopTvMode;
+            btn.classList.add('tv-active');
+        } else {
+            btn.textContent = '📺 TV';
+            btn.onclick = startTvMode;
+            btn.classList.remove('tv-active');
+        }
+        panels.forEach(function(el) {
+            if (active) el.classList.add('tv-disabled');
+            else el.classList.remove('tv-disabled');
+        });
+    }
+
+    function startTvMode() {
+        var hours = slider.value || 4;
+        if (!confirm('Start TV Simulator voor ' + hours + ' uur?')) return;
+        fetch('/api/tvmode?hours=' + hours)
+            .then(function(r) { return r.json(); })
+            .then(function(d) { if (d.active) setActive(true); });
+    }
+
+    function stopTvMode() {
+        fetch('/api/tvstop')
+            .then(function(r) { return r.json(); })
+            .then(function() { setActive(false); });
+    }
+
+    btn.onclick = startTvMode;
 })();
 
 

@@ -1,8 +1,8 @@
 /**
  * @file WebInterfaceController.cpp
  * @brief Async web server setup, routes index.html and API endpoints
- * @version 260303A
- * @date 2026-03-03
+ * @version 260306A
+ * @date 2026-03-06
  */
 #include <Arduino.h>
 #include "WebInterfaceController.h"
@@ -144,6 +144,28 @@ void routeGetBrightness(AsyncWebServerRequest *request)
     request->send(200, "text/plain", String(getSliderPct()));
 }
 
+void routeEnterTvMode(AsyncWebServerRequest *request)
+{
+    if (Globals::tvMode) {
+        sendJson(request, F("{\"active\":true}"));
+        return;
+    }
+    uint8_t hours = 4;
+    if (request->hasParam("hours")) {
+        hours = MathUtils::clamp(
+            static_cast<uint8_t>(request->getParam("hours")->value().toInt()),
+            static_cast<uint8_t>(1), static_cast<uint8_t>(12));
+    }
+    RunManager::enterTvMode(hours);
+    sendJson(request, F("{\"active\":true}"));
+}
+
+void routeExitTvMode(AsyncWebServerRequest *request)
+{
+    if (Globals::tvMode) RunManager::exitTvMode();
+    sendJson(request, F("{\"active\":false}"));
+}
+
 } // namespace
 
 void beginWebInterface()
@@ -157,6 +179,8 @@ void beginWebInterface()
     server.on("/setBrightness", HTTP_GET, routeSetBrightness);
     server.on("/setBrightness", HTTP_POST, routeSetBrightness);  // Accept both GET and POST
     server.on("/getBrightness", HTTP_GET, routeGetBrightness);
+    server.on("/api/tvmode", HTTP_GET, routeEnterTvMode);
+    server.on("/api/tvstop", HTTP_GET, routeExitTvMode);
 
     // Attach route modules
     AudioRoutes::attachRoutes(server);

@@ -46,9 +46,15 @@ input[type="range"]::-moz-range-thumb {
   border: 2px solid #4682B4;
 }
 
-footer { text-align: right; margin-top: 1rem; }
-footer button { padding: 0.3rem 0.8rem; font-size: 0.8rem; background: #333; color: #888; border: 1px solid #444; border-radius: 4px; cursor: pointer; }
-footer button:hover { background: #444; color: #aaa; }
+footer { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; }
+.footer-left { display: flex; align-items: center; gap: 0.5rem; }
+footer #dev-btn { padding: 0.3rem 0.8rem; font-size: 0.8rem; background: #333; color: #888; border: 1px solid #444; border-radius: 4px; cursor: pointer; }
+footer #dev-btn:hover { background: #444; color: #aaa; }
+
+.btn-tv { padding: 0.4rem 1rem; font-size: 1rem; background: #2a3a5a; color: #ccc; border: 1px solid #4a5a7a; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+.btn-tv:hover { background: #3a4a6a; }
+.btn-tv.tv-active { background: #5a3a2a; border-color: #8a5a3a; color: #fda; }
+.tv-disabled { opacity: 0.3; pointer-events: none; }
 
 #save-buttons { margin: 0.5rem 0; display: flex; flex-direction: column; gap: 0.5rem; }
 .save-bar { display: flex; align-items: center; gap: 0.5rem; background: #2a2a3e; border-radius: 4px; padding: 0.4rem 0.6rem; }

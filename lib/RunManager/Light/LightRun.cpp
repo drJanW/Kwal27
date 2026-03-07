@@ -1,8 +1,8 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260305A
- * @date 2026-03-05
+ * @version 260306G
+ * @date 2026-03-06
  */
 #include "LightRun.h"
 
@@ -829,6 +829,12 @@ void LightRun::cb_changePattern() {
 // ─── PNF calibration callbacks ──────────────────────────────
 
 void LightRun::cb_pnfCalNext() {
+    // TV mode takes priority — defer calibration
+    if (Globals::tvMode) {
+        timers.create(SECONDS(30), 1, cb_pnfCalNext);
+        return;
+    }
+
     PatternCatalog& catalog = getPatternCatalog();
 
     // All done?
@@ -871,6 +877,15 @@ void LightRun::cb_pnfCalNext() {
 }
 
 void LightRun::cb_pnfCalSample() {
+    // TV mode interrupted calibration — discard samples, retry later
+    if (Globals::tvMode) {
+        timers.cancel(cb_pnfCalSample);
+        pnfCalSampleCount = 0;
+        memset(pnfCalHistogram, 0, sizeof(pnfCalHistogram));
+        timers.create(SECONDS(30), 1, cb_pnfCalNext);
+        return;
+    }
+
     // Compute average CIE luminance across all LEDs
     float sum = 0.0f;
     for (uint16_t i = 0; i < NUM_LEDS; i++) {

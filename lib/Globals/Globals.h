@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260303A
- * @date 2026-03-03
+ * @version 260306D
+ * @date 2026-03-06
  */
 #pragma once
 
@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260305G"
+#define FIRMWARE_VERSION_CODE "260306H"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -212,6 +212,11 @@ struct Globals {
     // DAILY REBOOT (1 param)
     // ─────────────────────────────────────────────────────────────
     inline static uint8_t  dailyRebootHour          = 4U;          // Hour (1-23) for daily auto-reboot (0 = disabled, so midnight reboot not possible)
+
+    // ─────────────────────────────────────────────────────────────
+    // TV SIMULATOR
+    // ─────────────────────────────────────────────────────────────
+    inline static bool     tvMode                   = false;       // TV simulator active (RAM only — power loss clears)
 
     // ─────────────────────────────────────────────────────────────
     // SD HEALTH (1 param)

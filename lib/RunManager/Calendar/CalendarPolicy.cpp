@@ -1,8 +1,8 @@
 /**
  * @file CalendarPolicy.cpp
  * @brief Calendar business logic implementation
- * @version 260216F
- * @date 2026-02-16
+ * @version 260306E
+ * @date 2026-03-06
  */
 #include <Arduino.h>
 #include "CalendarPolicy.h"
@@ -93,6 +93,9 @@ const ThemeBox* pickFallbackThemeBox() {
 }
 
 void applyThemeBox(const CalendarThemeBox& box) {
+  // TV simulator owns the theme box — don't let calendar overwrite it
+  if (Globals::tvMode) return;
+
   // If no specific theme box, pick day-of-week fallback
   if (!box.valid) {
     const ThemeBox* fallback = pickFallbackThemeBox();

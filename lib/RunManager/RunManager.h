@@ -1,8 +1,8 @@
 /**
  * @file RunManager.h
  * @brief Central coordinator header for all Kwal modules
- * @version 260304F
- * @date 2026-03-04
+ * @version 260306A
+ * @date 2026-03-06
  */
 #pragma once
 #include <Arduino.h>
@@ -52,4 +52,8 @@ public:
     // Legacy boot handoffs — now no-ops (sequencer handles this)
     static void resumeAfterSDBoot();
     static void resumeAfterWiFiBoot();
+
+    // TV Simulator
+    static void enterTvMode(uint8_t hours);
+    static void exitTvMode();
 };

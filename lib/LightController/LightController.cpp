@@ -1,8 +1,8 @@
 /**
  * @file LightController.cpp
  * @brief LED control implementation via FastLED library
- * @version 260227C
- * @date 2026-02-27
+ * @version 260306D
+ * @date 2026-03-06
  */
 #include <Arduino.h>
 #include "Globals.h"
@@ -180,6 +180,8 @@ void PlayLightShow(const LightShowParams &p) {
 void applyBrightness() {
   // Skip while fade callbacks own FastLED brightness (lux measurement cycle)
   if (Globals::brightnessFading) return;
+  // TV simulator owns brightness — skip normal calculation
+  if (Globals::tvMode) return;
 
   // sliderPct is derived from shiftedHi, which already includes webMultiplier
   int sliderPct = getSliderPct();

@@ -1,8 +1,8 @@
 /**
  * @file AudioDirector.cpp
  * @brief Audio fragment selection logic implementation
- * @version 260219E
- * @date 2026-02-19
+ * @version 260306G
+ * @date 2026-03-06
  */
 #include "AudioDirector.h"
 
@@ -211,23 +211,26 @@ bool AudioDirector::selectRandomFragment(AudioFragment& outFrag) {
     // Reset to base theme box before merging (removes previous merge additions)
     AudioPolicy::resetToBaseThemeBox();
     
-    // Merge additional theme boxes from audio shifts
     uint64_t statusBits = StatusFlags::getFullStatusBits();
-    auto additions = AudioShiftTable::instance().getThemeBoxAdditions(statusBits);
-    if (!additions.empty()) {
-        for (uint8_t boxId : additions) {
-            const ThemeBox* box = FindThemeBox(boxId);
-            if (box && !box->entries.empty()) {
-                // Convert uint16_t entries to uint8_t array
-                std::vector<uint8_t> dirs;
-                dirs.reserve(box->entries.size());
-                for (uint16_t e : box->entries) {
-                    if (e <= 255) {
-                        dirs.push_back(static_cast<uint8_t>(e));
+
+    // Merge additional theme boxes from audio shifts (skip in TV mode — TVSIM box only)
+    if (!Globals::tvMode) {
+        auto additions = AudioShiftTable::instance().getThemeBoxAdditions(statusBits);
+        if (!additions.empty()) {
+            for (uint8_t boxId : additions) {
+                const ThemeBox* box = FindThemeBox(boxId);
+                if (box && !box->entries.empty()) {
+                    // Convert uint16_t entries to uint8_t array
+                    std::vector<uint8_t> dirs;
+                    dirs.reserve(box->entries.size());
+                    for (uint16_t e : box->entries) {
+                        if (e <= 255) {
+                            dirs.push_back(static_cast<uint8_t>(e));
+                        }
                     }
-                }
-                if (!dirs.empty()) {
-                    AudioPolicy::mergeThemeBoxDirs(dirs.data(), dirs.size());
+                    if (!dirs.empty()) {
+                        AudioPolicy::mergeThemeBoxDirs(dirs.data(), dirs.size());
+                    }
                 }
             }
         }
@@ -249,6 +252,10 @@ bool AudioDirector::selectRandomFragment(AudioFragment& outFrag) {
         const uint8_t* themeDirs = AudioPolicy::themeBoxDirs(themeCount);
         if (themeDirs && themeCount > 0) {
             if (!selectDirectory(dirPick, themeDirs, themeCount)) {
+                if (Globals::tvMode) {
+                    PF("[TvSim] WARN: theme box dirs not on SD — check dir %03u\n",
+                       themeCount > 0 ? themeDirs[0] : 0);
+                }
                 PF("[AudioDirector] Theme box %s unavailable, falling back to full directory pool\n",
                    AudioPolicy::themeBoxId().c_str());
                 if (!selectDirectory(dirPick)) {
@@ -277,6 +284,17 @@ bool AudioDirector::selectRandomFragment(AudioFragment& outFrag) {
             PF("[AudioDirector] Fragment candidate too short %03u/%03u (raw=%lu min=%lu)\n", 
                dirPick.id, file, static_cast<unsigned long>(rawDuration), static_cast<unsigned long>(minDuration));
             continue;
+        }
+
+        // TV simulator: play entire file
+        if (Globals::tvMode) {
+            outFrag.dirIndex   = dirPick.id;
+            outFrag.fileIndex  = file;
+            outFrag.score      = fileEntry.score;
+            outFrag.startMs    = 0;
+            outFrag.durationMs = static_cast<uint16_t>(rawDuration > 0xFFFFU ? 0xFFFFU : rawDuration);
+            outFrag.fadeMs     = fadeMs;
+            return true;
         }
 
         // Calculate start window: random within first fragmentStartFraction% of track

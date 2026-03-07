@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260304F
- * @date 2026-03-04
+ * @version 260306H
+ * @date 2026-03-06
  */
 #include <Arduino.h>
 #include <math.h>
@@ -25,6 +25,7 @@
 #include "Status/StatusPolicy.h"
 #include "Alert/AlertRun.h"
 #include "Alert/AlertState.h"
+#include "TodayState.h"
 #include "WiFi/WiFiBoot.h"
 #include "WiFi/WiFiRun.h"
 #include "WiFi/WiFiPolicy.h"
@@ -59,6 +60,14 @@
 #include "Light/LightRun.h"
 #include "Boot/BootSequencer.h"
 #include "Boot/Cap.h"
+
+// TV Simulator constants (used by cb_playFragment and enterTvMode)
+namespace TvConfig {
+    constexpr uint8_t  themeBoxId    = 34;
+    constexpr uint8_t  maxBrightness = 250;
+    constexpr uint32_t audioMinMs    = SECONDS(5);
+    constexpr uint32_t audioMaxMs    = SECONDS(15);
+}
 
 // === Lux Measurement - delegated to LightRun ===
 void RunManager::requestLuxMeasurement() {
@@ -184,14 +193,25 @@ void cb_sayRTCtemperature() {
 }
 
 void cb_playFragment() {
+    // Don't try to start a new fragment while one is still playing
+    if (Globals::tvMode && isFragmentPlaying()) {
+        timers.restart(SECONDS(5), 1, cb_playFragment);
+        return;
+    }
     RunManager::requestPlayFragment();
-    // Schedule next: explicit web range wins, then web-singleDir, then Globals
-    uint32_t lo = AudioPolicy::effectiveFragmentMin();
-    uint32_t hi = AudioPolicy::effectiveFragmentMax();
-    if (!AudioPolicy::isWebFragmentRangeActive()
-        && AudioPolicy::themeBoxId().startsWith("web-")) {
-        lo = Globals::singleDirMinIntervalMs;
-        hi = Globals::singleDirMaxIntervalMs;
+    // Schedule next: TV sim uses short intervals, else normal logic
+    uint32_t lo, hi;
+    if (Globals::tvMode) {
+        lo = TvConfig::audioMinMs;
+        hi = TvConfig::audioMaxMs;
+    } else {
+        lo = AudioPolicy::effectiveFragmentMin();
+        hi = AudioPolicy::effectiveFragmentMax();
+        if (!AudioPolicy::isWebFragmentRangeActive()
+            && AudioPolicy::themeBoxId().startsWith("web-")) {
+            lo = Globals::singleDirMinIntervalMs;
+            hi = Globals::singleDirMaxIntervalMs;
+        }
     }
     timers.restart(random(lo, hi + 1), 1, cb_playFragment);
 }
@@ -567,4 +587,95 @@ void RunManager::requestStartSync() {
 
 void RunManager::requestStopSync() {
     AlertState::setSyncMode(false);
+}
+
+// ─── TV Simulator ───────────────────────────────────────────
+
+static uint8_t  tvHue = 0;
+
+void cb_tvScene();
+
+void cb_tvTimeout() {
+    RunManager::exitTvMode();
+}
+
+void cb_tvScene() {
+    // 70% cool white/blue, 30% colored scene
+    CRGB a, b;
+    if (random(100) < 70) {
+        // Cool white/blue — low saturation, high value
+        uint8_t hue = random(140, 180);            // blue-ish range
+        a = CHSV(hue,              random(20, 80),  random(200, 255));
+        b = CHSV(hue + random(0, 30), random(10, 60), random(180, 255));
+    } else {
+        // Colored scene — any hue, moderate-high saturation
+        tvHue += random(40, 160);
+        a = CHSV(tvHue,                   random(120, 220), random(160, 250));
+        b = CHSV(tvHue + random(30, 100), random(100, 200), random(140, 240));
+    }
+
+    // Randomize spatial params — keep radius small so color varies across LEDs
+    float cx   = random(-130, 131) / 10.0f;        // -13.0 to +13.0 (full map range)
+    float cy   = random(-130, 131) / 10.0f;
+    float r    = random(20, 90) / 10.0f;            // 2.0 to 9.0 (small spotlight, not full coverage)
+    float fw   = random(20, 80) / 10.0f;            // 2.0 to 8.0 (tight fade = visible gradient)
+    float rOsc = random(0, 51) / 10.0f;             // 0.0 to 5.0 (gentle pulsing)
+    float xA   = random(30, 121) / 10.0f;           // 3.0 to 12.0 (big sweeps)
+    float yA   = random(30, 121) / 10.0f;
+    int   ww   = random(2, 8);                      // 2 to 7 (narrower window)
+    uint8_t minB = random(0, 60);                   // dark areas stay dark
+    float gs   = random(5, 20) / 10.0f;             // 0.5 to 2.0 (always some gradient movement)
+
+    // Maximum speed — all cycles at 1s for fast TV flicker
+    uint8_t ccs = 1;
+    uint8_t bcs = 1;
+    uint8_t xcs = 1;
+    uint8_t ycs = 1;
+
+    PlayLightShow(LightShowParams(a, b, ccs, bcs, fw, minB, gs, cx, cy, r, ww, rOsc, xA, yA, xcs, ycs));
+    timers.restart(random(80, 800), 1, cb_tvScene);
+}
+
+void RunManager::enterTvMode(uint8_t hours) {
+    Globals::tvMode = true;
+
+    // Activate TVSIM theme box for audio
+    const auto& boxes = GetAllThemeBoxes();
+    for (const auto& box : boxes) {
+        if (box.id == TvConfig::themeBoxId) {
+            std::vector<uint8_t> dirs8(box.entries.begin(), box.entries.end());
+            AudioPolicy::setThemeBox(dirs8.data(), dirs8.size(), "tvsim");
+            PF("[TvSim] Audio theme box %u (%s), %u dirs\n",
+               box.id, box.name.c_str(), static_cast<unsigned>(dirs8.size()));
+            break;
+        }
+    }
+
+    FastLED.setBrightness(TvConfig::maxBrightness);
+
+    // Stop PNF calibration if running — it overwrites light patterns
+    timers.cancel(LightRun::cb_pnfCalSample);
+    timers.cancel(LightRun::cb_pnfCalNext);
+
+    // Trigger first fragment quickly
+    timers.restart(SECONDS(2), 1, cb_playFragment);
+
+    tvHue = random(256);
+    cb_tvScene();
+
+    timers.create(static_cast<uint32_t>(hours) * 3600000UL, 1, cb_tvTimeout);
+    PF("[TvSim] Started for %u hours\n", hours);
+}
+
+void RunManager::exitTvMode() {
+    Globals::tvMode = false;
+
+    PlayAudioFragment::stop(500);
+    AudioPolicy::resetToBaseThemeBox();
+    LightRun::reapplyCurrentShow();
+
+    timers.cancel(cb_tvScene);
+    timers.cancel(cb_tvTimeout);
+
+    PL("[TvSim] Stopped");
 }
