@@ -1,8 +1,9 @@
 ﻿# sync_mp3.ps1
 # Syncs MP3 directories from NAS to ESP32 SD card (vote-preserving)
-# Usage: .\sync_mp3.ps1              # sync to HOUT (189)
-#        .\sync_mp3.ps1 188          # sync to MARMER (188)
-#        .\sync_mp3.ps1 -ip 192.168.2.188
+# Run from tools/ directory:
+#   .\sync_mp3.ps1              # sync to HOUT (189)
+#   .\sync_mp3.ps1 188          # sync to MARMER (188)
+#   .\sync_mp3.ps1 -ip 192.168.2.188
 
 param(
     [Parameter(Position=0)][string]$lastOctet = "189",
