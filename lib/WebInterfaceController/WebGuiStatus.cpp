@@ -186,6 +186,8 @@ void pushState() {
     json += AudioPolicy::webFragCenterMin();
     json += F(",\"durMin\":");
     json += static_cast<uint32_t>(Globals::defaultWebExpiryMs / 60000UL);
+    json += F(",\"tvMode\":");
+    json += Globals::tvMode ? F("true") : F("false");
     json += '}';
     
     eventsPtr_->send(json.c_str(), "state", millis());

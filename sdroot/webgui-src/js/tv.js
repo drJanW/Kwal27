@@ -43,4 +43,11 @@
     }
 
     btn.onclick = startTvMode;
+
+    // Restore TV mode UI from SSE state events (survives page reload / SSE reconnect)
+    if (Kwal.sse && Kwal.sse.onState) {
+        Kwal.sse.onState(function(data) {
+            if (typeof data.tvMode === 'boolean') setActive(data.tvMode);
+        });
+    }
 })();

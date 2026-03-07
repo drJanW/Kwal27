@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260307B - Built 2026-03-07 07:33
+ * Kwal WebGUI v260307D - Built 2026-03-07 11:25
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260307B';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260307D';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -2412,6 +2412,13 @@ Kwal.mp3grid = (function() {
     }
 
     btn.onclick = startTvMode;
+
+    // Restore TV mode UI from SSE state events (survives page reload / SSE reconnect)
+    if (Kwal.sse && Kwal.sse.onState) {
+        Kwal.sse.onState(function(data) {
+            if (typeof data.tvMode === 'boolean') setActive(data.tvMode);
+        });
+    }
 })();
 
 
