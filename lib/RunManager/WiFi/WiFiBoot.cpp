@@ -1,8 +1,8 @@
 /**
  * @file WiFiBoot.cpp
  * @brief WiFi connection one-time initialization implementation
- * @version 260304F
- * @date 2026-03-04
+ * @version 260308E
+ * @date 2026-03-08
  */
 #include <Arduino.h>
 #include "WiFiBoot.h"
@@ -28,7 +28,7 @@ namespace {
     static bool moduleTimerStarted = false;
     static bool modulesReadyAnnounced = false;
     static bool csvFetchStarted = false;
-    static bool csvFetchCompleted = false;
+    static bool csvCapGranted = false;
 
     constexpr const char* kCsvFiles[] = {
         "globals.csv",
@@ -81,7 +81,6 @@ namespace {
         const String path = buildCsvPath(filename);
         if (SDController::fileExists(path.c_str())) {
             SDController::deleteFile(path.c_str());
-            PF("[WiFiBoot] Removed stale NAS CSV: %s\n", path.c_str());
         }
     }
 
@@ -178,19 +177,35 @@ namespace {
             }
         }
 
+        const uint8_t total = sizeof(kCsvFiles) / sizeof(kCsvFiles[0]);
         if (count > 0) {
-            PF("[WiFiBoot] %u CSVs (%uKB)\n", count, static_cast<unsigned>(totalBytes / 1024));
+            PF("[WiFiBoot] NAS CSV: %u/%u fetched (%uKB)\n", count, total, static_cast<unsigned>(totalBytes / 1024));
+        } else {
+            PF("[WiFiBoot] NAS CSV: 0/%u fetched, using SD\n", total);
         }
     }
 
-    void cb_csvFetchTimeout() {
-        if (csvFetchCompleted) {
-            return;
-        }
-        csvFetchCompleted = true;
-        PL("[WiFiBoot] NAS timeout, using SD");
-        removeAllNasCsvFiles();
+    void grantCsvCap() {
+        if (csvCapGranted) return;
+        csvCapGranted = true;
         BootSequencer::grant(Cap::CSV);
+    }
+
+    void cb_csvPatience() {
+        // Boot can't wait forever — go with whatever CSVs are on SD
+        PL("[WiFiBoot] NAS slow, boot continues");
+        grantCsvCap();
+    }
+
+    void cb_retryNasProbe() {
+        NasBackup::checkHealth();
+        if (AlertState::isNasOk()) {
+            timers.cancel(cb_retryNasProbe);
+            timers.cancel(cb_csvPatience);
+            downloadCsvFilesFromLan();
+            grantCsvCap();
+            NasBackup::startHealthTimer();
+        }
     }
 
     void cb_moduleInit() {
@@ -239,16 +254,19 @@ namespace {
         lastWiFiState = wifiUp;
 
         if (wifiUp) {
-            if (!csvFetchCompleted && !csvFetchStarted) {
+            if (!csvFetchStarted) {
                 csvFetchStarted = true;
-                downloadCsvFilesFromLan();
-                csvFetchCompleted = true;
-                timers.cancel(cb_csvFetchTimeout);
-                // Defer NAS health check — WiFi CSV downloads leave TCP connections
-                // in TIME_WAIT (~120s), each holding ~6-11KB heap. Adding another
-                // HTTP connection here causes OOM during audio+webserver.
-                timers.create(SECONDS(30), 1, []() { NasBackup::startHealthTimer(); });
-                BootSequencer::grant(Cap::CSV);
+                // First probe — if NAS responds immediately, fetch now
+                NasBackup::checkHealth();
+                if (AlertState::isNasOk()) {
+                    downloadCsvFilesFromLan();
+                    grantCsvCap();
+                    NasBackup::startHealthTimer();
+                } else {
+                    // NAS slow — patience timer lets boot continue, retry keeps trying
+                    timers.create(Globals::csvFetchWaitMs, 1, cb_csvPatience);
+                    timers.create(SECONDS(1), 0, cb_retryNasProbe, 2.0);
+                }
             }
 
             if (!fetchCreated) {
@@ -276,9 +294,6 @@ namespace {
 void WiFiBoot::plan() {
     if (!timers.create(1000, 0, cb_wifiBootCheck)) {
         PL("[Main] Failed to create WiFi boot check timer");
-    }
-    if (Globals::csvFetchWaitMs > 0 && !timers.isActive(cb_csvFetchTimeout)) {
-        timers.create(Globals::csvFetchWaitMs, 1, cb_csvFetchTimeout);
     }
     bootWiFiConnect();
     PL_BOOT("[WiFiBoot] connect started");

@@ -17,6 +17,7 @@
         light: [],      // Legacy (still fired by firmware)
         colors: [],
         patterns: [],
+        luxcal: [],     // Lux calibration sample captured
         reconnect: []   // Called on reconnect to refresh state
     };
     
@@ -103,6 +104,17 @@
                 console.error('[SSE] patterns parse error:', err);
             }
         });
+
+        // Lux calibration sample captured
+        eventSource.addEventListener('luxcal', function(e) {
+            try {
+                const data = JSON.parse(e.data);
+                console.log('[SSE] luxcal:', data);
+                listeners.luxcal.forEach(cb => cb(data));
+            } catch (err) {
+                console.error('[SSE] luxcal parse error:', err);
+            }
+        });
     }
     
     function scheduleReconnect() {
@@ -173,6 +185,16 @@
             listeners.patterns.push(cb);
         }
     }
+
+    /**
+     * Register callback for lux calibration sample events
+     * @param {function(data: {n: number, lux: number, brightness: number}): void} cb
+     */
+    function onLuxcal(cb) {
+        if (typeof cb === 'function') {
+            listeners.luxcal.push(cb);
+        }
+    }
     
     /**
      * Register callback for reconnect (to refresh state after ESP32 reboot)
@@ -203,6 +225,7 @@
         onLight: onLight,
         onColors: onColors,
         onPatterns: onPatterns,
+        onLuxcal: onLuxcal,
         onReconnect: onReconnect
     };
 })();

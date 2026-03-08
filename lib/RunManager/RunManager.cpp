@@ -585,6 +585,9 @@ void RunManager::requestStopSync() {
 // ─── TV Simulator ───────────────────────────────────────────
 
 static uint8_t  tvHue = 0;
+static uint8_t  tvSavedThemeDirs[MAX_THEME_DIRS];
+static size_t   tvSavedThemeDirCount = 0;
+static String   tvSavedThemeId;
 
 void cb_tvScene();
 
@@ -630,6 +633,18 @@ void cb_tvScene() {
 void RunManager::enterTvMode(uint8_t hours) {
     Globals::tvMode = true;
 
+    // Save current (calendar) theme box before overwriting
+    size_t savedCount = 0;
+    const uint8_t* savedDirs = AudioPolicy::themeBoxDirs(savedCount);
+    if (savedDirs && savedCount > 0) {
+        memcpy(tvSavedThemeDirs, savedDirs, savedCount);
+        tvSavedThemeDirCount = savedCount;
+        tvSavedThemeId = AudioPolicy::themeBoxId();
+    } else {
+        tvSavedThemeDirCount = 0;
+        tvSavedThemeId = "";
+    }
+
     // Activate TVSIM theme box for audio
     const auto& boxes = GetAllThemeBoxes();
     for (const auto& box : boxes) {
@@ -662,7 +677,14 @@ void RunManager::exitTvMode() {
     Globals::tvMode = false;
 
     PlayAudioFragment::stop(500);
-    AudioPolicy::resetToBaseThemeBox();
+
+    // Restore pre-TvSim theme box (calendar)
+    if (tvSavedThemeDirCount > 0) {
+        AudioPolicy::setThemeBox(tvSavedThemeDirs, tvSavedThemeDirCount, tvSavedThemeId);
+    } else {
+        AudioPolicy::clearThemeBox();
+    }
+
     LightRun::reapplyCurrentShow();
 
     timers.cancel(cb_tvScene);

@@ -324,6 +324,20 @@ static void applyOverride(const char* key, char type, const char* value) {
             PF_BOOT("[Globals] luxGamma = %.2f\n", static_cast<double>(f32));
         }
     }
+    else if (strcmp(key, "seededLuxDataPoints") == 0 && type == 'i') {
+        int32_t i32;
+        if (parseInt32(value, &i32) && i32 >= 5 && i32 <= 100) {
+            Globals::seededLuxDataPoints = static_cast<uint8_t>(i32);
+            PF_BOOT("[Globals] seededLuxDataPoints = %u\n", Globals::seededLuxDataPoints);
+        }
+    }
+    else if (strcmp(key, "maxLuxDataPoints") == 0 && type == 'i') {
+        int32_t i32;
+        if (parseInt32(value, &i32) && i32 >= 10 && i32 <= 200) {
+            Globals::maxLuxDataPoints = static_cast<uint8_t>(i32);
+            PF_BOOT("[Globals] maxLuxDataPoints = %u\n", Globals::maxLuxDataPoints);
+        }
+    }
     else if (strcmp(key, "calendarShiftLo") == 0 && type == 'i') {
         int32_t i32;
         if (parseInt32(value, &i32) && i32 >= -100 && i32 <= 100) {

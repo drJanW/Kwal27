@@ -1,8 +1,8 @@
 /**
  * @file LuxCalRoutes.cpp
  * @brief Lux calibration API endpoint routes implementation
- * @version 260303A
- * @date 2026-03-03
+ * @version 260308L
+ * @date 2026-03-08
  */
 #include <Arduino.h>
 #include "LuxCalRoutes.h"
@@ -31,6 +31,11 @@ static void routeCalibrate(AsyncWebServerRequest* request) {
     if (mode == "on") {
         Globals::luxCalibrationMode = true;
         PL("[LuxCal] Calibration mode ON");
+        // Load existing data or generate seeds from current params
+        auto& cal = LuxCalibration::instance();
+        if (!cal.loadFromSd() && AlertState::isSdOk() && !AlertState::isSdBusy()) {
+            cal.generateSeeds();
+        }
     } else {
         Globals::luxCalibrationMode = false;
         PL("[LuxCal] Calibration mode OFF");
@@ -71,17 +76,29 @@ static void routeStatus(AsyncWebServerRequest* request) {
 static void routeFit(AsyncWebServerRequest* request) {
     LuxFitResult result;
     if (!LuxCalibration::instance().fitParams(result)) {
-        sendError(request, 422, F("Too few samples (need 4+)"));
+        sendError(request, 422, F("No real samples yet"));
         return;
     }
+    // Capture old params before overwriting
+    float    oldLuxMax     = Globals::luxMax;
+    int8_t   oldLuxShiftLo = Globals::luxShiftLo;
+    int8_t   oldLuxShiftHi = Globals::luxShiftHi;
+    float    oldLuxGamma   = Globals::luxGamma;
+
     // Apply fitted params to memory
     Globals::luxMax     = result.luxMax;
     Globals::luxShiftLo = result.luxShiftLo;
     Globals::luxShiftHi = result.luxShiftHi;
     Globals::luxGamma   = result.luxGamma;
 
+    // Persist to globals.csv + regenerate seeds (knowledge absorbed)
+    if (AlertState::isSdOk() && !AlertState::isSdBusy()) {
+        LuxCalibration::instance().saveFittedParams(result);
+        LuxCalibration::instance().generateSeeds();
+    }
+
     String json;
-    json.reserve(160);
+    json.reserve(256);
     json += F("{\"ok\":true,\"luxMax\":");
     json += String(result.luxMax, 0);
     json += F(",\"luxShiftLo\":");
@@ -94,6 +111,16 @@ static void routeFit(AsyncWebServerRequest* request) {
     json += String(result.error, 1);
     json += F(",\"sampleCount\":");
     json += result.sampleCount;
+    json += F(",\"oldLuxMax\":");
+    json += String(oldLuxMax, 0);
+    json += F(",\"oldLuxShiftLo\":");
+    json += oldLuxShiftLo;
+    json += F(",\"oldLuxShiftHi\":");
+    json += oldLuxShiftHi;
+    json += F(",\"oldLuxGamma\":");
+    json += String(oldLuxGamma, 2);
+    json += F(",\"newSampleCount\":");
+    json += LuxCalibration::instance().sampleCount();
     json += '}';
     sendJson(request, json);
 }

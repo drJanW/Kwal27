@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260308C"
+#define FIRMWARE_VERSION_CODE "260308L"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -100,6 +100,8 @@ struct Globals {
     inline static int8_t   luxShiftLo              = -10;         // Lux shift at luxMin
     inline static int8_t   luxShiftHi              = +10;         // Lux shift at luxMax
     inline static float    luxGamma                = 0.4f;        // Stevens' power law exponent (0.33-0.5)
+    inline static uint8_t  seededLuxDataPoints     = 20U;         // Seed count after fit (prior from fitted params)
+    inline static uint8_t  maxLuxDataPoints        = 50U;         // Auto-fit trigger (seeds + real samples)
     inline static int8_t   calendarShiftLo         = -20;         // Calendar shift minimum
     inline static int8_t   calendarShiftHi         = +20;         // Calendar shift maximum
     inline static uint16_t maxMilliamps            = 1200U;       // FastLED power limit

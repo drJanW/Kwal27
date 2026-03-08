@@ -1,23 +1,20 @@
 /**
  * @file LuxCalibration.h
- * @brief Lux calibration sample buffer and grid search fit
- * @version 260303A
- * @date 2026-03-03
+ * @brief Lux calibration data file and grid search fit
+ * @version 260308L
+ * @date 2026-03-08
  */
 #pragma once
 
 #include <Arduino.h>
 #include <vector>
 
-/// Maximum number of calibration samples in RAM
-constexpr uint8_t LUX_CAL_MAX_SAMPLES = 100;
-
-/// Single calibration sample: user pressed 👍 at this (lux, brightness) combo
+/// Single calibration data point (seed or real sample)
 struct LuxCalSample {
     float    lux;            // Raw VEML7700 reading
     float    brightness;     // Unclamped brightness from calcShiftedHi
-    uint8_t  patternId;      // 1+, 0 = seed sentinel (E6)
-    uint8_t  colorsId;       // 1+, 0 = seed sentinel (E6)
+    uint8_t  patternId;      // Pattern active during measurement
+    uint8_t  colorsId;       // Colors active during measurement
 };
 
 /// Grid search fit result
@@ -27,33 +24,39 @@ struct LuxFitResult {
     int8_t luxShiftHi;
     float luxGamma;
     float error;             // Weighted MSE
-    uint8_t sampleCount;     // Samples used in fit
+    uint8_t sampleCount;     // Total data points used in fit
 };
 
 class LuxCalibration {
 public:
     static LuxCalibration& instance();
 
-    /// Add a sample to the buffer. FIFO eviction when full.
+    /// Add a data point. FIFO eviction when buffer exceeds maxLuxDataPoints.
     void addSample(const LuxCalSample& sample);
 
-    /// Number of samples currently in buffer
+    /// Number of data points currently in buffer
     uint8_t sampleCount() const { return static_cast<uint8_t>(samples_.size()); }
 
-    /// Clear all samples from RAM (does not touch SD)
+    /// Clear all data points from RAM (does not touch SD)
     void clearSamples();
 
-    /// Load samples from /luxcal.csv on SD
+    /// Generate seed data points from current Globals params, store in RAM + SD
+    bool generateSeeds();
+
+    /// Load data points from /luxcal.csv on SD
     bool loadFromSd();
 
-    /// Save samples to /luxcal.csv on SD (call from timer callback with isSdBusy guard)
+    /// Save all data points to /luxcal.csv on SD (call from timer callback with isSdBusy guard)
     bool saveToSd() const;
 
     /// Delete /luxcal.csv from SD
     bool deleteCsv() const;
 
-    /// Run grid search fit. Returns false if too few samples (<4).
+    /// Run grid search fit. Returns false if insufficient data.
     bool fitParams(LuxFitResult& result) const;
+
+    /// Persist fitted params to globals.csv (append, last value wins)
+    bool saveFittedParams(const LuxFitResult& result) const;
 
     /// Build JSON summary for API response
     String buildJson() const;

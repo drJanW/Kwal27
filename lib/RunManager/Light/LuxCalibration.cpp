@@ -1,8 +1,8 @@
 /**
  * @file LuxCalibration.cpp
- * @brief Lux calibration sample buffer and grid search fit implementation
- * @version 260304H
- * @date 2026-03-04
+ * @brief Lux calibration data file and grid search fit implementation
+ * @version 260308L
+ * @date 2026-03-08
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -11,14 +11,15 @@
 #include "Globals.h"
 #include "CsvUtils.h"
 #include "SDController.h"
+#include "SdPathUtils.h"
 #include "SensorController.h"
 #include "Alert/AlertState.h"
+#include <SD.h>
 #include <math.h>
 
 namespace {
 constexpr const char* kLuxCalPath = "/luxcal.csv";
 constexpr const char* kCsvHeader  = "lux;brightness;patternId;colorsId";
-constexpr uint8_t kMinFitSamples  = 4;
 } // namespace
 
 LuxCalibration& LuxCalibration::instance() {
@@ -27,19 +28,38 @@ LuxCalibration& LuxCalibration::instance() {
 }
 
 void LuxCalibration::addSample(const LuxCalSample& sample) {
-    // FIFO eviction when buffer is full
-    if (samples_.size() >= LUX_CAL_MAX_SAMPLES) {
+    if (samples_.size() >= Globals::maxLuxDataPoints) {
         samples_.erase(samples_.begin());
     }
     samples_.push_back(sample);
-    PF("[LuxCal] Sample added: lux=%.1f bri=%.1f pat=%u col=%u (n=%u)\n",
+    PF("[LuxCal] Data point added: lux=%.1f bri=%.1f pat=%u col=%u (n=%u)\n",
        sample.lux, sample.brightness, sample.patternId, sample.colorsId,
        static_cast<unsigned>(samples_.size()));
 }
 
 void LuxCalibration::clearSamples() {
     samples_.clear();
-    PL("[LuxCal] Samples cleared");
+    PL("[LuxCal] Data points cleared");
+}
+
+bool LuxCalibration::generateSeeds() {
+    samples_.clear();
+    uint8_t n = Globals::seededLuxDataPoints;
+    samples_.reserve(n);
+    for (uint8_t i = 0; i < n; ++i) {
+        float normLux = static_cast<float>(i + 1) / n;  // 1/n .. 1.0
+        float seedLux = normLux * Globals::luxMax;
+        float luxT = powf(normLux, Globals::luxGamma);
+        float luxShift = Globals::luxShiftLo + (Globals::luxShiftHi - Globals::luxShiftLo) * luxT;
+        LuxCalSample s;
+        s.lux        = seedLux;
+        s.brightness = Globals::brightnessHi * (1.0f + luxShift / 100.0f);
+        s.patternId  = 1;
+        s.colorsId   = 1;
+        samples_.push_back(s);
+    }
+    PF("[LuxCal] Generated %u seeds from current params\n", n);
+    return saveToSd();
 }
 
 bool LuxCalibration::loadFromSd() {
@@ -110,32 +130,39 @@ bool LuxCalibration::deleteCsv() const {
 }
 
 bool LuxCalibration::fitParams(LuxFitResult& result) const {
-    // Filter: exclude seed sentinels (patternId==0 or colorsId==0)
-    std::vector<const LuxCalSample*> valid;
-    valid.reserve(samples_.size());
-    for (const auto& s : samples_) {
-        if (s.patternId == 0 || s.colorsId == 0) continue;
-        valid.push_back(&s);
-    }
-
-    if (valid.size() < kMinFitSamples) {
-        PF("[LuxCal] FIT: too few samples (%u < %u)\n",
-           static_cast<unsigned>(valid.size()), kMinFitSamples);
+    if (samples_.empty()) {
+        PL("[LuxCal] FIT: no data points");
         return false;
     }
 
-    // luxMax = max(all sample lux) × 1.1
-    float maxLux = 0.0f;
-    for (const auto* s : valid) {
-        if (s->lux > maxLux) maxLux = s->lux;
+    // luxMax = max(all lux values) × 1.1
+    float maxLux = Globals::luxMax;
+    for (const auto& s : samples_) {
+        if (s.lux > maxLux) maxLux = s.lux;
     }
     float fitLuxMax = maxLux * 1.1f;
-    if (fitLuxMax < 10.0f) fitLuxMax = 10.0f;  // Sanity floor
+    if (fitLuxMax < 10.0f) fitLuxMax = 10.0f;
 
-    // Grid search: 3 params
-    // luxShiftLo ∈ [-30 .. 0] step 5 → 7 values
-    // luxShiftHi ∈ [0 .. +30] step 5 → 7 values
-    // luxGamma   ∈ [0.2 .. 0.7] step 0.1 → 6 values
+    // MSE calculator — all data points weighted equally (inverse-lux weighting)
+    auto calcMse = [&](int sLo, int sHi, float gamma) -> float {
+        float totalError = 0.0f;
+        float totalWeight = 0.0f;
+
+        for (const auto& s : samples_) {
+            float normLux = clamp(s.lux, Globals::luxMin, fitLuxMax) / fitLuxMax;
+            float luxT = powf(normLux, gamma);
+            float luxShift = sLo + (sHi - sLo) * luxT;
+            float predicted = Globals::brightnessHi * (1.0f + luxShift / 100.0f);
+            float diff = s.brightness - predicted;
+            float w = 1.0f / (1.0f + s.lux);
+            totalError += diff * diff * w;
+            totalWeight += w;
+        }
+
+        return (totalWeight > 0.0f) ? totalError / totalWeight : 1e12f;
+    };
+
+    // Grid search pass 1: coarse
     float bestError = 1e12f;
     int8_t bestShiftLo = 0;
     int8_t bestShiftHi = 0;
@@ -143,26 +170,9 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
 
     for (int sLo = -30; sLo <= 0; sLo += 5) {
         for (int sHi = 0; sHi <= 30; sHi += 5) {
-            for (int gIdx = 2; gIdx <= 7; gIdx++) {  // 0.2 .. 0.7
+            for (int gIdx = 2; gIdx <= 7; gIdx++) {
                 float gamma = gIdx * 0.1f;
-
-                // Compute weighted MSE for this parameter set
-                float totalError = 0.0f;
-                float totalWeight = 0.0f;
-
-                for (const auto* s : valid) {
-                    float normLux = clamp(s->lux, Globals::luxMin, fitLuxMax) / fitLuxMax;
-                    float luxT = powf(normLux, gamma);
-                    float luxShift = sLo + (sHi - sLo) * luxT;
-                    float predicted = Globals::brightnessHi * (1.0f + luxShift / 100.0f);
-
-                    float diff = s->brightness - predicted;
-                    float weight = 1.0f / (1.0f + s->lux);  // Low-lux emphasis
-                    totalError += diff * diff * weight;
-                    totalWeight += weight;
-                }
-
-                float mse = (totalWeight > 0.0f) ? totalError / totalWeight : 1e12f;
+                float mse = calcMse(sLo, sHi, gamma);
                 if (mse < bestError) {
                     bestError = mse;
                     bestShiftLo = static_cast<int8_t>(sLo);
@@ -173,7 +183,7 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
         }
     }
 
-    // Optional: second pass ±2 steps at 0.5× step size around best
+    // Grid search pass 2: fine (±2 steps at half step size around best)
     for (int sLo = bestShiftLo - 5; sLo <= bestShiftLo + 5; sLo += 2) {
         if (sLo < -40 || sLo > 0) continue;
         for (int sHi = bestShiftHi - 5; sHi <= bestShiftHi + 5; sHi += 2) {
@@ -182,23 +192,7 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
                      gIdx <= static_cast<int>(bestGamma * 20.0f) + 2; gIdx++) {
                 float gamma = gIdx * 0.05f;
                 if (gamma < 0.15f || gamma > 0.8f) continue;
-
-                float totalError = 0.0f;
-                float totalWeight = 0.0f;
-
-                for (const auto* s : valid) {
-                    float normLux = clamp(s->lux, Globals::luxMin, fitLuxMax) / fitLuxMax;
-                    float luxT = powf(normLux, gamma);
-                    float luxShift = sLo + (sHi - sLo) * luxT;
-                    float predicted = Globals::brightnessHi * (1.0f + luxShift / 100.0f);
-
-                    float diff = s->brightness - predicted;
-                    float weight = 1.0f / (1.0f + s->lux);
-                    totalError += diff * diff * weight;
-                    totalWeight += weight;
-                }
-
-                float mse = (totalWeight > 0.0f) ? totalError / totalWeight : 1e12f;
+                float mse = calcMse(sLo, sHi, gamma);
                 if (mse < bestError) {
                     bestError = mse;
                     bestShiftLo = static_cast<int8_t>(clamp(sLo, -40, 0));
@@ -215,12 +209,31 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
     result.luxShiftHi  = static_cast<int8_t>(clamp(static_cast<int>(bestShiftHi), 0, 40));
     result.luxGamma    = clamp(bestGamma, 0.15f, 0.8f);
     result.error       = bestError;
-    result.sampleCount = static_cast<uint8_t>(valid.size());
+    result.sampleCount = static_cast<uint8_t>(samples_.size());
 
     PF("[LuxCal] FIT luxMax=%.0f shiftLo=%d shiftHi=%d gamma=%.2f error=%.1f (n=%u)\n",
        result.luxMax, result.luxShiftLo, result.luxShiftHi, result.luxGamma,
        result.error, result.sampleCount);
 
+    return true;
+}
+
+bool LuxCalibration::saveFittedParams(const LuxFitResult& result) const {
+    if (!AlertState::isSdOk()) return false;
+    const String csvPath = SdPathUtils::chooseCsvPath("globals.csv");
+    if (csvPath.isEmpty()) return false;
+
+    File file = SD.open(csvPath.c_str(), FILE_APPEND);
+    if (!file) return false;
+
+    file.printf("\n# ── Lux calibration fit ──\n");
+    file.printf("luxMax;f;%.1f;fitted lux ceiling\n", result.luxMax);
+    file.printf("luxShiftLo;i;%d;fitted dark shift\n", result.luxShiftLo);
+    file.printf("luxShiftHi;i;%d;fitted bright shift\n", result.luxShiftHi);
+    file.printf("luxGamma;f;%.2f;fitted gamma\n", static_cast<double>(result.luxGamma));
+    file.close();
+
+    PF("[LuxCal] Fitted params saved to %s\n", csvPath.c_str());
     return true;
 }
 
@@ -237,6 +250,14 @@ String LuxCalibration::buildJson() const {
     json += String(Globals::lastUnclampedBrightness, 1);
     json += F(",\"hasLuxSensor\":");
     json += Globals::luxSensorPresent ? F("true") : F("false");
+    json += F(",\"luxMax\":");
+    json += String(Globals::luxMax, 0);
+    json += F(",\"luxShiftLo\":");
+    json += Globals::luxShiftLo;
+    json += F(",\"luxShiftHi\":");
+    json += Globals::luxShiftHi;
+    json += F(",\"luxGamma\":");
+    json += String(Globals::luxGamma, 2);
     json += '}';
     return json;
 }

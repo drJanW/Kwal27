@@ -1,8 +1,8 @@
 /**
  * @file WebGuiStatus.h
  * @brief Centralized WebGUI state management
- * @version 260202A
- $12026-02-10
+ * @version 260308F
+ * @date 2026-03-08
  */
 #pragma once
 
@@ -74,6 +74,14 @@ void pushPatterns();
  * Called after color CRUD operations
  */
 void pushColors();
+
+/**
+ * @brief Push lux calibration sample update to browser
+ * @param count Number of samples after capture
+ * @param lux Lux value of captured sample
+ * @param brightness Brightness value of captured sample
+ */
+void pushLuxcal(uint8_t count, float lux, float brightness);
 
 /**
  * @brief Push all three events (for reconnect)

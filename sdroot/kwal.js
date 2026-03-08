@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260308E - Built 2026-03-08 10:43
+ * Kwal WebGUI v260308L - Built 2026-03-08 13:31
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260308E';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260308L';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -1914,6 +1914,10 @@ Kwal.luxcal = (function() {
   var savedBrightness = -1;  // brightness before modal open (-1 = not saved)
   var hasLuxSensor = true;   // assume present until status says otherwise
 
+  function formatParams(prefix, d) {
+    return prefix + 'max=' + d.luxMax + ' lo=' + d.luxShiftLo + ' hi=' + d.luxShiftHi + ' γ=' + d.luxGamma;
+  }
+
   function setStatus(text) {
     if (statusEl) statusEl.textContent = text;
   }
@@ -1928,7 +1932,7 @@ Kwal.luxcal = (function() {
 
   function updateUI(data) {
     if (!data) return;
-    if (sampleCountEl) sampleCountEl.textContent = (data.sampleCount || 0) + ' samples';
+    if (sampleCountEl) sampleCountEl.textContent = (data.sampleCount || 0) + ' data points';
     if (typeof data.lastLux === 'number' && luxValueEl) {
       luxValueEl.textContent = data.lastLux.toFixed(1) + ' lux';
     }
@@ -1954,10 +1958,17 @@ Kwal.luxcal = (function() {
           return;
         }
         updateUI(data);
+        // Show current params
+        if (fitResultEl && typeof data.luxMax === 'number') {
+          fitResultEl.textContent = formatParams('Huidig: ', data);
+        }
         // Auto-enable calibration mode on modal open
         fetch('/api/lux/calibrate?mode=on', { method: 'POST' })
           .then(function(r) { return r.json(); })
-          .then(updateUI)
+          .then(function(d) {
+            updateUI(d);
+            if (sampleBtn) sampleBtn.disabled = false;
+          })
           .catch(function() { setStatus('Calibratie activeren mislukt'); });
       })
       .catch(function() { setStatus('Status ophalen mislukt'); });
@@ -1987,7 +1998,7 @@ Kwal.luxcal = (function() {
       .then(function(data) {
         if (data.ok) {
           setStatus('Sample opgeslagen');
-          if (sampleCountEl) sampleCountEl.textContent = (data.n || 0) + ' samples';
+          if (sampleCountEl) sampleCountEl.textContent = (data.n || 0) + ' data points';
           if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1) + ' lux';
           if (brightnessValueEl) brightnessValueEl.textContent = data.brightness.toFixed(1);
         } else {
@@ -2004,14 +2015,20 @@ Kwal.luxcal = (function() {
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.ok) {
-          var txt = 'luxMax=' + data.luxMax +
-            ' shiftLo=' + data.luxShiftLo +
-            ' shiftHi=' + data.luxShiftHi +
-            ' gamma=' + data.luxGamma +
+          var txt = formatParams('Oud: ', {
+            luxMax: data.oldLuxMax, luxShiftLo: data.oldLuxShiftLo,
+            luxShiftHi: data.oldLuxShiftHi, luxGamma: data.oldLuxGamma
+          });
+          txt += '\nNieuw: max=' + data.luxMax +
+            ' lo=' + data.luxShiftLo +
+            ' hi=' + data.luxShiftHi +
+            ' γ=' + data.luxGamma +
             ' err=' + data.error +
             ' (n=' + data.sampleCount + ')';
           if (fitResultEl) fitResultEl.textContent = txt;
-          setStatus('Fit OK');
+          var nc = typeof data.newSampleCount === 'number' ? data.newSampleCount : 0;
+          if (sampleCountEl) sampleCountEl.textContent = nc + ' data points';
+          setStatus('Fit opgeslagen, seeds vernieuwd');
         } else {
           setStatus(data.error || 'Fit mislukt');
         }
@@ -2020,11 +2037,11 @@ Kwal.luxcal = (function() {
   }
 
   function doClear() {
-    if (!confirm('Alle samples wissen?')) return;
+    if (!confirm('Alle data wissen?')) return;
     fetch('/api/lux/clear', { method: 'POST' })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (sampleCountEl) sampleCountEl.textContent = '0 samples';
+        if (sampleCountEl) sampleCountEl.textContent = '0 data points';
         if (fitResultEl) fitResultEl.textContent = '-';
         setStatus('Gewist');
       })
@@ -2066,6 +2083,13 @@ Kwal.luxcal = (function() {
 
     // Disable sample button initially (mode off until modal opens)
     if (sampleBtn) sampleBtn.disabled = true;
+
+    // SSE: update UI when firmware captures sample asynchronously
+    Kwal.sse.onLuxcal(function(data) {
+      if (sampleCountEl) sampleCountEl.textContent = (data.n || 0) + ' data points';
+      if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1) + ' lux';
+      if (brightnessValueEl) brightnessValueEl.textContent = data.brightness.toFixed(1);
+    });
   }
 
   return { init: init, loadStatus: loadStatus, onModalClose: onModalClose };
@@ -2464,6 +2488,7 @@ Kwal.mp3grid = (function() {
         light: [],      // Legacy (still fired by firmware)
         colors: [],
         patterns: [],
+        luxcal: [],     // Lux calibration sample captured
         reconnect: []   // Called on reconnect to refresh state
     };
     
@@ -2550,6 +2575,17 @@ Kwal.mp3grid = (function() {
                 console.error('[SSE] patterns parse error:', err);
             }
         });
+
+        // Lux calibration sample captured
+        eventSource.addEventListener('luxcal', function(e) {
+            try {
+                const data = JSON.parse(e.data);
+                console.log('[SSE] luxcal:', data);
+                listeners.luxcal.forEach(cb => cb(data));
+            } catch (err) {
+                console.error('[SSE] luxcal parse error:', err);
+            }
+        });
     }
     
     function scheduleReconnect() {
@@ -2620,6 +2656,16 @@ Kwal.mp3grid = (function() {
             listeners.patterns.push(cb);
         }
     }
+
+    /**
+     * Register callback for lux calibration sample events
+     * @param {function(data: {n: number, lux: number, brightness: number}): void} cb
+     */
+    function onLuxcal(cb) {
+        if (typeof cb === 'function') {
+            listeners.luxcal.push(cb);
+        }
+    }
     
     /**
      * Register callback for reconnect (to refresh state after ESP32 reboot)
@@ -2650,6 +2696,7 @@ Kwal.mp3grid = (function() {
         onLight: onLight,
         onColors: onColors,
         onPatterns: onPatterns,
+        onLuxcal: onLuxcal,
         onReconnect: onReconnect
     };
 })();

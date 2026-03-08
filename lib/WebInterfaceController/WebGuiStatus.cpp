@@ -1,8 +1,8 @@
 /**
  * @file WebGuiStatus.cpp
  * @brief Centralized WebGUI state management implementation
- * @version 260226A
- * @date 2026-02-26
+ * @version 260308F
+ * @date 2026-03-08
  */
 #include "WebGuiStatus.h"
 #include "Globals.h"
@@ -208,6 +208,20 @@ void pushColors() {
     String json = ColorsCatalog::instance().buildColorsJson("manual");
     eventsPtr_->send(json.c_str(), "colors", millis());
     WEBIF_LOG("[SSE] colors sent to WebGUI (%u bytes)\n", json.length());
+}
+
+void pushLuxcal(uint8_t count, float lux, float brightness) {
+    if (!eventsPtr_) return;
+    String json;
+    json.reserve(64);
+    json += F("{\"n\":");
+    json += count;
+    json += F(",\"lux\":");
+    json += String(lux, 1);
+    json += F(",\"brightness\":");
+    json += String(brightness, 1);
+    json += '}';
+    eventsPtr_->send(json.c_str(), "luxcal", millis());
 }
 
 void pushAll() {
