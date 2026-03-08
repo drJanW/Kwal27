@@ -83,9 +83,9 @@
     <div class="modal-box">
       <span class="modal-close" data-close>✕</span>
       <div class="row" style="justify-content:center;gap:1.5rem;margin:1rem 0">
-        <button data-open="audio-settings-modal" style="font-size:2rem;padding:0.5rem 1rem">🎵</button>
-        <button data-open="light-settings-modal" style="font-size:2rem;padding:0.5rem 1rem">💡</button>
-        <button data-open="system-settings-modal" style="font-size:2rem;padding:0.5rem 1rem">⚙</button>
+        <button data-open="audio-settings-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Audio">🎵</button>
+        <button data-open="light-settings-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Licht">💡</button>
+        <button data-open="system-settings-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Systeem">⚙</button>
       </div>
     </div>
   </div>
@@ -93,20 +93,20 @@
   <div id="audio-settings-modal" class="modal">
     <div class="modal-box modal-wide" style="min-height:60vh">
       <span class="modal-close" data-close>✕</span>
-      <span data-open="mp3grid-modal" style="font-size:2rem;cursor:pointer;position:absolute;left:1.2rem;top:1rem">🎶</span>
+      <span data-open="mp3grid-modal" style="font-size:2rem;cursor:pointer;position:absolute;left:1.2rem;top:1rem" title="MP3 Grid">🎶</span>
       <div style="margin-top:3rem">
         <div class="row" style="margin-bottom:1.5rem">
-          <label style="font-size:1.4rem">🔊⏱</label>
+          <label style="font-size:1.4rem" title="Fragment interval">🔊⏱</label>
           <input type="range" id="frag-interval" min="0" max="15" value="7">
           <span id="frag-num">30m</span>
         </div>
         <div class="row" style="margin-bottom:1.5rem">
-          <label class="label-brown" style="font-size:1.4rem">🗣⏱</label>
+          <label class="label-brown" style="font-size:1.4rem" title="Spreek interval">🗣⏱</label>
           <input type="range" id="speak-interval" class="slider-brown" min="0" max="16" value="9">
           <span id="speak-num">60m</span>
         </div>
         <div class="row">
-          <label class="label-gold" style="font-size:1.4rem">⏳</label>
+          <label class="label-gold" style="font-size:1.4rem" title="Actieve uren">⏳</label>
           <input type="range" id="interval-duration" class="slider-gold" min="0" max="11" value="11">
           <span id="dur-num">13u</span>
         </div>
@@ -118,13 +118,13 @@
     <div class="modal-box modal-wide">
       <span class="modal-close" data-close>✕</span>
       <div class="row" style="justify-content:center;gap:1.5rem;margin:1rem 0">
-        <button data-open="pattern-modal" style="font-size:2rem;padding:0.5rem 1rem">🌀</button>
-        <button data-open="colors-modal" style="font-size:2rem;padding:0.5rem 1rem">🎨</button>
-        <button data-open="luxcal-modal" style="font-size:2rem;padding:0.5rem 1rem">☀️</button>
+        <button data-open="pattern-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Patronen">🌀</button>
+        <button data-open="colors-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Kleuren">🎨</button>
+        <button data-open="luxcal-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Lux Calibratie">☀️</button>
       </div>
       <hr>
       <div class="row">
-        <label class="label-gold" style="font-size:1.4rem">⏳</label>
+        <label class="label-gold" style="font-size:1.4rem" title="Actieve uren">⏳</label>
         <input type="range" id="light-duration" class="slider-gold" min="0" max="11" value="11" disabled>
         <span id="light-dur-num">-</span>
       </div>
@@ -135,10 +135,10 @@
     <div class="modal-box">
       <span class="modal-close" data-close>✕</span>
       <div class="row" style="justify-content:center;gap:1.5rem;margin:1rem 0">
-        <button data-open="sd-modal" style="font-size:2rem;padding:0.5rem 1rem">💾</button>
-        <button data-open="ota-modal" style="font-size:2rem;padding:0.5rem 1rem">📡</button>
-        <button data-open="health-modal" style="font-size:2rem;padding:0.5rem 1rem">📊</button>
-        <button data-open="log-modal" style="font-size:2rem;padding:0.5rem 1rem">📜</button>
+        <button data-open="sd-modal" style="font-size:2rem;padding:0.5rem 1rem" title="SD Kaart">💾</button>
+        <button data-open="ota-modal" style="font-size:2rem;padding:0.5rem 1rem" title="OTA Update">📡</button>
+        <button data-open="health-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Status">📊</button>
+        <button data-open="log-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Serial Log">📜</button>
       </div>
     </div>
   </div>
@@ -307,7 +307,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260307D"></script>
+  <script src="kwal.js?v=260308E"></script>
 </body>
 
 </html>

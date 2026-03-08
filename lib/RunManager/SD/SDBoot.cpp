@@ -55,6 +55,7 @@ static void cb_deferredRebuild() {
     PF("[SDBoot] Rebuilding index, existing votes will be preserved\n");
     SDController::rebuildIndex();
     SDController::updateHighestDirNum();
+    AlertState::setIndexDirty(false);
     if (!SDController::fileExists(WORDS_INDEX_FILE)) {
         PF("[SDBoot] Rebuilding %s\n", WORDS_INDEX_FILE);
         SDController::rebuildWordsIndex();

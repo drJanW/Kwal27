@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260307D - Built 2026-03-07 11:25
+ * Kwal WebGUI v260308E - Built 2026-03-08 10:43
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260307D';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260308E';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -578,6 +578,25 @@ Kwal.sd = (function() {
 
     if (uploadBtn) uploadBtn.onclick = upload;
     if (rebuildBtn) rebuildBtn.onclick = rebuildIndex;
+
+    // Check index status when SD modal becomes visible
+    var sdModal = document.getElementById('sd-modal');
+    if (sdModal) {
+      new MutationObserver(function() {
+        if (sdModal.classList.contains('active')) checkIndexStatus();
+      }).observe(sdModal, { attributes: true, attributeFilter: ['class'] });
+    }
+  }
+
+  function checkIndexStatus() {
+    fetch('/api/sd/status')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.indexDirty) {
+          if (rebuildMsg) { rebuildMsg.textContent = 'Index verouderd'; rebuildMsg.className = 'err'; }
+        }
+      })
+      .catch(function() {});
   }
 
   function upload() {
@@ -613,6 +632,23 @@ Kwal.sd = (function() {
     }
   }
 
+  function pollRebuildDone() {
+    fetch('/api/sd/status')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.busy) {
+          setTimeout(pollRebuildDone, 2000);
+        } else {
+          if (rebuildMsg) { rebuildMsg.textContent = 'Rebuild klaar'; rebuildMsg.className = 'ok'; }
+          if (rebuildBtn) rebuildBtn.disabled = false;
+          if (Kwal.mp3grid && Kwal.mp3grid.reload) Kwal.mp3grid.reload();
+        }
+      })
+      .catch(function() {
+        setTimeout(pollRebuildDone, 2000);
+      });
+  }
+
   function rebuildIndex() {
     if (rebuildMsg) { rebuildMsg.textContent = 'Rebuilding...'; rebuildMsg.className = ''; }
     if (rebuildBtn) rebuildBtn.disabled = true;
@@ -622,12 +658,10 @@ Kwal.sd = (function() {
         return r.json();
       })
       .then(function() {
-        if (rebuildMsg) { rebuildMsg.textContent = 'Rebuild gestart, check log'; rebuildMsg.className = 'ok'; }
+        setTimeout(pollRebuildDone, 2000);
       })
       .catch(function(err) {
         if (rebuildMsg) { rebuildMsg.textContent = 'Error: ' + err.message; rebuildMsg.className = 'err'; }
-      })
-      .finally(function() {
         if (rebuildBtn) rebuildBtn.disabled = false;
       });
   }
@@ -1843,31 +1877,8 @@ Kwal.health = (function() {
     html += '<tr><td>Firmware</td><td>' + (data.firmware || '?') + '</td></tr>';
     html += '<tr><td>WebGUI</td><td>' + (window.KWAL_JS_VERSION || '?') + '</td></tr>';
 
-    // config.txt delete option (only when file is present on SD)
-    if (data.configFile) {
-      html += '<tr><td>⚙️ config.txt</td><td><span id="btn-del-config" style="cursor:pointer" title="Delete config.txt from SD">🗑️</span> NVS up to date</td></tr>';
-    }
-
     html += '</table>';
     container.innerHTML = html;
-
-    // Bind config.txt delete button if present
-    var delBtn = document.getElementById('btn-del-config');
-    if (delBtn) {
-      delBtn.onclick = function() {
-        if (!confirm('Delete config.txt from SD? (NVS config stays)')) return;
-        fetch('/api/sd/delete?path=/config.txt', { method: 'POST' })
-          .then(function(r) { return r.json(); })
-          .then(function(d) {
-            if (d.status === 'ok') {
-              delBtn.parentNode.innerHTML = '✅ Deleted';
-            } else {
-              alert('Delete failed');
-            }
-          })
-          .catch(function(e) { alert('Error: ' + e.message); });
-      };
-    }
   }
 
   function doRestart() {
@@ -2358,9 +2369,20 @@ Kwal.mp3grid = (function() {
       .catch(function(e) { console.error('[mp3grid] load failed:', e); });
   }
 
+  function invalidate() {
+    loaded = false;
+  }
+
+  function reload() {
+    loaded = false;
+    load();
+  }
+
   return {
     init: init,
     load: load,
+    reload: reload,
+    invalidate: invalidate,
     setSelection: setSelection
   };
 })();

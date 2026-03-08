@@ -32,6 +32,8 @@ void routeStatus(AsyncWebServerRequest *request)
     payload += busy ? F("true") : F("false");
     payload += F(",\"hasIndex\":");
     payload += hasIndex ? F("true") : F("false");
+    payload += F(",\"indexDirty\":");
+    payload += AlertState::isIndexDirty() ? F("true") : F("false");
     payload += F("}");
 
     sendJson(request, payload);
@@ -145,6 +147,12 @@ void routeUploadRequest(AsyncWebServerRequest *request)
     String payload = F("{\"status\":\"ok\",\"path\":\"");
     appendJsonEscaped(payload, state->target.c_str());
     payload += F("\"}");
+    // Mark index dirty if upload is to a numbered MP3 dir (/NNN/)
+    if (state->target.length() >= 5 && state->target[0] == '/'
+        && isDigit(state->target[1]) && isDigit(state->target[2]) && isDigit(state->target[3])
+        && state->target[4] == '/') {
+        AlertState::setIndexDirty(true);
+    }
     sendJson(request, payload);
 }
 
@@ -320,6 +328,12 @@ void routeDelete(AsyncWebServerRequest *request)
     SDController::unlockSD();
 
     if (ok) {
+        // Mark index dirty if delete is in a numbered MP3 dir (/NNN/)
+        if (path.length() >= 5 && path[0] == '/'
+            && isDigit(path[1]) && isDigit(path[2]) && isDigit(path[3])
+            && path[4] == '/') {
+            AlertState::setIndexDirty(true);
+        }
         sendJson(request, F("{\"status\":\"ok\"}"));
     } else {
         sendError(request, 500, F("Delete failed"));

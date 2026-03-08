@@ -57,6 +57,8 @@ namespace AlertState {
     bool isSdBusy();
     void setSyncMode(bool active);
     bool isSyncMode();
+    void setIndexDirty(bool dirty);
+    bool isIndexDirty();
     
     // Legacy - backward compatible
     bool isStatusOK(StatusComponent c);

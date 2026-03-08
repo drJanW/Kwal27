@@ -15,6 +15,25 @@ Kwal.sd = (function() {
 
     if (uploadBtn) uploadBtn.onclick = upload;
     if (rebuildBtn) rebuildBtn.onclick = rebuildIndex;
+
+    // Check index status when SD modal becomes visible
+    var sdModal = document.getElementById('sd-modal');
+    if (sdModal) {
+      new MutationObserver(function() {
+        if (sdModal.classList.contains('active')) checkIndexStatus();
+      }).observe(sdModal, { attributes: true, attributeFilter: ['class'] });
+    }
+  }
+
+  function checkIndexStatus() {
+    fetch('/api/sd/status')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.indexDirty) {
+          if (rebuildMsg) { rebuildMsg.textContent = 'Index verouderd'; rebuildMsg.className = 'err'; }
+        }
+      })
+      .catch(function() {});
   }
 
   function upload() {
@@ -50,6 +69,23 @@ Kwal.sd = (function() {
     }
   }
 
+  function pollRebuildDone() {
+    fetch('/api/sd/status')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.busy) {
+          setTimeout(pollRebuildDone, 2000);
+        } else {
+          if (rebuildMsg) { rebuildMsg.textContent = 'Rebuild klaar'; rebuildMsg.className = 'ok'; }
+          if (rebuildBtn) rebuildBtn.disabled = false;
+          if (Kwal.mp3grid && Kwal.mp3grid.reload) Kwal.mp3grid.reload();
+        }
+      })
+      .catch(function() {
+        setTimeout(pollRebuildDone, 2000);
+      });
+  }
+
   function rebuildIndex() {
     if (rebuildMsg) { rebuildMsg.textContent = 'Rebuilding...'; rebuildMsg.className = ''; }
     if (rebuildBtn) rebuildBtn.disabled = true;
@@ -59,12 +95,10 @@ Kwal.sd = (function() {
         return r.json();
       })
       .then(function() {
-        if (rebuildMsg) { rebuildMsg.textContent = 'Rebuild gestart, check log'; rebuildMsg.className = 'ok'; }
+        setTimeout(pollRebuildDone, 2000);
       })
       .catch(function(err) {
         if (rebuildMsg) { rebuildMsg.textContent = 'Error: ' + err.message; rebuildMsg.className = 'err'; }
-      })
-      .finally(function() {
         if (rebuildBtn) rebuildBtn.disabled = false;
       });
   }

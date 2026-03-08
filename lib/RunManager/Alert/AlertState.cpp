@@ -1,8 +1,8 @@
 /**
  * @file AlertState.cpp
  * @brief Hardware status state storage implementation
- * @version 260226A
- * @date 2026-02-26
+ * @version 260308B
+ * @date 2026-03-08
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -23,6 +23,7 @@ uint64_t bootStatus = 0;
 bool bootPhase = true;
 std::atomic<bool> sdBusy{false};
 std::atomic<bool> syncMode{false};
+std::atomic<bool> indexDirty{false};
 
 // ===== Helpers =====
 constexpr uint8_t BITS_PER_FIELD = 4;
@@ -76,6 +77,7 @@ bool isPresent(StatusComponent c) {
 }
 
 bool isStatusOK(StatusComponent c) {
+    if (!isPresent(c)) return true;  // absent sensor = OK
     return get(c) == STATUS_OK;
 }
 
@@ -94,6 +96,14 @@ void setSyncMode(bool active) {
 
 bool isSyncMode() {
     return syncMode.load(std::memory_order_relaxed);
+}
+
+void setIndexDirty(bool dirty) {
+    indexDirty.store(dirty, std::memory_order_relaxed);
+}
+
+bool isIndexDirty() {
+    return indexDirty.load(std::memory_order_relaxed);
 }
 
 void setStatusOK(StatusComponent c, bool status) {
