@@ -69,7 +69,7 @@ function Send-Upload([string]$localPath, [string]$sdDir) {
     $maxRetries = 3
     for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
         try {
-            $result = curl -s -X POST -F "file=@$localPath" "$baseUrl/api/sd/upload?path=$sdDir" 2>&1
+            $result = curl.exe -s -X POST -F "file=@$localPath" "$baseUrl/api/sd/upload?path=$sdDir" 2>&1
             $text = ($result | Out-String).Trim()
             try {
                 $json = $text | ConvertFrom-Json -ErrorAction Stop

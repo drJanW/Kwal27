@@ -1,8 +1,8 @@
 /**
  * @file AudioBoot.cpp
  * @brief Audio subsystem one-time initialization implementation
- * @version 260219C
- * @date 2026-02-19
+ * @version 260308A
+ * @date 2026-03-08
  */
 #include "AudioBoot.h"
 
@@ -39,11 +39,15 @@ void AudioBoot::plan() {
     // Initialize audio shift table
     AudioShiftTable::instance().begin();
 
-    if (auto* clip = PlayPCM::loadFromSD("/ping.wav")) {
-        setDistanceClipPointer(clip);
-        AudioRun::startDistanceResponse();
+    if (Globals::distanceSensorPresent) {
+        if (auto* clip = PlayPCM::loadFromSD("/ping.wav")) {
+            setDistanceClipPointer(clip);
+            AudioRun::startDistanceResponse();
+        } else {
+            PL_BOOT("[Run][Plan] Distance ping clip unavailable");
+        }
     } else {
-        PL_BOOT("[Run][Plan] Distance ping clip unavailable");
+        PL_BOOT("[Run][Plan] No distance sensor — skipping ping.wav (~27KB heap saved)");
     }
 
     // Compute initial volumeWebMultiplier from defaultAudioSliderPct (Globals/CSV).
