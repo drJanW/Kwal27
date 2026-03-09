@@ -18,6 +18,7 @@
         colors: [],
         patterns: [],
         luxcal: [],     // Lux calibration sample captured
+        luxcalfit: [],  // Lux calibration fit results (auto or manual)
         reconnect: []   // Called on reconnect to refresh state
     };
     
@@ -115,6 +116,17 @@
                 console.error('[SSE] luxcal parse error:', err);
             }
         });
+
+        // Lux calibration fit results (auto-fit or manual)
+        eventSource.addEventListener('luxcalfit', function(e) {
+            try {
+                const data = JSON.parse(e.data);
+                console.log('[SSE] luxcalfit:', data);
+                listeners.luxcalfit.forEach(cb => cb(data));
+            } catch (err) {
+                console.error('[SSE] luxcalfit parse error:', err);
+            }
+        });
     }
     
     function scheduleReconnect() {
@@ -195,6 +207,16 @@
             listeners.luxcal.push(cb);
         }
     }
+
+    /**
+     * Register callback for lux calibration fit result events
+     * @param {function(data: object): void} cb
+     */
+    function onLuxcalFit(cb) {
+        if (typeof cb === 'function') {
+            listeners.luxcalfit.push(cb);
+        }
+    }
     
     /**
      * Register callback for reconnect (to refresh state after ESP32 reboot)
@@ -226,6 +248,7 @@
         onColors: onColors,
         onPatterns: onPatterns,
         onLuxcal: onLuxcal,
+        onLuxcalFit: onLuxcalFit,
         onReconnect: onReconnect
     };
 })();

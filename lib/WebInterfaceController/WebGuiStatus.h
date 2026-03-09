@@ -1,8 +1,8 @@
 /**
  * @file WebGuiStatus.h
  * @brief Centralized WebGUI state management
- * @version 260308F
- * @date 2026-03-08
+ * @version 260309A
+ * @date 2026-03-09
  */
 #pragma once
 
@@ -78,10 +78,18 @@ void pushColors();
 /**
  * @brief Push lux calibration sample update to browser
  * @param count Number of samples after capture
+ * @param realCount Number of real (non-seed) samples
  * @param lux Lux value of captured sample
  * @param brightness Brightness value of captured sample
  */
-void pushLuxcal(uint8_t count, float lux, float brightness);
+void pushLuxcal(uint8_t count, uint8_t realCount, float lux, float brightness);
+
+/**
+ * @brief Push lux calibration fit results (auto-fit or manual) for accept/reject
+ */
+void pushLuxcalFit(float oldMax, int8_t oldLo, int8_t oldHi, float oldGamma,
+                   float newMax, int8_t newLo, int8_t newHi, float newGamma,
+                   float error, uint8_t realCount);
 
 /**
  * @brief Push all three events (for reconnect)

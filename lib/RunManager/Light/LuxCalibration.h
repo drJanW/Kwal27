@@ -1,7 +1,7 @@
 /**
  * @file LuxCalibration.h
  * @brief Lux calibration data file and grid search fit
- * @version 260308L
+ * @version 260308N
  * @date 2026-03-08
  */
 #pragma once
@@ -31,11 +31,14 @@ class LuxCalibration {
 public:
     static LuxCalibration& instance();
 
-    /// Add a data point. FIFO eviction when buffer exceeds maxLuxDataPoints.
+    /// Add a real data point. FIFO eviction when buffer exceeds maxLuxDataPoints.
     void addSample(const LuxCalSample& sample);
 
-    /// Number of data points currently in buffer
+    /// Total data points in buffer (seeds + real)
     uint8_t sampleCount() const { return static_cast<uint8_t>(samples_.size()); }
+
+    /// Real samples added since last generateSeeds()
+    uint8_t realCount() const { return realCount_; }
 
     /// Clear all data points from RAM (does not touch SD)
     void clearSamples();
@@ -64,4 +67,5 @@ public:
 private:
     LuxCalibration() = default;
     std::vector<LuxCalSample> samples_;
+    uint8_t realCount_ = 0;
 };

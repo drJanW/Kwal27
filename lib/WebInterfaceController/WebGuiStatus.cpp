@@ -1,8 +1,8 @@
 /**
  * @file WebGuiStatus.cpp
  * @brief Centralized WebGUI state management implementation
- * @version 260308F
- * @date 2026-03-08
+ * @version 260309A
+ * @date 2026-03-09
  */
 #include "WebGuiStatus.h"
 #include "Globals.h"
@@ -210,18 +210,50 @@ void pushColors() {
     WEBIF_LOG("[SSE] colors sent to WebGUI (%u bytes)\n", json.length());
 }
 
-void pushLuxcal(uint8_t count, float lux, float brightness) {
+void pushLuxcal(uint8_t count, uint8_t realCount, float lux, float brightness) {
     if (!eventsPtr_) return;
     String json;
-    json.reserve(64);
+    json.reserve(80);
     json += F("{\"n\":");
     json += count;
+    json += F(",\"realCount\":");
+    json += realCount;
     json += F(",\"lux\":");
     json += String(lux, 1);
     json += F(",\"brightness\":");
     json += String(brightness, 1);
     json += '}';
     eventsPtr_->send(json.c_str(), "luxcal", millis());
+}
+
+void pushLuxcalFit(float oldMax, int8_t oldLo, int8_t oldHi, float oldGamma,
+                   float newMax, int8_t newLo, int8_t newHi, float newGamma,
+                   float error, uint8_t realCount) {
+    if (!eventsPtr_) return;
+    String json;
+    json.reserve(256);
+    json += F("{\"oldLuxMax\":");
+    json += String(oldMax, 0);
+    json += F(",\"oldLuxShiftLo\":");
+    json += oldLo;
+    json += F(",\"oldLuxShiftHi\":");
+    json += oldHi;
+    json += F(",\"oldLuxGamma\":");
+    json += String(oldGamma, 2);
+    json += F(",\"luxMax\":");
+    json += String(newMax, 0);
+    json += F(",\"luxShiftLo\":");
+    json += newLo;
+    json += F(",\"luxShiftHi\":");
+    json += newHi;
+    json += F(",\"luxGamma\":");
+    json += String(newGamma, 2);
+    json += F(",\"error\":");
+    json += String(error, 1);
+    json += F(",\"realCount\":");
+    json += realCount;
+    json += '}';
+    eventsPtr_->send(json.c_str(), "luxcalfit", millis());
 }
 
 void pushAll() {

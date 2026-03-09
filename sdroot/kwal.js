@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260308L - Built 2026-03-08 13:31
+ * Kwal WebGUI v260309A - Built 2026-03-09 08:17
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260308L';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260309A';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -1908,19 +1908,30 @@ Kwal.health = (function() {
 Kwal.luxcal = (function() {
   'use strict';
 
-  var sampleBtn, fitBtn, clearBtn, downloadBtn;
+  var sampleBtn, fitBtn, clearBtn, downloadBtn, acceptBtn;
   var statusEl, sampleCountEl, luxValueEl, brightnessValueEl, fitResultEl;
+  var newFitEl, newParamsEl;
   var briSlider, briLabel;
   var savedBrightness = -1;  // brightness before modal open (-1 = not saved)
   var hasLuxSensor = true;   // assume present until status says otherwise
 
-  function formatParams(prefix, d) {
-    return prefix + 'max=' + d.luxMax + ' lo=' + d.luxShiftLo + ' hi=' + d.luxShiftHi + ' γ=' + d.luxGamma;
+  function formatParams(d) {
+    return 'max=' + d.luxMax + ' lo=' + d.luxShiftLo + ' hi=' + d.luxShiftHi + ' \u03b3=' + d.luxGamma;
   }
 
   function setStatus(text) {
     if (statusEl) statusEl.textContent = text;
   }
+
+  function showCount(real) {
+    if (sampleCountEl) sampleCountEl.textContent = real + ' samples';
+  }
+
+  function hideAccept() {
+    if (newFitEl) newFitEl.style.display = 'none';
+  }
+
+  var lastFitParams = null;
 
   function setDisabledAll(disabled) {
     if (sampleBtn)   sampleBtn.disabled = disabled;
@@ -1932,7 +1943,7 @@ Kwal.luxcal = (function() {
 
   function updateUI(data) {
     if (!data) return;
-    if (sampleCountEl) sampleCountEl.textContent = (data.sampleCount || 0) + ' data points';
+    showCount(data.realCount || 0);
     if (typeof data.lastLux === 'number' && luxValueEl) {
       luxValueEl.textContent = data.lastLux.toFixed(1) + ' lux';
     }
@@ -1960,8 +1971,9 @@ Kwal.luxcal = (function() {
         updateUI(data);
         // Show current params
         if (fitResultEl && typeof data.luxMax === 'number') {
-          fitResultEl.textContent = formatParams('Huidig: ', data);
+          fitResultEl.textContent = 'Huidig: ' + formatParams(data);
         }
+        hideAccept();
         // Auto-enable calibration mode on modal open
         fetch('/api/lux/calibrate?mode=on', { method: 'POST' })
           .then(function(r) { return r.json(); })
@@ -1998,7 +2010,7 @@ Kwal.luxcal = (function() {
       .then(function(data) {
         if (data.ok) {
           setStatus('Sample opgeslagen');
-          if (sampleCountEl) sampleCountEl.textContent = (data.n || 0) + ' data points';
+          showCount(data.realCount || 0);
           if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1) + ' lux';
           if (brightnessValueEl) brightnessValueEl.textContent = data.brightness.toFixed(1);
         } else {
@@ -2015,20 +2027,18 @@ Kwal.luxcal = (function() {
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.ok) {
-          var txt = formatParams('Oud: ', {
-            luxMax: data.oldLuxMax, luxShiftLo: data.oldLuxShiftLo,
-            luxShiftHi: data.oldLuxShiftHi, luxGamma: data.oldLuxGamma
-          });
-          txt += '\nNieuw: max=' + data.luxMax +
-            ' lo=' + data.luxShiftLo +
-            ' hi=' + data.luxShiftHi +
-            ' γ=' + data.luxGamma +
-            ' err=' + data.error +
-            ' (n=' + data.sampleCount + ')';
-          if (fitResultEl) fitResultEl.textContent = txt;
-          var nc = typeof data.newSampleCount === 'number' ? data.newSampleCount : 0;
-          if (sampleCountEl) sampleCountEl.textContent = nc + ' data points';
-          setStatus('Fit opgeslagen, seeds vernieuwd');
+          if (fitResultEl) {
+            fitResultEl.textContent = 'Oud: ' + formatParams({
+              luxMax: data.oldLuxMax, luxShiftLo: data.oldLuxShiftLo,
+              luxShiftHi: data.oldLuxShiftHi, luxGamma: data.oldLuxGamma
+            });
+          }
+          if (newParamsEl) {
+            newParamsEl.textContent = 'Nieuw: ' + formatParams(data) +
+              ' err=' + data.error + ' (n=' + (data.realCount || 0) + ')';
+          }
+          if (newFitEl) newFitEl.style.display = 'block';          lastFitParams = { luxMax: data.luxMax, luxShiftLo: data.luxShiftLo,
+            luxShiftHi: data.luxShiftHi, luxGamma: data.luxGamma };          setStatus('Fit berekend — accepteer of sample verder');
         } else {
           setStatus(data.error || 'Fit mislukt');
         }
@@ -2036,16 +2046,37 @@ Kwal.luxcal = (function() {
       .catch(function() { setStatus('Fit mislukt'); });
   }
 
+  function doAccept() {
+    setStatus('Opslaan...');
+    fetch('/api/lux/accept', { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.ok) {
+          hideAccept();
+          showCount(data.realCount || 0);
+          if (fitResultEl && lastFitParams) {
+            fitResultEl.textContent = 'Huidig: ' + formatParams(lastFitParams);
+          }
+          lastFitParams = null;
+          setStatus('Opgeslagen, seeds vernieuwd');
+        } else {
+          setStatus('Opslaan mislukt');
+        }
+      })
+      .catch(function() { setStatus('Opslaan mislukt'); });
+  }
+
   function doClear() {
-    if (!confirm('Alle data wissen?')) return;
+    if (!confirm('Reset naar seeds?')) return;
     fetch('/api/lux/clear', { method: 'POST' })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (sampleCountEl) sampleCountEl.textContent = '0 data points';
+        showCount(0);
         if (fitResultEl) fitResultEl.textContent = '-';
-        setStatus('Gewist');
+        hideAccept();
+        setStatus('Reset naar seeds');
       })
-      .catch(function() { setStatus('Wissen mislukt'); });
+      .catch(function() { setStatus('Reset mislukt'); });
   }
 
   function doDownload() {
@@ -2057,11 +2088,14 @@ Kwal.luxcal = (function() {
     fitBtn          = document.getElementById('luxcal-fit');
     clearBtn        = document.getElementById('luxcal-clear');
     downloadBtn     = document.getElementById('luxcal-download');
+    acceptBtn       = document.getElementById('luxcal-accept');
     statusEl        = document.getElementById('luxcal-status');
     sampleCountEl   = document.getElementById('luxcal-count');
     luxValueEl      = document.getElementById('luxcal-lux');
     brightnessValueEl = document.getElementById('luxcal-bri');
     fitResultEl     = document.getElementById('luxcal-fitresult');
+    newFitEl        = document.getElementById('luxcal-newfit');
+    newParamsEl     = document.getElementById('luxcal-newparams');
     briSlider       = document.getElementById('luxcal-brightness');
     briLabel        = document.getElementById('luxcal-bri-num');
 
@@ -2080,15 +2114,34 @@ Kwal.luxcal = (function() {
     if (fitBtn)      fitBtn.onclick = doFit;
     if (clearBtn)    clearBtn.onclick = doClear;
     if (downloadBtn) downloadBtn.onclick = doDownload;
+    if (acceptBtn)   acceptBtn.onclick = doAccept;
 
     // Disable sample button initially (mode off until modal opens)
     if (sampleBtn) sampleBtn.disabled = true;
 
     // SSE: update UI when firmware captures sample asynchronously
     Kwal.sse.onLuxcal(function(data) {
-      if (sampleCountEl) sampleCountEl.textContent = (data.n || 0) + ' data points';
+      showCount(data.realCount || 0);
       if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1) + ' lux';
       if (brightnessValueEl) brightnessValueEl.textContent = data.brightness.toFixed(1);
+    });
+
+    // SSE: auto-fit triggered by firmware — show accept UI
+    Kwal.sse.onLuxcalFit(function(data) {
+      if (fitResultEl) {
+        fitResultEl.textContent = 'Oud: ' + formatParams({
+          luxMax: data.oldLuxMax, luxShiftLo: data.oldLuxShiftLo,
+          luxShiftHi: data.oldLuxShiftHi, luxGamma: data.oldLuxGamma
+        });
+      }
+      if (newParamsEl) {
+        newParamsEl.textContent = 'Nieuw: ' + formatParams(data) +
+          ' err=' + data.error + ' (n=' + (data.realCount || 0) + ')';
+      }
+      if (newFitEl) newFitEl.style.display = 'block';
+      lastFitParams = { luxMax: data.luxMax, luxShiftLo: data.luxShiftLo,
+        luxShiftHi: data.luxShiftHi, luxGamma: data.luxGamma };
+      setStatus('Auto-fit — accepteer of sample verder');
     });
   }
 
@@ -2489,6 +2542,7 @@ Kwal.mp3grid = (function() {
         colors: [],
         patterns: [],
         luxcal: [],     // Lux calibration sample captured
+        luxcalfit: [],  // Lux calibration fit results (auto or manual)
         reconnect: []   // Called on reconnect to refresh state
     };
     
@@ -2586,6 +2640,17 @@ Kwal.mp3grid = (function() {
                 console.error('[SSE] luxcal parse error:', err);
             }
         });
+
+        // Lux calibration fit results (auto-fit or manual)
+        eventSource.addEventListener('luxcalfit', function(e) {
+            try {
+                const data = JSON.parse(e.data);
+                console.log('[SSE] luxcalfit:', data);
+                listeners.luxcalfit.forEach(cb => cb(data));
+            } catch (err) {
+                console.error('[SSE] luxcalfit parse error:', err);
+            }
+        });
     }
     
     function scheduleReconnect() {
@@ -2666,6 +2731,16 @@ Kwal.mp3grid = (function() {
             listeners.luxcal.push(cb);
         }
     }
+
+    /**
+     * Register callback for lux calibration fit result events
+     * @param {function(data: object): void} cb
+     */
+    function onLuxcalFit(cb) {
+        if (typeof cb === 'function') {
+            listeners.luxcalfit.push(cb);
+        }
+    }
     
     /**
      * Register callback for reconnect (to refresh state after ESP32 reboot)
@@ -2697,6 +2772,7 @@ Kwal.mp3grid = (function() {
         onColors: onColors,
         onPatterns: onPatterns,
         onLuxcal: onLuxcal,
+        onLuxcalFit: onLuxcalFit,
         onReconnect: onReconnect
     };
 })();
