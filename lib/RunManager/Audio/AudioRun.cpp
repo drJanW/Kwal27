@@ -33,7 +33,7 @@
     } while (0)
 #endif
 
-const char *const AudioRun::kDistanceClipId = "distance_ping";
+const char *const AudioRun::distanceClipId = "distance_ping";
 
 namespace
 {

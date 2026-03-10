@@ -23,8 +23,8 @@ using SdPathUtils::extractBaseName;
 using SdPathUtils::parentPath;
 using SdPathUtils::sanitizeSdPath;
 
-constexpr uint32_t kJobTickIntervalMs = 5U;
-constexpr size_t kMaxSdEntries = 256U;
+constexpr uint32_t jobTickIntervalMs = 5U;
+constexpr size_t maxSdEntries = 256U;
 
 #if defined(DEBUG_WEB_DIRECTOR)
 #define WD_LOG(...) PF(__VA_ARGS__)
@@ -98,9 +98,9 @@ WebDirector &WebDirector::instance() {
 
 void WebDirector::plan() {
     if (!timerStarted_) {
-        if (timers.create(kJobTickIntervalMs, 0, cb_webDirectorTick)) {
+        if (timers.create(jobTickIntervalMs, 0, cb_webDirectorTick)) {
             timerStarted_ = true;
-            WD_LOG("[WebDirector] Job timer started (interval %lu ms)\n", static_cast<unsigned long>(kJobTickIntervalMs));
+            WD_LOG("[WebDirector] Job timer started (interval %lu ms)\n", static_cast<unsigned long>(jobTickIntervalMs));
         } else {
             PL("[WebDirector] Failed to start job timer");
         }
@@ -458,14 +458,14 @@ void WebDirector::runSdListJob(Job &job) {
     }
 
     size_t entriesDone = 0;
-    while (entriesDone < kSdEntriesPerSlice) {
+    while (entriesDone < sdEntriesPerSlice) {
         File entry = job.dirHandle.openNextFile();
         if (!entry) {
             job.state = Job::State::Finishing;
             break;
         }
 
-        if (job.entryCount >= kMaxSdEntries) {
+        if (job.entryCount >= maxSdEntries) {
             job.truncated = true;
             entry.close();
             job.state = Job::State::Finishing;
@@ -502,7 +502,7 @@ void WebDirector::runSdDeleteJob(Job &job) {
     }
 
     size_t stepsDone = 0;
-    while (stepsDone < kSdDeleteStepsPerSlice) {
+    while (stepsDone < sdDeleteStepsPerSlice) {
         if (job.sdDeleteStack.empty()) {
             if (job.payloadBuffer.isEmpty()) {
                 job.payloadBuffer = F("{\"status\":\"ok\"}");

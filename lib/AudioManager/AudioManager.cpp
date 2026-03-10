@@ -38,10 +38,10 @@ namespace {
 AudioOutputI2S_Metered* gMeterInstance = nullptr;
 
 /// VU meter update interval (50ms = 20 updates/sec)
-constexpr uint32_t kAudioMeterIntervalMs = 50;
+constexpr uint32_t audioMeterIntervalMs = 50;
 
 /// PCM samples to pump per update() call
-constexpr uint16_t kPCMFrameBatch = 96;
+constexpr uint16_t pcmFrameBatch = 96;
 } // namespace
 
 /// Timer callback for audio level metering
@@ -74,7 +74,7 @@ bool AudioOutputI2S_Metered::begin()
 	gMeterInstance = this;
 
 	timers.cancel(cb_audioMeter);
-	if (!timers.create(kAudioMeterIntervalMs, 0, cb_audioMeter)) {
+	if (!timers.create(audioMeterIntervalMs, 0, cb_audioMeter)) {
 		AUDIO_LOG_ERROR("[AudioMeter] Failed to start meter timer\n");
 	}
 
@@ -99,7 +99,7 @@ void AudioOutputI2S_Metered::publishLevel()
 	}
 
 	_publishDue = false;
-	float mean = static_cast<float>(_acc) / static_cast<float>(_cnt);
+	float mean = static_cast<float>(_acc) / _cnt;
 	uint16_t rms = static_cast<uint16_t>(sqrtf(mean));
 	setAudioLevelRaw(rms);
 	_acc = 0;
@@ -328,9 +328,9 @@ bool AudioManager::pumpPCMPlayback()
 	int16_t frame[2];
 	const int16_t* samples = pcmPlayback_.samples;
 
-	while (produced < kPCMFrameBatch && pcmPlayback_.index < pcmPlayback_.totalSamples) {
+	while (produced < pcmFrameBatch && pcmPlayback_.index < pcmPlayback_.totalSamples) {
 		const int16_t rawSample = samples[pcmPlayback_.index];
-		float scaled = static_cast<float>(rawSample) * pcmPlayback_.amplitude;
+		float scaled = rawSample * pcmPlayback_.amplitude;
 		if (scaled > 32767.0f) scaled = 32767.0f;
 		if (scaled < -32768.0f) scaled = -32768.0f;
 		const int16_t value = static_cast<int16_t>(scaled);

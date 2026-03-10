@@ -20,10 +20,10 @@
 #include "Alert/AlertState.h"
 
 namespace {
-constexpr const char* kColorPath = "/light_colors.csv";
-constexpr const char* kActiveColorPrefix = "# active_color=";
-constexpr size_t kActiveColorPrefixLen = sizeof("# active_color=") - 1;
-constexpr uint8_t kSchemaVersion = 1;
+constexpr const char* colorPath = "/light_colors.csv";
+constexpr const char* activeColorPrefix = "# active_color=";
+constexpr size_t activeColorPrefixLen = sizeof("# active_color=") - 1;
+constexpr uint8_t schemaVersion = 1;
 
 // No hardcoded defaults - CSV on SD is the single source of truth
 
@@ -38,9 +38,9 @@ float avgLuminance(const CRGB& a, const CRGB& b) {
 }
 
 CRGB toCRGB(uint32_t value) {
-    return CRGB(static_cast<uint8_t>((value >> 16) & 0xFF),
-                static_cast<uint8_t>((value >> 8) & 0xFF),
-                static_cast<uint8_t>(value & 0xFF));
+    return CRGB((value >> 16) & 0xFF,
+                (value >> 8) & 0xFF,
+                value & 0xFF);
 }
 
 } // namespace
@@ -91,7 +91,7 @@ String ColorsCatalog::buildColorsJson(const char* source) const {
     out.reserve(colors_.size() * 80 + 100);
     
     out += F("{\"schema\":");
-    out += kSchemaVersion;
+    out += schemaVersion;
     out += F(",\"source\":\"");
     out += source;
     out += '"';
@@ -426,7 +426,7 @@ bool ColorsCatalog::loadColorsFromSD() {
     if (!AlertState::isSdOk()) {
         return false;
     }
-    const String csvPath = SdPathUtils::chooseCsvPath(kColorPath);
+    const String csvPath = SdPathUtils::chooseCsvPath(colorPath);
     if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         return false;
     }
@@ -511,8 +511,8 @@ bool ColorsCatalog::saveColorsToSD() const {
     if (!AlertState::isSdOk()) {
         return false;
     }
-    SDController::deleteFile(kColorPath);
-    File file = SDController::openFileWrite(kColorPath);
+    SDController::deleteFile(colorPath);
+    File file = SDController::openFileWrite(colorPath);
     if (!file) {
         return false;
     }
@@ -576,7 +576,7 @@ void ColorsCatalog::ensureCnf(ColorEntry& entry) {
         return;  // already has a value from CSV
     }
     // Compute CIE fallback: Y_ref / Y_colors
-    const String refId = String(kReferenceColorsId);
+    const String refId = String(referenceColorsId);
     const ColorEntry* ref = findColor(refId);
     float refY = (ref) ? avgLuminance(ref->colorA, ref->colorB) : 0.0f;
     if (refY <= 0.0f) {
@@ -594,9 +594,9 @@ bool ColorsCatalog::parseHexColor(const String& hex, CRGB& color) {
         return false;
     }
     long value = strtol(hex.c_str() + 1, nullptr, 16);
-    color.r = static_cast<uint8_t>((value >> 16) & 0xFF);
-    color.g = static_cast<uint8_t>((value >> 8) & 0xFF);
-    color.b = static_cast<uint8_t>(value & 0xFF);
+    color.r = (value >> 16) & 0xFF;
+    color.g = (value >> 8) & 0xFF;
+    color.b = value & 0xFF;
     return true;
 }
 

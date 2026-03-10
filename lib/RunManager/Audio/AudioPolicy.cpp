@@ -14,22 +14,22 @@
 
 namespace {
 
-constexpr uint32_t kIntervalMinMs = 160;
-constexpr uint32_t kIntervalMaxMs = 2400;
-constexpr float kIntervalMinMsF = static_cast<float>(kIntervalMinMs);
-constexpr float kIntervalMaxMsF = static_cast<float>(kIntervalMaxMs);
+constexpr uint32_t intervalMinMs = 160;
+constexpr uint32_t intervalMaxMs = 2400;
+constexpr float intervalMinMsF = static_cast<float>(intervalMinMs);
+constexpr float intervalMaxMsF = static_cast<float>(intervalMaxMs);
 
-constexpr size_t kMaxThemeDirs = MAX_THEME_DIRS;
+constexpr size_t maxThemeDirs = MAX_THEME_DIRS;
 
 float distanceVolume = 1.0f;  // Updated from Globals at runtime
 
 bool    themeBoxIsActive = false;
-uint8_t themeDirs[kMaxThemeDirs];
+uint8_t themeDirs[maxThemeDirs];
 size_t  themeDirCount = 0;
 String  themeId;
 
 // Base theme box (before any merges)
-uint8_t baseThemeDirs[kMaxThemeDirs];
+uint8_t baseThemeDirs[maxThemeDirs];
 size_t  baseThemeDirCount = 0;
 
 // Web audio state (temporary settings from WebGUI)
@@ -87,7 +87,7 @@ void setThemeBox(const uint8_t* dirs, size_t count, const String& id) {
         return;
     }
 
-    const size_t limit = count > kMaxThemeDirs ? kMaxThemeDirs : count;
+    const size_t limit = count > maxThemeDirs ? maxThemeDirs : count;
     for (size_t i = 0; i < limit; ++i) {
         themeDirs[i] = dirs[i];
         baseThemeDirs[i] = dirs[i];  // Save base copy
@@ -129,7 +129,7 @@ size_t mergeThemeBoxDirs(const uint8_t* dirs, size_t count) {
     }
     
     size_t added = 0;
-    for (size_t i = 0; i < count && themeDirCount < kMaxThemeDirs; ++i) {
+    for (size_t i = 0; i < count && themeDirCount < maxThemeDirs; ++i) {
         // Allow duplicates - they increase weight in random selection
         themeDirs[themeDirCount++] = dirs[i];
         ++added;
@@ -152,9 +152,9 @@ bool distancePlaybackInterval(float distanceMm, uint32_t& intervalMs) {
     const float mapped       = map(distanceMm,
                                    Globals::distanceMinMm,
                                    Globals::distanceMaxMm,
-                                   kIntervalMinMsF,
-                                   kIntervalMaxMsF);
-    const float bounded      = clamp(mapped, kIntervalMinMsF, kIntervalMaxMsF);
+                                   intervalMinMsF,
+                                   intervalMaxMsF);
+    const float bounded      = clamp(mapped, intervalMinMsF, intervalMaxMsF);
 
     intervalMs = static_cast<uint32_t>(bounded + 0.5f);
     return true;

@@ -42,9 +42,9 @@ inline uint32_t readLE32(const uint8_t* buf) {
          (static_cast<uint32_t>(buf[3]) << 24);
 }
 
-constexpr uint32_t kExpectedSampleRate = 22050;
-constexpr uint16_t kExpectedChannels = 1;
-constexpr uint16_t kExpectedBitsPerSample = 16;
+constexpr uint32_t expectedSampleRate = 22050;
+constexpr uint16_t expectedChannels = 1;
+constexpr uint16_t expectedBitsPerSample = 16;
 // Policy: see AudioManager README S6 - ping.wav must stay fixed-format PCM.
 
 bool isValidClip(const PCM* clip) {
@@ -109,9 +109,9 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
   const uint32_t dataSize = readLE32(header + 40);
 
   if (audioFormat != 1 ||
-      numChannels != kExpectedChannels ||
-      bitsPerSample != kExpectedBitsPerSample ||
-      sampleRate != kExpectedSampleRate ||
+      numChannels != expectedChannels ||
+      bitsPerSample != expectedBitsPerSample ||
+      sampleRate != expectedSampleRate ||
       dataSize == 0) {
     PCM_LOG_WARN("[PlayPCM] %s violates ping.wav policy (fmt=%u ch=%u bits=%u sr=%lu size=%lu)\n",
                  path,
@@ -125,7 +125,7 @@ bool loadClip(const char* path, PCM& outClip, std::unique_ptr<int16_t[]>& storag
     return false;
   }
 
-  const uint32_t sampleCount = dataSize / (kExpectedBitsPerSample / 8U);
+  const uint32_t sampleCount = dataSize / (expectedBitsPerSample / 8U);
   if (sampleCount == 0) {
     PCM_LOG_WARN("[PlayPCM] %s contains no samples\n", path);
     file.close();

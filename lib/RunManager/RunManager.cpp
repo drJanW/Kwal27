@@ -88,13 +88,13 @@ namespace {
 // ─── Daily auto-reboot ──────────────────────────────────────
 
 uint8_t rebootRetries = 0;
-constexpr uint8_t kMaxRebootRetries = 30;
+constexpr uint8_t maxRebootRetries = 30;
 
 void cb_dailyReboot() {
     // Guard: don't reboot mid-write or mid-speech
     if (AlertState::isSdBusy() || isSentencePlaying() || isFragmentPlaying()) {
-        if (++rebootRetries <= kMaxRebootRetries) {
-            PF("[Reboot] busy, retry %u/%u in 1 min\n", rebootRetries, kMaxRebootRetries);
+        if (++rebootRetries <= maxRebootRetries) {
+            PF("[Reboot] busy, retry %u/%u in 1 min\n", rebootRetries, maxRebootRetries);
             timers.restart(MINUTES(1), 1, cb_dailyReboot);
         } else {
             PL("[Reboot] still busy after 30 min — rebooting anyway");
@@ -230,7 +230,7 @@ void cb_playNextFragment() {
 
 void cb_webAudioStopThenNext() {
     PlayAudioFragment::stop(webAudioNextFadeMs);
-    timers.create(static_cast<uint32_t>(webAudioNextFadeMs) + 1U, 1, cb_playNextFragment);
+    timers.create(webAudioNextFadeMs + 1U, 1, cb_playNextFragment);
 }
 
 void cb_playPendingFragment() {
@@ -242,9 +242,9 @@ void cb_playPendingFragment() {
 }
 
 void cb_stopThenPlayPending() {
-    constexpr uint16_t kInterruptFadeMs = 500U;
-    PlayAudioFragment::stop(kInterruptFadeMs);
-    timers.create(kInterruptFadeMs + 1U, 1, cb_playPendingFragment);
+    constexpr uint16_t interruptFadeMs = 500U;
+    PlayAudioFragment::stop(interruptFadeMs);
+    timers.create(interruptFadeMs + 1U, 1, cb_playPendingFragment);
 }
 
 void cb_startSync() {
@@ -385,7 +385,7 @@ void RunManager::requestPlaySpecificFragment(uint8_t dir, int8_t file, const cha
     }
     AudioPolicy::resetToBaseThemeBox();  // Clear any single-dir override
     FileEntry fileEntry{};
-    uint8_t targetFile = static_cast<uint8_t>(file);
+    uint8_t targetFile = (file >= 0) ? file : 0;
     
     // If file < 0, pick random file from dir
     if (file < 0) {
@@ -689,7 +689,7 @@ void RunManager::enterTvMode(uint8_t hours) {
     tvHue = random(256);
     cb_tvScene();
 
-    timers.create(static_cast<uint32_t>(hours) * 3600000UL, 1, cb_tvTimeout);
+    timers.create(hours * 3600000UL, 1, cb_tvTimeout);
     PF("[TvSim] Started for %u hours\n", hours);
 }
 

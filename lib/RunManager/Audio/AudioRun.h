@@ -13,7 +13,7 @@
 
 class AudioRun {
 public:
-    static const char* const kDistanceClipId;
+    static const char* const distanceClipId;
 
     void plan();
     static void startDistanceResponse(bool playImmediately = false);

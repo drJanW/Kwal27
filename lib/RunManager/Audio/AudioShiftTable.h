@@ -53,7 +53,7 @@ public:
     float getFragMaxMultiplier(uint64_t statusBits) const;
 
     // Base values (defaults when no shifts active)
-    static constexpr float kBaseVolume = 1.0f;          // 100%
+    static constexpr float baseVolume = 1.0f;          // 100%
 
 private:
     AudioShiftTable() = default;

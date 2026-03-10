@@ -100,7 +100,7 @@ void updateLightController() {
   if (radiusOsc != 0.0f) {
     float osc = brightPhase / 255.0f;
     if (radiusOsc > 0.0f) {
-      animRadius += fabsf(radiusOsc) * sinf(osc * MathUtils::k2Pi * showParams.gradientSpeed);
+      animRadius += fabsf(radiusOsc) * sinf(osc * MathUtils::twoPi * showParams.gradientSpeed);
     } else {
       animRadius = -showParams.fadeWidth + fabsf(radiusOsc) * osc;
     }
@@ -109,11 +109,11 @@ void updateLightController() {
   float centerX = showParams.centerX, centerY = showParams.centerY;
   if (showParams.xAmp != 0.0f) {
     float px = xPhase / 255.0f;
-    centerX += showParams.xAmp * sinf(px * MathUtils::k2Pi);
+    centerX += showParams.xAmp * sinf(px * MathUtils::twoPi);
   }
   if (showParams.yAmp != 0.0f) {
     float py = yPhase / 255.0f;
-    centerY += showParams.yAmp * sinf(py * MathUtils::k2Pi);
+    centerY += showParams.yAmp * sinf(py * MathUtils::twoPi);
   }
 
   generateColorGradient(showParams.RGB1, showParams.RGB2, colorGradient, GRADIENT_SIZE);

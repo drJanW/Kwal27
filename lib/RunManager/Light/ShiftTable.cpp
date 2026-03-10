@@ -15,8 +15,8 @@
 #include <algorithm>
 
 namespace {
-    constexpr const char* kColorShiftPath = "/colorsShifts.csv";
-    constexpr const char* kPatternShiftPath = "/patternShifts.csv";
+    constexpr const char* colorShiftPath = "/colorsShifts.csv";
+    constexpr const char* patternShiftPath = "/patternShifts.csv";
 }
 
 ShiftTable& ShiftTable::instance() {
@@ -130,9 +130,9 @@ bool ShiftTable::loadColorShiftsFromSD() {
         return false;
     }
     
-    const String csvPath = SdPathUtils::chooseCsvPath(kColorShiftPath);
+    const String csvPath = SdPathUtils::chooseCsvPath(colorShiftPath);
     if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
-        PF("[ShiftTable] %s not found\n", kColorShiftPath);
+        PF("[ShiftTable] %s not found\n", colorShiftPath);
         return false;
     }
     
@@ -222,9 +222,9 @@ bool ShiftTable::loadPatternShiftsFromSD() {
         return false;
     }
     
-    const String csvPath = SdPathUtils::chooseCsvPath(kPatternShiftPath);
+    const String csvPath = SdPathUtils::chooseCsvPath(patternShiftPath);
     if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
-        PF("[ShiftTable] %s not found on SD\n", kPatternShiftPath);
+        PF("[ShiftTable] %s not found on SD\n", patternShiftPath);
         return false;
     }
     

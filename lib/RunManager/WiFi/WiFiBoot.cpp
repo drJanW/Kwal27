@@ -30,7 +30,7 @@ namespace {
     static bool csvFetchStarted = false;
     static bool csvCapGranted = false;
 
-    constexpr const char* kCsvFiles[] = {
+    constexpr const char* csvFiles[] = {
         "globals.csv",
         "calendar.csv",
         "light_patterns.csv",
@@ -85,7 +85,7 @@ namespace {
     }
 
     void removeAllNasCsvFiles() {
-        for (const char* filename : kCsvFiles) {
+        for (const char* filename : csvFiles) {
             removeNasCsvFile(filename);
         }
     }
@@ -169,7 +169,7 @@ namespace {
     void downloadCsvFilesFromLan() {
         uint8_t count = 0;
         size_t totalBytes = 0;
-        for (const char* filename : kCsvFiles) {
+        for (const char* filename : csvFiles) {
             size_t bytes = downloadCsvFile(filename);
             if (bytes > 0) {
                 count++;
@@ -177,7 +177,7 @@ namespace {
             }
         }
 
-        const uint8_t total = sizeof(kCsvFiles) / sizeof(kCsvFiles[0]);
+        const uint8_t total = sizeof(csvFiles) / sizeof(csvFiles[0]);
         if (count > 0) {
             PF("[WiFiBoot] NAS CSV: %u/%u fetched (%uKB)\n", count, total, static_cast<unsigned>(totalBytes / 1024));
         } else {

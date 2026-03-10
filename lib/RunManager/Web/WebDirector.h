@@ -55,9 +55,9 @@ private:
     static bool tryAcquireBusyFlag(Job &job);
     static void releaseBusyFlag(Job &job);
 
-    static constexpr size_t kMaxJobs = 4U;
-    static constexpr size_t kSdEntriesPerSlice = 4U;
-    static constexpr size_t kSdDeleteStepsPerSlice = 4U;
+    static constexpr size_t maxJobs = 4U;
+    static constexpr size_t sdEntriesPerSlice = 4U;
+    static constexpr size_t sdDeleteStepsPerSlice = 4U;
 
     struct Job {
         enum class Type {
@@ -100,7 +100,7 @@ private:
         std::vector<SdDeleteEntry> sdDeleteStack;
 
         void reset();
-    } jobs_[kMaxJobs];
+    } jobs_[maxJobs];
 
     bool timerStarted_ = false;
 };

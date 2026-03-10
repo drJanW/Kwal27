@@ -20,7 +20,7 @@ static uint8_t zoneBriCurrent[TV_ZONES] = {};
 static uint8_t zoneBriTarget[TV_ZONES]  = {};
 
 // Lerp speed: fraction per 50ms frame. 0.20 ≈ brisk ~250ms transition
-static constexpr float kLerpSpeed = 0.20f;
+static constexpr float lerpSpeed = 0.20f;
 
 void setTvZoneTargets(const TvZoneTarget targets[TV_ZONES]) {
     for (int z = 0; z < TV_ZONES; z++) {
@@ -40,10 +40,10 @@ static inline uint8_t lerpByte(uint8_t current, uint8_t target, float t) {
 void updateTvShow() {
     // Advance current toward target
     for (int z = 0; z < TV_ZONES; z++) {
-        zoneCurrent[z].r = lerpByte(zoneCurrent[z].r, zoneTarget[z].r, kLerpSpeed);
-        zoneCurrent[z].g = lerpByte(zoneCurrent[z].g, zoneTarget[z].g, kLerpSpeed);
-        zoneCurrent[z].b = lerpByte(zoneCurrent[z].b, zoneTarget[z].b, kLerpSpeed);
-        zoneBriCurrent[z] = lerpByte(zoneBriCurrent[z], zoneBriTarget[z], kLerpSpeed);
+        zoneCurrent[z].r = lerpByte(zoneCurrent[z].r, zoneTarget[z].r, lerpSpeed);
+        zoneCurrent[z].g = lerpByte(zoneCurrent[z].g, zoneTarget[z].g, lerpSpeed);
+        zoneCurrent[z].b = lerpByte(zoneCurrent[z].b, zoneTarget[z].b, lerpSpeed);
+        zoneBriCurrent[z] = lerpByte(zoneBriCurrent[z], zoneBriTarget[z], lerpSpeed);
     }
 
     // Write to LED buffer — each ring gets its zone color

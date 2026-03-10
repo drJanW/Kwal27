@@ -1,8 +1,8 @@
 /**
  * @file LuxCalibration.cpp
  * @brief Lux calibration data file and grid search fit implementation
- * @version 260309B
- * @date 2026-03-09
+ * @version 260310G
+ * @date 2026-03-10
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -18,8 +18,9 @@
 #include <math.h>
 
 namespace {
-constexpr const char* kLuxCalPath = "/luxcal.csv";
-constexpr const char* kCsvHeader  = "lux;brightness;patternId;colorsId";
+constexpr const char* luxCalPath  = "/luxcal.csv";
+constexpr const char* csvHeader   = "lux;brightness;patternId;colorsId";
+constexpr float       seedLuxMax  = 300.0f;  // fixed low start — breaks luxMax snowball
 } // namespace
 
 LuxCalibration& LuxCalibration::instance() {
@@ -51,7 +52,8 @@ bool LuxCalibration::generateSeeds() {
     samples_.reserve(n);
     for (uint8_t i = 0; i < n; ++i) {
         float normLux = static_cast<float>(i + 1) / n;  // 1/n .. 1.0
-        float seedLux = normLux * Globals::luxMax;
+        normLux *= normLux;                              // quadratic: more seeds at low lux
+        float seedLux = normLux * seedLuxMax;
         float luxT = powf(normLux, Globals::luxGamma);
         float luxShift = Globals::luxShiftLo + (Globals::luxShiftHi - Globals::luxShiftLo) * luxT;
         LuxCalSample s;
@@ -67,9 +69,9 @@ bool LuxCalibration::generateSeeds() {
 
 bool LuxCalibration::loadFromSd() {
     if (!AlertState::isSdOk()) return false;
-    if (!SDController::fileExists(kLuxCalPath)) return false;
+    if (!SDController::fileExists(luxCalPath)) return false;
 
-    File file = SDController::openFileRead(kLuxCalPath);
+    File file = SDController::openFileRead(luxCalPath);
     if (!file) return false;
 
     samples_.clear();
@@ -113,11 +115,11 @@ bool LuxCalibration::loadFromSd() {
 bool LuxCalibration::saveToSd() const {
     if (!AlertState::isSdOk()) return false;
 
-    SDController::deleteFile(kLuxCalPath);
-    File file = SDController::openFileWrite(kLuxCalPath);
+    SDController::deleteFile(luxCalPath);
+    File file = SDController::openFileWrite(luxCalPath);
     if (!file) return false;
 
-    file.println(kCsvHeader);
+    file.println(csvHeader);
     for (const auto& s : samples_) {
         file.print(s.lux, 1);
         file.print(';');
@@ -134,13 +136,14 @@ bool LuxCalibration::saveToSd() const {
 
 bool LuxCalibration::deleteCsv() const {
     if (!AlertState::isSdOk()) return false;
-    SDController::deleteFile(kLuxCalPath);
+    SDController::deleteFile(luxCalPath);
     PL("[LuxCal] CSV deleted");
     return true;
 }
 
 bool LuxCalibration::fitParams(LuxFitResult& result) const {
-    constexpr int fitShiftLimit = 90;  // max absolute shift searched by grid fit
+    constexpr int   fitShiftLimit = 100;  // max absolute shift searched by grid fit
+    constexpr float fitGammaMax   = 2.0f; // max gamma searched by grid fit
 
     if (samples_.empty()) {
         PL("[LuxCal] FIT: no data points");
@@ -156,7 +159,7 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
     const float luxMaxCandidates[] = {
         maxLux, maxLux * 1.1f, maxLux * 1.2f, maxLux * 1.3f, maxLux * 1.5f
     };
-    constexpr uint8_t kNumLuxMax = 5;
+    constexpr uint8_t numLuxMax = 5;
 
     // MSE calculator — inverse-lux weighting
     auto calcMse = [&](float fitMax, int sLo, int sHi, float gamma) -> float {
@@ -180,22 +183,22 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
     // Grid search pass 1: coarse (full parameter space)
     float bestError = 1e12f;
     float bestLuxMax = maxLux;
-    int8_t bestShiftLo = 0;
-    int8_t bestShiftHi = 0;
+    int bestShiftLo = 0;
+    int bestShiftHi = 0;
     float bestGamma = 0.4f;
 
-    for (uint8_t m = 0; m < kNumLuxMax; ++m) {
+    for (uint8_t m = 0; m < numLuxMax; ++m) {
         float fitMax = luxMaxCandidates[m];
         for (int sLo = -fitShiftLimit; sLo <= 0; sLo += 5) {
             for (int sHi = 0; sHi <= fitShiftLimit; sHi += 5) {
-                for (int gIdx = 2; gIdx <= 10; gIdx++) {
+                for (int gIdx = 2; gIdx <= static_cast<int>(fitGammaMax * 10.0f); gIdx++) {
                     float gamma = gIdx * 0.1f;
                     float mse = calcMse(fitMax, sLo, sHi, gamma);
                     if (mse < bestError) {
                         bestError = mse;
                         bestLuxMax = fitMax;
-                        bestShiftLo = static_cast<int8_t>(sLo);
-                        bestShiftHi = static_cast<int8_t>(sHi);
+                        bestShiftLo = sLo;
+                        bestShiftHi = sHi;
                         bestGamma = gamma;
                     }
                 }
@@ -215,13 +218,13 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
                 for (int gIdx = static_cast<int>(bestGamma * 20.0f) - 2;
                          gIdx <= static_cast<int>(bestGamma * 20.0f) + 2; gIdx++) {
                     float gamma = gIdx * 0.05f;
-                    if (gamma < 0.1f || gamma > 1.0f) continue;
+                    if (gamma < 0.1f || gamma > fitGammaMax) continue;
                     float mse = calcMse(fitMax, sLo, sHi, gamma);
                     if (mse < bestError) {
                         bestError = mse;
                         bestLuxMax = fitMax;
-                        bestShiftLo = static_cast<int8_t>(clamp(sLo, -fitShiftLimit, 0));
-                        bestShiftHi = static_cast<int8_t>(clamp(sHi, 0, fitShiftLimit));
+                        bestShiftLo = sLo;
+                        bestShiftHi = sHi;
                         bestGamma = gamma;
                     }
                 }
@@ -231,9 +234,9 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
 
     // Round luxMax to integer for cleaner output
     result.luxMax      = roundf(bestLuxMax);
-    result.luxShiftLo  = static_cast<int8_t>(clamp(static_cast<int>(bestShiftLo), -fitShiftLimit, 0));
-    result.luxShiftHi  = static_cast<int8_t>(clamp(static_cast<int>(bestShiftHi), 0, fitShiftLimit));
-    result.luxGamma    = clamp(bestGamma, 0.1f, 1.0f);
+    result.luxShiftLo  = bestShiftLo;
+    result.luxShiftHi  = bestShiftHi;
+    result.luxGamma    = clamp(bestGamma, 0.1f, fitGammaMax);
     result.error       = bestError;
     result.sampleCount = static_cast<uint8_t>(samples_.size());
 

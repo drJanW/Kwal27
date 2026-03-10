@@ -19,8 +19,8 @@
 
 namespace {
 
-constexpr const char* kCalendarFile       = "calendar.csv";
-constexpr const char* kThemeBoxCsv        = "theme_boxes.csv";
+constexpr const char* calendarFile        = "calendar.csv";
+constexpr const char* themeBoxCsv         = "theme_boxes.csv";
 
 using SdPathUtils::buildUploadTarget;
 using SdPathUtils::sanitizeSdFilename;
@@ -112,7 +112,7 @@ void CalendarSelector::clear() {
 
 bool CalendarSelector::loadCalendarRow(uint16_t year, uint8_t month, uint8_t day, CalendarEntry& out) {
 	// Note: caller manages SD busy lock
-	const String csvPath = pathFor(kCalendarFile);
+	const String csvPath = pathFor(calendarFile);
 	File file = fs_->open(csvPath.c_str(), FILE_READ);
 	if (!file) {
 		PF("[CalendarSelector] Failed to open %s\n", csvPath.c_str());
@@ -164,7 +164,7 @@ bool CalendarSelector::loadCalendarRow(uint16_t year, uint8_t month, uint8_t day
 
 bool CalendarSelector::loadThemeBox(uint8_t id, CalendarThemeBox& out) {
 	// Note: caller manages SD busy lock
-	const String csvPath = pathFor(kThemeBoxCsv);
+	const String csvPath = pathFor(themeBoxCsv);
 	File file = fs_->open(csvPath.c_str(), FILE_READ);
 	if (!file) {
 		PF("[CalendarSelector] Failed to open %s\n", csvPath.c_str());

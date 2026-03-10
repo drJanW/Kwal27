@@ -19,7 +19,7 @@
 
 namespace {
 
-constexpr const char* kThemeBoxesFile = "theme_boxes.csv";
+constexpr const char* themeBoxesFile = "theme_boxes.csv";
 
 using SdPathUtils::buildUploadTarget;
 using SdPathUtils::sanitizeSdFilename;
@@ -107,7 +107,7 @@ bool ThemeBoxTable::load() {
     activeThemeBoxId_ = 0;
 
     SDController::lockSD();
-    const String path = pathFor(kThemeBoxesFile);
+    const String path = pathFor(themeBoxesFile);
     File file = fs_->open(path.c_str(), FILE_READ);
     if (!file) {
         PF("[ThemeBoxTable] failed to open %s\n", path.c_str());

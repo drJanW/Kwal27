@@ -85,8 +85,8 @@ bool start(const AudioFragment& fragment) {
     }
     uint32_t requested = fragment.fadeMs;
     // Enforce minimum fade of 500ms for audible fade-out
-    constexpr uint32_t kMinFadeMs = 500;
-    if (requested < kMinFadeMs) requested = kMinFadeMs;
+    constexpr uint32_t minFadeMs = 500;
+    if (requested < minFadeMs) requested = minFadeMs;
     if (requested > maxFade) requested = maxFade;
     state.effectiveMs = static_cast<uint16_t>(requested);
     if (state.effectiveMs == 0) {
@@ -163,8 +163,8 @@ bool start(const AudioFragment& fragment) {
     return true;
 }
 
-constexpr uint16_t kFadeUseCurrent = 0xFFFF;
-constexpr uint16_t kFadeMinMs = 40;
+constexpr uint16_t fadeUseCurrent = 0xFFFF;
+constexpr uint16_t fadeMinMs = 40;
 
 void stop(uint16_t fadeOutMs) {
     if (!isAudioBusy()) return;
@@ -177,11 +177,11 @@ void stop(uint16_t fadeOutMs) {
     timers.cancel(cb_fadeIn);
 
     uint16_t effective = fadeOutMs;
-    if (effective == kFadeUseCurrent) {
+    if (effective == fadeUseCurrent) {
         effective = state.effectiveMs;
     }
 
-    if (effective <= kFadeMinMs || Globals::fadeStepCount == 0U) {
+    if (effective <= fadeMinMs || Globals::fadeStepCount == 0U) {
         stopPlayback();
         return;
     }

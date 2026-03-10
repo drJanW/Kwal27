@@ -17,7 +17,7 @@
 
 namespace {
 
-constexpr const char* kLightColorsFile = "light_colors.csv";
+constexpr const char* lightColorsFile = "light_colors.csv";
 
 using SdPathUtils::buildUploadTarget;
 using SdPathUtils::sanitizeSdFilename;
@@ -143,7 +143,7 @@ bool LightColorCatalog::load() {
     activeColorId_ = 0;
 
     SDController::lockSD();
-    const String path = pathFor(kLightColorsFile);
+    const String path = pathFor(lightColorsFile);
     File file = fs_->open(path.c_str(), FILE_READ);
     if (!file) {
         PF("[LightColorCatalog] failed to open %s\n", path.c_str());

@@ -63,7 +63,7 @@ private:
     };
 
     /// Reference colors id for CNF normalisation (Snow White)
-    static constexpr uint8_t kReferenceColorsId = 10;
+    static constexpr uint8_t referenceColorsId = 10;
 
     bool loadColorsFromSD();
     bool saveColorsToSD() const;

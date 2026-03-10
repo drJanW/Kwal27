@@ -11,17 +11,17 @@
 // Time boundaries (in minutes from midnight)
 // Adjust these values to match your preferred time-of-day definitions
 namespace {
-    constexpr int kDawnStart    = 5 * 60;       // 05:00
-    constexpr int kMorningStart = 7 * 60;       // 07:00
-    constexpr int kDayStart     = 9 * 60;       // 09:00
-    constexpr int kAfternoonStart = 12 * 60;    // 12:00
-    constexpr int kDuskStart    = 17 * 60;      // 17:00
-    constexpr int kEveningStart = 19 * 60;      // 19:00
-    constexpr int kNightStart   = 22 * 60;      // 22:00
+    constexpr int dawnStart      = 5 * 60;       // 05:00
+    constexpr int morningStart   = 7 * 60;       // 07:00
+    constexpr int dayStart       = 9 * 60;       // 09:00
+    constexpr int afternoonStart = 12 * 60;    // 12:00
+    constexpr int duskStart      = 17 * 60;      // 17:00
+    constexpr int eveningStart   = 19 * 60;      // 19:00
+    constexpr int nightStart     = 22 * 60;      // 22:00
     
     // Fallback values when sun fetch hasn't succeeded yet
-    constexpr int kFallbackSunrise = 7 * 60;    // 07:00
-    constexpr int kFallbackSunset  = 19 * 60;   // 19:00
+    constexpr int fallbackSunrise = 7 * 60;    // 07:00
+    constexpr int fallbackSunset  = 19 * 60;   // 19:00
     
     int getCurrentMinutes() {
         return prtClock.getHour() * 60 + prtClock.getMinute();
@@ -31,7 +31,7 @@ namespace {
         int sunrise = prtClock.getSunriseHour() * 60 + prtClock.getSunriseMinute();
         // If no valid fetch yet (both 0), use fallback
         if (sunrise == 0 && prtClock.getSunsetHour() == 0) {
-            return kFallbackSunrise;
+            return fallbackSunrise;
         }
         return sunrise;
     }
@@ -40,7 +40,7 @@ namespace {
         int sunset = prtClock.getSunsetHour() * 60 + prtClock.getSunsetMinute();
         // If no valid fetch yet (both 0), use fallback
         if (sunset == 0 && prtClock.getSunriseHour() == 0) {
-            return kFallbackSunset;
+            return fallbackSunset;
         }
         return sunset;
     }
@@ -50,7 +50,7 @@ namespace TimeOfDay {
 
 bool isNight() {
     int now = getCurrentMinutes();
-    return now >= kNightStart || now < kDawnStart;
+    return now >= nightStart || now < dawnStart;
 }
 
 bool isDawn() {
@@ -65,7 +65,7 @@ bool isDawn() {
 
 bool isMorning() {
     int now = getCurrentMinutes();
-    return now >= kMorningStart && now < kAfternoonStart;
+    return now >= morningStart && now < afternoonStart;
 }
 
 bool isLight() {
@@ -77,12 +77,12 @@ bool isLight() {
 
 bool isDay() {
     int now = getCurrentMinutes();
-    return now >= kDayStart && now < kDuskStart;
+    return now >= dayStart && now < duskStart;
 }
 
 bool isAfternoon() {
     int now = getCurrentMinutes();
-    return now >= kAfternoonStart && now < kDuskStart;
+    return now >= afternoonStart && now < duskStart;
 }
 
 bool isDusk() {
@@ -97,7 +97,7 @@ bool isDusk() {
 
 bool isEvening() {
     int now = getCurrentMinutes();
-    return now >= kEveningStart && now < kNightStart;
+    return now >= eveningStart && now < nightStart;
 }
 
 bool isDark() {

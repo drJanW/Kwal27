@@ -12,8 +12,8 @@
 
 namespace MathUtils {
 
-constexpr float kPi = 3.14159265358979323846f;
-constexpr float k2Pi = 2.0f * kPi;
+constexpr float pi = 3.14159265358979323846f;
+constexpr float twoPi = 2.0f * pi;
 
 namespace detail {
     template<typename T>
@@ -84,7 +84,7 @@ inline float wrap01(float value) {
 }
 
 inline float wrapAngleRadians(float radians) {
-    return wrap(radians, -kPi, kPi);
+    return wrap(radians, -pi, pi);
 }
 
 inline float wrapAngleDegrees(float degrees) {

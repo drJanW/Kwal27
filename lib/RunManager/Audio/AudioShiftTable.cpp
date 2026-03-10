@@ -17,7 +17,7 @@
 using MathUtils::maxVal;
 
 namespace {
-    constexpr const char* kAudioShiftPath = "/audioShifts.csv";
+    constexpr const char* audioShiftPath = "/audioShifts.csv";
 
     bool parseStatusString(const String& s, uint8_t& out) {
         if (s == "isNight")     { out = STATUS_NIGHT; return true; }
@@ -74,9 +74,9 @@ void AudioShiftTable::begin() {
         return;
     }
 
-    const String csvPath = SdPathUtils::chooseCsvPath(kAudioShiftPath);
+    const String csvPath = SdPathUtils::chooseCsvPath(audioShiftPath);
     if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
-        PF("[AudioShiftTable] %s not found\n", kAudioShiftPath);
+        PF("[AudioShiftTable] %s not found\n", audioShiftPath);
         ready_ = true;
         return;
     }
@@ -230,7 +230,7 @@ std::vector<uint8_t> AudioShiftTable::getThemeBoxAdditions(uint64_t statusBits) 
 float AudioShiftTable::getVolumeMultiplier(uint64_t statusBits) const {
     float mults[AUDIO_PARAM_COUNT];
     computeMultipliers(statusBits, mults);
-    float vol = kBaseVolume * mults[AUDIO_VOLUME];
+    float vol = baseVolume * mults[AUDIO_VOLUME];
     // Clamp to 0.0 minimum (no negative volume)
     return (vol < 0.0f) ? 0.0f : vol;
 }

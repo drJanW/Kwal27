@@ -691,7 +691,7 @@ float Globals::fadeCurve[Globals::fadeStepCount] = {};
 
 void Globals::fillFadeCurve() {
     for (uint8_t i = 0; i < fadeStepCount; ++i) {
-        float x = static_cast<float>(i) / static_cast<float>(fadeStepCount - 1);
+        float x = static_cast<float>(i) / (fadeStepCount - 1);
         float s = sinf(1.5707963f * x);
         fadeCurve[i] = s * s;
     }

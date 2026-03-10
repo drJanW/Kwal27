@@ -17,8 +17,8 @@
 
 namespace {
 
-constexpr uint32_t kMinutesToMs = 60UL * 1000UL;
-constexpr size_t   kMaxThemeDirs = MAX_THEME_DIRS;
+constexpr uint32_t minutesToMs = 60UL * 1000UL;
+constexpr size_t   maxThemeDirs = MAX_THEME_DIRS;
 
 size_t parseThemeEntries(const String& entries, uint8_t* dirs, size_t maxCount) {
   if (!dirs || maxCount == 0) {
@@ -65,7 +65,7 @@ bool evaluate(const CalendarData& calData, Decision& decision) {
 
   decision.hasSentence = calData.day.ttsSentence.length() > 0;
   if (decision.hasSentence) {
-    decision.sentenceIntervalMs = static_cast<uint32_t>(calData.day.ttsIntervalMinutes) * kMinutesToMs;
+    decision.sentenceIntervalMs = static_cast<uint32_t>(calData.day.ttsIntervalMinutes) * minutesToMs;
   }
 
   decision.hasThemeBox = calData.theme.valid && calData.theme.entries.length() > 0;
@@ -121,16 +121,16 @@ void applyThemeBox(const CalendarThemeBox& box) {
 
   const String boxIdStr = String(box.id);
 
-  uint8_t dirs[kMaxThemeDirs];
-  const size_t count = parseThemeEntries(box.entries, dirs, kMaxThemeDirs);
+  uint8_t dirs[maxThemeDirs];
+  const size_t count = parseThemeEntries(box.entries, dirs, maxThemeDirs);
   if (count == 0) {
     PF("[CalendarPolicy] Theme box %u has no valid directories, clearing\n", static_cast<unsigned>(box.id));
     AudioPolicy::clearThemeBox();
     return;
   }
 
-  uint8_t filtered[kMaxThemeDirs];
-  uint8_t skipped[kMaxThemeDirs];
+  uint8_t filtered[maxThemeDirs];
+  uint8_t skipped[maxThemeDirs];
   size_t filteredCount = 0;
   size_t skippedCount = 0;
   for (size_t i = 0; i < count; ++i) {

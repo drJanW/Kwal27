@@ -16,10 +16,10 @@
 #include "Alert/AlertState.h"
 
 namespace {
-constexpr const char* kPatternPath = "/light_patterns.csv";
-constexpr const char* kActivePatternPrefix = "# active_pattern=";
-constexpr size_t kActivePatternPrefixLen = sizeof("# active_pattern=") - 1;
-constexpr uint8_t kSchemaVersion = 1;
+constexpr const char* patternPath = "/light_patterns.csv";
+constexpr const char* activePatternPrefix = "# active_pattern=";
+constexpr size_t activePatternPrefixLen = sizeof("# active_pattern=") - 1;
+constexpr uint8_t schemaVersion = 1;
 
 // CSV on SD is primary source; inline fallback in getActiveParams() for SD-absent boot
 
@@ -69,7 +69,7 @@ String PatternCatalog::buildJson(const char* source) const {
     out.reserve(patterns_.size() * 250 + 100);
     
     out += F("{\"schema\":");
-    out += kSchemaVersion;
+    out += schemaVersion;
     out += F(",\"source\":\"");
     out += source;
     out += '"';
@@ -398,7 +398,7 @@ bool PatternCatalog::loadFromSD() {
     if (!AlertState::isSdOk()) {
         return false;
     }
-    const String csvPath = SdPathUtils::chooseCsvPath(kPatternPath);
+    const String csvPath = SdPathUtils::chooseCsvPath(patternPath);
     if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         return false;
     }
@@ -486,8 +486,8 @@ bool PatternCatalog::saveToSD() const {
     if (!AlertState::isSdOk()) {
         return false;
     }
-    SDController::deleteFile(kPatternPath);
-    File file = SDController::openFileWrite(kPatternPath);
+    SDController::deleteFile(patternPath);
+    File file = SDController::openFileWrite(patternPath);
     if (!file) {
         return false;
     }
@@ -542,7 +542,7 @@ bool PatternCatalog::saveToSD() const {
     // Verify header integrity — retry once on sector corruption
     static bool retrying = false;
     if (!retrying) {
-        File check = SDController::openFileRead(kPatternPath);
+        File check = SDController::openFileRead(patternPath);
         if (check) {
             String line;
             bool headerOk = false;

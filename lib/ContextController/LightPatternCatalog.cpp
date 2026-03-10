@@ -17,7 +17,7 @@
 
 namespace {
 
-constexpr const char* kLightPatternsFile = "light_patterns.csv";
+constexpr const char* lightPatternsFile = "light_patterns.csv";
 
 using SdPathUtils::buildUploadTarget;
 using SdPathUtils::sanitizeSdFilename;
@@ -105,7 +105,7 @@ bool LightPatternCatalog::load() {
     activePatternId_ = 0;
 
     SDController::lockSD();
-    const String path = pathFor(kLightPatternsFile);
+    const String path = pathFor(lightPatternsFile);
     File file = fs_->open(path.c_str(), FILE_READ);
     if (!file) {
         PF("[LightPatternCatalog] failed to open %s\n", path.c_str());
