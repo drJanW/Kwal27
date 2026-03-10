@@ -140,6 +140,8 @@ bool LuxCalibration::deleteCsv() const {
 }
 
 bool LuxCalibration::fitParams(LuxFitResult& result) const {
+    constexpr int fitShiftLimit = 90;  // max absolute shift searched by grid fit
+
     if (samples_.empty()) {
         PL("[LuxCal] FIT: no data points");
         return false;
@@ -184,8 +186,8 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
 
     for (uint8_t m = 0; m < kNumLuxMax; ++m) {
         float fitMax = luxMaxCandidates[m];
-        for (int sLo = -40; sLo <= 0; sLo += 5) {
-            for (int sHi = 0; sHi <= 40; sHi += 5) {
+        for (int sLo = -fitShiftLimit; sLo <= 0; sLo += 5) {
+            for (int sHi = 0; sHi <= fitShiftLimit; sHi += 5) {
                 for (int gIdx = 2; gIdx <= 10; gIdx++) {
                     float gamma = gIdx * 0.1f;
                     float mse = calcMse(fitMax, sLo, sHi, gamma);
@@ -207,9 +209,9 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
         float fitMax = luxMaxFine[m];
         if (fitMax < 10.0f) continue;
         for (int sLo = bestShiftLo - 4; sLo <= bestShiftLo + 4; sLo++) {
-            if (sLo < -40 || sLo > 0) continue;
+            if (sLo < -fitShiftLimit || sLo > 0) continue;
             for (int sHi = bestShiftHi - 4; sHi <= bestShiftHi + 4; sHi++) {
-                if (sHi < 0 || sHi > 40) continue;
+                if (sHi < 0 || sHi > fitShiftLimit) continue;
                 for (int gIdx = static_cast<int>(bestGamma * 20.0f) - 2;
                          gIdx <= static_cast<int>(bestGamma * 20.0f) + 2; gIdx++) {
                     float gamma = gIdx * 0.05f;
@@ -218,8 +220,8 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
                     if (mse < bestError) {
                         bestError = mse;
                         bestLuxMax = fitMax;
-                        bestShiftLo = static_cast<int8_t>(clamp(sLo, -40, 0));
-                        bestShiftHi = static_cast<int8_t>(clamp(sHi, 0, 40));
+                        bestShiftLo = static_cast<int8_t>(clamp(sLo, -fitShiftLimit, 0));
+                        bestShiftHi = static_cast<int8_t>(clamp(sHi, 0, fitShiftLimit));
                         bestGamma = gamma;
                     }
                 }
@@ -229,8 +231,8 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
 
     // Round luxMax to integer for cleaner output
     result.luxMax      = roundf(bestLuxMax);
-    result.luxShiftLo  = static_cast<int8_t>(clamp(static_cast<int>(bestShiftLo), -40, 0));
-    result.luxShiftHi  = static_cast<int8_t>(clamp(static_cast<int>(bestShiftHi), 0, 40));
+    result.luxShiftLo  = static_cast<int8_t>(clamp(static_cast<int>(bestShiftLo), -fitShiftLimit, 0));
+    result.luxShiftHi  = static_cast<int8_t>(clamp(static_cast<int>(bestShiftHi), 0, fitShiftLimit));
     result.luxGamma    = clamp(bestGamma, 0.1f, 1.0f);
     result.error       = bestError;
     result.sampleCount = static_cast<uint8_t>(samples_.size());
