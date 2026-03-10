@@ -117,6 +117,15 @@
       }
       // Audio interval/silence state
       Kwal.audio.updateIntervalsFromState(data);
+      // Disable lux cal button if no sensor
+      if (typeof data.hasLuxSensor === 'boolean') {
+        var luxBtn = document.querySelector('[data-open="luxcal-modal"]');
+        if (luxBtn) {
+          luxBtn.disabled = !data.hasLuxSensor;
+          luxBtn.style.opacity = data.hasLuxSensor ? '' : '0.3';
+          luxBtn.style.pointerEvents = data.hasLuxSensor ? '' : 'none';
+        }
+      }
     });
     
     // Legacy callbacks (still fired by firmware during transition)

@@ -1,8 +1,8 @@
 /**
  * @file WebGuiStatus.cpp
  * @brief Centralized WebGUI state management implementation
- * @version 260309A
- * @date 2026-03-09
+ * @version 260310C
+ * @date 2026-03-10
  */
 #include "WebGuiStatus.h"
 #include "Globals.h"
@@ -188,6 +188,8 @@ void pushState() {
     json += static_cast<uint32_t>(Globals::defaultWebExpiryMs / 60000UL);
     json += F(",\"tvMode\":");
     json += Globals::tvMode ? F("true") : F("false");
+    json += F(",\"hasLuxSensor\":");
+    json += Globals::luxSensorPresent ? F("true") : F("false");
     json += '}';
     
     eventsPtr_->send(json.c_str(), "state", millis());

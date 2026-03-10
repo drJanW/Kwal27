@@ -120,13 +120,13 @@
       <div class="row" style="justify-content:center;gap:1.5rem;margin:1rem 0">
         <button data-open="pattern-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Patronen">🌀</button>
         <button data-open="colors-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Kleuren">🎨</button>
-        <button data-open="luxcal-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Lux Calibratie">☀️</button>
+        <button id="luxcal-open" data-open="luxcal-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Lux Calibratie">☀️</button>
       </div>
       <hr>
       <div class="row">
         <label class="label-gold" style="font-size:1.4rem" title="Actieve uren">⏳</label>
-        <input type="range" id="light-duration" class="slider-gold" min="0" max="11" value="11" disabled>
-        <span id="light-dur-num">-</span>
+        <input type="range" id="light-duration" class="slider-gold" min="0" max="11" value="11">
+        <span id="light-dur-num">13u</span>
       </div>
     </div>
   </div>
@@ -311,7 +311,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260309A"></script>
+  <script src="kwal.js?v=260310E"></script>
 </body>
 
 </html>

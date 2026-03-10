@@ -1,8 +1,8 @@
 /**
  * @file LightRun.h
  * @brief LED show state management
- * @version 260304E
- * @date 2026-03-04
+ * @version 260310B
+ * @date 2026-03-10
  */
 #pragma once
 
@@ -12,6 +12,7 @@
 
 struct LightPattern;
 struct LightColor;
+struct LightShowParams;
 
 // Source of current pattern/color selection
 enum class LightSource : uint8_t {
@@ -74,6 +75,10 @@ public:
 
     // Apply combined pattern+color to lights (call after any pattern/color change)
     static void applyToLights();
+
+    // Deferred variants — safe to call from web handler context
+    static void requestApplyToLights();
+    static void requestPlayLightShow(const LightShowParams& params);
     
     // Reapply current pattern/color (used by AlertRGB to restore after alert)
     static void reapplyCurrentShow();

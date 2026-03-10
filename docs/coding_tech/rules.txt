@@ -120,6 +120,9 @@ A4. Deferred Action Pattern. MANDATORY.
 - For async follow-up: use one-shot timer with cb_ callback
 - Pattern: stop(fadeMs); TimerManager::instance().create(fadeMs + 1, 1, cb_afterFade)
 - Callback = simple launcher, no state checks
+- Web handlers MUST NOT call hardware (audio, FastLED, SD I/O) directly
+- Web handlers set flags/state, then defer via timers.create(1, 1, cb_xxx)
+- Verify with: .\tools\check_web_handler_safety.ps1
 
 A5. No Superfluous Safety Theatre. MANDATORY.
 - No redundant checks, guards, fallbacks that duplicate upstream validation

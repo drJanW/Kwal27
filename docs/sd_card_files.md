@@ -15,7 +15,7 @@ Files in SD root (`/`) needed for full operation.
 | `light_colors.csv` | LED color palette definitions |
 | `colorsShifts.csv` | Time-of-day color shift rules |
 | `patternShifts.csv` | Time-of-day pattern shift rules |
-| `audioShifts.csv` | Time-of-day audio volume/dir shift rules |
+| `audioShifts.csv` | Time-of-day audio volume/fade/interval shift rules |
 | `index.html` | Web interface |
 | `kwal.js` | JavaScript (built from `webgui-src/js/`) |
 | `styles.css` | CSS stylesheet |

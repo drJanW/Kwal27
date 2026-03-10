@@ -39,3 +39,23 @@ This file captures the current understanding of how distance driven PCM playback
 - Actual playback is attempted via `PlayPCM::play`. A failure here is logged but otherwise the logic relies on the next distance event (or a fresh `setDistanceClipPointer()` call) to recover.
 
 These notes should keep the interaction between policy, run, and the timers straight without re-learning the same rules next time.
+
+## Time-of-day interval shifts (260309C)
+
+The `audioShifts.csv` file now controls speak/fragment intervals via four percentage-shift columns:
+
+| Column | Affects | 0 = | +100 = |
+|--------|---------|-----|--------|
+| `speakMin` | minimum speakTime interval | no change | 2× longer |
+| `speakMax` | maximum speakTime interval | no change | 2× longer |
+| `fragmentMin` | minimum playFragment interval | no change | 2× longer |
+| `fragmentMax` | maximum playFragment interval | no change | 2× longer |
+
+These work identically to the existing `volume` and `fadeMs` columns: all active bands compound multiplicatively.
+
+**Example:** At 21:00, `isEvening` (+100%) and `isDark` (+50%) are both active.
+Effective speakMin multiplier = (1 + 1.0) × (1 + 0.5) = 3.0×. If globals.csv says minSaytimeIntervalMs = 2700000 (45 min), the effective minimum becomes 135 min.
+
+The multiplier is applied inside `AudioPolicy::effectiveSpeakMin/Max()` and `effectiveFragmentMin/Max()`, so it works on both the globals base values AND any active web override. The multiplier floor is 0.1 (can never reduce interval to near-zero).
+
+Implementation: `AudioShiftTable` parses the columns and computes multipliers. `AudioPolicy` calls `getSpeakMinMultiplier()` etc. using `StatusFlags::getFullStatusBits()` on each call.

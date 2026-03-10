@@ -42,7 +42,7 @@ tracked in git, the SD card copy will be consistent and git status stays clean.
 | `light_patterns.csv` | LED animation definitions | 16 columns, semicolon-delimited |
 | `light_colors.csv` | Color palette entries | id;name;rgb1_hex;rgb2_hex |
 | `theme_boxes.csv` | Theme box configuration | theme_box_id;name;audio_dirs;... |
-| `audioShifts.csv` | Per-theme audio weights | theme_id;dir_weights... |
+| `audioShifts.csv` | Per-time-band audio volume/fade/interval shifts | status;volume;fadeMs;themeBoxAdd;speakMin;speakMax;fragmentMin;fragmentMax |
 | `colorsShifts.csv` | Per-theme color weights | theme_id;color_weights... |
 | `patternShifts.csv` | Per-theme pattern weights | theme_id;pattern_weights... |
 

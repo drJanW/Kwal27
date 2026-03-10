@@ -158,6 +158,19 @@ SSH into NAS to start `csv_server.py` in background.
 ### `tools\tonasprompt.ps1`
 Open an SSH session to the NAS in a new window.
 
+## Quality Checks
+
+### `tools\check_web_handler_safety.ps1`
+Scan web route handlers for hard-stop #6 violations: direct hardware/SD/audio calls
+that should be deferred to timer callbacks.
+```
+.\tools\check_web_handler_safety.ps1
+```
+Checks:
+- All `route*()` functions in `lib/WebInterfaceController/routes/*.cpp`
+- All `RunManager::request*()` functions
+- Reports violations (dangerous direct calls) and accepted exceptions (`NOCHECK` comments)
+
 ### `tools\export_chat.ps1`
 Export Copilot chat JSON to readable text format.
 

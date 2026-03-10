@@ -1,13 +1,15 @@
 /**
  * @file AudioPolicy.cpp
  * @brief Audio playback business logic implementation
- * @version 260226E
- * @date 2026-02-26
+ * @version 260309C
+ * @date 2026-03-09
  */
 #include "AudioPolicy.h"
 #include "AudioState.h"  // isAudioBusy, isSentencePlaying
 #include "PlaySentence.h"
 #include "PlayFragment.h"
+#include "AudioShiftTable.h"
+#include "StatusFlags.h"
 #include "Globals.h" // only for constants like MAX_VOLUME
 
 namespace {
@@ -190,11 +192,15 @@ void setWebSpeakRange(uint32_t minMs, uint32_t maxMs) {
 void clearWebSpeakRange() { webSpeakActive = false; }
 
 uint32_t effectiveSpeakMin() {
-    return webSpeakActive ? webSpeakMin : Globals::minSaytimeIntervalMs;
+    uint32_t base = webSpeakActive ? webSpeakMin : Globals::minSaytimeIntervalMs;
+    float mult = AudioShiftTable::instance().getSpeakMinMultiplier(StatusFlags::getFullStatusBits());
+    return static_cast<uint32_t>(base * mult);
 }
 
 uint32_t effectiveSpeakMax() {
-    return webSpeakActive ? webSpeakMax : Globals::maxSaytimeIntervalMs;
+    uint32_t base = webSpeakActive ? webSpeakMax : Globals::maxSaytimeIntervalMs;
+    float mult = AudioShiftTable::instance().getSpeakMaxMultiplier(StatusFlags::getFullStatusBits());
+    return static_cast<uint32_t>(base * mult);
 }
 
 void setWebFragmentRange(uint32_t minMs, uint32_t maxMs) {
@@ -207,11 +213,15 @@ void setWebFragmentRange(uint32_t minMs, uint32_t maxMs) {
 void clearWebFragmentRange() { webFragActive = false; }
 
 uint32_t effectiveFragmentMin() {
-    return webFragActive ? webFragMin : Globals::minAudioIntervalMs;
+    uint32_t base = webFragActive ? webFragMin : Globals::minAudioIntervalMs;
+    float mult = AudioShiftTable::instance().getFragMinMultiplier(StatusFlags::getFullStatusBits());
+    return static_cast<uint32_t>(base * mult);
 }
 
 uint32_t effectiveFragmentMax() {
-    return webFragActive ? webFragMax : Globals::maxAudioIntervalMs;
+    uint32_t base = webFragActive ? webFragMax : Globals::maxAudioIntervalMs;
+    float mult = AudioShiftTable::instance().getFragMaxMultiplier(StatusFlags::getFullStatusBits());
+    return static_cast<uint32_t>(base * mult);
 }
 
 bool isWebFragmentRangeActive() { return webFragActive; }

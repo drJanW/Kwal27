@@ -1,8 +1,8 @@
 /**
  * @file AudioPolicy.h
  * @brief Audio playback business logic
- * @version 260226A
- * @date 2026-02-26
+ * @version 260309C
+ * @date 2026-03-09
  */
 #pragma once
 #include <Arduino.h>

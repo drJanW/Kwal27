@@ -1,8 +1,8 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260309A
- * @date 2026-03-09
+ * @version 260310B
+ * @date 2026-03-10
  */
 #include "LightRun.h"
 
@@ -444,7 +444,7 @@ bool LightRun::selectPattern(const String &id, String &errorMessage) {
     }
     // Web UI selection = manual source (empty id clears to context)
     patternSource = id.isEmpty() ? LightSource::CONTEXT : LightSource::MANUAL;
-    applyToLights();
+    requestApplyToLights();
     return true;
 }
 
@@ -455,7 +455,7 @@ bool LightRun::selectNextPattern(String &errorMessage) {
     }
     patternSource = LightSource::MANUAL;
     AlertRGB::stopFlashing();  // User action overrides error flash
-    applyToLights();
+    requestApplyToLights();
     return true;
 }
 
@@ -466,7 +466,7 @@ bool LightRun::selectPrevPattern(String &errorMessage) {
     }
     patternSource = LightSource::MANUAL;
     AlertRGB::stopFlashing();  // User action overrides error flash
-    applyToLights();
+    requestApplyToLights();
     return true;
 }
 
@@ -476,7 +476,7 @@ bool LightRun::updatePattern(JsonVariantConst body, String &affectedId, String &
         return false;
     }
     // Update doesn't change source
-    applyToLights();
+    requestApplyToLights();
     NasBackup::requestPush("light_patterns.csv");
     return true;
 }
@@ -490,7 +490,7 @@ bool LightRun::deletePattern(JsonVariantConst body, String &affectedId, String &
     if (catalog.activeId().isEmpty()) {
         patternSource = LightSource::CONTEXT;
     }
-    applyToLights();
+    requestApplyToLights();
     NasBackup::requestPush("light_patterns.csv");
     return true;
 }
@@ -501,7 +501,7 @@ bool LightRun::selectColor(const String &id, String &errorMessage) {
     }
     // Web UI selection = manual source (empty id clears to context)
     colorSource = id.isEmpty() ? LightSource::CONTEXT : LightSource::MANUAL;
-    applyToLights();
+    requestApplyToLights();
     return true;
 }
 
@@ -511,7 +511,7 @@ bool LightRun::selectNextColor(String &errorMessage) {
     }
     colorSource = LightSource::MANUAL;
     AlertRGB::stopFlashing();  // User action overrides error flash
-    applyToLights();
+    requestApplyToLights();
     return true;
 }
 
@@ -521,7 +521,7 @@ bool LightRun::selectPrevColor(String &errorMessage) {
     }
     colorSource = LightSource::MANUAL;
     AlertRGB::stopFlashing();  // User action overrides error flash
-    applyToLights();
+    requestApplyToLights();
     return true;
 }
 
@@ -530,7 +530,7 @@ bool LightRun::updateColor(JsonVariantConst body, String &affectedId, String &er
         return false;
     }
     // Update doesn't change source
-    applyToLights();
+    requestApplyToLights();
     NasBackup::requestPush("light_colors.csv");
     return true;
 }
@@ -543,7 +543,7 @@ bool LightRun::deleteColorSet(JsonVariantConst body, String &affectedId, String 
     if (getColorsCatalog().getActiveColorId().isEmpty()) {
         colorSource = LightSource::CONTEXT;
     }
-    applyToLights();
+    requestApplyToLights();
     NasBackup::requestPush("light_colors.csv");
     return true;
 }
@@ -603,7 +603,7 @@ bool LightRun::previewPattern(JsonVariantConst body, String &errorMessage) {
     }
 
     PF("[LightRun] previewPattern applied\n");
-    PlayLightShow(params);
+    requestPlayLightShow(params);
     return true;
 }
 
@@ -759,6 +759,39 @@ CRGB shiftColorHSV(const CRGB& rgb, int hueShift, int satShift, int valShift) {
     return CRGB(hsv);
 }
 } // namespace
+
+// ─── Deferred apply (safe from web handler context) ─────────────────────────
+
+namespace {
+    bool           pendingApply     = false;
+    bool           pendingShowDirect = false;
+    LightShowParams pendingShowParams;
+
+    void cb_deferredApply() {
+        if (pendingShowDirect) {
+            PlayLightShow(pendingShowParams);
+            pendingShowDirect = false;
+        } else if (pendingApply) {
+            LightRun::applyToLights();
+            pendingApply = false;
+        }
+    }
+} // namespace
+
+void LightRun::requestApplyToLights() {
+    pendingApply = true;
+    pendingShowDirect = false;
+    timers.cancel(cb_deferredApply);
+    timers.create(1, 1, cb_deferredApply);
+}
+
+void LightRun::requestPlayLightShow(const LightShowParams& params) {
+    pendingShowParams = params;
+    pendingShowDirect = true;
+    pendingApply = false;
+    timers.cancel(cb_deferredApply);
+    timers.create(1, 1, cb_deferredApply);
+}
 
 void LightRun::applyToLights() {
     // Get RAW pattern params from PatternCatalog (no shifts applied)

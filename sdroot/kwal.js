@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260309A - Built 2026-03-09 08:17
+ * Kwal WebGUI v260310E - Built 2026-03-10 11:14
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260309A';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260310E';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -134,8 +134,8 @@ Kwal.audio = (function() {
   var hiPct = 100;    // Grey zone right boundary (visual only)
 
   // Interval control elements
-  var muteBtn, speakSlider, fragSlider, durSlider;
-  var speakLabel, fragLabel, durLabel;
+  var muteBtn, speakSlider, fragSlider, durSlider, lightDurSlider;
+  var speakLabel, fragLabel, durLabel, lightDurLabel;
   var debounceTimer = null;
 
   // Non-linear step tables (logarithmic distribution)
@@ -321,9 +321,11 @@ Kwal.audio = (function() {
     speakSlider = document.getElementById('speak-interval');
     fragSlider = document.getElementById('frag-interval');
     durSlider = document.getElementById('interval-duration');
+    lightDurSlider = document.getElementById('light-duration');
     speakLabel = document.getElementById('speak-num');
     fragLabel = document.getElementById('frag-num');
     durLabel = document.getElementById('dur-num');
+    lightDurLabel = document.getElementById('light-dur-num');
 
     // Silence toggle — instant
     if (muteBtn) {
@@ -346,6 +348,27 @@ Kwal.audio = (function() {
     bindSlider(speakSlider, speakSteps, speakLabel);
     bindSlider(fragSlider, fragSteps, fragLabel);
     bindSlider(durSlider, durSteps, durLabel);
+
+    // Light-duration slider mirrors audio duration
+    if (lightDurSlider && lightDurLabel) {
+      lightDurSlider.oninput = function() {
+        var val = durSteps[parseInt(lightDurSlider.value, 10)];
+        lightDurLabel.textContent = formatMinutes(val);
+        // Sync audio slider
+        if (durSlider) durSlider.value = lightDurSlider.value;
+        if (durLabel) durLabel.textContent = formatMinutes(val);
+        scheduleIntervalSend();
+      };
+    }
+    // When audio dur slider changes, also sync light dur slider
+    if (durSlider && lightDurSlider) {
+      var origDurInput = durSlider.oninput;
+      durSlider.oninput = function() {
+        if (origDurInput) origDurInput.call(durSlider);
+        lightDurSlider.value = durSlider.value;
+        if (lightDurLabel) lightDurLabel.textContent = durLabel.textContent;
+      };
+    }
   }
 
   function scheduleIntervalSend() {
@@ -367,7 +390,7 @@ Kwal.audio = (function() {
   }
 
   function flashConfirm() {
-    [speakLabel, fragLabel, durLabel].forEach(function(el) {
+    [speakLabel, fragLabel, durLabel, lightDurLabel].forEach(function(el) {
       if (!el) return;
       var orig = el.textContent;
       el.textContent = '✓';
@@ -401,6 +424,10 @@ Kwal.audio = (function() {
     if (typeof data.durMin === 'number' && durSlider && durLabel) {
       durSlider.value = findStep(durSteps, data.durMin);
       durLabel.textContent = formatMinutes(data.durMin);
+    }
+    if (typeof data.durMin === 'number' && lightDurSlider && lightDurLabel) {
+      lightDurSlider.value = findStep(durSteps, data.durMin);
+      lightDurLabel.textContent = formatMinutes(data.durMin);
     }
   }
 
@@ -1945,7 +1972,7 @@ Kwal.luxcal = (function() {
     if (!data) return;
     showCount(data.realCount || 0);
     if (typeof data.lastLux === 'number' && luxValueEl) {
-      luxValueEl.textContent = data.lastLux.toFixed(1) + ' lux';
+      luxValueEl.textContent = data.lastLux.toFixed(1);
     }
     if (typeof data.lastBrightness === 'number' && brightnessValueEl) {
       brightnessValueEl.textContent = data.lastBrightness.toFixed(1);
@@ -2011,7 +2038,7 @@ Kwal.luxcal = (function() {
         if (data.ok) {
           setStatus('Sample opgeslagen');
           showCount(data.realCount || 0);
-          if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1) + ' lux';
+          if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1);
           if (brightnessValueEl) brightnessValueEl.textContent = data.brightness.toFixed(1);
         } else {
           setStatus(data.error || 'Fout');
@@ -2122,7 +2149,7 @@ Kwal.luxcal = (function() {
     // SSE: update UI when firmware captures sample asynchronously
     Kwal.sse.onLuxcal(function(data) {
       showCount(data.realCount || 0);
-      if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1) + ' lux';
+      if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1);
       if (brightnessValueEl) brightnessValueEl.textContent = data.brightness.toFixed(1);
     });
 
@@ -2143,6 +2170,14 @@ Kwal.luxcal = (function() {
         luxShiftHi: data.luxShiftHi, luxGamma: data.luxGamma };
       setStatus('Auto-fit — accepteer of sample verder');
     });
+    // Early check: disable sun button if no lux sensor
+    fetch('/api/lux/status').then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.hasLuxSensor) {
+          var openBtn = document.getElementById('luxcal-open');
+          if (openBtn) { openBtn.disabled = true; openBtn.style.opacity = '0.3'; }
+        }
+      }).catch(function() {});
   }
 
   return { init: init, loadStatus: loadStatus, onModalClose: onModalClose };
@@ -2465,62 +2500,6 @@ Kwal.mp3grid = (function() {
 })();
 
 
-// === js/tv.js ===
-// TV Simulator controls
-
-(function() {
-    const slider = document.getElementById('tvHours');
-    const label = document.getElementById('tvHoursLabel');
-    const btn = document.getElementById('btnTvMode');
-    if (!slider || !label || !btn) return;
-
-    slider.addEventListener('input', function() {
-        label.textContent = this.value + ' uur';
-    });
-
-    var panels = document.querySelectorAll('#app > .panel, #app > .panel-sep, #save-buttons');
-
-    function setActive(active) {
-        if (active) {
-            btn.textContent = '⏹ Stop TV';
-            btn.onclick = stopTvMode;
-            btn.classList.add('tv-active');
-        } else {
-            btn.textContent = '📺 TV';
-            btn.onclick = startTvMode;
-            btn.classList.remove('tv-active');
-        }
-        panels.forEach(function(el) {
-            if (active) el.classList.add('tv-disabled');
-            else el.classList.remove('tv-disabled');
-        });
-    }
-
-    function startTvMode() {
-        var hours = slider.value || 4;
-        if (!confirm('Start TV Simulator voor ' + hours + ' uur?')) return;
-        fetch('/api/tvmode?hours=' + hours)
-            .then(function(r) { return r.json(); })
-            .then(function(d) { if (d.active) setActive(true); });
-    }
-
-    function stopTvMode() {
-        fetch('/api/tvstop')
-            .then(function(r) { return r.json(); })
-            .then(function() { setActive(false); });
-    }
-
-    btn.onclick = startTvMode;
-
-    // Restore TV mode UI from SSE state events (survives page reload / SSE reconnect)
-    if (Kwal.sse && Kwal.sse.onState) {
-        Kwal.sse.onState(function(data) {
-            if (typeof data.tvMode === 'boolean') setActive(data.tvMode);
-        });
-    }
-})();
-
-
 // === js/sse.js ===
 /**
  * sse.js - Server-Sent Events for live updates
@@ -2778,6 +2757,62 @@ Kwal.mp3grid = (function() {
 })();
 
 
+// === js/tv.js ===
+// TV Simulator controls
+
+(function() {
+    const slider = document.getElementById('tvHours');
+    const label = document.getElementById('tvHoursLabel');
+    const btn = document.getElementById('btnTvMode');
+    if (!slider || !label || !btn) return;
+
+    slider.addEventListener('input', function() {
+        label.textContent = this.value + ' uur';
+    });
+
+    var panels = document.querySelectorAll('#app > .panel, #app > .panel-sep, #save-buttons');
+
+    function setActive(active) {
+        if (active) {
+            btn.textContent = '⏹ Stop TV';
+            btn.onclick = stopTvMode;
+            btn.classList.add('tv-active');
+        } else {
+            btn.textContent = '📺 TV';
+            btn.onclick = startTvMode;
+            btn.classList.remove('tv-active');
+        }
+        panels.forEach(function(el) {
+            if (active) el.classList.add('tv-disabled');
+            else el.classList.remove('tv-disabled');
+        });
+    }
+
+    function startTvMode() {
+        var hours = slider.value || 4;
+        if (!confirm('Start TV Simulator voor ' + hours + ' uur?')) return;
+        fetch('/api/tvmode?hours=' + hours)
+            .then(function(r) { return r.json(); })
+            .then(function(d) { if (d.active) setActive(true); });
+    }
+
+    function stopTvMode() {
+        fetch('/api/tvstop')
+            .then(function(r) { return r.json(); })
+            .then(function() { setActive(false); });
+    }
+
+    btn.onclick = startTvMode;
+
+    // Restore TV mode UI from SSE state events (survives page reload / SSE reconnect)
+    if (Kwal.sse && Kwal.sse.onState) {
+        Kwal.sse.onState(function(data) {
+            if (typeof data.tvMode === 'boolean') setActive(data.tvMode);
+        });
+    }
+})();
+
+
 // === js/main.js ===
 /*
  * Kwal WebGUI v1214C - Modular
@@ -2898,6 +2933,15 @@ Kwal.mp3grid = (function() {
       }
       // Audio interval/silence state
       Kwal.audio.updateIntervalsFromState(data);
+      // Disable lux cal button if no sensor
+      if (typeof data.hasLuxSensor === 'boolean') {
+        var luxBtn = document.querySelector('[data-open="luxcal-modal"]');
+        if (luxBtn) {
+          luxBtn.disabled = !data.hasLuxSensor;
+          luxBtn.style.opacity = data.hasLuxSensor ? '' : '0.3';
+          luxBtn.style.pointerEvents = data.hasLuxSensor ? '' : 'none';
+        }
+      }
     });
     
     // Legacy callbacks (still fired by firmware during transition)

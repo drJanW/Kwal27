@@ -151,8 +151,24 @@ LET OP: gebruik puntkomma (;) als scheidingsteken, NIET komma.
     Gebruik 0 voor patroon/kleuren om de huidige te behouden.
 
   audioShifts.csv
-    Bepaalt hoe volume en overgangssnelheid variëren per tijdstip.
-    's Nachts stiller, overdag luider. Normaal niet aanpassen.
+    Bepaalt hoe volume, overgangssnelheid en afspeelintervallen variëren
+    per tijdstip. 's Nachts stiller en minder vaak, overdag luider en vaker.
+
+    Kolommen:
+      status      - tijdsband (isNight, isEvening, isDay, ...)
+      volume      - volume percentage shift (- = stiller, + = luider)
+      fadeMs      - overgangssnelheid percentage shift
+      themeBoxAdd - extra thema-map toevoegen (0 = geen)
+      speakMin    - % verhoging minimum speakTime interval (0 = ongewijzigd)
+      speakMax    - % verhoging maximum speakTime interval
+      fragmentMin - % verhoging minimum playFragment interval
+      fragmentMax - % verhoging maximum playFragment interval
+
+    Voorbeeld: isEvening met speakMin=100 → het minimale speakTime interval
+    wordt 2× zo lang 's avonds. isNight met speakMin=200 → 3× zo lang.
+    Meerdere actieve banden compounds: isEvening(100) + isDark(50) =
+    (1+1.0)×(1+0.5) = 3.0× het basisinterval.
+    Laat op 0 om het basisinterval (uit globals.csv) te behouden.
 
   light_patterns.csv / light_colors.csv
     Definitie van beschikbare patronen en kleurpaletten.

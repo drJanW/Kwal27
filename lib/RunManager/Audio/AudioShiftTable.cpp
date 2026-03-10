@@ -1,8 +1,8 @@
 /**
  * @file AudioShiftTable.cpp
  * @brief Audio parameter shift storage implementation
- * @version 260212A
- * @date 2026-02-12
+ * @version 260309C
+ * @date 2026-03-09
  */
 #include "AudioShiftTable.h"
 #include "CsvUtils.h"
@@ -13,6 +13,8 @@
 #include "Globals.h"
 #include "Alert/AlertState.h"
 #include <algorithm>
+
+using MathUtils::maxVal;
 
 namespace {
     constexpr const char* kAudioShiftPath = "/audioShifts.csv";
@@ -95,6 +97,10 @@ void AudioShiftTable::begin() {
     int colVolume = -1;
     int colFadeMs = -1;
     int colThemeBoxAdd = -1;
+    int colSpeakMin = -1;
+    int colSpeakMax = -1;
+    int colFragMin = -1;
+    int colFragMax = -1;
     bool headerLoaded = false;
 
     while (csv::readLine(file, line)) {
@@ -119,6 +125,10 @@ void AudioShiftTable::begin() {
                 if (h == "volume")       colVolume = static_cast<int>(i);
                 else if (h == "fadeMs")  colFadeMs = static_cast<int>(i);
                 else if (h == "themeBoxAdd") colThemeBoxAdd = static_cast<int>(i);
+                else if (h == "speakMin") colSpeakMin = static_cast<int>(i);
+                else if (h == "speakMax") colSpeakMax = static_cast<int>(i);
+                else if (h == "fragmentMin") colFragMin = static_cast<int>(i);
+                else if (h == "fragmentMax") colFragMax = static_cast<int>(i);
             }
             headerLoaded = true;
             continue;
@@ -136,6 +146,10 @@ void AudioShiftTable::begin() {
         entry.statusBit = 1ULL << statusId;
         entry.shifts[AUDIO_VOLUME] = 0.0f;
         entry.shifts[AUDIO_FADE_MS] = 0.0f;
+        entry.shifts[AUDIO_SPEAK_MIN] = 0.0f;
+        entry.shifts[AUDIO_SPEAK_MAX] = 0.0f;
+        entry.shifts[AUDIO_FRAG_MIN] = 0.0f;
+        entry.shifts[AUDIO_FRAG_MAX] = 0.0f;
         entry.themeBoxAdd = 0;
 
         if (colVolume >= 0 && colVolume < static_cast<int>(columns.size())) {
@@ -144,14 +158,28 @@ void AudioShiftTable::begin() {
         if (colFadeMs >= 0 && colFadeMs < static_cast<int>(columns.size())) {
             entry.shifts[AUDIO_FADE_MS] = columns[colFadeMs].toFloat();
         }
+        if (colSpeakMin >= 0 && colSpeakMin < static_cast<int>(columns.size())) {
+            entry.shifts[AUDIO_SPEAK_MIN] = columns[colSpeakMin].toFloat();
+        }
+        if (colSpeakMax >= 0 && colSpeakMax < static_cast<int>(columns.size())) {
+            entry.shifts[AUDIO_SPEAK_MAX] = columns[colSpeakMax].toFloat();
+        }
+        if (colFragMin >= 0 && colFragMin < static_cast<int>(columns.size())) {
+            entry.shifts[AUDIO_FRAG_MIN] = columns[colFragMin].toFloat();
+        }
+        if (colFragMax >= 0 && colFragMax < static_cast<int>(columns.size())) {
+            entry.shifts[AUDIO_FRAG_MAX] = columns[colFragMax].toFloat();
+        }
         if (colThemeBoxAdd >= 0 && colThemeBoxAdd < static_cast<int>(columns.size())) {
             entry.themeBoxAdd = static_cast<uint8_t>(columns[colThemeBoxAdd].toInt());
         }
 
         // Only keep if there's any shift or themeBoxAdd
-        bool hasShift = (entry.shifts[AUDIO_VOLUME] != 0.0f) ||
-                        (entry.shifts[AUDIO_FADE_MS] != 0.0f) ||
-                        (entry.themeBoxAdd != 0);
+        bool hasShift = false;
+        for (int i = 0; i < AUDIO_PARAM_COUNT; ++i) {
+            if (entry.shifts[i] != 0.0f) { hasShift = true; break; }
+        }
+        if (entry.themeBoxAdd != 0) hasShift = true;
         if (hasShift) {
             entries_.push_back(entry);
         }
@@ -215,4 +243,28 @@ uint16_t AudioShiftTable::getFadeMs(uint64_t statusBits) const {
     if (fadeMs < 0.0f) fadeMs = 0.0f;
     if (fadeMs > 60000.0f) fadeMs = 60000.0f;
     return static_cast<uint16_t>(fadeMs);
+}
+
+float AudioShiftTable::getSpeakMinMultiplier(uint64_t statusBits) const {
+    float mults[AUDIO_PARAM_COUNT];
+    computeMultipliers(statusBits, mults);
+    return maxVal(mults[AUDIO_SPEAK_MIN], 0.1f);
+}
+
+float AudioShiftTable::getSpeakMaxMultiplier(uint64_t statusBits) const {
+    float mults[AUDIO_PARAM_COUNT];
+    computeMultipliers(statusBits, mults);
+    return maxVal(mults[AUDIO_SPEAK_MAX], 0.1f);
+}
+
+float AudioShiftTable::getFragMinMultiplier(uint64_t statusBits) const {
+    float mults[AUDIO_PARAM_COUNT];
+    computeMultipliers(statusBits, mults);
+    return maxVal(mults[AUDIO_FRAG_MIN], 0.1f);
+}
+
+float AudioShiftTable::getFragMaxMultiplier(uint64_t statusBits) const {
+    float mults[AUDIO_PARAM_COUNT];
+    computeMultipliers(statusBits, mults);
+    return maxVal(mults[AUDIO_FRAG_MAX], 0.1f);
 }

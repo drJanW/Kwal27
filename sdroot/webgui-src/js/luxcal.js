@@ -44,7 +44,7 @@ Kwal.luxcal = (function() {
     if (!data) return;
     showCount(data.realCount || 0);
     if (typeof data.lastLux === 'number' && luxValueEl) {
-      luxValueEl.textContent = data.lastLux.toFixed(1) + ' lux';
+      luxValueEl.textContent = data.lastLux.toFixed(1);
     }
     if (typeof data.lastBrightness === 'number' && brightnessValueEl) {
       brightnessValueEl.textContent = data.lastBrightness.toFixed(1);
@@ -110,7 +110,7 @@ Kwal.luxcal = (function() {
         if (data.ok) {
           setStatus('Sample opgeslagen');
           showCount(data.realCount || 0);
-          if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1) + ' lux';
+          if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1);
           if (brightnessValueEl) brightnessValueEl.textContent = data.brightness.toFixed(1);
         } else {
           setStatus(data.error || 'Fout');
@@ -221,7 +221,7 @@ Kwal.luxcal = (function() {
     // SSE: update UI when firmware captures sample asynchronously
     Kwal.sse.onLuxcal(function(data) {
       showCount(data.realCount || 0);
-      if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1) + ' lux';
+      if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1);
       if (brightnessValueEl) brightnessValueEl.textContent = data.brightness.toFixed(1);
     });
 
@@ -242,6 +242,14 @@ Kwal.luxcal = (function() {
         luxShiftHi: data.luxShiftHi, luxGamma: data.luxGamma };
       setStatus('Auto-fit — accepteer of sample verder');
     });
+    // Early check: disable sun button if no lux sensor
+    fetch('/api/lux/status').then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.hasLuxSensor) {
+          var openBtn = document.getElementById('luxcal-open');
+          if (openBtn) { openBtn.disabled = true; openBtn.style.opacity = '0.3'; }
+        }
+      }).catch(function() {});
   }
 
   return { init: init, loadStatus: loadStatus, onModalClose: onModalClose };

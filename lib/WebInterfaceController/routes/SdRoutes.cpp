@@ -1,8 +1,8 @@
 /**
  * @file SdRoutes.cpp
  * @brief SD card API endpoint routes
- * @version 260220A
- * @date 2026-02-20
+ * @version 260310B
+ * @date 2026-03-10
  */
 #include "SdRoutes.h"
 #include "../WebUtils.h"
@@ -89,7 +89,7 @@ void routeFileDownload(AsyncWebServerRequest *request)
     
     File file = SD.open(path, FILE_READ);  // NOCHECK: accepted, guarded by lockSD
     if (!file || file.isDirectory()) {
-        if (file) file.close();
+        if (file) file.close();  // NOCHECK: accepted, guarded by lockSD
         SDController::unlockSD();
         sendError(request, 400, F("Cannot read file"));
         return;
@@ -97,7 +97,7 @@ void routeFileDownload(AsyncWebServerRequest *request)
 
     size_t fileSize = file.size();
     if (fileSize > 65536) {
-        file.close();
+        file.close();  // NOCHECK: accepted, guarded by lockSD
         SDController::unlockSD();
         sendError(request, 413, F("File too large for download"));
         return;
@@ -109,12 +109,12 @@ void routeFileDownload(AsyncWebServerRequest *request)
     size_t remaining = fileSize;
     while (remaining > 0) {
         size_t toRead = (remaining < sizeof(chunk)) ? remaining : sizeof(chunk);
-        size_t got = file.read(chunk, toRead);
+        size_t got = file.read(chunk, toRead);  // NOCHECK: accepted, guarded by lockSD
         if (got == 0) break;
         stream->write(chunk, got);
         remaining -= got;
     }
-    file.close();
+    file.close();  // NOCHECK: accepted, guarded by lockSD
     SDController::unlockSD();
 
     request->send(stream);
@@ -167,7 +167,7 @@ void routeUploadData(AsyncWebServerRequest *request, const String &filename,
 
     if (state->failed) {
         if (final && state->file) {
-            state->file.close();
+            state->file.close();  // NOCHECK: accepted, guarded by lockSD
             if (state->sdBusyClaimed) {
                 SDController::unlockSD();
                 state->sdBusyClaimed = false;
@@ -220,10 +220,10 @@ void routeUploadData(AsyncWebServerRequest *request, const String &filename,
     }
 
     if (len > 0 && state->file) {
-        if (state->file.write(data, len) != len) {
+        if (state->file.write(data, len) != len) {  // NOCHECK: accepted, guarded by lockSD
             state->failed = true;
             state->error = F("Write failed");
-            state->file.close();
+            state->file.close();  // NOCHECK: accepted, guarded by lockSD
             if (state->sdBusyClaimed) {
                 SDController::unlockSD();
                 state->sdBusyClaimed = false;
@@ -233,7 +233,7 @@ void routeUploadData(AsyncWebServerRequest *request, const String &filename,
 
     if (final) {
         if (state->file) {
-            state->file.close();
+            state->file.close();  // NOCHECK: accepted, guarded by lockSD
         }
         if (state->sdBusyClaimed) {
             SDController::unlockSD();

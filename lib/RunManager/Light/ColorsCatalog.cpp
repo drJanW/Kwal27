@@ -1,8 +1,8 @@
 /**
  * @file ColorsCatalog.cpp
  * @brief LED color palette storage implementation
- * @version 260305G
- * @date 2026-03-05
+ * @version 260310B
+ * @date 2026-03-10
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "ColorsCatalog.h"
@@ -16,6 +16,7 @@
 #include "SdPathUtils.h"
 #include "LightController.h"
 #include "PatternCatalog.h"  // For previewColors only
+#include "LightRun.h"        // For requestPlayLightShow (deferred apply)
 #include "Alert/AlertState.h"
 
 namespace {
@@ -415,7 +416,7 @@ bool ColorsCatalog::previewColors(JsonVariantConst body, String& errorMessage)
     previewBackupColorB_ = colorB;
     params.RGB1 = colorA;
     params.RGB2 = colorB;
-    PlayLightShow(params);
+    LightRun::requestPlayLightShow(params);
     previewActive_ = true;
     PF("[ColorsCatalog] previewColors applied\n");
     return true;

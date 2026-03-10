@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260307C
- * @date 2026-03-07
+ * @version 260310B
+ * @date 2026-03-10
  */
 #include <Arduino.h>
 #include <math.h>
@@ -255,6 +255,7 @@ void cb_startSync() {
 // ─── Web audio interval/silence support ─────────────────────
 
 uint32_t webExpiryMs = Globals::defaultWebExpiryMs;
+bool     pendingSilenceActive = false;
 
 struct PendingAudioIntervals {
     uint32_t speakMinMs   = 0;
@@ -471,14 +472,23 @@ void RunManager::requestSayRTCtemperature() {
     AudioPolicy::requestSentence(sentence);
 }
 
+float pendingAudioLevel = 1.0f;
+void cb_applyAudioLevel();
+
 void RunManager::requestSetAudioLevel(float value) {
+    pendingAudioLevel = value;
+    timers.cancel(cb_applyAudioLevel);
+    timers.create(1, 1, cb_applyAudioLevel);
+}
+
+void cb_applyAudioLevel() {
     // F9 pattern: webMultiplier can be >1.0, no clamp
-    audio.setVolumeWebMultiplier(value);
+    audio.setVolumeWebMultiplier(pendingAudioLevel);
     // Arm/reset shared expiry — any web audio change resets countdown
     timers.cancel(cb_clearWebAudio);
     timers.create(webExpiryMs, 1, cb_clearWebAudio);
     RUN_LOG_INFO("[AudioRun] webMultiplier=%.2f\n",
-                     static_cast<double>(value));
+                     static_cast<double>(pendingAudioLevel));
 }
 
 void RunManager::requestSetAudioIntervals(
@@ -492,7 +502,17 @@ void RunManager::requestSetAudioIntervals(
     timers.create(1, 1, cb_applyAudioIntervals);
 }
 
+void cb_applySilence();
+
 void RunManager::requestSetSilence(bool active) {
+    pendingSilenceActive = active;
+    timers.cancel(cb_applySilence);
+    timers.create(1, 1, cb_applySilence);
+}
+
+void cb_applySilence() {
+    bool active = pendingSilenceActive;
+    PF("[WebAudio] silence=%s\n", active ? "on" : "off");
     AudioPolicy::setWebSilence(active);
     if (active) {
         PlayAudioFragment::stop(0);

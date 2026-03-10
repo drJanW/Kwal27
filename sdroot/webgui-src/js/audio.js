@@ -21,8 +21,8 @@ Kwal.audio = (function() {
   var hiPct = 100;    // Grey zone right boundary (visual only)
 
   // Interval control elements
-  var muteBtn, speakSlider, fragSlider, durSlider;
-  var speakLabel, fragLabel, durLabel;
+  var muteBtn, speakSlider, fragSlider, durSlider, lightDurSlider;
+  var speakLabel, fragLabel, durLabel, lightDurLabel;
   var debounceTimer = null;
 
   // Non-linear step tables (logarithmic distribution)
@@ -208,9 +208,11 @@ Kwal.audio = (function() {
     speakSlider = document.getElementById('speak-interval');
     fragSlider = document.getElementById('frag-interval');
     durSlider = document.getElementById('interval-duration');
+    lightDurSlider = document.getElementById('light-duration');
     speakLabel = document.getElementById('speak-num');
     fragLabel = document.getElementById('frag-num');
     durLabel = document.getElementById('dur-num');
+    lightDurLabel = document.getElementById('light-dur-num');
 
     // Silence toggle — instant
     if (muteBtn) {
@@ -233,6 +235,27 @@ Kwal.audio = (function() {
     bindSlider(speakSlider, speakSteps, speakLabel);
     bindSlider(fragSlider, fragSteps, fragLabel);
     bindSlider(durSlider, durSteps, durLabel);
+
+    // Light-duration slider mirrors audio duration
+    if (lightDurSlider && lightDurLabel) {
+      lightDurSlider.oninput = function() {
+        var val = durSteps[parseInt(lightDurSlider.value, 10)];
+        lightDurLabel.textContent = formatMinutes(val);
+        // Sync audio slider
+        if (durSlider) durSlider.value = lightDurSlider.value;
+        if (durLabel) durLabel.textContent = formatMinutes(val);
+        scheduleIntervalSend();
+      };
+    }
+    // When audio dur slider changes, also sync light dur slider
+    if (durSlider && lightDurSlider) {
+      var origDurInput = durSlider.oninput;
+      durSlider.oninput = function() {
+        if (origDurInput) origDurInput.call(durSlider);
+        lightDurSlider.value = durSlider.value;
+        if (lightDurLabel) lightDurLabel.textContent = durLabel.textContent;
+      };
+    }
   }
 
   function scheduleIntervalSend() {
@@ -254,7 +277,7 @@ Kwal.audio = (function() {
   }
 
   function flashConfirm() {
-    [speakLabel, fragLabel, durLabel].forEach(function(el) {
+    [speakLabel, fragLabel, durLabel, lightDurLabel].forEach(function(el) {
       if (!el) return;
       var orig = el.textContent;
       el.textContent = '✓';
@@ -288,6 +311,10 @@ Kwal.audio = (function() {
     if (typeof data.durMin === 'number' && durSlider && durLabel) {
       durSlider.value = findStep(durSteps, data.durMin);
       durLabel.textContent = formatMinutes(data.durMin);
+    }
+    if (typeof data.durMin === 'number' && lightDurSlider && lightDurLabel) {
+      lightDurSlider.value = findStep(durSteps, data.durMin);
+      lightDurLabel.textContent = formatMinutes(data.durMin);
     }
   }
 
