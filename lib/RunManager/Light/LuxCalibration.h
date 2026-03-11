@@ -1,8 +1,8 @@
 /**
  * @file LuxCalibration.h
  * @brief Lux calibration data file and grid search fit
- * @version 260308N
- * @date 2026-03-08
+ * @version 260311A
+ * @date 2026-03-11
  */
 #pragma once
 
@@ -12,9 +12,8 @@
 /// Single calibration data point (seed or real sample)
 struct LuxCalSample {
     float    lux;            // Raw VEML7700 reading
-    float    brightness;     // Unclamped brightness from calcShiftedHi
-    uint8_t  patternId;      // Pattern active during measurement
-    uint8_t  colorsId;       // Colors active during measurement
+    float    brightness;     // Normalized brightness (context shifts divided out, webMult kept)
+    float    nf;             // Normalization divisor used: colorMults[GLOBAL_BRIGHTNESS] * cnf * pnf
 };
 
 /// Grid search fit result

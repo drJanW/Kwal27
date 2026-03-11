@@ -14,6 +14,10 @@ Kwal.luxcal = (function() {
   var savedBrightness = -1;  // brightness before modal open (-1 = not saved)
   var hasLuxSensor = true;   // assume present until status says otherwise
 
+  // Quadratic slider mapping: more resolution at low brightness
+  function sliderToBrightness(v) { return Math.round(v * v / 100); }
+  function brightnessToSlider(b) { return Math.round(Math.sqrt(b * 100)); }
+
   function formatParams(d) {
     return 'max=' + d.luxMax + ' lo=' + d.luxShiftLo + ' hi=' + d.luxShiftHi + ' \u03b3=' + d.luxGamma;
   }
@@ -56,7 +60,7 @@ Kwal.luxcal = (function() {
     var mainSlider = document.getElementById('brightness');
     if (mainSlider && briSlider && briLabel) {
       savedBrightness = parseInt(mainSlider.value, 10);
-      briSlider.value = savedBrightness;
+      briSlider.value = brightnessToSlider(savedBrightness);
       briLabel.textContent = savedBrightness + '%';
     }
     fetch('/api/lux/status').then(function(r) { return r.json(); })
@@ -93,7 +97,7 @@ Kwal.luxcal = (function() {
       var mainLabel = document.getElementById('bri-num');
       if (mainSlider) mainSlider.value = savedBrightness;
       if (mainLabel) mainLabel.textContent = savedBrightness + '%';
-      if (briSlider) briSlider.value = savedBrightness;
+      if (briSlider) briSlider.value = brightnessToSlider(savedBrightness);
       if (briLabel) briLabel.textContent = savedBrightness + '%';
       savedBrightness = -1;
     }
@@ -200,12 +204,12 @@ Kwal.luxcal = (function() {
 
     if (briSlider && briLabel) {
       briSlider.oninput = function() {
-        briLabel.textContent = briSlider.value + '%';
+        briLabel.textContent = sliderToBrightness(parseInt(briSlider.value, 10)) + '%';
       };
       briSlider.onchange = function() {
-        var v = parseInt(briSlider.value, 10);
-        briLabel.textContent = v + '%';
-        fetch('/setBrightness?value=' + v, { method: 'POST' }).catch(function() {});
+        var bri = sliderToBrightness(parseInt(briSlider.value, 10));
+        briLabel.textContent = bri + '%';
+        fetch('/setBrightness?value=' + bri, { method: 'POST' }).catch(function() {});
       };
     }
 

@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260310E - Built 2026-03-10 11:14
+ * Kwal WebGUI v260311C - Built 2026-03-11 08:31
  */
 
 // === js/namespace.js ===
@@ -13,7 +13,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260310E';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260311C';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -1609,17 +1609,19 @@ Kwal.colors = (function() {
 Kwal.ota = (function() {
   'use strict';
 
-  var fileInput, uploadBtn, status, progressBar;
+  var fileInput, uploadBtn, status, progressBar, filenameEl;
 
   function init() {
     fileInput   = document.getElementById('ota-file');
     uploadBtn   = document.getElementById('ota-upload');
     status      = document.getElementById('ota-status');
     progressBar = document.getElementById('ota-progress');
+    filenameEl  = document.getElementById('ota-filename');
 
     if (uploadBtn) uploadBtn.onclick = uploadFirmware;
     if (fileInput) fileInput.onchange = function() {
       if (uploadBtn) uploadBtn.disabled = !fileInput.files.length;
+      if (filenameEl) filenameEl.textContent = fileInput.files.length ? fileInput.files[0].name : 'geen bestand';
       showStatus('', false);
     };
   }
@@ -1942,6 +1944,10 @@ Kwal.luxcal = (function() {
   var savedBrightness = -1;  // brightness before modal open (-1 = not saved)
   var hasLuxSensor = true;   // assume present until status says otherwise
 
+  // Quadratic slider mapping: more resolution at low brightness
+  function sliderToBrightness(v) { return Math.round(v * v / 100); }
+  function brightnessToSlider(b) { return Math.round(Math.sqrt(b * 100)); }
+
   function formatParams(d) {
     return 'max=' + d.luxMax + ' lo=' + d.luxShiftLo + ' hi=' + d.luxShiftHi + ' \u03b3=' + d.luxGamma;
   }
@@ -1984,7 +1990,7 @@ Kwal.luxcal = (function() {
     var mainSlider = document.getElementById('brightness');
     if (mainSlider && briSlider && briLabel) {
       savedBrightness = parseInt(mainSlider.value, 10);
-      briSlider.value = savedBrightness;
+      briSlider.value = brightnessToSlider(savedBrightness);
       briLabel.textContent = savedBrightness + '%';
     }
     fetch('/api/lux/status').then(function(r) { return r.json(); })
@@ -2021,7 +2027,7 @@ Kwal.luxcal = (function() {
       var mainLabel = document.getElementById('bri-num');
       if (mainSlider) mainSlider.value = savedBrightness;
       if (mainLabel) mainLabel.textContent = savedBrightness + '%';
-      if (briSlider) briSlider.value = savedBrightness;
+      if (briSlider) briSlider.value = brightnessToSlider(savedBrightness);
       if (briLabel) briLabel.textContent = savedBrightness + '%';
       savedBrightness = -1;
     }
@@ -2128,12 +2134,12 @@ Kwal.luxcal = (function() {
 
     if (briSlider && briLabel) {
       briSlider.oninput = function() {
-        briLabel.textContent = briSlider.value + '%';
+        briLabel.textContent = sliderToBrightness(parseInt(briSlider.value, 10)) + '%';
       };
       briSlider.onchange = function() {
-        var v = parseInt(briSlider.value, 10);
-        briLabel.textContent = v + '%';
-        fetch('/setBrightness?value=' + v, { method: 'POST' }).catch(function() {});
+        var bri = sliderToBrightness(parseInt(briSlider.value, 10));
+        briLabel.textContent = bri + '%';
+        fetch('/setBrightness?value=' + bri, { method: 'POST' }).catch(function() {});
       };
     }
 

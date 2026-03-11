@@ -208,8 +208,10 @@
       <span class="modal-close" data-close>✕</span>
       <h3>OTA Update</h3>
       <p>Kies firmware .bin en upload via browser.</p>
-      <div style="margin:8px 0">
-        <input type="file" id="ota-file" accept=".bin">
+      <div style="margin:8px 0;display:flex;align-items:center;gap:0.5rem">
+        <input type="file" id="ota-file" accept=".bin" style="display:none">
+        <label for="ota-file" style="cursor:pointer;font-size:1.5rem" title="Kies .bin bestand">📂</label>
+        <span id="ota-filename" style="font-size:0.85rem;color:#aaa">geen bestand</span>
       </div>
       <button id="ota-upload" class="btn-warn" disabled>Upload Firmware</button>
       <progress id="ota-progress" max="100" value="0" style="display:none;width:100%;margin:8px 0"></progress>
@@ -311,7 +313,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260310E"></script>
+  <script src="kwal.js?v=260311C"></script>
 </body>
 
 </html>

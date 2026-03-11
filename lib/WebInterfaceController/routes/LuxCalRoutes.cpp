@@ -1,8 +1,8 @@
 /**
  * @file LuxCalRoutes.cpp
  * @brief Lux calibration API endpoint routes implementation
- * @version 260309A
- * @date 2026-03-09
+ * @version 260311B
+ * @date 2026-03-11
  */
 #include <Arduino.h>
 #include "LuxCalRoutes.h"
@@ -13,6 +13,7 @@
 #include "Alert/AlertState.h"
 #include "SensorController.h"
 #include "SDController.h"
+#include "PRTClock.h"
 #include <SD.h>
 
 using WebUtils::sendJson;
@@ -174,7 +175,14 @@ static void routeCsvDownload(AsyncWebServerRequest* request) {
         sendError(request, 404, F("No luxcal.csv"));
         return;
     }
-    request->send(SD, "/luxcal.csv", "text/csv");
+    char filename[32];
+    snprintf(filename, sizeof(filename), "luxdata_%02u%02u%02u.csv",
+             prtClock.getDay(), prtClock.getHour(), prtClock.getMinute());
+    AsyncWebServerResponse* response = request->beginResponse(SD, "/luxcal.csv", "text/csv");
+    char header[64];
+    snprintf(header, sizeof(header), "attachment; filename=\"%s\"", filename);
+    response->addHeader("Content-Disposition", header);
+    request->send(response);
 }
 
 // POST /api/lux/reload — re-read CSV into RAM

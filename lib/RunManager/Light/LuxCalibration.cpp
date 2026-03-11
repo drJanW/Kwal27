@@ -1,8 +1,8 @@
 /**
  * @file LuxCalibration.cpp
  * @brief Lux calibration data file and grid search fit implementation
- * @version 260310G
- * @date 2026-03-10
+ * @version 260311C
+ * @date 2026-03-11
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -19,7 +19,7 @@
 
 namespace {
 constexpr const char* luxCalPath  = "/luxcal.csv";
-constexpr const char* csvHeader   = "lux;brightness;patternId;colorsId";
+constexpr const char* csvHeader   = "lux;brightness;nf";
 constexpr float       seedLuxMax  = 300.0f;  // fixed low start — breaks luxMax snowball
 } // namespace
 
@@ -34,8 +34,8 @@ void LuxCalibration::addSample(const LuxCalSample& sample) {
     }
     samples_.push_back(sample);
     ++realCount_;
-    PF("[LuxCal] Data point added: lux=%.1f bri=%.1f pat=%u col=%u (n=%u real=%u)\n",
-       sample.lux, sample.brightness, sample.patternId, sample.colorsId,
+    PF("[LuxCal] Data point added: lux=%.1f bri=%.1f nf=%.3f (n=%u real=%u)\n",
+       sample.lux, sample.brightness, sample.nf,
        static_cast<unsigned>(samples_.size()), realCount_);
 }
 
@@ -59,8 +59,7 @@ bool LuxCalibration::generateSeeds() {
         LuxCalSample s;
         s.lux        = seedLux;
         s.brightness = Globals::brightnessHi * (1.0f + luxShift / 100.0f);
-        s.patternId  = 1;
-        s.colorsId   = 1;
+        s.nf         = 1.0f;
         samples_.push_back(s);
     }
     PF("[LuxCal] Generated %u seeds from current params\n", n);
@@ -91,13 +90,12 @@ bool LuxCalibration::loadFromSd() {
         }
 
         csv::splitColumns(line, columns);
-        if (columns.size() < 4) continue;
+        if (columns.size() < 3) continue;
 
         LuxCalSample s;
         s.lux        = columns[0].toFloat();
         s.brightness = columns[1].toFloat();
-        s.patternId  = static_cast<uint8_t>(columns[2].toInt());
-        s.colorsId   = static_cast<uint8_t>(columns[3].toInt());
+        s.nf         = columns[2].toFloat();
         samples_.push_back(s);
     }
     SDController::closeFile(file);
@@ -125,9 +123,7 @@ bool LuxCalibration::saveToSd() const {
         file.print(';');
         file.print(s.brightness, 1);
         file.print(';');
-        file.print(s.patternId);
-        file.print(';');
-        file.println(s.colorsId);
+        file.println(s.nf, 3);
     }
     SDController::closeFile(file);
     PF("[LuxCal] Saved %u samples to SD\n", static_cast<unsigned>(samples_.size()));
@@ -150,19 +146,16 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
         return false;
     }
 
-    // Determine luxMax search candidates from observed data
+    // luxMax = observed maximum lux — NOT a fit parameter
     float maxLux = 0.0f;
     for (const auto& s : samples_) {
         if (s.lux > maxLux) maxLux = s.lux;
     }
     if (maxLux < 10.0f) maxLux = 10.0f;
-    const float luxMaxCandidates[] = {
-        maxLux, maxLux * 1.1f, maxLux * 1.2f, maxLux * 1.3f, maxLux * 1.5f
-    };
-    constexpr uint8_t numLuxMax = 5;
+    const float fitMax = maxLux;
 
     // MSE calculator — inverse-lux weighting
-    auto calcMse = [&](float fitMax, int sLo, int sHi, float gamma) -> float {
+    auto calcMse = [&](int sLo, int sHi, float gamma) -> float {
         float totalError = 0.0f;
         float totalWeight = 0.0f;
 
@@ -180,60 +173,51 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
         return (totalWeight > 0.0f) ? totalError / totalWeight : 1e12f;
     };
 
-    // Grid search pass 1: coarse (full parameter space)
+    // Grid search pass 1: coarse (shiftLo, shiftHi, gamma)
     float bestError = 1e12f;
-    float bestLuxMax = maxLux;
     int bestShiftLo = 0;
     int bestShiftHi = 0;
     float bestGamma = 0.4f;
 
-    for (uint8_t m = 0; m < numLuxMax; ++m) {
-        float fitMax = luxMaxCandidates[m];
-        for (int sLo = -fitShiftLimit; sLo <= 0; sLo += 5) {
-            for (int sHi = 0; sHi <= fitShiftLimit; sHi += 5) {
-                for (int gIdx = 2; gIdx <= static_cast<int>(fitGammaMax * 10.0f); gIdx++) {
-                    float gamma = gIdx * 0.1f;
-                    float mse = calcMse(fitMax, sLo, sHi, gamma);
-                    if (mse < bestError) {
-                        bestError = mse;
-                        bestLuxMax = fitMax;
-                        bestShiftLo = sLo;
-                        bestShiftHi = sHi;
-                        bestGamma = gamma;
-                    }
+    for (int sLo = -fitShiftLimit; sLo <= 0; sLo += 5) {
+        yield();  // feed watchdog — grid search is CPU-intensive
+        for (int sHi = 0; sHi <= fitShiftLimit; sHi += 5) {
+            for (int gIdx = 2; gIdx <= static_cast<int>(fitGammaMax * 10.0f); gIdx++) {
+                float gamma = gIdx * 0.1f;
+                float mse = calcMse(sLo, sHi, gamma);
+                if (mse < bestError) {
+                    bestError = mse;
+                    bestShiftLo = sLo;
+                    bestShiftHi = sHi;
+                    bestGamma = gamma;
                 }
             }
         }
     }
 
-    // Grid search pass 2: fine (±4 shift, ±0.1 gamma, ±5% luxMax)
-    float luxMaxFine[] = { bestLuxMax * 0.95f, bestLuxMax, bestLuxMax * 1.05f };
-    for (uint8_t m = 0; m < 3; ++m) {
-        float fitMax = luxMaxFine[m];
-        if (fitMax < 10.0f) continue;
-        for (int sLo = bestShiftLo - 4; sLo <= bestShiftLo + 4; sLo++) {
-            if (sLo < -fitShiftLimit || sLo > 0) continue;
-            for (int sHi = bestShiftHi - 4; sHi <= bestShiftHi + 4; sHi++) {
-                if (sHi < 0 || sHi > fitShiftLimit) continue;
-                for (int gIdx = static_cast<int>(bestGamma * 20.0f) - 2;
-                         gIdx <= static_cast<int>(bestGamma * 20.0f) + 2; gIdx++) {
-                    float gamma = gIdx * 0.05f;
-                    if (gamma < 0.1f || gamma > fitGammaMax) continue;
-                    float mse = calcMse(fitMax, sLo, sHi, gamma);
-                    if (mse < bestError) {
-                        bestError = mse;
-                        bestLuxMax = fitMax;
-                        bestShiftLo = sLo;
-                        bestShiftHi = sHi;
-                        bestGamma = gamma;
-                    }
+    // Grid search pass 2: fine (±4 shift, ±0.1 gamma)
+    for (int sLo = bestShiftLo - 4; sLo <= bestShiftLo + 4; sLo++) {
+        if (sLo < -fitShiftLimit || sLo > 0) continue;
+        yield();  // feed watchdog
+        for (int sHi = bestShiftHi - 4; sHi <= bestShiftHi + 4; sHi++) {
+            if (sHi < 0 || sHi > fitShiftLimit) continue;
+            for (int gIdx = static_cast<int>(bestGamma * 20.0f) - 2;
+                     gIdx <= static_cast<int>(bestGamma * 20.0f) + 2; gIdx++) {
+                float gamma = gIdx * 0.05f;
+                if (gamma < 0.1f || gamma > fitGammaMax) continue;
+                float mse = calcMse(sLo, sHi, gamma);
+                if (mse < bestError) {
+                    bestError = mse;
+                    bestShiftLo = sLo;
+                    bestShiftHi = sHi;
+                    bestGamma = gamma;
                 }
             }
         }
     }
 
     // Round luxMax to integer for cleaner output
-    result.luxMax      = roundf(bestLuxMax);
+    result.luxMax      = roundf(fitMax);
     result.luxShiftLo  = bestShiftLo;
     result.luxShiftHi  = bestShiftHi;
     result.luxGamma    = clamp(bestGamma, 0.1f, fitGammaMax);

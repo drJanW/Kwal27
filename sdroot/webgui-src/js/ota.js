@@ -5,17 +5,19 @@
 Kwal.ota = (function() {
   'use strict';
 
-  var fileInput, uploadBtn, status, progressBar;
+  var fileInput, uploadBtn, status, progressBar, filenameEl;
 
   function init() {
     fileInput   = document.getElementById('ota-file');
     uploadBtn   = document.getElementById('ota-upload');
     status      = document.getElementById('ota-status');
     progressBar = document.getElementById('ota-progress');
+    filenameEl  = document.getElementById('ota-filename');
 
     if (uploadBtn) uploadBtn.onclick = uploadFirmware;
     if (fileInput) fileInput.onchange = function() {
       if (uploadBtn) uploadBtn.disabled = !fileInput.files.length;
+      if (filenameEl) filenameEl.textContent = fileInput.files.length ? fileInput.files[0].name : 'geen bestand';
       showStatus('', false);
     };
   }

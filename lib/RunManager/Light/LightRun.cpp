@@ -1,8 +1,8 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260310B
- * @date 2026-03-10
+ * @version 260311A
+ * @date 2026-03-11
  */
 #include "LightRun.h"
 
@@ -267,8 +267,10 @@ void LightRun::cb_measureLux() {
     float colorMults[COLOR_PARAM_COUNT];
     shiftTable.computeColorMultipliers(statusBits, colorMults);
     int8_t calendarShift = static_cast<int8_t>((colorMults[GLOBAL_BRIGHTNESS] - 1.0f) * 100.0f);
+    float globalBrightnessMult = colorMults[GLOBAL_BRIGHTNESS];
 #else
     int8_t calendarShift = 0;
+    float globalBrightnessMult = 1.0f;
 #endif
     
     uint8_t shiftedHi = LightPolicy::calcShiftedHi(lux, calendarShift, getWebMultiplier(),
@@ -287,11 +289,17 @@ void LightRun::cb_measureLux() {
     // Lux calibration: capture sample if requested by web handler
     if (Globals::luxCalSampleRequested) {
         Globals::luxCalSampleRequested = false;
+        // Compute normalization factor: divide out context shifts, keep webMult
+        // brightness = brightnessHi * (1+luxShift/100) * (1+calShift/100) * webMult * cnf * pnf
+        // stored    = brightness / nf  = brightnessHi * (1+luxShift/100) * webMult
+        float cnf = getColorsCatalog().cnf(getColorsCatalog().getActiveColorId());
+        float pnf = getPatternCatalog().pnf(getPatternCatalog().activeId());
+        float contextMult = globalBrightnessMult * cnf * pnf;
+        float nf = (contextMult > 0.001f) ? contextMult : 1.0f;
         LuxCalSample sample;
-        sample.lux        = lux;
-        sample.brightness  = Globals::lastUnclampedBrightness;
-        sample.patternId   = static_cast<uint8_t>(getPatternCatalog().activeId().toInt());
-        sample.colorsId    = static_cast<uint8_t>(getColorsCatalog().getActiveColorId().toInt());
+        sample.lux         = lux;
+        sample.brightness  = Globals::lastUnclampedBrightness / nf;
+        sample.nf          = nf;
         LuxCalibration::instance().addSample(sample);
         uint8_t n = LuxCalibration::instance().sampleCount();
 
