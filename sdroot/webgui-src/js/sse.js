@@ -1,5 +1,9 @@
 /**
- * sse.js - Server-Sent Events for live updates
+ * @file    sse.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
+ * Kwal - Server-Sent Events for live updates
  * Events: state, patterns, colors (legacy: fragment, light)
  */
 (function() {

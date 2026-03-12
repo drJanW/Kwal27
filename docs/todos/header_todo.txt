@@ -1,46 +1,13 @@
 Header TODO - Files needing standard headers
 Generated: 2026-02-05
-Updated: 2026-02-20
-Status: Readmes done. JS/PS1/docs pending. Dead entries removed.
+Updated: 2026-03-12
 
 ══════════════════════════════════════════════════════════════════
 MARKDOWN (.md) - use: > Version: YYMMDD | Updated: YYYY-MM-DD
 ══════════════════════════════════════════════════════════════════
 
-docs/readmes/ (DONE — all 20 files have headers)
-
 lib/ embedded docs (need headers)
   lib/ContextController/CalendarREADME.md
-
-SKIP (old/archive)
-  docs/_OLD_/*.md
-  docs/github_copilot_refund_request.md
-  .github/copilot-instructions.md (special format)
-
-══════════════════════════════════════════════════════════════════
-JAVASCRIPT (.js) - use: /* @version YYMMDD @date YYYY-MM-DD */
-══════════════════════════════════════════════════════════════════
-
-sdroot/webgui-src/js/
-  audio.js
-  brightness.js
-  colorpicker.js
-  colors.js
-  health.js
-  log.js
-  main.js
-  modal.js
-  mp3grid.js
-  namespace.js
-  ota.js
-  pattern.js
-  sd.js
-  sse.js
-  state.js
-  status.js
-
-SKIP
-  sdroot/kwal.js (generated - DO NOT EDIT)
 
 ══════════════════════════════════════════════════════════════════
 POWERSHELL (.ps1) - use: <# @version YYMMDD @date YYYY-MM-DD #>
@@ -49,27 +16,31 @@ POWERSHELL (.ps1) - use: <# @version YYMMDD @date YYYY-MM-DD #>
 Project root:
   build_js.ps1
   deploy.ps1
-  dirtree.ps1
   download_csv.ps1
-  export_chat.ps1
-  extract_manual_chat.ps1
   go.ps1
   hubpush.ps1
   naspush.ps1
-  nasstart.ps1
   opstart.ps1
-  search_chats.ps1
-  sync_mp3.ps1
-  tonasprompt.ps1
   trace.ps1
-  update_headers.ps1
   upload_config.ps1
   upload_csv.ps1
+  upload_file.ps1
   upload_web.ps1
   zip.ps1
 
 sdroot/webgui-src/
   build.ps1
+
+tools/:
+  check_architecture.ps1
+  check_web_handler_safety.ps1
+  dirtree.ps1
+  export_chat.ps1
+  nasstart.ps1
+  search_chats.ps1
+  sync_mp3.ps1
+  tonasprompt.ps1
+  update_headers.ps1
 
 tools/ffmpeg/
   prep_mp3.ps1

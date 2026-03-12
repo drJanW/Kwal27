@@ -1,4 +1,8 @@
-/*
+/**
+ * @file    mp3grid.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - MP3 Grid module
  * Canvas grid showing dirs from root_dirs index + theme box colors.
  * One-shot load via /api/audio/grid; crosshair follows SSE fragment events.

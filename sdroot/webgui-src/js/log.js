@@ -1,3 +1,10 @@
+/**
+ * @file    log.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
+ * Kwal - Log module
+ */
 (function() {
   'use strict';
   

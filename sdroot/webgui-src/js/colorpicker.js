@@ -1,4 +1,8 @@
-/*
+/**
+ * @file    colorpicker.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Custom Color Picker module
  * Canvas-based HSV picker that works on all browsers including
  * Android WebView (DuckDuckGo, etc.) where <input type="color"> fails.

@@ -1,8 +1,8 @@
 /**
  * @file LuxCalRoutes.cpp
  * @brief Lux calibration API endpoint routes implementation
- * @version 260311B
- * @date 2026-03-11
+ * @version 260312A
+ * @date 2026-03-12
  */
 #include <Arduino.h>
 #include "LuxCalRoutes.h"
@@ -75,24 +75,16 @@ static void routeStatus(AsyncWebServerRequest* request) {
     sendJson(request, LuxCalibration::instance().buildJson());
 }
 
-// POST /api/lux/fit — calculate fit, apply to RAM (preview), do NOT persist
+// POST /api/lux/fit — calculate fit, report to UI, do NOT apply to Globals
 static void routeFit(AsyncWebServerRequest* request) {
     LuxFitResult result;
-    if (!LuxCalibration::instance().fitParams(result)) {
+    auto& cal = LuxCalibration::instance();
+    if (!cal.fitParams(result)) {
         sendError(request, 422, F("No data points"));
         return;
     }
-    // Capture old params before overwriting
-    float    oldLuxMax     = Globals::luxMax;
-    int8_t   oldLuxShiftLo = Globals::luxShiftLo;
-    int8_t   oldLuxShiftHi = Globals::luxShiftHi;
-    float    oldLuxGamma   = Globals::luxGamma;
-
-    // Apply fitted params to memory (live preview, not persisted)
-    Globals::luxMax     = result.luxMax;
-    Globals::luxShiftLo = result.luxShiftLo;
-    Globals::luxShiftHi = result.luxShiftHi;
-    Globals::luxGamma   = result.luxGamma;
+    // Store for later accept — Globals remain untouched
+    cal.setPendingFit(result);
 
     String json;
     json.reserve(256);
@@ -111,32 +103,38 @@ static void routeFit(AsyncWebServerRequest* request) {
     json += F(",\"realCount\":");
     json += LuxCalibration::instance().realCount();
     json += F(",\"oldLuxMax\":");
-    json += String(oldLuxMax, 0);
+    json += String(Globals::luxMax, 0);
     json += F(",\"oldLuxShiftLo\":");
-    json += oldLuxShiftLo;
+    json += Globals::luxShiftLo;
     json += F(",\"oldLuxShiftHi\":");
-    json += oldLuxShiftHi;
+    json += Globals::luxShiftHi;
     json += F(",\"oldLuxGamma\":");
-    json += String(oldLuxGamma, 2);
+    json += String(Globals::luxGamma, 2);
     json += '}';
     sendJson(request, json);
 }
 
-// POST /api/lux/accept — persist current params to globals.csv + regenerate seeds
+// POST /api/lux/accept — apply pending fit to Globals + persist to globals.csv
 static void routeAcceptFit(AsyncWebServerRequest* request) {
-    LuxFitResult current;
-    current.luxMax     = Globals::luxMax;
-    current.luxShiftLo = Globals::luxShiftLo;
-    current.luxShiftHi = Globals::luxShiftHi;
-    current.luxGamma   = Globals::luxGamma;
-    current.error      = 0;
-    current.sampleCount = LuxCalibration::instance().sampleCount();
+    auto& cal = LuxCalibration::instance();
+    if (!cal.hasPendingFit()) {
+        sendError(request, 409, F("No pending fit"));
+        return;
+    }
+    const auto& fit = cal.getPendingFit();
+
+    // NOW apply to Globals
+    Globals::luxMax     = fit.luxMax;
+    Globals::luxShiftLo = fit.luxShiftLo;
+    Globals::luxShiftHi = fit.luxShiftHi;
+    Globals::luxGamma   = fit.luxGamma;
 
     bool saved = false;
     if (AlertState::isSdOk() && !AlertState::isSdBusy()) {
-        saved = LuxCalibration::instance().saveFittedParams(current);
-        LuxCalibration::instance().generateSeeds();
+        saved = cal.saveFittedParams(fit);
+        cal.generateSeeds();
     }
+    cal.clearPendingFit();
 
     String json;
     json.reserve(64);

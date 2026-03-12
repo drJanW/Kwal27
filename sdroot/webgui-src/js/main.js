@@ -1,6 +1,9 @@
-/*
- * Kwal WebGUI v1214C - Modular
- * Main entry point
+/**
+ * @file    main.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
+ * Kwal WebGUI - Main entry point
  */
 (function() {
   'use strict';

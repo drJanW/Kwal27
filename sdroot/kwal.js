@@ -5,15 +5,19 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260311C - Built 2026-03-11 08:31
+ * Kwal WebGUI v260312A - Built 2026-03-12 14:30
  */
 
 // === js/namespace.js ===
-/*
+/**
+ * @file    namespace.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260311C';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260312A';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -39,7 +43,11 @@ Kwal.valueToSlider = function(val, min, max) {
 
 
 // === js/state.js ===
-/*
+/**
+ * @file    state.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - State module
  * Tracks modified state for colors and patterns
  */
@@ -111,10 +119,14 @@ Kwal.state = (function() {
 
 
 // === js/audio.js ===
-/*
+/**
+ * @file    audio.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Audio module
  * See docs/glossary_slider_semantics.md for terminology
- * 
+ *
  * Slider moves freely 0-100%. Grey zones show shiftedLo/Hi
  * as visual indicators but do NOT restrict the thumb.
  * 
@@ -441,10 +453,14 @@ Kwal.audio = (function() {
 
 
 // === js/brightness.js ===
-/*
+/**
+ * @file    brightness.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Brightness module
  * See docs/glossary_slider_semantics.md for terminology
- * 
+ *
  * Slider moves freely 0-100%. Grey zones show shiftedLo/Hi
  * as visual indicators but do NOT restrict the thumb.
  * 
@@ -513,7 +529,11 @@ Kwal.brightness = (function() {
 
 
 // === js/modal.js ===
-/*
+/**
+ * @file    modal.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Modal module
  */
 Kwal.modal = (function() {
@@ -588,7 +608,11 @@ Kwal.modal = (function() {
 
 
 // === js/sd.js ===
-/*
+/**
+ * @file    sd.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - SD module (upload + index rebuild)
  */
 Kwal.sd = (function() {
@@ -700,7 +724,11 @@ Kwal.sd = (function() {
 
 
 // === js/pattern.js ===
-/*
+/**
+ * @file    pattern.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Pattern module
  * API: GET /api/patterns, POST /api/patterns/select, POST /api/patterns/preview
  */
@@ -1048,7 +1076,11 @@ Kwal.pattern = (function() {
 
 
 // === js/colorpicker.js ===
-/*
+/**
+ * @file    colorpicker.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Custom Color Picker module
  * Canvas-based HSV picker that works on all browsers including
  * Android WebView (DuckDuckGo, etc.) where <input type="color"> fails.
@@ -1306,7 +1338,11 @@ Kwal.colorpicker = (function() {
 
 
 // === js/colors.js ===
-/*
+/**
+ * @file    colors.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Colors module
  * API: GET /api/colors, POST /api/colors/select, POST /api/colors/preview
  */
@@ -1602,7 +1638,11 @@ Kwal.colors = (function() {
 
 
 // === js/ota.js ===
-/*
+/**
+ * @file    ota.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - OTA module
  * API: POST /ota/upload (multipart firmware binary)
  */
@@ -1730,7 +1770,11 @@ Kwal.ota = (function() {
 })();
 
 // === js/status.js ===
-/*
+/**
+ * @file    status.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Status module
  * Shows current active pattern and colors on main screen
  * Labels now come from SSE state event (patternLabel, colorLabel)
@@ -1768,7 +1812,11 @@ Kwal.status = (function() {
 
 
 // === js/health.js ===
-/*
+/**
+ * @file    health.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Health module
  * System health status display in DEV modal
  * API: GET /api/health, POST /api/restart
@@ -1928,7 +1976,11 @@ Kwal.health = (function() {
 
 
 // === js/luxcal.js ===
-/*
+/**
+ * @file    luxcal.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Lux Calibration module
  * Calibration panel for lux → brightness curve fitting
  * API: POST /api/lux/calibrate, /api/lux/sample, /api/lux/status,
@@ -2015,6 +2067,8 @@ Kwal.luxcal = (function() {
             if (sampleBtn) sampleBtn.disabled = false;
           })
           .catch(function() { setStatus('Calibratie activeren mislukt'); });
+        // Silence audio during calibration
+        fetch('/api/audio/silence?active=1', { method: 'POST' }).catch(function() {});
       })
       .catch(function() { setStatus('Status ophalen mislukt'); });
   }
@@ -2033,6 +2087,8 @@ Kwal.luxcal = (function() {
     }
     // Auto-disable calibration mode on modal close
     fetch('/api/lux/calibrate?mode=off', { method: 'POST' }).catch(function() {});
+    // Re-enable audio
+    fetch('/api/audio/silence?active=0', { method: 'POST' }).catch(function() {});
   }
 
   function takeSample() {
@@ -2191,6 +2247,13 @@ Kwal.luxcal = (function() {
 
 
 // === js/log.js ===
+/**
+ * @file    log.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
+ * Kwal - Log module
+ */
 (function() {
   'use strict';
   
@@ -2238,7 +2301,11 @@ Kwal.luxcal = (function() {
 
 
 // === js/mp3grid.js ===
-/*
+/**
+ * @file    mp3grid.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - MP3 Grid module
  * Canvas grid showing dirs from root_dirs index + theme box colors.
  * One-shot load via /api/audio/grid; crosshair follows SSE fragment events.
@@ -2508,7 +2575,11 @@ Kwal.mp3grid = (function() {
 
 // === js/sse.js ===
 /**
- * sse.js - Server-Sent Events for live updates
+ * @file    sse.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
+ * Kwal - Server-Sent Events for live updates
  * Events: state, patterns, colors (legacy: fragment, light)
  */
 (function() {
@@ -2764,7 +2835,13 @@ Kwal.mp3grid = (function() {
 
 
 // === js/tv.js ===
-// TV Simulator controls
+/**
+ * @file    tv.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
+ * Kwal - TV Simulator controls
+ */
 
 (function() {
     const slider = document.getElementById('tvHours');
@@ -2820,9 +2897,12 @@ Kwal.mp3grid = (function() {
 
 
 // === js/main.js ===
-/*
- * Kwal WebGUI v1214C - Modular
- * Main entry point
+/**
+ * @file    main.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
+ * Kwal WebGUI - Main entry point
  */
 (function() {
   'use strict';

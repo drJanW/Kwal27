@@ -42,6 +42,11 @@ patternChangeIntervalMs;u;17640000;pick new random pattern (4.9 hours)
 brightnessLo;u;16;slider left boundary (fraction of MAX_BRIGHTNESS)
 #defaultBrightnessSliderPct;u;60;boot default brightness slider position (0-100%)
 #luxMax;f;800.0;lux reading at which brightness reaches Hi
+#luxShiftLo;i;-10;brightness shift % at darkest lux
+#luxShiftHi;i;10;brightness shift % at brightest lux
+#luxGamma;f;0.4;Stevens power law exponent (0.15-0.8)
+#seededLuxDataPoints;i;20;seed count after lux cal fit
+#maxLuxDataPoints;i;50;auto-fit trigger (seeds + real)
 #maxMilliamps;u;1200;power budget, prevents PSU overload
 
 # ═══════════════════════════════════════════════════════════════════

@@ -1,4 +1,8 @@
-/*
+/**
+ * @file    colors.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Colors module
  * API: GET /api/colors, POST /api/colors/select, POST /api/colors/preview
  */

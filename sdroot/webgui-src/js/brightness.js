@@ -1,7 +1,11 @@
-/*
+/**
+ * @file    brightness.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Brightness module
  * See docs/glossary_slider_semantics.md for terminology
- * 
+ *
  * Slider moves freely 0-100%. Grey zones show shiftedLo/Hi
  * as visual indicators but do NOT restrict the thumb.
  * 

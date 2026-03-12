@@ -1,4 +1,8 @@
-/*
+/**
+ * @file    health.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Health module
  * System health status display in DEV modal
  * API: GET /api/health, POST /api/restart

@@ -28,7 +28,7 @@ light_colors_id;light_colors_name;rgb1_hex;rgb2_hex;cnf
 27;Sapphire Shine;#0F52BA;#052A55;3.7777
 28;Ruby Red;#E0115F;#550022;4.8758
 29;Cobalt Blue;#0047AB;#002255;4.5416
-30;Emerald Isle;#50C878;#227744;1.5980
+30;Emerald Isle;#50C878;#227744;0.0
 31;Sunrise Pink;#FFB6C1;#AA5566;1.4044
 32;Charcoal Black;#36454F;#222A2F;3.9648
 33;Buttercup Yellow;#FFFACD;#AAAA55;1.0324
@@ -41,3 +41,5 @@ light_colors_id;light_colors_name;rgb1_hex;rgb2_hex;cnf
 40;Ice White;#F0F8FF;#AAAAFF;1.0049
 41;Lemon Yellow;#FFF44F;#AAAA22;1.0770
 42;Inner White Outer Red;#FFFFFF;#FF0000;1.3745
+
+

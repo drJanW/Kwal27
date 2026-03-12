@@ -1,4 +1,8 @@
-/*
+/**
+ * @file    luxcal.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Lux Calibration module
  * Calibration panel for lux → brightness curve fitting
  * API: POST /api/lux/calibrate, /api/lux/sample, /api/lux/status,
@@ -85,6 +89,8 @@ Kwal.luxcal = (function() {
             if (sampleBtn) sampleBtn.disabled = false;
           })
           .catch(function() { setStatus('Calibratie activeren mislukt'); });
+        // Silence audio during calibration
+        fetch('/api/audio/silence?active=1', { method: 'POST' }).catch(function() {});
       })
       .catch(function() { setStatus('Status ophalen mislukt'); });
   }
@@ -103,6 +109,8 @@ Kwal.luxcal = (function() {
     }
     // Auto-disable calibration mode on modal close
     fetch('/api/lux/calibrate?mode=off', { method: 'POST' }).catch(function() {});
+    // Re-enable audio
+    fetch('/api/audio/silence?active=0', { method: 'POST' }).catch(function() {});
   }
 
   function takeSample() {

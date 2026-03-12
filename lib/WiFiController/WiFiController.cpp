@@ -47,7 +47,7 @@ static void cb_checkWiFiStatus() {
             // First confirmed connection after retry loop
             loggedStart = false;
             AlertState::setStatusOK(SC_WIFI);
-            PF("[WiFi] Connected. IP: %s\n", WiFi.localIP().toString().c_str());
+            PL("[WiFi]  \u2713 Connected");
             timers.cancel(cb_retryConnect);
             timers.cancel(cb_checkWiFiStatus);
             timers.create(Globals::wifiConnectionCheckIntervalMs, 0, cb_checkWiFiConnection);

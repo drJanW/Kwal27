@@ -308,25 +308,16 @@ void LightRun::cb_measureLux() {
         if (n >= Globals::maxLuxDataPoints) {
             LuxFitResult fit;
             if (LuxCalibration::instance().fitParams(fit)) {
-                // Capture old params before overwriting RAM
-                float    oldLuxMax     = Globals::luxMax;
-                int8_t   oldLuxShiftLo = Globals::luxShiftLo;
-                int8_t   oldLuxShiftHi = Globals::luxShiftHi;
-                float    oldLuxGamma   = Globals::luxGamma;
-
-                // Apply to RAM (live preview) — NOT persisted until user accepts
-                Globals::luxMax     = fit.luxMax;
-                Globals::luxShiftLo = fit.luxShiftLo;
-                Globals::luxShiftHi = fit.luxShiftHi;
-                Globals::luxGamma   = fit.luxGamma;
+                // Store for accept — Globals NOT touched
+                LuxCalibration::instance().setPendingFit(fit);
 
                 // Push fit results to browser for accept/reject
                 WebGuiStatus::pushLuxcalFit(
-                    oldLuxMax, oldLuxShiftLo, oldLuxShiftHi, oldLuxGamma,
+                    Globals::luxMax, Globals::luxShiftLo, Globals::luxShiftHi, Globals::luxGamma,
                     fit.luxMax, fit.luxShiftLo, fit.luxShiftHi, fit.luxGamma,
                     fit.error, LuxCalibration::instance().realCount());
 
-                PF("[LuxCal] Auto-fit at n=%u, preview applied — awaiting accept\n", n);
+                PF("[LuxCal] Auto-fit at n=%u — awaiting accept\n", n);
                 didAutoFit = true;
             }
         }

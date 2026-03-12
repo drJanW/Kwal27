@@ -1,4 +1,8 @@
-/*
+/**
+ * @file    ota.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - OTA module
  * API: POST /ota/upload (multipart firmware binary)
  */

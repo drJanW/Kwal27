@@ -1,4 +1,8 @@
-/*
+/**
+ * @file    namespace.js
+ * @version 260312A
+ * @date    2026-03-12
+ *
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};

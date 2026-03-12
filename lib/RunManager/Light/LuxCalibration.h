@@ -1,8 +1,8 @@
 /**
  * @file LuxCalibration.h
  * @brief Lux calibration data file and grid search fit
- * @version 260311A
- * @date 2026-03-11
+ * @version 260312A
+ * @date 2026-03-12
  */
 #pragma once
 
@@ -57,6 +57,12 @@ public:
     /// Run grid search fit. Returns false if insufficient data.
     bool fitParams(LuxFitResult& result) const;
 
+    /// Store fit result for later accept
+    void setPendingFit(const LuxFitResult& fit) { pendingFit_ = fit; hasPendingFit_ = true; }
+    bool hasPendingFit() const { return hasPendingFit_; }
+    const LuxFitResult& getPendingFit() const { return pendingFit_; }
+    void clearPendingFit() { hasPendingFit_ = false; }
+
     /// Persist fitted params to globals.csv (append, last value wins)
     bool saveFittedParams(const LuxFitResult& result) const;
 
@@ -67,4 +73,6 @@ private:
     LuxCalibration() = default;
     std::vector<LuxCalSample> samples_;
     uint8_t realCount_ = 0;
+    LuxFitResult pendingFit_;
+    bool hasPendingFit_ = false;
 };

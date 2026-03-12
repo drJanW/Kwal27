@@ -1,5 +1,5 @@
 todo list
-Updated: 2026-03-05
+Updated: 2026-03-12
 
 REGEL: Geen "Completed" sectie. Succes = delete uit todo.
 
@@ -12,14 +12,25 @@ A1. Excel light_patterns.csv voorzien van PNF column
     - Permanente fix: PNF column toevoegen in Excel, dan weer op NAS
     - CNF hoeft NIET in Excel (wordt automatisch berekend uit hex waarden)
 
+A3. Architecture cleanup (38 violations, 27 warnings)
+    - 22 violations: SDController cross-includes
+    - 4 violations: AudioState.h cross-includes
+    - 12 warnings: cb_* callbacks in verkeerde laag
+    - 5 warnings: SD I/O in web handlers (SdRoutes.cpp)
+    - Zie: docs/todos/architecture_cleanup_prompt.md
+
 === Future ===
+
 F1. Sensor + Speak architecture completion
     - Verplaats sensor orchestratie van SensorController naar SensorDirector
     - Koppel sensor events aan SpeakRequest (DISTANCE_TOO_CLOSE, LUX_LOW, etc)
     - Beide modules volledig Boot→Run→Policy→Director patroon
     - Zie: docs/plan_f1_sensor_speak.md
 
-
+F12. Brightness Part 3: per-color/pattern correction
+    - Part 1 (normalisatie) en Part 2 (lux calibratie) zijn KLAAR
+    - Per-colors en per-pattern correction factors uit residuals
+    - Zie: docs/todos/todo_brightness_part3_implementation.md
 
 === Minor Bugs ===
 
@@ -35,12 +46,18 @@ H9. Normalize say → speak naming in time/temperature paths
     - Replace sayTime/saytime usage with speak naming
     - Rename Globals keys (minSaytimeIntervalMs/maxSaytimeIntervalMs)
     - Update CSV parser keys in Globals.cpp
+    - ~20 referenties verspreid over Globals.h, Globals.cpp, CSV, RunManager
 
 H7. Review StatusPolicy.cpp stub
+    - configure() is leeg met TODO comment
     - Determine if refactor needed or intentionally minimal
 
-=== side lined ===
-b10. Calibrating lux sensor
+H11. JS/PS1 file headers toevoegen
+    - 16 JS bestanden in webgui-src/js/ missen @version/@date headers
+    - 22 PS1 scripts in root + tools/ missen headers
+    - Zie: docs/todos/header_todo.txt
+
+=== Sidelined ===
 
 F3. Simplify brightness shifts: HSV V → FastLED
     - Verwijder colorA.value/colorB.value uit colorsShifts.csv
@@ -52,13 +69,10 @@ F3. Simplify brightness shifts: HSV V → FastLED
 F9. Implement distanceAnimationFor() in LightPolicy
     - Currently a stub returning false
     - Distance-driven LED animation modulation
-    - Stub location: LightPolicy.cpp:47
+    - Stub location: LightPolicy.cpp:48
+
 H1. Refactor codebase according to glossary terminology rules
     - modifier (0-1), multiplier (any float), pct (0-100), shift (additive)
     - brightness (not bright), volume (not gain except I2S)
     - Rename globalBrightness → brightnessHiShift in CSV
     - Zie: docs/glossary_slider_semantics.md
-
-### not ordered new issues/ideas
-
-WebGUI geldigheidsduur koppelen
