@@ -5,19 +5,11 @@ REGEL: Geen "Completed" sectie. Succes = delete uit todo.
 
 === Active ===
 
-A1. Excel light_patterns.csv voorzien van PNF column
-    - Huidige Excel export mist PNF waarden
-    - NAS download overschrijft SD, wist 2.5 uur kalibratie
-    - Tijdelijke fix: light_patterns.csv verwijderd van NAS
-    - Permanente fix: PNF column toevoegen in Excel, dan weer op NAS
-    - CNF hoeft NIET in Excel (wordt automatisch berekend uit hex waarden)
-
-A3. Architecture cleanup (38 violations, 27 warnings)
-    - 22 violations: SDController cross-includes
-    - 4 violations: AudioState.h cross-includes
-    - 12 warnings: cb_* callbacks in verkeerde laag
-    - 5 warnings: SD I/O in web handlers (SdRoutes.cpp)
-    - Zie: docs/todos/architecture_cleanup_prompt.md
+A3. Architecture cleanup (resterend)
+    - 4 violations: AudioState.h cross-includes (Light, SD, WiFi controllers)
+    - 1 violation: PlaySentence.cpp → SDSettings.h cross-include
+    - cb_* callbacks in verkeerde laag (deels geaccepteerd met NOCHECK)
+    - 5 warnings: SD I/O in web handlers (SdRoutes.cpp, bewaakt met lockSD)
 
 === Future ===
 
@@ -26,11 +18,6 @@ F1. Sensor + Speak architecture completion
     - Koppel sensor events aan SpeakRequest (DISTANCE_TOO_CLOSE, LUX_LOW, etc)
     - Beide modules volledig Boot→Run→Policy→Director patroon
     - Zie: docs/plan_f1_sensor_speak.md
-
-F12. Brightness Part 3: per-color/pattern correction
-    - Part 1 (normalisatie) en Part 2 (lux calibratie) zijn KLAAR
-    - Per-colors en per-pattern correction factors uit residuals
-    - Zie: docs/todos/todo_brightness_part3_implementation.md
 
 === Minor Bugs ===
 
