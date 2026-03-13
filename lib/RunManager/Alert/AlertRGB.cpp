@@ -109,7 +109,7 @@ void buildSequence() {
         addStep(AlertPolicy::COLOR_SENSOR3, Globals::flashNormalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }
-    if (isNotOk(STATUS_NAS_OK)) {
+    if (Globals::nasPresent && isNotOk(STATUS_NAS_OK)) {
         addStep(AlertPolicy::COLOR_NAS, Globals::flashNormalMs);
         addStep(0x000000, Globals::flashNormalMs);
     }

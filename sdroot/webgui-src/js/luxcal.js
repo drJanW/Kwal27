@@ -89,8 +89,6 @@ Kwal.luxcal = (function() {
             if (sampleBtn) sampleBtn.disabled = false;
           })
           .catch(function() { setStatus('Calibratie activeren mislukt'); });
-        // Silence audio during calibration
-        fetch('/api/audio/silence?active=1', { method: 'POST' }).catch(function() {});
       })
       .catch(function() { setStatus('Status ophalen mislukt'); });
   }
@@ -109,8 +107,6 @@ Kwal.luxcal = (function() {
     }
     // Auto-disable calibration mode on modal close
     fetch('/api/lux/calibrate?mode=off', { method: 'POST' }).catch(function() {});
-    // Re-enable audio
-    fetch('/api/audio/silence?active=0', { method: 'POST' }).catch(function() {});
   }
 
   function takeSample() {

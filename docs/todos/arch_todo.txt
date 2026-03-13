@@ -5,9 +5,25 @@ ARCH TODO (status ownership)
 
 3) DONE — SDController no longer exposes isReady()/isSDbusy(). All code uses AlertState::isSdBusy().
 
-4) Audit other *Controller classes for is* or ready/busy accessors that leak status reads.
-   - Only controllers should touch hardware and set status; reads should come from State/Context.
-   - Target files: lib/*Controller/*.h, lib/*Controller/*.cpp
+4) AUDITED 2026-03-12 — Controller status accessor inventory.
+   Rule: controllers touch hardware and set status; reads come from AlertState/memory.
+
+   CLEAN (no violations):
+   - AudioManager: isPCMClipActive() returns cached internal state ✓
+   - SensorController: distanceMillimeters(), ambientLux() return cached atomics ✓
+   - LightController: getWebMultiplier(), getSliderPct(), getBrightnessShiftedHi() all cached ✓
+   - ContextController: isTimeSynced() returns cached flag ✓
+   - CalendarSelector: hasCalendarData(), isReady() return cached flags ✓
+   - TimeOfDay: isNight(), isDawn() etc. compute from cached PRTClock ✓
+   - WebInterfaceController, WiFiController: no public status-read methods ✓
+
+   VIOLATIONS (low-risk but architecturally wrong):
+   a) RTCController::getTemperature() — I2C hardware read every call.
+      Fix: cache in memory, read via timer callback once/minute.
+   b) RTCController::wasPowerLost() — I2C hardware read every call.
+      Fix: read once at boot, cache forever (flag never changes per session).
+   c) SDController::checkPresent() — SPI probe (SD.totalBytes()) every call.
+      Fix: move probe to timer callback, callers use AlertState::isSdOk().
 
 5) WiFiController has timer callbacks that belong in a WiFiRun layer.
    - cb_checkWiFiStatus, cb_checkWiFiConnection, cb_retryConnect own timers + AlertState transitions.

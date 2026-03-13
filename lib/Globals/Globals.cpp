@@ -850,6 +850,12 @@ static bool loadConfigTxt() {
         } else if (strcmp(key, "sensor3") == 0) {
             Globals::sensor3Present = (val[0] == '1');
             PF_BOOT("[Globals] sensor3Present = %d (from config.txt)\n", Globals::sensor3Present);
+        } else if (strcmp(key, "audio") == 0) {
+            Globals::audioPresent = (val[0] == '1');
+            PF_BOOT("[Globals] audioPresent = %d (from config.txt)\n", Globals::audioPresent);
+        } else if (strcmp(key, "nas") == 0) {
+            Globals::nasPresent = (val[0] == '1');
+            PF_BOOT("[Globals] nasPresent = %d (from config.txt)\n", Globals::nasPresent);
         }
         keysLoaded++;
     }

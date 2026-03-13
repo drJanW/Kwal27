@@ -34,6 +34,11 @@ void LuxCalibration::addSample(const LuxCalSample& sample) {
     }
     samples_.push_back(sample);
     ++realCount_;
+    // luxMax is a physical boundary — grow on new high-water mark
+    if (sample.lux > Globals::luxMax) {
+        Globals::luxMax = ceilf(sample.lux);
+        PF("[LuxCal] luxMax grown to %.0f\n", Globals::luxMax);
+    }
     PF("[LuxCal] Data point added: lux=%.1f bri=%.1f nf=%.3f (n=%u real=%u)\n",
        sample.lux, sample.brightness, sample.nf,
        static_cast<unsigned>(samples_.size()), realCount_);
@@ -146,13 +151,13 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
         return false;
     }
 
-    // luxMax = observed maximum lux — NOT a fit parameter
-    float maxLux = 0.0f;
-    for (const auto& s : samples_) {
-        if (s.lux > maxLux) maxLux = s.lux;
+    // luxMax is a physical boundary (highest measured lux) — NOT a fit parameter.
+    // The fit works within this fixed range. luxMax only grows via addSample().
+    const float fitMax = Globals::luxMax;
+    if (fitMax < 10.0f) {
+        PL("[LuxCal] FIT: luxMax too low");
+        return false;
     }
-    if (maxLux < 10.0f) maxLux = 10.0f;
-    const float fitMax = maxLux;
 
     // MSE calculator — inverse-lux weighting
     auto calcMse = [&](int sLo, int sHi, float gamma) -> float {
@@ -216,8 +221,8 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
         }
     }
 
-    // Round luxMax to integer for cleaner output
-    result.luxMax      = roundf(fitMax);
+    // luxMax is NOT fitted — it stays at Globals::luxMax (physical boundary)
+    result.luxMax      = Globals::luxMax;
     result.luxShiftLo  = bestShiftLo;
     result.luxShiftHi  = bestShiftHi;
     result.luxGamma    = clamp(bestGamma, 0.1f, fitGammaMax);
@@ -240,7 +245,8 @@ bool LuxCalibration::saveFittedParams(const LuxFitResult& result) const {
     if (!file) return false;
 
     file.printf("\n# ── Lux calibration fit ──\n");
-    file.printf("luxMax;f;%.1f;fitted lux ceiling\n", result.luxMax);
+    // luxMax persisted from Globals (physical high-water mark, only grows via samples)
+    file.printf("luxMax;f;%.1f;observed lux ceiling\n", static_cast<double>(Globals::luxMax));
     file.printf("luxShiftLo;i;%d;fitted dark shift\n", result.luxShiftLo);
     file.printf("luxShiftHi;i;%d;fitted bright shift\n", result.luxShiftHi);
     file.printf("luxGamma;f;%.2f;fitted gamma\n", static_cast<double>(result.luxGamma));

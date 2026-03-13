@@ -1,8 +1,8 @@
 /**
  * @file RunManager.h
  * @brief Central coordinator header for all Kwal modules
- * @version 260307A
- * @date 2026-03-07
+ * @version 260313B
+ * @date 2026-03-13
  */
 #pragma once
 #include <Arduino.h>
@@ -37,6 +37,8 @@ public:
         uint32_t fragMinMs,  uint32_t fragMaxMs,  bool hasFragRange,
         bool silence, uint32_t durationMs);
     static void requestSetSilence(bool active);
+    static void requestStopAudio();
+    static void touchCalActivity();
     static bool requestStartClockTick(bool fallbackEnabled);
     static bool isClockRunning();
     static bool isClockInFallback();

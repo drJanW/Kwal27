@@ -57,6 +57,16 @@ Kwal.audio = (function() {
   }
 
   function init() {
+    // Hide audio panel + settings modal if hardware absent (bit 3 = SC_AUDIO)
+    fetch('/api/health').then(function(r) { return r.json(); }).then(function(data) {
+      if ((data.absent || 0) & (1 << 3)) {
+        var panel = document.getElementById('audio-panel');
+        if (panel) panel.style.display = 'none';
+        var modal = document.getElementById('audio-settings-modal');
+        if (modal) modal.remove();
+      }
+    }).catch(function() {});
+
     slider = document.getElementById('volume');
     label = document.getElementById('vol-num');
     nextBtn = document.getElementById('audio-next');

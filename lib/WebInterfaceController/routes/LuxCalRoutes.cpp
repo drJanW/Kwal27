@@ -1,8 +1,8 @@
 /**
  * @file LuxCalRoutes.cpp
  * @brief Lux calibration API endpoint routes implementation
- * @version 260312A
- * @date 2026-03-12
+ * @version 260313B
+ * @date 2026-03-13
  */
 #include <Arduino.h>
 #include "LuxCalRoutes.h"
@@ -15,6 +15,8 @@
 #include "SDController.h"
 #include "PRTClock.h"
 #include <SD.h>
+
+#include "RunManager.h"
 
 using WebUtils::sendJson;
 using WebUtils::sendError;
@@ -31,6 +33,8 @@ static void routeCalibrate(AsyncWebServerRequest* request) {
     String mode = request->getParam("mode")->value();
     if (mode == "on") {
         Globals::luxCalibrationMode = true;
+        RunManager::requestStopAudio();
+        RunManager::touchCalActivity();
         PL("[LuxCal] Calibration mode ON");
         // Load existing data or generate seeds from current params
         auto& cal = LuxCalibration::instance();
@@ -52,6 +56,7 @@ static void routeSample(AsyncWebServerRequest* request) {
         return;
     }
     Globals::luxCalSampleRequested = true;
+    RunManager::touchCalActivity();
     // Trigger a fresh lux measurement cycle (fade-out → read → fade-in)
     LightRun::requestLuxMeasurement();
 
@@ -79,6 +84,7 @@ static void routeStatus(AsyncWebServerRequest* request) {
 static void routeFit(AsyncWebServerRequest* request) {
     LuxFitResult result;
     auto& cal = LuxCalibration::instance();
+    RunManager::touchCalActivity();
     if (!cal.fitParams(result)) {
         sendError(request, 422, F("No data points"));
         return;
@@ -117,14 +123,14 @@ static void routeFit(AsyncWebServerRequest* request) {
 // POST /api/lux/accept — apply pending fit to Globals + persist to globals.csv
 static void routeAcceptFit(AsyncWebServerRequest* request) {
     auto& cal = LuxCalibration::instance();
+    RunManager::touchCalActivity();
     if (!cal.hasPendingFit()) {
         sendError(request, 409, F("No pending fit"));
         return;
     }
     const auto& fit = cal.getPendingFit();
 
-    // NOW apply to Globals
-    Globals::luxMax     = fit.luxMax;
+    // Apply fit to Globals — luxMax is NOT touched (physical boundary, only grows via samples)
     Globals::luxShiftLo = fit.luxShiftLo;
     Globals::luxShiftHi = fit.luxShiftHi;
     Globals::luxGamma   = fit.luxGamma;

@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260312A - Built 2026-03-12 14:30
+ * Kwal WebGUI v260313A - Built 2026-03-13 00:49
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260312A';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260313A';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -178,6 +178,16 @@ Kwal.audio = (function() {
   }
 
   function init() {
+    // Hide audio panel + settings modal if hardware absent (bit 3 = SC_AUDIO)
+    fetch('/api/health').then(function(r) { return r.json(); }).then(function(data) {
+      if ((data.absent || 0) & (1 << 3)) {
+        var panel = document.getElementById('audio-panel');
+        if (panel) panel.style.display = 'none';
+        var modal = document.getElementById('audio-settings-modal');
+        if (modal) modal.remove();
+      }
+    }).catch(function() {});
+
     slider = document.getElementById('volume');
     label = document.getElementById('vol-num');
     nextBtn = document.getElementById('audio-next');
@@ -2067,8 +2077,6 @@ Kwal.luxcal = (function() {
             if (sampleBtn) sampleBtn.disabled = false;
           })
           .catch(function() { setStatus('Calibratie activeren mislukt'); });
-        // Silence audio during calibration
-        fetch('/api/audio/silence?active=1', { method: 'POST' }).catch(function() {});
       })
       .catch(function() { setStatus('Status ophalen mislukt'); });
   }
@@ -2087,8 +2095,6 @@ Kwal.luxcal = (function() {
     }
     // Auto-disable calibration mode on modal close
     fetch('/api/lux/calibrate?mode=off', { method: 'POST' }).catch(function() {});
-    // Re-enable audio
-    fetch('/api/audio/silence?active=0', { method: 'POST' }).catch(function() {});
   }
 
   function takeSample() {

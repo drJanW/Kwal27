@@ -504,6 +504,28 @@ void RunManager::requestSetAudioIntervals(
 
 void cb_applySilence();
 
+void cb_stopAudio() {
+    PlayAudioFragment::stop(0);
+    PlaySentence::stop();
+    PL("[RunManager] Audio stopped for lux calibration");
+}
+
+void RunManager::requestStopAudio() {
+    timers.cancel(cb_stopAudio);
+    timers.create(1, 1, cb_stopAudio);
+}
+
+void cb_calModeTimeout() {
+    if (Globals::luxCalibrationMode) {
+        Globals::luxCalibrationMode = false;
+        PL("[RunManager] Cal mode auto-cleared (no activity for 5 min)");
+    }
+}
+
+void RunManager::touchCalActivity() {
+    timers.restart(MINUTES(5), 1, cb_calModeTimeout);
+}
+
 void RunManager::requestSetSilence(bool active) {
     pendingSilenceActive = active;
     timers.cancel(cb_applySilence);

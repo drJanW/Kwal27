@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260312B"
+#define FIRMWARE_VERSION_CODE "260313B"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -166,6 +166,8 @@ struct Globals {
     inline static bool     luxSensorPresent          = true;               // Lux sensor present (default: yes)
     inline static bool     distanceSensorPresent     = false;              // Distance sensor present (default: no)
     inline static bool     sensor3Present            = false;              // Board sensor present (default: no)
+    inline static bool     audioPresent              = true;               // Audio hardware present (default: yes)
+    inline static bool     nasPresent                = true;               // NAS server present (default: yes)
     inline static bool     configFilePresent         = false;              // config.txt found on SD at boot
 
     // ─────────────────────────────────────────────────────────────

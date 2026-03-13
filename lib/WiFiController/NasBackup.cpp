@@ -154,6 +154,7 @@ void cb_checkNasHealth() {
 // Public API
 // ─────────────────────────────────────────────────────────────
 void NasBackup::requestPush(const char* filename) {
+    if (!Globals::nasPresent) return;
     if (strcmp(filename, "light_patterns.csv") == 0) {
         pendingPatterns = true;
     } else if (strcmp(filename, "light_colors.csv") == 0) {
@@ -168,6 +169,7 @@ void NasBackup::requestPush(const char* filename) {
 /// Probe NAS health. Called from infinite repeating timer (every 2 min).
 /// No rescheduling — the timer runs forever, so this cannot die.
 void NasBackup::checkHealth() {
+    if (!Globals::nasPresent) return;
     if (!AlertState::isWifiOk()) return;
 
     String url = serverRoot();
@@ -194,5 +196,6 @@ void NasBackup::checkHealth() {
 
 /// Start the infinite health check timer. Called once from WiFiBoot.
 void NasBackup::startHealthTimer() {
+    if (!Globals::nasPresent) return;
     timers.create(HEALTH_INTERVAL_MS, 0, cb_checkNasHealth);
 }

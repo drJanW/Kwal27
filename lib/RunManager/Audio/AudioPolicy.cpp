@@ -180,6 +180,7 @@ float updateDistancePlaybackVolume(float distanceMm) {
 
 bool isWebSilenceActive()       { return webSilence; }
 void setWebSilence(bool active) { webSilence = active; }
+bool isCalibrating()            { return Globals::luxCalibrationMode; }
 
 void setWebSpeakRange(uint32_t minMs, uint32_t maxMs) {
     webSpeakMin = minMs;

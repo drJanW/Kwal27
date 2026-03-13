@@ -1,0 +1,133 @@
+ARCHITECTURE TODO (merged 2026-03-12)
+======================================
+Sources: arch_todo.txt (status ownership) + architecture_cleanup_prompt.md (violations)
+
+=======================================================================
+PART A — STATUS OWNERSHIP
+=======================================================================
+
+1) WiFi status reads: keep using AlertState (done in code), verify no new wrapper reappears.
+   - Files to watch: lib/WiFiController/WiFiController.cpp, lib/WiFiController/WiFiController.h, lib/WiFiController/FetchController.cpp, lib/ConductManager/WiFi/WiFiBoot.cpp
+
+3) DONE — SDController no longer exposes isReady()/isSDbusy(). All code uses AlertState::isSdBusy().
+
+4) AUDITED 2026-03-12 — Controller status accessor inventory.
+   Rule: controllers touch hardware and set status; reads come from AlertState/memory.
+
+   CLEAN (no violations):
+   - AudioManager: isPCMClipActive() returns cached internal state ✓
+   - SensorController: distanceMillimeters(), ambientLux() return cached atomics ✓
+   - LightController: getWebMultiplier(), getSliderPct(), getBrightnessShiftedHi() all cached ✓
+   - ContextController: isTimeSynced() returns cached flag ✓
+   - CalendarSelector: hasCalendarData(), isReady() return cached flags ✓
+   - TimeOfDay: isNight(), isDawn() etc. compute from cached PRTClock ✓
+   - WebInterfaceController, WiFiController: no public status-read methods ✓
+
+   VIOLATIONS (low-risk but architecturally wrong):
+   a) RTCController::getTemperature() — I2C hardware read every call.
+      Fix: cache in memory, read via timer callback once/minute.
+   b) RTCController::wasPowerLost() — I2C hardware read every call.
+      Fix: read once at boot, cache forever (flag never changes per session).
+   c) SDController::checkPresent() — SPI probe (SD.totalBytes()) every call.
+      Fix: move probe to timer callback, callers use AlertState::isSdOk().
+
+5) WiFiController has timer callbacks that belong in a WiFiRun layer.
+   - cb_checkWiFiStatus, cb_checkWiFiConnection, cb_retryConnect own timers + AlertState transitions.
+   - WiFiController should be hardware API only: connect(), disconnect(), isConnected(), getIP().
+   - Timer orchestration, retry logic, and the consecutive-failure counter move to WiFiRun.
+   - Files: lib/WiFiController/WiFiController.cpp → split into lib/RunManager/WiFi/WiFiRun.cpp
+   - Risk: touches WiFi boot sequence; USB-only recovery if broken. Do on a calm day.
+
+6) Rename AlertState → naam dekt de lading niet meer.
+   - AlertState is gegroeid tot gedeelde hardware-status + operationele vlaggen (sdBusy, syncMode) + policy gating (canPlayFragment, canFetch, etc.).
+   - De naam "Alert" is misleidend — het is geen alert-systeem, het is system-breed status + gating.
+   - Kandidaten: SystemStatus, HardwareGate, SystemGate — nog te beslissen.
+   - Scope: namespace rename in 20+ bestanden, AlertState.h/cpp → nieuwe naam.
+   - Bestanden: lib/RunManager/Alert/AlertState.h, AlertState.cpp, alle call sites.
+
+=======================================================================
+PART B — CROSS-CONTROLLER VIOLATIONS (38 violations, 27 warnings)
+=======================================================================
+Source: tools\check_architecture.ps1
+Goal: reduce violations to zero.
+
+--- VIOLATIONS — Cross-controller includes ---
+
+AudioManager → SDController (11)
+  - PlayFragment.cpp:17 includes SDController.h
+  - PlayFragment.cpp:79,236 references SDController namespace
+  - PlayPCM.cpp:14 includes SDController.h
+  - PlayPCM.cpp:84,89,101,124,132,140,148,153 references SDController namespace
+
+AudioManager → WiFiController (1)
+  - PlaySentence.cpp:23 includes WiFiController.h
+
+AudioManager → SDController (1)
+  - PlaySentence.cpp:26 includes SDSettings.h (from SDController)
+
+ClockController → WiFiController (2)
+  - PRTClock.cpp:11 includes FetchController.h
+  - PRTClock.cpp:105 references FetchController namespace
+
+LightController → SDController (3)
+  - LEDMap.cpp:37,41,54 references SDController namespace
+
+LightController → AudioManager (1)
+  - LightController.cpp:12 includes AudioState.h
+
+LightController → SensorController (1)
+  - LightController.cpp:14 includes SensorController.h
+
+SDController → AudioManager (1)
+  - SDVoting.cpp:11 includes AudioState.h
+
+WiFiController → ClockController (1)
+  - FetchController.cpp:11 includes PRTClock.h
+
+WiFiController → SDController (7)
+  - FetchController.cpp:13 includes SDController.h
+  - FetchController.cpp:456,460,463 references SDController namespace
+  - NasBackup.cpp:22 includes SDController.h
+  - NasBackup.cpp:54,55,56,60,61,69,70 references SDController namespace
+
+WiFiController → AudioManager (2)
+  - FetchController.cpp:15 includes AudioState.h
+  - NasBackup.cpp:24 includes AudioState.h
+
+Policy → Hardware (1)
+  - AlertPolicy.h:10 includes FastLED.h
+
+--- WARNINGS — cb_* outside RunManager ---
+
+AudioManager (12)
+  - AudioManager.cpp:48,110 — cb_audioMeter
+  - PlayFragment.cpp:63-66,249,269,287,305 — cb_fadeIn, cb_fadeOut, cb_beginFadeOut, cb_fragmentReady
+  - PlayPCM.cpp:164 — cb_stopPCMPlayback
+  - PlaySentence.cpp:212 — cb_ttsReady
+
+LightController (2)
+  - LightController.cpp:83,84 — cb_colorCycle, cb_brightCycle
+
+SensorController (3)
+  - SensorController.cpp:65,69,74 — cb_distanceInit, cb_luxInit, cb_luxSensorRead
+
+WebInterfaceController (3)
+  - HealthRoutes.cpp:87 — cb_restart
+  - OtaRoutes.cpp:23 — cb_rebootAfterOta
+  - SseController.cpp:34 — cb_deferredPush
+
+WiFiController (2)
+  - NasBackup.cpp:130,147 — cb_pushToNas, cb_checkNasHealth
+
+Web handlers with SD I/O (5)
+  - SdRoutes.cpp:88,195,204,263,319
+
+--- SUGGESTED APPROACH ---
+
+1. SDController coupling — biggest offender (22 of 38 violations)
+2. AudioState.h cross-includes (4 violations)
+3. ClockController ↔ WiFiController (3 violations)
+4. LightController cross-includes (4 violations)
+5. AlertPolicy.h FastLED (1 violation)
+6. cb_* warnings (controller-internal ones are allowed per copilot-instructions)
+7. SdRoutes web I/O warnings

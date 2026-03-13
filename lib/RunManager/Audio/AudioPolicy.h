@@ -39,6 +39,9 @@ namespace AudioPolicy {
     bool isWebSilenceActive();
     void setWebSilence(bool active);
 
+    // Audio blocked by lux calibration
+    bool isCalibrating();
+
     // Web speak interval (temporary from WebGUI)
     void setWebSpeakRange(uint32_t minMs, uint32_t maxMs);
     void clearWebSpeakRange();

@@ -72,6 +72,8 @@ bool isPresent(StatusComponent c) {
         case SC_DIST:    return Globals::distanceSensorPresent;
         case SC_LUX:     return Globals::luxSensorPresent;
         case SC_SENSOR3: return Globals::sensor3Present;
+        case SC_AUDIO:   return Globals::audioPresent;
+        case SC_NAS:     return Globals::nasPresent;
         default:         return true;  // SD, WiFi, NTP, etc always "present"
     }
 }
@@ -218,7 +220,7 @@ void setTtsStatus(bool status) {
 void setNasStatus(bool status) {
     if (get(SC_NAS) == (status ? STATUS_OK : STATUS_NOTOK)) return;
     setStatusOK(SC_NAS, status);
-    if (!status && !bootPhase) AlertRGB::startFlashing();
+    if (!status && !bootPhase && Globals::nasPresent) AlertRGB::startFlashing();
 }
 
 void startRuntime() {
@@ -300,7 +302,7 @@ bool canPlayMP3Words() {
 
 bool canPlayFragment() {
     return isStatusOK(SC_SD) && isStatusOK(SC_AUDIO) && isStatusOK(SC_CALENDAR) && !isSyncMode()
-           && !AudioPolicy::isWebSilenceActive();
+           && !AudioPolicy::isWebSilenceActive() && !AudioPolicy::isCalibrating();
 }
 
 bool canFetch() {

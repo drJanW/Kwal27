@@ -22,7 +22,7 @@ bool canSpeak() {
     if (isSentencePlaying()) {
         return false;
     }
-    if (AudioPolicy::isWebSilenceActive()) {
+    if (AudioPolicy::isWebSilenceActive() || AudioPolicy::isCalibrating()) {
         return false;
     }
     return true;
