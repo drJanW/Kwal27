@@ -8,7 +8,6 @@
 #include "WiFiBoot.h"
 #include "Globals.h"
 #include "WiFiController.h"
-#include "WiFiPolicy.h"
 #include "FetchController.h"
 #include "TimerManager.h"
 #include "RunManager.h"
@@ -297,5 +296,4 @@ void WiFiBoot::plan() {
     }
     bootWiFiConnect();
     PL_BOOT("[WiFiBoot] connect started");
-    WiFiPolicy::configure();
 }

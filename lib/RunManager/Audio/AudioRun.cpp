@@ -7,7 +7,6 @@
 #include "AudioRun.h"
 
 #include <Arduino.h>
-#include <atomic>
 
 #include "AudioManager.h"
 #include "AudioState.h"

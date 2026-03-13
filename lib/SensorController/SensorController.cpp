@@ -10,7 +10,6 @@
 #include "SensorController.h"
 #include "Globals.h"
 #include "I2CInitHelper.h"
-#include <atomic>
 #include <math.h>
 #include "VL53L1X.h"
 #ifndef VL53L1X_DEBUG

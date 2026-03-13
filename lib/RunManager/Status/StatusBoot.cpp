@@ -6,7 +6,6 @@
  */
 #include "StatusBoot.h"
 #include "Globals.h"
-#include "StatusPolicy.h"
 #include "PRTClock.h"
 #include "Alert/AlertRun.h"
 #include "ContextController.h"
@@ -19,6 +18,5 @@ void cb_timeDisplay() {
 
 void StatusBoot::plan() {
     PL_BOOT("[StatusBoot] sequencing");
-    StatusPolicy::configure();
     AlertRun::plan();
 }

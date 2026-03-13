@@ -9,8 +9,6 @@
 #include <stdint.h>
 
 namespace AlertPolicy {
-    void configure();
-    
     // RGB cycle timing - critical failures get longer flash
     constexpr uint32_t BLINK_CRITICAL_MS = 2000;  // SD, WiFi, Audio, RGB
     constexpr uint32_t BLINK_OTHER_MS    = 1000;  // RTC, NTP, sensors

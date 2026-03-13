@@ -8,7 +8,6 @@
 #include <Arduino.h>
 #include "AlertRun.h"
 #include "AlertState.h"
-#include "AlertPolicy.h"
 #include "AlertRGB.h"
 #include "Audio/AudioPolicy.h"
 #include "Speak/SpeakRun.h"
@@ -160,7 +159,6 @@ void cb_healthStatus() {
 } // namespace
 
 void AlertRun::plan() {
-    AlertPolicy::configure();
     AlertState::reset();
     
     // Health status timer

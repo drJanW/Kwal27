@@ -14,8 +14,6 @@
 #include "Globals.h"
 #include "MathUtils.h"
 
-#include <atomic>
-
 namespace {
 std::atomic<float> g_volumeShiftedHi{0.37f};  // Hi boundary after shifts applied
 std::atomic<float> g_volumeWebMultiplier{1.0f};     // User's web slider multiplier (can be >1.0)

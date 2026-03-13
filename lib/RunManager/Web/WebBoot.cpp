@@ -8,10 +8,8 @@
 #include "WebBoot.h"
 #include "Globals.h"
 #include "WebInterfaceController.h"
-#include "WebPolicy.h"
 #include "LightController.h"
 
 void WebBoot::plan() {
     beginWebInterface();
-    WebPolicy::configure();
 }

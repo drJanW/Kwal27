@@ -5,7 +5,6 @@
  * @date 2026-02-19
  */
 #include <Arduino.h>
-#include <atomic>
 #include <math.h>
 #include "PRTClock.h"
 #include "ContextController.h"

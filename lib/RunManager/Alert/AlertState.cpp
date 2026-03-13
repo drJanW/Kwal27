@@ -6,9 +6,7 @@
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
-#include <atomic>
 #include "AlertState.h"
-#include "AlertPolicy.h"
 #include "AlertRGB.h"
 #include "Speak/SpeakRun.h"
 #include "Audio/AudioPolicy.h"

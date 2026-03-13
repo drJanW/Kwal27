@@ -14,8 +14,6 @@
 #include "TimerManager.h"
 #include "TvShow.h"
 
-#include <atomic>
-
 LightController lightController;
 
 namespace {
