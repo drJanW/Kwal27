@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260307C
- * @date 2026-03-07
+ * @version 260313C
+ * @date 2026-03-13
  */
 #pragma once
 
@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260313B"
+#define FIRMWARE_VERSION_CODE "260313D"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -95,11 +95,9 @@ struct Globals {
     inline static uint8_t  defaultBrightnessSliderPct = 60U;      // Boot default brightness slider position (0-100%); CSV-overridable
     inline static constexpr int loPct               = 0;           // Slider percentage lower bound
     inline static constexpr int hiPct               = 100;         // Slider percentage upper bound
-    inline static float    luxMin                  = 0.0f;        // Lux sensor minimum
-    inline static float    luxMax                  = 800.0f;      // Lux sensor maximum
-    inline static int8_t   luxShiftLo              = -10;         // Lux shift at luxMin
-    inline static int8_t   luxShiftHi              = +10;         // Lux shift at luxMax
-    inline static float    luxGamma                = 0.4f;        // Stevens' power law exponent (0.33-0.5)
+    inline static float    luxBrMax                = 222.0f;      // Exponential saturation brightness ceiling
+    inline static float    luxRate                 = 0.02f;       // Exponential saturation rate
+    inline static float    luxMax                  = 300.0f;      // Highest observed lux (grows via samples, defines seed range)
     inline static uint8_t  seededLuxDataPoints     = 20U;         // Seed count after fit (prior from fitted params)
     inline static uint8_t  maxLuxDataPoints        = 50U;         // Auto-fit trigger (seeds + real samples)
     inline static int8_t   calendarShiftLo         = -20;         // Calendar shift minimum

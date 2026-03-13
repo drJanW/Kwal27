@@ -1,7 +1,7 @@
 /**
  * @file LuxCalRoutes.cpp
  * @brief Lux calibration API endpoint routes implementation
- * @version 260313B
+ * @version 260313C
  * @date 2026-03-13
  */
 #include <Arduino.h>
@@ -94,28 +94,22 @@ static void routeFit(AsyncWebServerRequest* request) {
 
     String json;
     json.reserve(256);
-    json += F("{\"ok\":true,\"luxMax\":");
-    json += String(result.luxMax, 0);
-    json += F(",\"luxShiftLo\":");
-    json += result.luxShiftLo;
-    json += F(",\"luxShiftHi\":");
-    json += result.luxShiftHi;
-    json += F(",\"luxGamma\":");
-    json += String(result.luxGamma, 2);
-    json += F(",\"error\":");
-    json += String(result.error, 1);
+    json += F("{\"ok\":true,\"luxBrMax\":");
+    json += String(result.luxBrMax, 1);
+    json += F(",\"luxRate\":");
+    json += String(result.luxRate, 4);
+    json += F(",\"r2\":");
+    json += String(result.r2, 4);
+    json += F(",\"luxMax\":");
+    json += String(Globals::luxMax, 0);
     json += F(",\"sampleCount\":");
     json += result.sampleCount;
     json += F(",\"realCount\":");
     json += LuxCalibration::instance().realCount();
-    json += F(",\"oldLuxMax\":");
-    json += String(Globals::luxMax, 0);
-    json += F(",\"oldLuxShiftLo\":");
-    json += Globals::luxShiftLo;
-    json += F(",\"oldLuxShiftHi\":");
-    json += Globals::luxShiftHi;
-    json += F(",\"oldLuxGamma\":");
-    json += String(Globals::luxGamma, 2);
+    json += F(",\"oldLuxBrMax\":");
+    json += String(Globals::luxBrMax, 1);
+    json += F(",\"oldLuxRate\":");
+    json += String(Globals::luxRate, 4);
     json += '}';
     sendJson(request, json);
 }
@@ -130,10 +124,9 @@ static void routeAcceptFit(AsyncWebServerRequest* request) {
     }
     const auto& fit = cal.getPendingFit();
 
-    // Apply fit to Globals — luxMax is NOT touched (physical boundary, only grows via samples)
-    Globals::luxShiftLo = fit.luxShiftLo;
-    Globals::luxShiftHi = fit.luxShiftHi;
-    Globals::luxGamma   = fit.luxGamma;
+    // Apply fit to Globals
+    Globals::luxBrMax = fit.luxBrMax;
+    Globals::luxRate  = fit.luxRate;
 
     bool saved = false;
     if (AlertState::isSdOk() && !AlertState::isSdBusy()) {

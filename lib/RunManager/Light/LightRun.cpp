@@ -1,8 +1,8 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260311A
- * @date 2026-03-11
+ * @version 260313C
+ * @date 2026-03-13
  */
 #include "LightRun.h"
 
@@ -289,12 +289,12 @@ void LightRun::cb_measureLux() {
     // Lux calibration: capture sample if requested by web handler
     if (Globals::luxCalSampleRequested) {
         Globals::luxCalSampleRequested = false;
-        // Compute normalization factor: divide out context shifts, keep webMult
-        // brightness = brightnessHi * (1+luxShift/100) * (1+calShift/100) * webMult * cnf * pnf
-        // stored    = brightness / nf  = brightnessHi * (1+luxShift/100) * webMult
+        // Compute normalization factor: divide out context (calendar, web, cnf, pnf)
+        // brightness = luxBrMax*(1-exp(-rate*lux)) * (1+calShift/100) * webMult * cnf * pnf
+        // stored    = brightness / nf  = luxBrMax*(1-exp(-rate*lux))
         float cnf = getColorsCatalog().cnf(getColorsCatalog().getActiveColorId());
         float pnf = getPatternCatalog().pnf(getPatternCatalog().activeId());
-        float contextMult = globalBrightnessMult * cnf * pnf;
+        float contextMult = globalBrightnessMult * getWebMultiplier() * cnf * pnf;
         float nf = (contextMult > 0.001f) ? contextMult : 1.0f;
         LuxCalSample sample;
         sample.lux         = lux;
@@ -313,9 +313,9 @@ void LightRun::cb_measureLux() {
 
                 // Push fit results to browser for accept/reject
                 WebGuiStatus::pushLuxcalFit(
-                    Globals::luxMax, Globals::luxShiftLo, Globals::luxShiftHi, Globals::luxGamma,
-                    fit.luxMax, fit.luxShiftLo, fit.luxShiftHi, fit.luxGamma,
-                    fit.error, LuxCalibration::instance().realCount());
+                    Globals::luxBrMax, Globals::luxRate,
+                    fit.luxBrMax, fit.luxRate,
+                    fit.r2, LuxCalibration::instance().realCount());
 
                 PF("[LuxCal] Auto-fit at n=%u — awaiting accept\n", n);
                 didAutoFit = true;

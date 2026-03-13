@@ -1,8 +1,8 @@
 /**
  * @file Globals.cpp
  * @brief CSV override loader for Globals
- * @version 260307C
- * @date 2026-03-07
+ * @version 260313C
+ * @date 2026-03-13
  */
 #include "Arduino.h"
 #include "Globals.h"
@@ -274,14 +274,20 @@ static void applyOverride(const char* key, char type, const char* value) {
     // BRIGHTNESS/LUX
     // ═══════════════════════════════════════════════════════════
     // brightnessFloor REMOVED - use brightnessLo instead
-    else if (strcmp(key, "luxMin") == 0 && type == 'f') {
-        if (parseFloat(value, &f32)) {
-            Globals::luxMin = f32;
-            PF_BOOT("[Globals] luxMin = %.1f\n", f32);
+    else if (strcmp(key, "luxBrMax") == 0 && type == 'f') {
+        if (parseFloat(value, &f32) && f32 > 0.0f && f32 <= 500.0f) {
+            Globals::luxBrMax = f32;
+            PF_BOOT("[Globals] luxBrMax = %.1f\n", f32);
+        }
+    }
+    else if (strcmp(key, "luxRate") == 0 && type == 'f') {
+        if (parseFloat(value, &f32) && f32 > 0.0f && f32 <= 1.0f) {
+            Globals::luxRate = f32;
+            PF_BOOT("[Globals] luxRate = %.4f\n", static_cast<double>(f32));
         }
     }
     else if (strcmp(key, "luxMax") == 0 && type == 'f') {
-        if (parseFloat(value, &f32)) {
+        if (parseFloat(value, &f32) && f32 > 0.0f) {
             Globals::luxMax = f32;
             PF_BOOT("[Globals] luxMax = %.1f\n", f32);
         }
@@ -304,26 +310,7 @@ static void applyOverride(const char* key, char type, const char* value) {
             PF_BOOT("[Globals] defaultBrightnessSliderPct = %u\n", Globals::defaultBrightnessSliderPct);
         }
     }
-    else if (strcmp(key, "luxShiftLo") == 0 && type == 'i') {
-        int32_t i32;
-        if (parseInt32(value, &i32) && i32 >= -100 && i32 <= 100) {
-            Globals::luxShiftLo = static_cast<int8_t>(i32);
-            PF_BOOT("[Globals] luxShiftLo = %d\n", Globals::luxShiftLo);
-        }
-    }
-    else if (strcmp(key, "luxShiftHi") == 0 && type == 'i') {
-        int32_t i32;
-        if (parseInt32(value, &i32) && i32 >= -100 && i32 <= 100) {
-            Globals::luxShiftHi = static_cast<int8_t>(i32);
-            PF_BOOT("[Globals] luxShiftHi = %d\n", Globals::luxShiftHi);
-        }
-    }
-    else if (strcmp(key, "luxGamma") == 0 && type == 'f') {
-        if (parseFloat(value, &f32) && f32 > 0.0f && f32 <= 2.0f) {
-            Globals::luxGamma = f32;
-            PF_BOOT("[Globals] luxGamma = %.2f\n", static_cast<double>(f32));
-        }
-    }
+
     else if (strcmp(key, "seededLuxDataPoints") == 0 && type == 'i') {
         int32_t i32;
         if (parseInt32(value, &i32) && i32 >= 5 && i32 <= 100) {

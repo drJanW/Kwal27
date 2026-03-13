@@ -1,8 +1,8 @@
 /**
  * @file LuxCalibration.h
- * @brief Lux calibration data file and grid search fit
- * @version 260312A
- * @date 2026-03-12
+ * @brief Lux calibration data file and Gauss-Newton fit
+ * @version 260313D
+ * @date 2026-03-13
  */
 #pragma once
 
@@ -16,13 +16,11 @@ struct LuxCalSample {
     float    nf;             // Normalization divisor used: colorMults[GLOBAL_BRIGHTNESS] * cnf * pnf
 };
 
-/// Grid search fit result
+/// Gauss-Newton fit result
 struct LuxFitResult {
-    float luxMax;
-    int8_t luxShiftLo;
-    int8_t luxShiftHi;
-    float luxGamma;
-    float error;             // Weighted MSE
+    float luxBrMax;          // Fitted saturation brightness
+    float luxRate;           // Fitted saturation rate
+    float r2;                // Coefficient of determination (0..1)
     uint8_t sampleCount;     // Total data points used in fit
 };
 

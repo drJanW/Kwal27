@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260313A - Built 2026-03-13 00:49
+ * Kwal WebGUI v260313D - Built 2026-03-13 13:40
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260313A';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260313D';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -1988,8 +1988,8 @@ Kwal.health = (function() {
 // === js/luxcal.js ===
 /**
  * @file    luxcal.js
- * @version 260312A
- * @date    2026-03-12
+ * @version 260313C
+ * @date    2026-03-13
  *
  * Kwal - Lux Calibration module
  * Calibration panel for lux → brightness curve fitting
@@ -2011,7 +2011,10 @@ Kwal.luxcal = (function() {
   function brightnessToSlider(b) { return Math.round(Math.sqrt(b * 100)); }
 
   function formatParams(d) {
-    return 'max=' + d.luxMax + ' lo=' + d.luxShiftLo + ' hi=' + d.luxShiftHi + ' \u03b3=' + d.luxGamma;
+    var s = 'brMax=' + (d.luxBrMax != null ? Number(d.luxBrMax).toFixed(1) : '?') +
+           ' rate=' + (d.luxRate != null ? Number(d.luxRate).toFixed(4) : '?');
+    if (d.luxMax != null) s += ' max=' + Number(d.luxMax).toFixed(0);
+    return s;
   }
 
   function setStatus(text) {
@@ -2065,7 +2068,7 @@ Kwal.luxcal = (function() {
         }
         updateUI(data);
         // Show current params
-        if (fitResultEl && typeof data.luxMax === 'number') {
+        if (fitResultEl && typeof data.luxBrMax === 'number') {
           fitResultEl.textContent = 'Huidig: ' + formatParams(data);
         }
         hideAccept();
@@ -2124,16 +2127,14 @@ Kwal.luxcal = (function() {
         if (data.ok) {
           if (fitResultEl) {
             fitResultEl.textContent = 'Oud: ' + formatParams({
-              luxMax: data.oldLuxMax, luxShiftLo: data.oldLuxShiftLo,
-              luxShiftHi: data.oldLuxShiftHi, luxGamma: data.oldLuxGamma
+              luxBrMax: data.oldLuxBrMax, luxRate: data.oldLuxRate, luxMax: data.luxMax
             });
           }
           if (newParamsEl) {
             newParamsEl.textContent = 'Nieuw: ' + formatParams(data) +
-              ' err=' + data.error + ' (n=' + (data.realCount || 0) + ')';
+              ' R\u00b2=' + (data.r2 != null ? Number(data.r2).toFixed(3) : '?') + ' (n=' + (data.realCount || 0) + ')';
           }
-          if (newFitEl) newFitEl.style.display = 'block';          lastFitParams = { luxMax: data.luxMax, luxShiftLo: data.luxShiftLo,
-            luxShiftHi: data.luxShiftHi, luxGamma: data.luxGamma };          setStatus('Fit berekend — accepteer of sample verder');
+          if (newFitEl) newFitEl.style.display = 'block';          lastFitParams = { luxBrMax: data.luxBrMax, luxRate: data.luxRate };          setStatus('Fit berekend — accepteer of sample verder');
         } else {
           setStatus(data.error || 'Fit mislukt');
         }
@@ -2225,17 +2226,15 @@ Kwal.luxcal = (function() {
     Kwal.sse.onLuxcalFit(function(data) {
       if (fitResultEl) {
         fitResultEl.textContent = 'Oud: ' + formatParams({
-          luxMax: data.oldLuxMax, luxShiftLo: data.oldLuxShiftLo,
-          luxShiftHi: data.oldLuxShiftHi, luxGamma: data.oldLuxGamma
+          luxBrMax: data.oldLuxBrMax, luxRate: data.oldLuxRate, luxMax: data.luxMax
         });
       }
       if (newParamsEl) {
         newParamsEl.textContent = 'Nieuw: ' + formatParams(data) +
-          ' err=' + data.error + ' (n=' + (data.realCount || 0) + ')';
+          ' R\u00b2=' + (data.r2 != null ? Number(data.r2).toFixed(3) : '?') + ' (n=' + (data.realCount || 0) + ')';
       }
       if (newFitEl) newFitEl.style.display = 'block';
-      lastFitParams = { luxMax: data.luxMax, luxShiftLo: data.luxShiftLo,
-        luxShiftHi: data.luxShiftHi, luxGamma: data.luxGamma };
+      lastFitParams = { luxBrMax: data.luxBrMax, luxRate: data.luxRate };
       setStatus('Auto-fit — accepteer of sample verder');
     });
     // Early check: disable sun button if no lux sensor

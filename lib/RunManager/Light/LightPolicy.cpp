@@ -1,8 +1,8 @@
 /**
  * @file LightPolicy.cpp
  * @brief LED show business logic implementation
- * @version 260304B
- * @date 2026-03-04
+ * @version 260313C
+ * @date 2026-03-13
  */
 #include <Arduino.h>
 #include <math.h>
@@ -19,23 +19,14 @@ float applyBrightnessRules(float requested) {
 
 uint8_t calcShiftedHi(float lux, int8_t calendarShift, float webMultiplier,
                       float cnf, float pnf) {
-    // Combined lux + calendar + web multiplier + SNB → shiftedHi
+    // Exponential saturation: lux → brightness
+    float safeLux = MathUtils::maxVal(lux, 0.0f);
+    float luxBrightness = Globals::luxBrMax * (1.0f - expf(-Globals::luxRate * safeLux));
     
-    // luxShift from lux using Stevens' power law
-    // Low lux → large shift change, high lux → compressed (matches human perception)
-    float normalizedLux = clamp(lux, Globals::luxMin, Globals::luxMax) / Globals::luxMax;
-    float luxT = powf(normalizedLux, Globals::luxGamma);
-    float luxShift = Globals::luxShiftLo +
-        (Globals::luxShiftHi - Globals::luxShiftLo) * luxT;
-    
-    // Combined multiplier (webMultiplier can be >1.0 to override other shifts)
-    float combinedMultiplier = 
-        (1.0f + (luxShift / 100.0f)) * 
+    // Combined multiplier (calendar shift + web + SNB normalisation)
+    float brightness = luxBrightness *
         (1.0f + (calendarShift / 100.0f)) *
-        webMultiplier;
-    
-    // Apply SNB normalisation: cnf × pnf scales perceived brightness
-    float brightness = Globals::brightnessHi * combinedMultiplier * cnf * pnf;
+        webMultiplier * cnf * pnf;
 
     // Calibration mode: store pre-clamp value for lux calibration samples
     if (Globals::luxCalibrationMode) {

@@ -1,8 +1,8 @@
 /**
  * @file WebGuiStatus.h
  * @brief Centralized WebGUI state management
- * @version 260309A
- * @date 2026-03-09
+ * @version 260313C
+ * @date 2026-03-13
  */
 #pragma once
 
@@ -87,9 +87,9 @@ void pushLuxcal(uint8_t count, uint8_t realCount, float lux, float brightness);
 /**
  * @brief Push lux calibration fit results (auto-fit or manual) for accept/reject
  */
-void pushLuxcalFit(float oldMax, int8_t oldLo, int8_t oldHi, float oldGamma,
-                   float newMax, int8_t newLo, int8_t newHi, float newGamma,
-                   float error, uint8_t realCount);
+void pushLuxcalFit(float oldBrMax, float oldRate,
+                   float newBrMax, float newRate,
+                   float r2, uint8_t realCount);
 
 /**
  * @brief Push all three events (for reconnect)

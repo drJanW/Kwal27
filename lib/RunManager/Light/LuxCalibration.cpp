@@ -1,8 +1,8 @@
 /**
  * @file LuxCalibration.cpp
- * @brief Lux calibration data file and grid search fit implementation
- * @version 260311C
- * @date 2026-03-11
+ * @brief Lux calibration data file and Gauss-Newton fit implementation
+ * @version 260313D
+ * @date 2026-03-13
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -20,7 +20,6 @@
 namespace {
 constexpr const char* luxCalPath  = "/luxcal.csv";
 constexpr const char* csvHeader   = "lux;brightness;nf";
-constexpr float       seedLuxMax  = 300.0f;  // fixed low start — breaks luxMax snowball
 } // namespace
 
 LuxCalibration& LuxCalibration::instance() {
@@ -58,12 +57,10 @@ bool LuxCalibration::generateSeeds() {
     for (uint8_t i = 0; i < n; ++i) {
         float normLux = static_cast<float>(i + 1) / n;  // 1/n .. 1.0
         normLux *= normLux;                              // quadratic: more seeds at low lux
-        float seedLux = normLux * seedLuxMax;
-        float luxT = powf(normLux, Globals::luxGamma);
-        float luxShift = Globals::luxShiftLo + (Globals::luxShiftHi - Globals::luxShiftLo) * luxT;
+        float seedLux = normLux * Globals::luxMax;
         LuxCalSample s;
         s.lux        = seedLux;
-        s.brightness = Globals::brightnessHi * (1.0f + luxShift / 100.0f);
+        s.brightness = Globals::luxBrMax * (1.0f - expf(-Globals::luxRate * seedLux));
         s.nf         = 1.0f;
         samples_.push_back(s);
     }
@@ -143,95 +140,85 @@ bool LuxCalibration::deleteCsv() const {
 }
 
 bool LuxCalibration::fitParams(LuxFitResult& result) const {
-    constexpr int   fitShiftLimit = 100;  // max absolute shift searched by grid fit
-    constexpr float fitGammaMax   = 2.0f; // max gamma searched by grid fit
-
-    if (samples_.empty()) {
-        PL("[LuxCal] FIT: no data points");
+    if (samples_.size() < 2) {
+        PL("[LuxCal] FIT: need at least 2 data points");
         return false;
     }
 
-    // luxMax is a physical boundary (highest measured lux) — NOT a fit parameter.
-    // The fit works within this fixed range. luxMax only grows via addSample().
-    const float fitMax = Globals::luxMax;
-    if (fitMax < 10.0f) {
-        PL("[LuxCal] FIT: luxMax too low");
-        return false;
-    }
+    // Gauss-Newton: br = B * (1 - exp(-r * lux))
+    // dBr/dB = 1 - exp(-r * lux)            = e
+    // dBr/dr = B * lux * exp(-r * lux)       = B * lux * (1 - e)
+    // Weight: w = 1 / (1 + lux)  — favours low-lux accuracy
 
-    // MSE calculator — inverse-lux weighting
-    auto calcMse = [&](int sLo, int sHi, float gamma) -> float {
-        float totalError = 0.0f;
-        float totalWeight = 0.0f;
+    float B = Globals::luxBrMax;   // start from current params
+    float r = Globals::luxRate;
+    constexpr uint8_t maxIter = 12;
+    constexpr float   minStep = 1e-6f;
+
+    for (uint8_t iter = 0; iter < maxIter; ++iter) {
+        // accumulate J^T W J (2x2) and J^T W residual (2x1)
+        float jj00 = 0, jj01 = 0, jj11 = 0;   // symmetric: jj10 = jj01
+        float jr0  = 0, jr1  = 0;
 
         for (const auto& s : samples_) {
-            float normLux = clamp(s.lux, Globals::luxMin, fitMax) / fitMax;
-            float luxT = powf(normLux, gamma);
-            float luxShift = sLo + (sHi - sLo) * luxT;
-            float predicted = Globals::brightnessHi * (1.0f + luxShift / 100.0f);
-            float diff = s.brightness - predicted;
-            float w = 1.0f / (1.0f + s.lux);
-            totalError += diff * diff * w;
-            totalWeight += w;
+            float lux = MathUtils::maxVal(s.lux, 0.0f);
+            float e   = 1.0f - expf(-r * lux);          // shared sub-expression
+            float predicted = B * e;
+            float residual  = s.brightness - predicted;  // observed - predicted
+            float w = 1.0f / (1.0f + lux);
+
+            float j0 = e;                    // dBr/dB
+            float j1 = B * lux * (1.0f - e); // dBr/dr
+
+            float wj0 = w * j0;
+            float wj1 = w * j1;
+            jj00 += wj0 * j0;
+            jj01 += wj0 * j1;
+            jj11 += wj1 * j1;
+            jr0  += wj0 * residual;
+            jr1  += wj1 * residual;
         }
 
-        return (totalWeight > 0.0f) ? totalError / totalWeight : 1e12f;
-    };
+        // solve 2x2: [jj00 jj01; jj01 jj11] * [dB; dr] = [jr0; jr1]
+        float det = jj00 * jj11 - jj01 * jj01;
+        if (fabsf(det) < 1e-20f) break;   // singular — stop
 
-    // Grid search pass 1: coarse (shiftLo, shiftHi, gamma)
-    float bestError = 1e12f;
-    int bestShiftLo = 0;
-    int bestShiftHi = 0;
-    float bestGamma = 0.4f;
+        float dB = ( jj11 * jr0 - jj01 * jr1) / det;
+        float dr = (-jj01 * jr0 + jj00 * jr1) / det;
 
-    for (int sLo = -fitShiftLimit; sLo <= 0; sLo += 5) {
-        yield();  // feed watchdog — grid search is CPU-intensive
-        for (int sHi = 0; sHi <= fitShiftLimit; sHi += 5) {
-            for (int gIdx = 2; gIdx <= static_cast<int>(fitGammaMax * 10.0f); gIdx++) {
-                float gamma = gIdx * 0.1f;
-                float mse = calcMse(sLo, sHi, gamma);
-                if (mse < bestError) {
-                    bestError = mse;
-                    bestShiftLo = sLo;
-                    bestShiftHi = sHi;
-                    bestGamma = gamma;
-                }
-            }
-        }
+        B += dB;
+        r += dr;
+
+        // clamp to sane range
+        if (B < 10.0f)  B = 10.0f;
+        if (B > 500.0f) B = 500.0f;
+        if (r < 0.001f) r = 0.001f;
+        if (r > 0.5f)   r = 0.5f;
+
+        if (fabsf(dB) < minStep && fabsf(dr) < minStep) break;  // converged
     }
 
-    // Grid search pass 2: fine (±4 shift, ±0.1 gamma)
-    for (int sLo = bestShiftLo - 4; sLo <= bestShiftLo + 4; sLo++) {
-        if (sLo < -fitShiftLimit || sLo > 0) continue;
-        yield();  // feed watchdog
-        for (int sHi = bestShiftHi - 4; sHi <= bestShiftHi + 4; sHi++) {
-            if (sHi < 0 || sHi > fitShiftLimit) continue;
-            for (int gIdx = static_cast<int>(bestGamma * 20.0f) - 2;
-                     gIdx <= static_cast<int>(bestGamma * 20.0f) + 2; gIdx++) {
-                float gamma = gIdx * 0.05f;
-                if (gamma < 0.1f || gamma > fitGammaMax) continue;
-                float mse = calcMse(sLo, sHi, gamma);
-                if (mse < bestError) {
-                    bestError = mse;
-                    bestShiftLo = sLo;
-                    bestShiftHi = sHi;
-                    bestGamma = gamma;
-                }
-            }
-        }
+    // compute R² = 1 - SSres/SStot
+    float ssRes = 0, meanBri = 0;
+    for (const auto& s : samples_) meanBri += s.brightness;
+    meanBri /= samples_.size();
+    float ssTot = 0;
+    for (const auto& s : samples_) {
+        float lux = MathUtils::maxVal(s.lux, 0.0f);
+        float diff = s.brightness - B * (1.0f - expf(-r * lux));
+        ssRes += diff * diff;
+        float dm = s.brightness - meanBri;
+        ssTot += dm * dm;
     }
 
-    // luxMax is NOT fitted — it stays at Globals::luxMax (physical boundary)
-    result.luxMax      = Globals::luxMax;
-    result.luxShiftLo  = bestShiftLo;
-    result.luxShiftHi  = bestShiftHi;
-    result.luxGamma    = clamp(bestGamma, 0.1f, fitGammaMax);
-    result.error       = bestError;
+    result.luxBrMax    = B;
+    result.luxRate     = r;
+    result.r2          = (ssTot > 0) ? 1.0f - ssRes / ssTot : 0.0f;
     result.sampleCount = static_cast<uint8_t>(samples_.size());
 
-    PF("[LuxCal] FIT luxMax=%.0f shiftLo=%d shiftHi=%d gamma=%.2f error=%.1f (n=%u)\n",
-       result.luxMax, result.luxShiftLo, result.luxShiftHi, result.luxGamma,
-       result.error, result.sampleCount);
+    PF("[LuxCal] FIT brMax=%.1f rate=%.4f R²=%.4f (n=%u)\n",
+       result.luxBrMax, static_cast<double>(result.luxRate),
+       static_cast<double>(result.r2), result.sampleCount);
 
     return true;
 }
@@ -245,11 +232,9 @@ bool LuxCalibration::saveFittedParams(const LuxFitResult& result) const {
     if (!file) return false;
 
     file.printf("\n# ── Lux calibration fit ──\n");
-    // luxMax persisted from Globals (physical high-water mark, only grows via samples)
     file.printf("luxMax;f;%.1f;observed lux ceiling\n", static_cast<double>(Globals::luxMax));
-    file.printf("luxShiftLo;i;%d;fitted dark shift\n", result.luxShiftLo);
-    file.printf("luxShiftHi;i;%d;fitted bright shift\n", result.luxShiftHi);
-    file.printf("luxGamma;f;%.2f;fitted gamma\n", static_cast<double>(result.luxGamma));
+    file.printf("luxBrMax;f;%.1f;fitted saturation brightness\n", static_cast<double>(result.luxBrMax));
+    file.printf("luxRate;f;%.4f;fitted saturation rate\n", static_cast<double>(result.luxRate));
     file.close();
 
     PF("[LuxCal] Fitted params saved to %s\n", csvPath.c_str());
@@ -271,12 +256,10 @@ String LuxCalibration::buildJson() const {
     json += Globals::luxSensorPresent ? F("true") : F("false");
     json += F(",\"luxMax\":");
     json += String(Globals::luxMax, 0);
-    json += F(",\"luxShiftLo\":");
-    json += Globals::luxShiftLo;
-    json += F(",\"luxShiftHi\":");
-    json += Globals::luxShiftHi;
-    json += F(",\"luxGamma\":");
-    json += String(Globals::luxGamma, 2);
+    json += F(",\"luxBrMax\":");
+    json += String(Globals::luxBrMax, 1);
+    json += F(",\"luxRate\":");
+    json += String(Globals::luxRate, 4);
     json += '}';
     return json;
 }
