@@ -66,7 +66,7 @@ static void routeSample(AsyncWebServerRequest* request) {
     json += F("{\"ok\":true,\"lux\":");
     json += String(SensorController::ambientLux(), 1);
     json += F(",\"brightness\":");
-    json += String(Globals::lastUnclampedBrightness, 1);
+    json += String(Globals::lastFastledBrightness, 1);
     json += F(",\"n\":");
     json += LuxCalibration::instance().sampleCount();
     json += F(",\"realCount\":");
@@ -94,8 +94,8 @@ static void routeFit(AsyncWebServerRequest* request) {
 
     String json;
     json.reserve(256);
-    json += F("{\"ok\":true,\"luxBrMax\":");
-    json += String(result.luxBrMax, 1);
+    json += F("{\"ok\":true,\"brMax\":");
+    json += String(result.brMax, 1);
     json += F(",\"luxRate\":");
     json += String(result.luxRate, 4);
     json += F(",\"r2\":");
@@ -106,8 +106,8 @@ static void routeFit(AsyncWebServerRequest* request) {
     json += result.sampleCount;
     json += F(",\"realCount\":");
     json += LuxCalibration::instance().realCount();
-    json += F(",\"oldLuxBrMax\":");
-    json += String(Globals::luxBrMax, 1);
+    json += F(",\"oldBrMax\":");
+    json += String(Globals::brMax, 1);
     json += F(",\"oldLuxRate\":");
     json += String(Globals::luxRate, 4);
     json += '}';
@@ -125,7 +125,7 @@ static void routeAcceptFit(AsyncWebServerRequest* request) {
     const auto& fit = cal.getPendingFit();
 
     // Apply fit to Globals
-    Globals::luxBrMax = fit.luxBrMax;
+    Globals::brMax    = fit.brMax;
     Globals::luxRate  = fit.luxRate;
 
     bool saved = false;

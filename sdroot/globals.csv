@@ -41,7 +41,7 @@ patternChangeIntervalMs;u;17640000;pick new random pattern (4.9 hours)
 # ═══════════════════════════════════════════════════════════════════
 brightnessLo;u;16;slider left boundary (fraction of MAX_BRIGHTNESS)
 #defaultBrightnessSliderPct;u;60;boot default brightness slider position (0-100%)
-#luxBrMax;f;222.0;exponential saturation brightness ceiling
+#brMax;f;222.0;exponential saturation brightness asymptote
 #luxRate;f;0.02;exponential saturation rate
 #luxMax;f;300.0;observed lux ceiling (high-water mark)
 #seededLuxDataPoints;i;20;seed count after lux cal fit

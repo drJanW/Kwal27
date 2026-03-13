@@ -52,6 +52,7 @@ void LuxCalibration::clearSamples() {
 bool LuxCalibration::generateSeeds() {
     samples_.clear();
     realCount_ = 0;
+    Globals::luxMax = 300.0f;  // reset range to default
     uint8_t n = Globals::seededLuxDataPoints;
     samples_.reserve(n);
     for (uint8_t i = 0; i < n; ++i) {
@@ -60,7 +61,7 @@ bool LuxCalibration::generateSeeds() {
         float seedLux = normLux * Globals::luxMax;
         LuxCalSample s;
         s.lux        = seedLux;
-        s.brightness = Globals::luxBrMax * (1.0f - expf(-Globals::luxRate * seedLux));
+        s.brightness = Globals::brMax * (1.0f - expf(-Globals::luxRate * seedLux));
         s.nf         = 1.0f;
         samples_.push_back(s);
     }
@@ -145,12 +146,13 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
         return false;
     }
 
-    // Gauss-Newton: br = B * (1 - exp(-r * lux))
-    // dBr/dB = 1 - exp(-r * lux)            = e
-    // dBr/dr = B * lux * exp(-r * lux)       = B * lux * (1 - e)
+    // Gauss-Newton: fit on brightness*nf vs lux
+    // Model: y = B * (1 - exp(-r * lux))
+    // dY/dB = 1 - exp(-r * lux)            = e
+    // dY/dr = B * lux * exp(-r * lux)       = B * lux * (1 - e)
     // Weight: w = 1 / (1 + lux)  — favours low-lux accuracy
 
-    float B = Globals::luxBrMax;   // start from current params
+    float B = Globals::brMax;      // start from current params
     float r = Globals::luxRate;
     constexpr uint8_t maxIter = 12;
     constexpr float   minStep = 1e-6f;
@@ -162,13 +164,14 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
 
         for (const auto& s : samples_) {
             float lux = MathUtils::maxVal(s.lux, 0.0f);
-            float e   = 1.0f - expf(-r * lux);          // shared sub-expression
+            float observed = s.brightness * s.nf;            // normalized observed value
+            float e   = 1.0f - expf(-r * lux);              // shared sub-expression
             float predicted = B * e;
-            float residual  = s.brightness - predicted;  // observed - predicted
+            float residual  = observed - predicted;
             float w = 1.0f / (1.0f + lux);
 
-            float j0 = e;                    // dBr/dB
-            float j1 = B * lux * (1.0f - e); // dBr/dr
+            float j0 = e;                    // dY/dB
+            float j1 = B * lux * (1.0f - e); // dY/dr
 
             float wj0 = w * j0;
             float wj1 = w * j1;
@@ -198,26 +201,27 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
         if (fabsf(dB) < minStep && fabsf(dr) < minStep) break;  // converged
     }
 
-    // compute R² = 1 - SSres/SStot
-    float ssRes = 0, meanBri = 0;
-    for (const auto& s : samples_) meanBri += s.brightness;
-    meanBri /= samples_.size();
+    // compute R² = 1 - SSres/SStot  (on brightness*nf)
+    float ssRes = 0, meanY = 0;
+    for (const auto& s : samples_) meanY += s.brightness * s.nf;
+    meanY /= samples_.size();
     float ssTot = 0;
     for (const auto& s : samples_) {
         float lux = MathUtils::maxVal(s.lux, 0.0f);
-        float diff = s.brightness - B * (1.0f - expf(-r * lux));
+        float observed = s.brightness * s.nf;
+        float diff = observed - B * (1.0f - expf(-r * lux));
         ssRes += diff * diff;
-        float dm = s.brightness - meanBri;
+        float dm = observed - meanY;
         ssTot += dm * dm;
     }
 
-    result.luxBrMax    = B;
+    result.brMax       = B;
     result.luxRate     = r;
     result.r2          = (ssTot > 0) ? 1.0f - ssRes / ssTot : 0.0f;
     result.sampleCount = static_cast<uint8_t>(samples_.size());
 
     PF("[LuxCal] FIT brMax=%.1f rate=%.4f R²=%.4f (n=%u)\n",
-       result.luxBrMax, static_cast<double>(result.luxRate),
+       result.brMax, static_cast<double>(result.luxRate),
        static_cast<double>(result.r2), result.sampleCount);
 
     return true;
@@ -233,7 +237,7 @@ bool LuxCalibration::saveFittedParams(const LuxFitResult& result) const {
 
     file.printf("\n# ── Lux calibration fit ──\n");
     file.printf("luxMax;f;%.1f;observed lux ceiling\n", static_cast<double>(Globals::luxMax));
-    file.printf("luxBrMax;f;%.1f;fitted saturation brightness\n", static_cast<double>(result.luxBrMax));
+    file.printf("brMax;f;%.1f;fitted brightness asymptote\n", static_cast<double>(result.brMax));
     file.printf("luxRate;f;%.4f;fitted saturation rate\n", static_cast<double>(result.luxRate));
     file.close();
 
@@ -251,13 +255,13 @@ String LuxCalibration::buildJson() const {
     json += realCount_;    json += F(",\"lastLux\":");
     json += String(SensorController::ambientLux(), 1);
     json += F(",\"lastBrightness\":");
-    json += String(Globals::lastUnclampedBrightness, 1);
+    json += String(Globals::lastFastledBrightness, 1);
     json += F(",\"hasLuxSensor\":");
     json += Globals::luxSensorPresent ? F("true") : F("false");
     json += F(",\"luxMax\":");
     json += String(Globals::luxMax, 0);
-    json += F(",\"luxBrMax\":");
-    json += String(Globals::luxBrMax, 1);
+    json += F(",\"brMax\":");
+    json += String(Globals::brMax, 1);
     json += F(",\"luxRate\":");
     json += String(Globals::luxRate, 4);
     json += '}';

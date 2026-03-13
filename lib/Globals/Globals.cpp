@@ -274,10 +274,10 @@ static void applyOverride(const char* key, char type, const char* value) {
     // BRIGHTNESS/LUX
     // ═══════════════════════════════════════════════════════════
     // brightnessFloor REMOVED - use brightnessLo instead
-    else if (strcmp(key, "luxBrMax") == 0 && type == 'f') {
+    else if (strcmp(key, "brMax") == 0 && type == 'f') {
         if (parseFloat(value, &f32) && f32 > 0.0f && f32 <= 500.0f) {
-            Globals::luxBrMax = f32;
-            PF_BOOT("[Globals] luxBrMax = %.1f\n", f32);
+            Globals::brMax = f32;
+            PF_BOOT("[Globals] brMax = %.1f\n", f32);
         }
     }
     else if (strcmp(key, "luxRate") == 0 && type == 'f') {

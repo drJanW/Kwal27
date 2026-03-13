@@ -234,11 +234,11 @@ void pushLuxcalFit(float oldBrMax, float oldRate,
     if (!eventsPtr_) return;
     String json;
     json.reserve(192);
-    json += F("{\"oldLuxBrMax\":");
+    json += F("{\"oldBrMax\":");
     json += String(oldBrMax, 1);
     json += F(",\"oldLuxRate\":");
     json += String(oldRate, 4);
-    json += F(",\"luxBrMax\":");
+    json += F(",\"brMax\":");
     json += String(newBrMax, 1);
     json += F(",\"luxRate\":");
     json += String(newRate, 4);

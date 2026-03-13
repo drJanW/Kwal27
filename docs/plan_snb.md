@@ -1,11 +1,11 @@
-# SNB — Stevens Normalized Brightness
+# SNB — Sensor Normalized Brightness
 
 ## One-liner
-Lux-adaptive LED brightness using Stevens' power law, with PNF and CNF
+Lux-adaptive LED brightness using exponential saturation, with PNF and CNF
 normalisation so every pattern + colors combination looks equally bright.
 
-## Status: Approved (lux curve model) / PNF+CNF awaiting concept approval
-## Date: 2026-03-02
+## Status: Implemented (lux curve + PNF + CNF) / Calibration via web GUI
+## Date: 2026-03-13
 
 ---
 
@@ -17,7 +17,7 @@ Three layers, applied in order:
    between patterns)
 2. **CNF** — Colors Normalisation Factor (compensates luminance differences
    between colors's)
-3. **Lux curve** — Stevens' power law maps ambient lux to a brightness shift
+3. **Lux curve** — exponential saturation maps ambient lux to brightness
 
 All three are multiplicative. PNF and CNF are frozen first, then the lux
 curve is calibrated on top.
@@ -29,66 +29,53 @@ curve is calibrated on top.
 ### Lux curve (implemented, in LightPolicy.cpp)
 
 ```
-normalizedLux = clamp(lux, luxMin, luxMax) / luxMax           [0..1]
-luxT          = pow(normalizedLux, luxGamma)                  Stevens' power law
-luxShift      = luxShiftLo + (luxShiftHi - luxShiftLo) × luxT  percentage shift
+luxBrightness = brMax × (1 - exp(-luxRate × lux))
 ```
 
-### Runtime formula (current)
+Exponential saturation: rises steeply at low lux, flattens toward brMax.
+No normalization to [0,1] needed — the model directly outputs brightness.
+
+### Runtime formula (calcShiftedHi)
 
 ```
-combinedMultiplier = (1 + luxShift / 100)
-                   × (1 + calendarShift / 100)
-                   × webMultiplier
-
-brightness = brightnessHi × combinedMultiplier
+brightness = luxBrightness
+           × calendarShift           (skipped during calibration mode)
+           × webMultiplier           (user slider, 0-1)
+           × CNF[activeColors]
+           × PNF[activePattern]
            → clamped to [brightnessLo, brightnessHi]
+           → this clamped value goes to FastLED.setBrightness()
 ```
 
-### Runtime formula (target, after PNF+CNF approval)
+During calibration mode:
+- calendarShift forced to 1.0 (no calendar interference)
+- `lastFastledBrightness` stores the clamped value (= what FastLED receives)
+- Sample = lastFastledBrightness / (cnf × pnf)
 
-```
-combinedMultiplier = (1 + luxShift / 100)
-                   × (1 + calendarShift / 100)
-                   × webMultiplier
-                   × PNF[activePattern]
-                   × CNF[activeColors]
-
-brightness = brightnessHi × combinedMultiplier
-           → clamped to [brightnessLo, brightnessHi]
-```
-
-### Parameters
+### Parameters (in globals.csv)
 
 | Parameter | Default | Range | What it does |
 |-----------|---------|-------|-------------|
-| luxMin | 0.0 | ≥0 | Sensor floor (clamped) |
-| luxMax | 800.0 | >0 | Sensor ceiling — **should be ~100-200 for indoor jellyfish** |
-| luxShiftLo | -10 | [-40..0] | Brightness shift at darkest (lux=0) |
-| luxShiftHi | +10 | [0..+40] | Brightness shift at brightest (lux=luxMax) |
-| luxGamma | 0.4 | [0.15..0.8] | Stevens' exponent: <1 compresses high lux, expands low lux |
+| brMax | 222.0 | [10..500] | Brightness asymptote |
+| luxRate | 0.02 | [0.001..0.5] | Saturation rate (higher = faster rise) |
+| luxMax | 300.0 | grows | Highest observed lux (high-water mark, defines seed range) |
 
-### Why Stevens' power law
+### Why exponential saturation (not Stevens' power law)
 
-The jellyfish is indoors; real lux range is ~0–100. Getting brightness right
-at lux=5 (evening) matters far more than at lux=500 (bright day, LEDs already
-at max). The gamma exponent < 1 allocates most of the shift range to low lux:
+Stevens' power law requires normalization to [0,1] via luxMax, and outputs
+a dimensionless fraction that must be scaled. The exponential saturation
+model directly maps lux → brightness with only 2 parameters (brMax, luxRate).
 
-| lux | normalizedLux (luxMax=100) | luxT (γ=0.4) | % of shift range used |
-|-----|---------------------------|---------------|----------------------|
-| 5   | 0.05                      | 0.26          | 26% |
-| 20  | 0.20                      | 0.53          | 53% |
-| 50  | 0.50                      | 0.76          | 76% |
-| 100 | 1.00                      | 1.00          | 100% |
-
-Half the shift range is allocated to lux 0–20. This matches the installation's
-actual operating conditions.
+- Natural saturation: brightness can't exceed brMax regardless of lux
+- No luxMax dependency in the model itself (luxMax is only used for seed spacing)
+- Better fit to measured data (R² typically > 0.95 with 7+ real samples)
+- Analytical Jacobian enables fast Gauss-Newton fitting on ESP32
 
 ---
 
 ## PNF — Pattern Normalisation Factor
 
-**Status: concept, awaiting approval**
+**Status: implemented**
 
 Compensates for intrinsic brightness differences between patterns.
 A "Twinkling Stars" pattern at bri=200 looks dimmer than "Stationary Split"
@@ -98,15 +85,14 @@ at bri=200 because fewer LEDs are lit at any given moment.
 PNF(pattern) = TargetPower / MeanPatternPower
 ```
 
-Measurement: run each pattern for 5 minutes with white colors at fixed
-brightness, accumulate `calculate_unscaled_power_mW()`, compute mean.
-Store as lookup table on SD.
+Stored per pattern in light_patterns.csv. Calibrated via PNF measurement
+at boot (run each pattern, accumulate power, compute ratio).
 
 ---
 
 ## CNF — Colors Normalisation Factor
 
-**Status: concept, awaiting approval**
+**Status: implemented**
 
 Compensates for luminance differences between colors's.
 Snow White (#FFFFFF) at bri=200 looks far brighter than Deep Space (#000000)
@@ -116,35 +102,54 @@ at bri=200.
 CNF(colors) = ReferenceColorPower / MeanColorPower
 ```
 
-Can be bootstrapped from CIE luminance of the hex values:
+Bootstrapped from CIE luminance of the hex values:
 `Y = 0.2126×R + 0.7152×G + 0.0722×B` (both colors of the pair, averaged).
-Refined later via thumbs-up data.
+Stored per colors in light_colors.csv.
 
 ---
 
 ## Calibration method
 
-**Thumbs-up approach** (from plan_b10_lux_calibration.md):
+### Web GUI: Cal Lux modal
 
-1. User sees brightness slider in web GUI
-2. Adjusts until it "looks good"
-3. Presses 👍 button → firmware logs (lux, brightness) data point
-4. After ≥4 points at different lux levels: grid search fits
-   `luxShiftLo`, `luxShiftHi`, `luxGamma` (luxMax fixed from data)
-5. Weighted fit: `weight = 1/(1+lux)` — low-lux samples count more
+1. User opens Cal Lux modal → calibration mode activates
+2. CalendarShift forced to 1.0 (no calendar interference)
+3. User adjusts brightness slider until LEDs look right for current light
+4. Presses Sample → firmware captures (lux, FastLED brightness / (cnf×pnf))
+5. Repeat at different lux levels (different times of day, curtains open/closed)
+6. Press Fit → Gauss-Newton fits brMax and luxRate to collected data
+7. Review R² and params → Accept saves to globals.csv
+8. Close modal → calibration mode deactivates, brightness restored
+
+### Gauss-Newton fitting (LuxCalibration.cpp)
+
+- 2 parameters: brMax (B), luxRate (r)
+- Model: `brightness = B × (1 - exp(-r × lux))`
+- Analytical Jacobian: `∂/∂B = 1 - exp(-r×lux)`, `∂/∂r = B × lux × exp(-r×lux)`
+- 2×2 normal equation (JᵀWJ)δ = JᵀWe, solved directly
+- Weighted: `w = 1/(1+lux)` — low-lux samples count more
+- Max 12 iterations, convergence when Δ < 0.001
+- Clamps: B ∈ [10, 500], r ∈ [0.001, 0.5]
+- Quality metric: R² = 1 - SSres/SStot
+
+### Seeded data (prior from last fit)
+
+At boot and after Accept, seeds are generated from current params:
+- 20 synthetic points spread over [0, luxMax] with quadratic spacing
+- `nf = 1.0` (seeds represent the pure model, no normalization)
+- Seeds provide a prior so the fit stays stable with few real samples
+- As real samples accumulate, they outweigh seeds
+
+### luxMax — high-water mark
+
+- `luxMax` is the highest lux ever observed during sampling
+- Grows automatically: if a new sample has `lux > luxMax`, luxMax = ceil(lux)
+- Saved to globals.csv on Accept
+- Used only for seed spacing (the model itself doesn't use luxMax)
+- NOT reset by Clear (physical measurement, not a fit parameter)
 
 Calibration runs on **MARMER (188)** only (has lux sensor).
 Development on **HOUT (189)** (normalisation code, web GUI).
-
----
-
-## Execution plan (3 parts)
-
-| Part | What | Where | Doc |
-|------|------|-------|-----|
-| 1 — Normalisation | PNF + CNF computation and integration | HOUT | todo_brightness_part1_normalisation.md |
-| 2 — Calibration | 👍 button, data collection, grid search fit | MARMER | todo_brightness_part2_calibration.md |
-| 3 — Implementation | Per-colors + per-pattern corrections (v2), status GUI, cleanup | HOUT → MARMER | todo_brightness_part3_implementation.md |
 
 ---
 
@@ -159,13 +164,14 @@ Development on **HOUT (189)** (normalisation code, web GUI).
 ## Source documents (historical)
 
 These documents fed into SNB. Refer to plan_snb.md going forward.
+Stevens' power law and grid search references in these docs are **obsolete** —
+the current model is exponential saturation with Gauss-Newton fitting.
 
 | Document | Role |
 |----------|------|
 | BRIGHTNESS NORMALISATION.txt | PNF/CNF theory, lux adaptation concept |
 | calibration.txt | PNF/CNF measurement procedure, pseudocode |
-| plan_b10_lux_calibration.md | Thumbs-up calibration, FIFO, grid search, implementation detail |
-| todo_normcalibeq.txt | Error/question tracker across all three |
+| plan_b10_lux_calibration.md | Thumbs-up calibration concept (grid search obsolete) |
 
 ---
 
@@ -174,5 +180,7 @@ These documents fed into SNB. Refer to plan_snb.md going forward.
 1. **Lux is ambient-only** — measured when all LEDs are OFF (black state)
 2. **PNF and CNF are frozen before lux calibration**
 3. **No circular recalibration** — if PNF/CNF change, redo lux curve
-4. **Channel shifts / white balance are separate** — never merged into global gain
-5. **Fades are applied AFTER the combined multiplier**
+4. **Sample = what FastLED receives** — clamped brightness / (cnf×pnf), never a model intermediate
+5. **CalendarShift disabled during calibration** — user controls brightness via slider only
+6. **Channel shifts / white balance are separate** — never merged into global gain
+7. **Fades are applied AFTER the combined multiplier**

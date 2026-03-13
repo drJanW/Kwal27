@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260313D - Built 2026-03-13 13:40
+ * Kwal WebGUI v260313F - Built 2026-03-13 22:52
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260313D';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260313F';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -2011,9 +2011,9 @@ Kwal.luxcal = (function() {
   function brightnessToSlider(b) { return Math.round(Math.sqrt(b * 100)); }
 
   function formatParams(d) {
-    var s = 'brMax=' + (d.luxBrMax != null ? Number(d.luxBrMax).toFixed(1) : '?') +
+    var s = 'brMax=' + (d.brMax != null ? Number(d.brMax).toFixed(1) : '?') +
            ' rate=' + (d.luxRate != null ? Number(d.luxRate).toFixed(4) : '?');
-    if (d.luxMax != null) s += ' max=' + Number(d.luxMax).toFixed(0);
+    if (d.luxMax != null) s += ' (lux 0-' + Number(d.luxMax).toFixed(0) + ')';
     return s;
   }
 
@@ -2068,7 +2068,7 @@ Kwal.luxcal = (function() {
         }
         updateUI(data);
         // Show current params
-        if (fitResultEl && typeof data.luxBrMax === 'number') {
+        if (fitResultEl && typeof data.brMax === 'number') {
           fitResultEl.textContent = 'Huidig: ' + formatParams(data);
         }
         hideAccept();
@@ -2127,14 +2127,14 @@ Kwal.luxcal = (function() {
         if (data.ok) {
           if (fitResultEl) {
             fitResultEl.textContent = 'Oud: ' + formatParams({
-              luxBrMax: data.oldLuxBrMax, luxRate: data.oldLuxRate, luxMax: data.luxMax
+              brMax: data.oldBrMax, luxRate: data.oldLuxRate, luxMax: data.luxMax
             });
           }
           if (newParamsEl) {
             newParamsEl.textContent = 'Nieuw: ' + formatParams(data) +
               ' R\u00b2=' + (data.r2 != null ? Number(data.r2).toFixed(3) : '?') + ' (n=' + (data.realCount || 0) + ')';
           }
-          if (newFitEl) newFitEl.style.display = 'block';          lastFitParams = { luxBrMax: data.luxBrMax, luxRate: data.luxRate };          setStatus('Fit berekend — accepteer of sample verder');
+          if (newFitEl) newFitEl.style.display = 'block';          lastFitParams = { brMax: data.brMax, luxRate: data.luxRate };          setStatus('Fit berekend — accepteer of sample verder');
         } else {
           setStatus(data.error || 'Fit mislukt');
         }
@@ -2226,7 +2226,7 @@ Kwal.luxcal = (function() {
     Kwal.sse.onLuxcalFit(function(data) {
       if (fitResultEl) {
         fitResultEl.textContent = 'Oud: ' + formatParams({
-          luxBrMax: data.oldLuxBrMax, luxRate: data.oldLuxRate, luxMax: data.luxMax
+          brMax: data.oldBrMax, luxRate: data.oldLuxRate, luxMax: data.luxMax
         });
       }
       if (newParamsEl) {
@@ -2234,7 +2234,7 @@ Kwal.luxcal = (function() {
           ' R\u00b2=' + (data.r2 != null ? Number(data.r2).toFixed(3) : '?') + ' (n=' + (data.realCount || 0) + ')';
       }
       if (newFitEl) newFitEl.style.display = 'block';
-      lastFitParams = { luxBrMax: data.luxBrMax, luxRate: data.luxRate };
+      lastFitParams = { brMax: data.brMax, luxRate: data.luxRate };
       setStatus('Auto-fit — accepteer of sample verder');
     });
     // Early check: disable sun button if no lux sensor

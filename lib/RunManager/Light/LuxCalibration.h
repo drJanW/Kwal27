@@ -18,7 +18,7 @@ struct LuxCalSample {
 
 /// Gauss-Newton fit result
 struct LuxFitResult {
-    float luxBrMax;          // Fitted saturation brightness
+    float brMax;             // Fitted brightness asymptote
     float luxRate;           // Fitted saturation rate
     float r2;                // Coefficient of determination (0..1)
     uint8_t sampleCount;     // Total data points used in fit

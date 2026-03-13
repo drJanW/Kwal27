@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260313D"
+#define FIRMWARE_VERSION_CODE "260313H"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -95,7 +95,7 @@ struct Globals {
     inline static uint8_t  defaultBrightnessSliderPct = 60U;      // Boot default brightness slider position (0-100%); CSV-overridable
     inline static constexpr int loPct               = 0;           // Slider percentage lower bound
     inline static constexpr int hiPct               = 100;         // Slider percentage upper bound
-    inline static float    luxBrMax                = 222.0f;      // Exponential saturation brightness ceiling
+    inline static float    brMax                   = 222.0f;      // Exponential saturation brightness asymptote
     inline static float    luxRate                 = 0.02f;       // Exponential saturation rate
     inline static float    luxMax                  = 300.0f;      // Highest observed lux (grows via samples, defines seed range)
     inline static uint8_t  seededLuxDataPoints     = 20U;         // Seed count after fit (prior from fitted params)
@@ -252,10 +252,10 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     // LUX CALIBRATION — cross-library state for Part 2
     // ─────────────────────────────────────────────────────────────
-    // When true: calcShiftedHi() stores pre-clamp brightness in lastUnclampedBrightness
+    // When true: calcShiftedHi() stores clamped brightness in lastFastledBrightness
     inline static bool luxCalibrationMode = false;
-    // Pre-clamp brightness float, written by calcShiftedHi when luxCalibrationMode is true
-    inline static float lastUnclampedBrightness = 0.0f;
+    // Clamped brightness (what FastLED receives), written by calcShiftedHi when luxCalibrationMode is true
+    inline static float lastFastledBrightness = 0.0f;
     // Flag: web handler sets true, cb_measureLux captures sample then clears
     inline static bool luxCalSampleRequested = false;
 
