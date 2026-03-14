@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Search all VS Code Copilot chat sessions for this workspace.
+.EXAMPLE
+    .\tools\search_chats.ps1 "handleiding"
+#>
 # search_chats.ps1
 # Search all VS Code Copilot chat sessions for this workspace
 # Usage: .\search_chats.ps1 "handleiding"

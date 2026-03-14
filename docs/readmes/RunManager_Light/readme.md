@@ -1,8 +1,8 @@
 # Light Module
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260313C | Updated: 2026-03-14
 
-Manages LED patterns and colors for the RGB ring display via `PatternCatalog` and `ColorsCatalog`.
+Manages LED patterns and colors for the RGB ring display via `PatternCatalog` and `ColorsCatalog`. Includes lux-based brightness calibration via `LuxCalibration`.
 
 ## Architecture
 
@@ -72,11 +72,27 @@ Manages LED patterns and colors for the RGB ring display via `PatternCatalog` an
 | File | Purpose |
 |------|---------|
 | `LightRun.cpp/h` | Request routing, source tracking |
-| `LightPolicy.cpp/h` | Brightness/shift rules |
+| `LightPolicy.cpp/h` | Brightness/shift rules, `calcShiftedHi()` |
+| `LightDirector.cpp/h` | Context-to-request translation |
 | `PatternCatalog.cpp/h` | Pattern CRUD, JSON streaming |
 | `ColorsCatalog.cpp/h` | Color CRUD, JSON streaming |
 | `ShiftTable.cpp/h` | Pattern/color shift percentages |
 | `LightBoot.cpp/h` | Initialization |
+| `LuxCalibration.cpp/h` | Gauss-Newton lux→brightness fit engine (v260313D) |
+
+## LuxCalibration (v260313D)
+
+User-trainable lux-to-brightness mapping using Gauss-Newton fitting on VEML7700 sensor data.
+
+**Model**: `brightness = brMax × (1 - exp(-luxRate × lux))`
+
+- **Defaults**: brMax=222.0, luxRate=0.02, luxMax=300.0
+- **Solver**: Analytical Jacobian, 2×2 normal equations, max 12 iterations
+- **Weighting**: w = 1/(1+lux) — emphasizes low-lux where perception is most consistent
+- **Sample**: `lastFastledBrightness / (cnf × pnf)` — keeps webMultiplier in the loop
+- **Storage**: Samples persist on SD; fit parameters saved to `globals.csv`
+- **WebGUI**: Calibration panel in `luxcal.js`, REST API in `LuxCalRoutes.cpp`
+- **Flow**: Sample → Fit (pending) → Accept (applies immediately + saves + regenerates seeds)
 
 ## CSV Format
 

@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Build kwal.js from JS modules.
+.DESCRIPTION
+    Concatenates webgui-src/js/*.js into sdroot/kwal.js with cache-busting.
+    Run from sdroot/webgui-src folder.
+#>
 # Build kwal.js from modules
 # Run from sdroot/webgui-src folder
 

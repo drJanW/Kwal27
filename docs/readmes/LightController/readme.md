@@ -1,6 +1,6 @@
 # LightController Struct-API Architecture
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260307C | Updated: 2026-03-14
 
 ## Pattern Overview
 
@@ -98,7 +98,18 @@ Test alles na toevoegen
 Dit skelet voorkomt spaghetti en houdt alles schaalbaar en onderhoudbaar.
 
 Ambient lux coordination
+- **Sensor**: VEML7700 (replaced BH1750 in v260215+)
 - RunManager: `requestLuxMeasurement()` turns LEDs off, waits ~120 ms, triggers `SensorController::performLuxMeasurement()`, then calls `updateBaseBrightness()` before restoring LEDs.
-- LightController: `updateBaseBrightness()` uses an exponential mapper: b = b_min + (b_max - b_min) * (1 - exp(-beta * lux)); defaults b_min=20, b_max=220, beta=0.01, lux clamped to 800.
+- **LuxCalibration** (v260313D): Gauss-Newton fit engine replaces the simple exponential mapper. Model: `brightness = brMax × (1 - exp(-luxRate × lux))`. Defaults: brMax=222.0, luxRate=0.02. User-trainable via WebGUI calibration panel. See `lib/RunManager/Light/LuxCalibration.h`.
 - Logging: When `LOCAL_LOG_LEVEL >= LOG_LEVEL_INFO`, each recalculation prints `[Lux->Brightness] lux=... base=... (beta=...)`.
-- Tuning: raise beta for more low-light sensitivity; adjust b_min/b_max for floor/cap; raise L_MAX if your sensor reports higher lux.
+
+## TvShow - TV Simulator Renderer (v260307C)
+
+Ring-based TV simulator for the 6 concentric PMMA ring zones of the jellyfish sculpture:
+
+- **6 zones** (0-5, innermost to outermost): 8→16→24→32→36→44 LEDs per ring (160 total)
+- `setTvZoneTargets(targets[6])` — set target colors per ring
+- `updateTvShow()` — lerp-based smooth rendering (hard cuts or gradual fades)
+- Controlled via `tv.js` in the WebGUI
+
+Files: `TvShow.h`, `TvShow.cpp`

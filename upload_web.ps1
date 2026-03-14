@@ -1,3 +1,11 @@
+<#
+.SYNOPSIS
+    Upload web GUI files to ESP32 SD card.
+.DESCRIPTION
+    Uploads index.html, styles.css, and kwal.js to the device.
+.EXAMPLE
+    .\upload_web.ps1 192.168.2.189
+#>
 # upload_web.ps1
 # Uploads web files (index.html, styles.css, kwal.js) to ESP32 SD card
 # Usage: .\upload_web.ps1 <IP>

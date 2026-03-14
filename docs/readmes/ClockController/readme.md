@@ -1,6 +1,6 @@
 # PRTClock - DS3231 RTC Module
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260219E | Updated: 2026-03-14
 
 Confirmed: your module is the "DS3231 For PI" (XY-597) mini RTC.
 

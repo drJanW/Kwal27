@@ -1,4 +1,10 @@
-﻿# sync_mp3.ps1
+﻿<#
+.SYNOPSIS
+    Sync MP3 directories from NAS to ESP32 SD card.
+.DESCRIPTION
+    Vote-preserving sync of audio files.
+#>
+# sync_mp3.ps1
 # Syncs MP3 directories from NAS to ESP32 SD card (vote-preserving)
 # Run from tools/ directory:
 #   .\sync_mp3.ps1              # sync to HOUT (189)

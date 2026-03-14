@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Upload config.txt to ESP32 SD card.
+.EXAMPLE
+    .\upload_config.ps1 192.168.2.189
+#>
 # Upload config.txt naar de SD-kaart van een ESP32
 # Usage: .\upload_config.ps1 <IP-adres>
 # Voorbeeld: .\upload_config.ps1 192.168.2.189

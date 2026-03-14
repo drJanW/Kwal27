@@ -1,3 +1,12 @@
+<#
+.SYNOPSIS
+    Download CSV files from ESP32 SD card.
+.DESCRIPTION
+    Downloads all CSV config files from a device to local backup.
+.EXAMPLE
+    .\download_csv.ps1 hout
+    .\download_csv.ps1 marmer -dest ".\sd_downloads"
+#>
 # Download CSV files from ESP32 SD card
 # Usage: .\download_csv.ps1 [marmer|hout] [-dest ".\sd_downloads"]
 # API: GET /api/sd/file?path=/<filename>

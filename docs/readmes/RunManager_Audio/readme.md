@@ -1,6 +1,6 @@
 # Audio Run - Distance Playback Notes
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260212D | Updated: 2026-03-14
 
 This file captures the current understanding of how distance driven PCM playback is coordinated with the rest of the audio stack. It is mostly here as a reminder for future maintenance sessions.
 

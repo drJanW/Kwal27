@@ -1,8 +1,20 @@
 # SensorController
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260215B | Updated: 2026-03-14
 
 Thin coordinator for uniform sensor drivers. Timer-driven polling. No ISRs in v1. `loop()` only updates `TimerManager`.
+
+## Active Sensors
+
+| Sensor | Driver | I²C Addr | Purpose |
+|--------|--------|----------|---------|
+| **VEML7700** | `Adafruit_VEML7700` | 0x10 | Ambient lux (replaced BH1750 in v260215+) |
+| **VL53L1X** | custom | 0x29 | Time-of-flight distance (mm) |
+| ~~MPU9250~~ | ~~custom~~ | — | **Disabled** (`.cpp.off`) |
+
+Sensor presence is controlled by `*_PRESENT` flags in `HWconfig.h`:
+- `LUX_SENSOR_PRESENT`, `DISTANCE_SENSOR_PRESENT`, `SENSOR3_PRESENT`
+- Absent sensors: no init, no error flash, status = `—`
 
 ## Table of Contents
 - [Overview](#overview)

@@ -1,8 +1,8 @@
 /**
  * @file ShiftTable.cpp
  * @brief LED parameter shift storage implementation
- * @version 260212A
- * @date 2026-02-12
+ * @version 260314B
+ * @date 2026-03-14
  */
 #include <Arduino.h>
 #include "ShiftTable.h"
@@ -107,20 +107,20 @@ bool ShiftTable::parsePatternParam(const String& s, uint8_t& out) {
     if (key.startsWith("pattern.")) {
         key = key.substring(8);
     }
-    if (key == "color_cycle_sec" || key == "colorCycleSec")   { out = PAT_COLOR_CYCLE; return true; }
-    if (key == "bright_cycle_sec" || key == "brightCycleSec") { out = PAT_BRIGHT_CYCLE; return true; }
-    if (key == "fade_width" || key == "fadeWidth")            { out = PAT_FADE_WIDTH; return true; }
-    if (key == "min_brightness" || key == "minBrightness")    { out = PAT_MIN_BRIGHT; return true; }
-    if (key == "gradient_speed" || key == "gradientSpeed")    { out = PAT_GRADIENT_SPEED; return true; }
-    if (key == "center_x" || key == "centerX")                { out = PAT_CENTER_X; return true; }
-    if (key == "center_y" || key == "centerY")                { out = PAT_CENTER_Y; return true; }
-    if (key == "radius")                                       { out = PAT_RADIUS; return true; }
-    if (key == "window_width" || key == "windowWidth")        { out = PAT_WINDOW_WIDTH; return true; }
-    if (key == "radius_osc" || key == "radiusOsc")            { out = PAT_RADIUS_OSC; return true; }
-    if (key == "x_amp" || key == "xAmp")                      { out = PAT_X_AMP; return true; }
-    if (key == "y_amp" || key == "yAmp")                      { out = PAT_Y_AMP; return true; }
-    if (key == "x_cycle_sec" || key == "xCycleSec")           { out = PAT_X_CYCLE; return true; }
-    if (key == "y_cycle_sec" || key == "yCycleSec")           { out = PAT_Y_CYCLE; return true; }
+    if (key == "colorCycleSec")   { out = PAT_COLOR_CYCLE; return true; }
+    if (key == "brightCycleSec") { out = PAT_BRIGHT_CYCLE; return true; }
+    if (key == "fadeWidth")       { out = PAT_FADE_WIDTH; return true; }
+    if (key == "minBrightness")   { out = PAT_MIN_BRIGHT; return true; }
+    if (key == "gradientSpeed")   { out = PAT_GRADIENT_SPEED; return true; }
+    if (key == "centerX")         { out = PAT_CENTER_X; return true; }
+    if (key == "centerY")         { out = PAT_CENTER_Y; return true; }
+    if (key == "radius")          { out = PAT_RADIUS; return true; }
+    if (key == "windowWidth")     { out = PAT_WINDOW_WIDTH; return true; }
+    if (key == "radiusOsc")       { out = PAT_RADIUS_OSC; return true; }
+    if (key == "xAmp")            { out = PAT_X_AMP; return true; }
+    if (key == "yAmp")            { out = PAT_Y_AMP; return true; }
+    if (key == "xCycleSec")       { out = PAT_X_CYCLE; return true; }
+    if (key == "yCycleSec")       { out = PAT_Y_CYCLE; return true; }
     return false;
 }
 

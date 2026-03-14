@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Export Copilot chat session JSON to readable text.
+.EXAMPLE
+    .\tools\export_chat.ps1 -JsonPath session.json
+#>
 param(
     [string]$JsonPath,
     [string]$OutPath = "docs\chat.txt"

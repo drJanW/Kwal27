@@ -1,6 +1,6 @@
 # TimerManager Library
 
-> Version: 260206A | Updated: 2026-02-06
+> Version: 260212I | Updated: 2026-03-14
 
 TimerManager is a lightweight timer system for Arduino-based ESP32 projects.
 It allocates up to 60 software timers that run callbacks at fixed or growing intervals.

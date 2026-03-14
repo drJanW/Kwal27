@@ -1,25 +1,50 @@
 # Web Interface Controller
 
-> Version: 260212A | Updated: 2026-02-12
+> Version: 260313C | Updated: 2026-03-14
 
 ## Purpose
 Serve a lightweight UI from the SD card so operators can monitor and steer the installation without reflashing firmware. The ESP32 hosts `index.html`, `styles.css`, and `kwal.js` directly from the SD root; updates only require copying new files and bumping the cache-buster query (`?v=`) in `index.html`.
 
 ## Current Features
-1. **Audio panel** - Displays the current fragment, exposes a slider for web volume (`/setWebAudioLevel`, `/getWebAudioLevel`), and shows status text from `AudioManager`.
-2. **Light panel** - Presents brightness control (`/setBrightness`, `/getBrightness`) and summary values from `LightController`.
-3. **OTA modal** - File picker and **Upload Firmware** button posts a `.bin` to `/ota/upload` (HTTP multipart), shows a progress bar, and auto-detects reboot.
-4. **SD controller modal** - File listing and upload/delete helpers talking to `SDController` REST endpoints (`/api/sd/*`).
-5. **Diagnostics** - `kwal.js` exposes `window.APP_BUILD_INFO` so the UI can verify whether the browser has the latest assets.
+1. **Audio panel** — Fragment display, web volume slider, status text
+2. **Light panel** — Brightness control, pattern/color dropdowns, summary values
+3. **Lux calibration panel** — Sample, fit, accept/wis cycle for VEML7700→brightness mapping
+4. **TV simulator panel** — 6-ring zone color control
+5. **OTA modal** — Firmware upload with progress bar and auto-reboot detection
+6. **SD controller modal** — File listing, upload, delete
+7. **MP3 grid** — Visual mp3 directory/file browser
+8. **Log viewer** — Real-time serial log display in browser
+9. **Health / diagnostics** — Component status, version, uptime
+10. **Diagnostics** — `kwal.js` exposes `window.APP_BUILD_INFO` for asset version validation
+
+## Route Architecture
+
+Routes are organized per domain in `lib/WebInterfaceController/Routes/`:
+
+| File | Endpoints | Purpose |
+|------|-----------|---------|
+| `AudioRoutes` | `/setWebAudioLevel`, `/getWebAudioLevel`, `/api/audio/*` | Audio volume and fragment control |
+| `ColorsRoutes` | `/api/colors`, `/api/colors/select` | Color palette CRUD |
+| `PatternsRoutes` | `/api/patterns`, `/api/patterns/select` | Pattern CRUD and selection |
+| `HealthRoutes` | `/api/health` | Component status, version, uptime |
+| `LuxCalRoutes` | `/api/luxcal/*` | Lux calibration: sample, fit, accept, wis, status |
+| `OtaRoutes` | `/ota/upload` | Firmware upload (multipart) |
+| `SdRoutes` | `/api/sd/*` | SD file listing, upload, delete |
+| `TodayRoutes` | `/api/today` | Calendar/theme box info |
+| `LogRoutes` | `/api/log` | Serial log ring buffer |
+| `SseController` | `/events` | Server-Sent Events for real-time UI updates |
+
+Other files: `WebInterfaceController.h/.cpp` (server setup), `WebInterfaceManager.cpp` (route registration), `WebGuiStatus.h/.cpp` (status JSON builder), `WebUtils.h` (helpers), `FallbackPage.h/.cpp` (minimal page when SD unavailable), `AsyncJsonCompat.cpp` (JSON response wrapper).
 
 ## REST Endpoints
 - `GET /` → streams `index.html` from SD (returns 503 if SD not ready).
-- `GET /setBrightness?value=X` and `GET /getBrightness` - route to `RunManager` requests for light control.
-- `GET /setWebAudioLevel` and `GET /getWebAudioLevel` - adjust web-facing audio gain.
-- `POST /ota/upload` - HTTP firmware upload (multipart binary), reboots after success.
-- `GET /api/sd/status`, `POST /api/sd/upload`, `POST /api/sd/delete` - SD maintenance.
+- `GET /setBrightness?value=X` and `GET /getBrightness` — route to `RunManager` requests for light control.
+- `GET /setWebAudioLevel` and `GET /getWebAudioLevel` — adjust web-facing audio gain.
+- `POST /ota/upload` — HTTP firmware upload (multipart binary), reboots after success.
+- `GET /api/sd/status`, `POST /api/sd/upload`, `POST /api/sd/delete` — SD maintenance.
+- `GET /api/luxcal/status`, `POST /api/luxcal/sample`, etc. — lux calibration workflow.
 
-Routes live in `WebInterfaceController.cpp`; each maps directly to a `RunManager` request or SDController method. Logging uses `PF` macros guarded by `WEBIF_LOG_LEVEL`.
+All web handlers follow the **memory-only** rule: set flags/variables in memory, never perform SD I/O or network I/O directly. Actual work is deferred to timer callbacks.
 
 ## SSE Reconnect Behavior
 
@@ -37,6 +62,4 @@ Note: Pattern next/prev no longer forces an immediate status refresh; this avoid
 3. Copy the files to the SD card and reboot the board. The UI self-validates via the version tag.
 
 ## Future Work
-- Push status polling (heartbeat, Wi-Fi info) into the UI header.
-- Add error surfaces for failing uploads (currently shown as toast text).
 - Optional translation hooks for non-Dutch operators.

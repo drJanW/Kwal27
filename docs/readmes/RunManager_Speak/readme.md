@@ -1,6 +1,6 @@
 # Speak Module
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260218M | Updated: 2026-03-14
 
 ## Purpose
 The Speak module is the Run layer for status and error audio feedback.

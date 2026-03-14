@@ -1,6 +1,6 @@
 # ContextController
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260205D | Updated: 2026-03-14
 
 The runtime brain of the system: gathers state from the environment, normalizes it, and surfaces "what's happening now" to the rest of the system. Timer-driven updates and sensor snapshots all feed into that shared context.
 

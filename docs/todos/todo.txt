@@ -21,23 +21,12 @@ F1. Sensor + Speak architecture completion
 
 === Housekeeping ===
 
-H10. Remove snake_case legacy fallbacks in patternShifts parser
-    - ShiftTable.cpp parsePatternParam() accepts both camelCase and snake_case
-    - All CSVs use camelCase consistently — snake_case paths are dead code
-    - Remove snake_case alternatives (color_cycle_sec, bright_cycle_sec, etc.)
-
-H9. Normalize say → speak naming in time/temperature paths
-    - Replace sayTime/saytime usage with speak naming
-    - Rename Globals keys (minSaytimeIntervalMs/maxSaytimeIntervalMs)
-    - Update CSV parser keys in Globals.cpp
-    - ~20 referenties verspreid over Globals.h, Globals.cpp, CSV, RunManager
-
-H11. JS/PS1 file headers toevoegen
-    - 16 JS bestanden in webgui-src/js/ missen @version/@date headers
-    - 22 PS1 scripts in root + tools/ missen headers
-    - Zie: docs/todos/header_todo.txt
 
 === Sidelined ===
+
+H9. Normalize say → speak naming in time/temperature paths
+    - ~20 referenties, puur cosmetisch
+    - CSV-key rename vereist herupload globals.csv naar beide apparaten
 
 F3. Simplify brightness shifts: HSV V → FastLED
     - Verwijder colorA.value/colorB.value uit colorsShifts.csv

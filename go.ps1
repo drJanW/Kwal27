@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Quick USB upload of existing firmware build.
+.DESCRIPTION
+    Uploads the current build to HOUT via USB without recompiling.
+#>
 $ErrorActionPreference = "Stop"
 
 Push-Location -Path $PSScriptRoot

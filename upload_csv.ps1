@@ -1,3 +1,12 @@
+<#
+.SYNOPSIS
+    Upload all CSV files from sdroot to ESP32 SD card.
+.DESCRIPTION
+    Uploads ALL CSV config files. WARNING: overwrites calibrated data on device.
+.EXAMPLE
+    .\upload_csv.ps1 189
+    .\upload_csv.ps1 -ip 192.168.2.189
+#>
 # Upload all CSV files from sdroot to ESP32 SD card
 # Usage: .\upload_csv.ps1 [lastOctet]  or  .\upload_csv.ps1 -ip <full-ip>
 

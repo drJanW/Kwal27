@@ -1,6 +1,6 @@
 # RunManager Architecture
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260313B | Updated: 2026-03-14
 
 Every subsystem that lives under `lib/RunManager/**` follows the same stack so we can iterate on behaviour without touching boot code, timers, or hardware drivers. The stack is strict—skip a layer and you get bugs that are impossible to reason about later.
 
@@ -26,8 +26,30 @@ Every subsystem that lives under `lib/RunManager/**` follows the same stack so w
 ## Boot Discipline
 
 - `BootManager` coordinates shared start-up (clock seeding, fallback timers) and hands off once common modules are alive.
+- **BootSequencer** (v260304F): Manifest-driven declarative boot with dependency tracking. Each step declares `requiresAll` capabilities (e.g., `Cap::SD`, `Cap::WIFI`). States: WAITING → RUNNING → DONE/FAILED with cascade failure. Replaces the earlier ad-hoc boolean-flag boot chain. API: `begin(preGranted)`, `grant(Cap::XXX)`, `fail(Cap::XXX)`, `has(Cap::XXX)`.
 - Each subsystem boot (`AudioBoot`, `LightBoot`, etc.) is responsible for: registering timers with `TimerManager`, caching pointers (e.g. PCM clips), and logging readiness via `PL("[Run][Plan] ...")`.
 - Boot layers must never start behaviour directly. They only prepare the scaffolding so that `RunManager::update()` and the subsystem runners can run deterministically.
+
+## RunManager Subdirectories
+
+The RunManager has 14 domain sub-folders, each following the Boot/Director/Policy/Run pattern:
+
+| Folder | Files | Purpose |
+|--------|-------|---------|
+| **Alert/** | AlertBoot, AlertPolicy, AlertRequest, AlertRGB, AlertRun, AlertState | Hardware error flash notification |
+| **Audio/** | AudioBoot, AudioDirector, AudioPolicy, AudioRun, AudioShiftTable | Fragment/sentence/PCM orchestration |
+| **Boot/** | BootSequencer, Cap | Manifest-driven boot coordination |
+| **Calendar/** | CalendarBoot, CalendarPolicy, CalendarRun | Theme box selection from calendar.csv |
+| **Clock/** | ClockBoot, ClockPolicy, ClockRun | RTC sync, NTP, daily reboot |
+| **Heartbeat/** | HeartbeatBoot, HeartbeatPolicy, HeartbeatRun | Periodic status LED flash |
+| **Light/** | LightBoot, LightDirector, LightPolicy, LightRun, LuxCalibration, ColorsCatalog, PatternCatalog, ShiftTable | LED patterns, colors, lux calibration |
+| **SD/** | SDBoot, SDPolicy, SDRun | SD card health and index management |
+| **Sensors/** | SensorsBoot, SensorsPolicy, SensorsRun, SensorDirector | Sensor polling and data routing |
+| **Speak/** | SpeakBoot, SpeakDirector, SpeakPolicy, SpeakRun, SpeakWords | TTS word queue and speak requests |
+| **Status/** | StatusBoot, StatusDirector, StatusRun | System status aggregation |
+| **System/** | SystemBoot | Core system initialization |
+| **Web/** | WebBoot, WebDirector, WebRun | Web server control |
+| **WiFi/** | WiFiBoot, WiFiRun | Wi-Fi initialization and monitoring |
 
 ## Error Notification Behavior
 

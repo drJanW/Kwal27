@@ -1,6 +1,6 @@
 # NAS CSV Extension
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260205D | Updated: 2026-03-14
 
 ## Purpose
 This document describes the NAS CSV extension added to the firmware. The goal is to fetch configuration CSV files over HTTP from a NAS and store them on the SD card under /nas/ without overwriting the root CSV files.

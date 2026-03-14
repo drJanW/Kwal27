@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Upload a single file from sdroot/ to ESP32 SD card.
+.EXAMPLE
+    .\upload_file.ps1 audioShifts.csv 192.168.2.189
+#>
 # Upload a single file from sdroot/ to ESP32 SD card
 # Usage: .\upload_file.ps1 <filename> <IP>
 # Example: .\upload_file.ps1 audioShifts.csv 192.168.2.189

@@ -1,65 +1,62 @@
 # Kwal27 - An Art Project (Jellyfish)
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260313H | Updated: 2026-03-14
 
 ## Project Overview
-Hoofdfunctionaliteiten:
-•       Audio Management - MP3 afspelen met random fragment
-en en TTS (VoiceRSS)                                       •       LED Management - 160 WS2812B LEDs met complexe lich
-tshows                                                     •       Web Interface - Bediening via browser (volume, lich
-t, voting systeem)                                         •       WiFi & OTA - Netwerkconnectie en wireless updates  
-•       Tijd & Sensoren - NTP tijd, zonsop/ondergang, senso
-ren                                                        •       SD Kaart - Audio files en indexsysteem
-Enkele interessante aspecten:
-Audio Systeem
-•       Gebruikt ESP8266Audio library met I2S output       
-•       Ondersteunt zowel lokale MP3 files als TTS via Voic
-eRSS API                                                   •       "Voting systeem" voor audiofragmenten (likes/dislik
-es)                                                        •       Random audio interval: 6-48 minuten tussen fragment
-en (was: vast 10 min)                                      Licht Shows
-•       Complexe algoritmes voor cirkel-patronen, gradiente
-n, en animaties                                            •       Positie-gebaseerde LED mapping (x,y coördinaten van
- SD kaart)                                                 •       Dynamische brightness gebaseerd op audio levels en 
-web input                                                  •       Random pattern en color selectie bij boot (uit CSV 
-bestanden)                                                 Web Interface
-•       Moderne HTML/CSS/JS interface
-•       Real-time sliders voor volume en brightness        
-•       Voting buttons voor audio content
 
-Context Controller becomes the runtime brain: gathers state
- from the environment, normalizes it, and surfaces “what’s happening now” to the rest of the system; timer-driven updates and sensor snapshots all feed into that shared context.RunManager is the decision layer: it consumes context plus 
-request inputs (user/web/etc.), applies high-level rules, and emits requests toward subsystems (audio, light, OTA) without touching hardware details itself.                     Each Policy (AudioPolicy, LightPolicy, SDPolicy, etc.) is n
-ow a focused ruleset: given a request and the current context, it enforces local constraints (context-driven brightness caps, playback arbitration) before delegating to the subsystem controllers.                                         Net effect: context collects facts, run chooses actions, po
-licies enforce domain-specific guardrails—clean separation that keeps subsystems modular and easier to evolve.        
-Status ownership rule: controllers only write status to Ale
-rtState (or StatusBits). All status reads must come from AlertState (or StatusBits), not controller APIs.             
-A TimerManager slot fires and runs its callback (e.g., hour
-ly “say time”, periodic fragment shuffle).                 Each callback raises a request toward RunManager (or direct
-ly queues a ContextController refresh), never touching hardware.                                                      RunManager combines the request with the current context sn
-apshot, then consults the relevant policy (audio/light/SD/etc.).                                                      The policy enforces its domain rules—resource availability,
- safety thresholds—and either rejects or forwards the request.                                                        Approved requests go to the subsystem controller (AudioMana
-ger, LightController, …), which executes the action; rejections are logged or deferred.                               
- producers → Context → Run → policies → requests → consumer
-s (audio/light/serial)                                     
- layered controller-based architecture:
+ESP32-S3 ambient art installation (jellyfish sculpture) with LED lights, audio playback, web interface, and sensor integration. PlatformIO project, Arduino framework, 16MB flash.
 
-Modules: encapsulate specific functionality (audio, light, 
-input, etc.).                                              
-ContextController: decides current state/environment (time,
- rules, events).                                           
-RunManager: applies behavior patterns given the context.   
+**Core subsystems:**
+- **Audio** — MP3 fragment playback (random 6-48 min intervals), TTS via PlaySentence, PCM clips, I2S output
+- **LED** — 160 WS2812B LEDs with pattern-based light shows, position-mapped (x,y from ledmap.bin), TV simulator mode
+- **Web Interface** — Browser UI (volume, brightness, pattern/color selection, OTA, diagnostics, lux calibration)
+- **WiFi & OTA** — Auto-connect with retry, static IP, wireless firmware update
+- **Sensors** — VEML7700 ambient lux, VL53L1X time-of-flight distance
+- **Time** — DS3231 RTC + NTP sync, sunrise/sunset calculation
+- **SD Card** — Index-driven MP3 selection, CSV configs, NAS fetch with SD fallback
 
-Policy layer: enforces priorities, resolves conflicts betwe
-en runs.                                                   
-TimerManager: centralized timing, fade scheduling, FSM tick
-s.                                                         
-Each module has one global instance, and responsibilities a
-re strictly separated. Dependencies flow top-down: context → run → policy → modules, with TimerManager as shared core 
-Analogie:
-Context (seizoen/zaal/programma): welk concert, begintijd, 
-akoestiek, regels van de zaal.                             Plan (programmakeuze): Beethoven 5, tempi-doelen, dynamiekb
-and.                                                       Policy (chef-dirigent/artistiek leider): prioriteiten bij c
-onflicten, wie solo krijgt, no-phones.                     Run (partituur→gebaar): concrete inzetten, crescendi, balan
-sbesluiten.                                                Do-requests (uitvoering): “strijkers p, hout in”, “trompet 
-nu inzetten”.                                              Modules: secties en instrumenten.
-TimerManager: maatsoort, metrum, cue-timing.
+## Architecture
+
+```
+TimerManager (central timing) → RunManager (orchestration)
+    ↓                              ↓
+Boot layers (one-time init)    Policy layers (rules/constraints)
+    ↓                              ↓
+Controllers (hardware APIs)    Directors (context→requests)
+```
+
+**Flow:** producers → Context → Run → Policies → Requests → Controllers (audio/light/serial)
+
+| Layer | Role | Constraints |
+|-------|------|-------------|
+| **Boot** | One-time init, register timers, seed caches. BootSequencer manages dependencies via Cap grants. | Runs once at startup |
+| **Run** (`lib/RunManager/`) | Orchestration `cb_*` callbacks, sequences work, raises requests | 14 domain subdirectories |
+| **Policy** | Domain rules, approve/deny requests | NO side effects, NO timers, NO hardware |
+| **Director** | Build requests from context | NO policy decisions |
+| **Controller** | Hardware drivers (FastLED, I2S, SPI) | ONLY controllers touch hardware |
+
+**Status ownership:** Controllers write to AlertState; all reads from AlertState, not controller APIs.
+
+## Library Modules
+
+| Module | Purpose |
+|--------|---------|
+| `AudioManager/` | MP3 playback coordinator: PlayFragment (fade), PlaySentence (TTS), PlayPCM |
+| `ClockController/` | DS3231 RTC driver, NTP sync |
+| `ContextController/` | Runtime state aggregation (calendar, statusflags, time-of-day, theme boxes) |
+| `Globals/` | Shared config, MathUtils, CsvUtils, AudioState, macros, HWconfig |
+| `LightController/` | LED show renderer, TvShow (6-ring TV simulator), LED map |
+| `RunManager/` | 14 subdirs: Alert, Audio, Boot, Calendar, Clock, Heartbeat, Light, SD, Sensors, Speak, Status, System, Web, WiFi |
+| `SDController/` | Index-driven MP3 selection (binary .root_dirs/.files_dir), voting |
+| `SdFileAccess/` | SD card file I/O, path utilities, busy guard |
+| `SensorController/` | VEML7700 (lux), VL53L1X (distance); uniform driver API |
+| `TimerManager/` | 60-slot non-blocking timer system: create/restart/cancel, growth backoff |
+| `WebInterfaceController/` | REST API (10 route files), SSE, fallback page |
+| `WiFiController/` | WiFi connect/retry/health, NAS CSV fetch |
+
+## Key Design Rules
+
+- **TimerManager only** — no `millis()`, `delay()`, `esp_timer`, or `Ticker`
+- **Web handlers: memory only** — no SD I/O or network I/O from handlers; defer to timer callbacks
+- **Subsystem isolation** — subsystems communicate through shared state or RunManager, never direct calls
+- Each module has one global instance; dependencies flow top-down: context → run → policy → modules

@@ -1,8 +1,22 @@
 # Globals - Shared Configuration
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260313C | Updated: 2026-03-14
 
 Contains all parameters used by more than one module or file.
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `Globals.h` | Shared config defines, `FIRMWARE_VERSION_CODE`, extern declarations |
+| `Globals.cpp` | Atomic state accessors (get/set pattern) |
+| `HWconfig.h` | Hardware pins, Wi-Fi credentials, static IP, `*_PRESENT` flags |
+| `macros.inc` | Logging macros (`PL`/`PP`/`PF`), module verbosity toggles, `SECONDS`/`MINUTES`/`HOURS` |
+| `MathUtils.h` | `clamp`, `map`, `mapRange`, `lerp`, `inverseLerp`, `wrap`, `nearlyEqual`, etc. |
+| `CsvUtils.h` | CSV parsing: `csv::readLine()`, `csv::splitColumns()`, `csv::stripBom()`, `csv::isNumericId()` |
+| `AudioState.h` / `.cpp` | Thread-safe audio state accessors (moved from AudioManager for cross-layer access) |
+| `LogBuffer.h` / `.cpp` | Ring buffer for in-memory log capture |
+| `I2CInitHelper.h` / `.cpp` | Shared I²C bus initialization |
 
 ## Atomics helper pattern
 
@@ -26,6 +40,27 @@ uint8_t getYear() { return getMux(&_valYear); }
 Most global state accessors follow this pattern and should migrate into dedicated controllers over time.
 
 `HWconfig.h` keeps hardware settings (pins, Wi-Fi credentials, static IP, etc.). `adc_port` is still only used to seed randomness and should be refactored out later.
+
+## CsvUtils (`CsvUtils.h`, v260302C)
+
+Namespace `csv::` provides safe CSV parsing utilities used by all CSV loaders:
+
+- `readLine(file, out)` — reads one line, strips CR/LF
+- `splitColumns(line, vector, delimiter=';')` — parses semicolon-delimited columns
+- `stripBom(text)` — removes UTF-8 BOM from first line
+- `isNumericId(id)` — validates numeric ID strings (skips comment lines starting with `#`)
+
+## AudioState (`AudioState.h`, v260227B)
+
+Thread-safe audio state accessors moved from `AudioManager` to `Globals` for cross-layer access. Uses relaxed atomic ordering. Key accessors:
+
+- `isFragmentPlaying()` / `isSentencePlaying()` / `isTtsActive()` / `isPcmPlaying()`
+- `getVolumeWebMultiplier()` / `setVolumeWebMultiplier()`
+- Track info, audio meter level, playback status flags
+
+## Runtime config override (`globals.csv`)
+
+Most parameters can be overridden at boot via `globals.csv` on SD. Lines prefixed with `#` use code defaults. Format: `name;type;value;comment` where type is `u` (uint32), `f` (float), or `s` (string).
 
 ## Audio timing constants
 

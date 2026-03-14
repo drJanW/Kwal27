@@ -1,6 +1,6 @@
 # WiFiController
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260205D | Updated: 2026-03-14
 
 Manages WiFi connection with automatic retry and health monitoring.
 

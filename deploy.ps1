@@ -1,3 +1,12 @@
+<#
+.SYNOPSIS
+    Unified deployment script for USB and OTA firmware upload.
+.DESCRIPTION
+    One firmware binary, deploy via USB to HOUT or OTA to MARMER.
+.EXAMPLE
+    .\deploy.ps1 usb
+    .\deploy.ps1 marmer
+#>
 # deploy.ps1
 # Unified deployment script — one firmware binary, deploy via USB or OTA
 # Usage: .\deploy.ps1 usb                 - USB upload to HOUT (192.168.2.189)

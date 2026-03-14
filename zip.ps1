@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Create project backup ZIP file.
+.DESCRIPTION
+    Dynamically filters using .gitignore rules.
+#>
 # makezip.ps1 — volledig dynamisch, alleen .gitignore bepaalt filtering
 
 $ErrorActionPreference = "Stop"

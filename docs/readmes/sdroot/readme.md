@@ -1,6 +1,6 @@
 # SD Card Root Files
 
-> Version: 260205D | Updated: 2026-02-05
+> Version: 260313F | Updated: 2026-03-14
 
 This folder contains all files that should be copied to the SD card root for the Kwal27 installation.
 
@@ -22,7 +22,10 @@ sdroot/
 ├── patternShifts.csv       # Pattern probability shifts per theme
 ├── globals.csv             # Runtime globals override
 ├── ledmap.bin              # LED matrix mapping
+├── wifi.txt                # WiFi credentials (SSID/password)
 ├── System Volume Information/  # Dummy folder (see below)
+├── HOUT/                   # Device-specific overrides (HOUT)
+├── MARMER/                 # Device-specific overrides (MARMER)
 └── webgui-src/             # JavaScript source files
 ```
 
@@ -54,20 +57,25 @@ tracked in git, the SD card copy will be consistent and git status stays clean.
 webgui-src/
 ├── build.ps1           # Build script: concatenates JS → kwal.js
 ├── WEBGUI_CONTRACT.md  # API contract documentation
-└── js/                 # Modular JavaScript sources
+└── js/                 # Modular JavaScript sources (18 modules)
     ├── namespace.js    # Global namespace definition
     ├── state.js        # Application state management
     ├── audio.js        # Audio panel controls
     ├── brightness.js   # Brightness slider
+    ├── colorpicker.js  # Color picker widget
     ├── colors.js       # Color selection
-    ├── pattern.js      # Pattern selection
+    ├── health.js       # Health/diagnostics
+    ├── log.js          # Real-time serial log viewer
+    ├── luxcal.js       # Lux calibration panel (sample/fit/accept)
+    ├── main.js         # Entry point, event binding
     ├── modal.js        # Modal dialogs
+    ├── mp3grid.js      # MP3 directory/file grid browser
     ├── ota.js          # OTA update UI
+    ├── pattern.js      # Pattern selection
     ├── sd.js           # SD card file browser
     ├── sse.js          # Server-Sent Events handler
     ├── status.js       # Status display
-    ├── health.js       # Health/diagnostics
-    └── main.js         # Entry point, event binding
+    └── tv.js           # TV simulator 6-ring zone control
 ```
 
 ### Build Process
