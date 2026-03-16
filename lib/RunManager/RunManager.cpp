@@ -251,7 +251,10 @@ void armDeepSleep() {
     const auto wakeReason = esp_sleep_get_wakeup_cause();
     static bool wakeLogged = false;
     if (!wakeLogged) {
-        PF("[Sleep] Wake reason: %d (0=coldboot, 4=timer)\n", static_cast<int>(wakeReason));
+        if (wakeReason == ESP_SLEEP_WAKEUP_TIMER)
+            PL("[Sleep] Wake up by timer");
+        else
+            PL("[Sleep] Coldboot");
         wakeLogged = true;
     }
     if (wakeReason == ESP_SLEEP_WAKEUP_UNDEFINED && isInSleepWindow()) {

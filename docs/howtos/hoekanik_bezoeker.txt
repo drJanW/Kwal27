@@ -55,7 +55,11 @@ Stemmen op fragmenten (voting)
 1) Tijdens of na een fragment:
    👍 = +3 punten (vaker afspelen)
    👎 = -5 punten (minder vaak afspelen)
-2) Score is zichtbaar tussen de knoppen.
+2) Snelknoppen:
+   − = score naar 10 (bijna nooit meer afspelen)
+   + = score naar 200 (zo vaak mogelijk afspelen)
+   Klik op het score-getal = reset naar 100
+3) Score is zichtbaar tussen de knoppen.
    Stemmen worden onthouden, ook na reboot.
 
 ───────────────────────────────────────

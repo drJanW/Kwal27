@@ -905,10 +905,17 @@ void Globals::begin() {
     PF("[Boot][%s] %s ssid=%s pw=%s ip=%s gw=%s\n",
        source, Globals::deviceName, Globals::wifiSsid, Globals::wifiPassword,
        Globals::staticIp, Globals::staticGateway);
-    PF("[Boot][%s] %s rtc=%d lux=%d dist=%d s3=%d\n",
-       source, Globals::deviceName,
-       Globals::rtcPresent, Globals::luxSensorPresent,
-       Globals::distanceSensorPresent, Globals::sensor3Present);
+    // Log present/absent sensors in readable form
+    {
+        char present[64] = "";
+        char absent[64] = "";
+        if (Globals::rtcPresent)            strcat(present, " RTC");   else strcat(absent, " RTC");
+        if (Globals::luxSensorPresent)      strcat(present, " Lux");   else strcat(absent, " Lux");
+        if (Globals::distanceSensorPresent) strcat(present, " Dist");  else strcat(absent, " Dist");
+        if (Globals::sensor3Present)        strcat(present, " S3");    else strcat(absent, " S3");
+        if (present[0]) PF("[Boot][%s] %s aanwezig:%s\n", source, Globals::deviceName, present);
+        if (absent[0])  PF("[Boot][%s] %s afwezig:%s\n",  source, Globals::deviceName, absent);
+    }
     
     // ── Step 3: Load globals.csv overrides ──
     const String csvPath = SdPathUtils::chooseCsvPath("globals.csv");

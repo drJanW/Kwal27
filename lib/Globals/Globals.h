@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260316F"
+#define FIRMWARE_VERSION_CODE "260316I"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -213,7 +213,7 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     // DAILY REBOOT (1 param)
     // ─────────────────────────────────────────────────────────────
-    inline static uint8_t  dailyRebootHour          = 4U;          // Hour (1-23) for daily auto-reboot (0 = disabled, so midnight reboot not possible)
+    inline static uint8_t  dailyRebootHour          = 0U;          // Hour (1-23) for daily auto-reboot (0 = disabled; deep sleep wake is already a fresh boot)
 
     // ─────────────────────────────────────────────────────────────
     // DEEP SLEEP (5 params + 1 runtime)

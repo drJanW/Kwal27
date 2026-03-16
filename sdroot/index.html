@@ -23,9 +23,13 @@
             class="clickable">---</span></span>
         <button id="audio-next" class="btn-icon">⏭</button>
         <span class="spacer"></span>
-        <button id="vote-down" class="btn-icon">👎</button>
-        <span id="vote-score" class="vote-value">-</span>
-        <button id="vote-up" class="btn-icon">👍</button>
+        <span class="vote-group">
+          <span id="vote-min" class="vote-btn vote-set">−</span>
+          <span id="vote-down" class="vote-btn">👎</span>
+          <span id="vote-score" class="vote-value clickable">-</span>
+          <span id="vote-up" class="vote-btn">👍</span>
+          <span id="vote-max" class="vote-btn vote-set">+</span>
+        </span>
       </div>
       <div class="row">
         <button id="audio-mute" class="btn-icon" style="font-size:1.4rem">🔊</button>
@@ -33,7 +37,7 @@
         <span id="vol-num">100%</span>
       </div>
       <div class="row">
-        <label class="label-red" style="font-size:1.4rem" title="Fragment interval">🔊⏱</label>
+        <label class="label-red" style="font-size:1.4rem" title="Fragment interval">♫⏱</label>
         <input type="range" id="frag-interval" class="slider-red" min="0" max="15" value="7">
         <span id="frag-num">30m</span>
       </div>
@@ -316,7 +320,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260316E"></script>
+  <script src="kwal.js?v=260316I"></script>
 </body>
 
 </html>

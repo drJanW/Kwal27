@@ -172,10 +172,15 @@ footer #dev-btn:hover { background: #444; color: #aaa; }
 .fragment-id .clickable { cursor: pointer; }
 .fragment-id .clickable:hover { color: #adf; text-decoration: underline; }
 .fragment-id .clickable.disabled { color: #666; cursor: not-allowed; text-decoration: none; }
-.vote-value { font-family: monospace; font-size: 0.85rem; color: #aaa; flex: 0 0 3ch; text-align: center; margin: 0 -3px; }
+.vote-value { font-family: monospace; font-size: 0.85rem; color: #aaa; flex: 0 0 3ch; text-align: center; margin: 0 -3px; cursor: pointer; }
+.vote-value:hover { color: #fff; }
 .btn-icon { padding: 0.2rem 0.3rem; background: #3a3a5a; color: #eee; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; line-height: 1; }
 .btn-icon:hover { background: #4a4a6a; }
 .btn-icon:disabled { opacity: 0.5; cursor: not-allowed; }
+.vote-group { display: inline-flex; align-items: center; gap: 0.15rem; }
+.vote-btn { cursor: pointer; user-select: none; font-size: 0.9rem; opacity: 0.7; }
+.vote-btn:hover { opacity: 1; }
+.vote-set { color: #FFD700; font-weight: bold; font-size: 1.1rem; }
 
 /* SD Browser */
 .sd-browser { margin-bottom: 1rem; }

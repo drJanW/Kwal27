@@ -1,8 +1,8 @@
 /**
  * @file SDVoting.cpp
  * @brief Audio fragment voting system implementation with score tracking per file
- * @version 260202A
- $12026-02-11
+ * @version 260316I
+ * @date 2026-03-16
  */
 #include <Arduino.h>
 #include "SDVoting.h"
@@ -223,12 +223,21 @@ void SDVoting::attachVoteRoute(AsyncWebServer& server) {
     const bool doBan =
       req->hasParam("ban") || req->hasParam("ban", true);
 
-    int delta = 1;
+    bool doSet = false;
+    int  setVal = 0;
+    int  delta  = 1;
     if (!doDel && !doBan) {
-      if (req->hasParam("delta"))            delta = req->getParam("delta")->value().toInt();
-      else if (req->hasParam("delta", true)) delta = req->getParam("delta", true)->value().toInt();
-      if (delta > 10)  delta = 10;
-      if (delta < -10) delta = -10;
+      if (req->hasParam("set"))            { doSet = true; setVal = req->getParam("set")->value().toInt(); }
+      else if (req->hasParam("set", true)) { doSet = true; setVal = req->getParam("set", true)->value().toInt(); }
+
+      if (doSet) {
+        setVal = MathUtils::clamp(setVal, 1, 200);
+      } else {
+        if (req->hasParam("delta"))            delta = req->getParam("delta")->value().toInt();
+        else if (req->hasParam("delta", true)) delta = req->getParam("delta", true)->value().toInt();
+        if (delta > 10)  delta = 10;
+        if (delta < -10) delta = -10;
+      }
     }
 
     uint8_t dir = 0, file = 0; bool have = false;
@@ -258,6 +267,17 @@ void SDVoting::attachVoteRoute(AsyncWebServer& server) {
       ContextController_post(ContextController::WebCmd::BanFile, dir, file);
       char b2[64]; snprintf(b2, sizeof(b2), "BAN queued dir=%u file=%u", dir, file);
       req->send(200, "text/plain", b2);
+      return;
+    }
+
+    if (doSet) {
+      uint8_t d2, f2, baseScore;
+      getCurrentDirFile(d2, f2, baseScore);
+      totalVote = setVal - static_cast<int>(baseScore);
+      timers.create(2000, 0, cb_saveVotes);
+      char b3[80];
+      snprintf(b3, sizeof(b3), "SET dir=%u file=%u score=%d", dir, file, setVal);
+      req->send(200, "text/plain", b3);
       return;
     }
 

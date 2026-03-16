@@ -171,15 +171,14 @@ namespace {
         for (const char* filename : csvFiles) {
             size_t bytes = downloadCsvFile(filename);
             if (bytes > 0) {
+                PF("[WiFiBoot] NAS CSV: %s (%uB)\n", filename, static_cast<unsigned>(bytes));
                 count++;
                 totalBytes += bytes;
             }
         }
 
         const uint8_t total = sizeof(csvFiles) / sizeof(csvFiles[0]);
-        if (count > 0) {
-            PF("[WiFiBoot] NAS CSV: %u/%u fetched (%uKB)\n", count, total, static_cast<unsigned>(totalBytes / 1024));
-        } else {
+        if (count == 0) {
             PF("[WiFiBoot] NAS CSV: 0/%u fetched, using SD\n", total);
         }
     }

@@ -1,8 +1,8 @@
 /**
  * @file SDVoting.h
  * @brief Audio fragment voting system interface with score tracking per file
- * @version 260202A
- $12026-02-10
+ * @version 260316I
+ * @date 2026-03-16
  */
 #pragma once
 #include <Arduino.h>

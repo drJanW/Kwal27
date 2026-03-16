@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260316E - Built 2026-03-16 08:42
+ * Kwal WebGUI v260316I - Built 2026-03-16 10:19
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260316E';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260316I';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -197,6 +197,8 @@ Kwal.audio = (function() {
     voteUpBtn = document.getElementById('vote-up');
     voteDownBtn = document.getElementById('vote-down');
     voteScoreEl = document.getElementById('vote-score');
+    var voteMinBtn = document.getElementById('vote-min');
+    var voteMaxBtn = document.getElementById('vote-max');
     
     if (slider && label) {
       slider.oninput = function() {
@@ -265,6 +267,16 @@ Kwal.audio = (function() {
     if (voteDownBtn) {
       voteDownBtn.onclick = function() { vote(-5); };
     }
+    if (voteMinBtn) {
+      voteMinBtn.onclick = function() { voteSet(10); };
+    }
+    if (voteMaxBtn) {
+      voteMaxBtn.onclick = function() { voteSet(200); };
+    }
+    if (voteScoreEl) {
+      voteScoreEl.onclick = function() { voteSet(100); };
+      voteScoreEl.classList.add('clickable');
+    }
     
     // No load() - initial state comes from SSE
     initIntervalControls();
@@ -281,6 +293,11 @@ Kwal.audio = (function() {
     }
     // Fire and forget - no blocking
     fetch('/vote?delta=' + delta, { method: 'POST' }).catch(function() {});
+  }
+
+  function voteSet(score) {
+    if (voteScoreEl) voteScoreEl.textContent = String(score);
+    fetch('/vote?set=' + score, { method: 'POST' }).catch(function() {});
   }
 
   /**
