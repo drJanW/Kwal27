@@ -8,7 +8,6 @@
 #include "Globals.h"
 #include "SDController.h"
 #include "Alert/AlertState.h"
-#include "SdPathUtils.h"
 #include <esp_system.h>
 #include <math.h>
 #include <Preferences.h>
@@ -805,7 +804,7 @@ static bool loadConfigFromNvs() {
 // Load config.txt: key=value pairs for device identity & hardware presence
 // ─────────────────────────────────────────────────────────────
 static bool loadConfigTxt() {
-    const String path = SdPathUtils::chooseCsvPath("config.txt");
+    const String path = String("/config.txt");
     if (path.isEmpty() || !SDController::fileExists(path.c_str())) {
         return false;
     }
@@ -918,7 +917,7 @@ void Globals::begin() {
     }
     
     // ── Step 3: Load globals.csv overrides ──
-    const String csvPath = SdPathUtils::chooseCsvPath("globals.csv");
+    const String csvPath = String("/globals.csv");
     if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         Serial.println("[Globals] No globals.csv, using defaults");
         return;

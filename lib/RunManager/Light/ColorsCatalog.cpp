@@ -13,7 +13,6 @@
 #include "SDController.h"
 #include "CsvUtils.h"
 #include "MathUtils.h"
-#include "SdPathUtils.h"
 #include "LightController.h"
 #include "PatternCatalog.h"  // For previewColors only
 #include "LightRun.h"        // For requestPlayLightShow (deferred apply)
@@ -426,7 +425,7 @@ bool ColorsCatalog::loadColorsFromSD() {
     if (!AlertState::isSdOk()) {
         return false;
     }
-    const String csvPath = SdPathUtils::chooseCsvPath(colorPath);
+    const String csvPath = String(colorPath);
     if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         return false;
     }

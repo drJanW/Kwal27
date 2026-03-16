@@ -11,7 +11,6 @@
 #include "Globals.h"
 #include "CsvUtils.h"
 #include "SDController.h"
-#include "SdPathUtils.h"
 #include "SensorController.h"
 #include "Alert/AlertState.h"
 #include <SD.h>
@@ -229,7 +228,7 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
 
 bool LuxCalibration::saveFittedParams(const LuxFitResult& result) const {
     if (!AlertState::isSdOk()) return false;
-    const String csvPath = SdPathUtils::chooseCsvPath("globals.csv");
+    const String csvPath = String("/globals.csv");
     if (csvPath.isEmpty()) return false;
 
     File file = SD.open(csvPath.c_str(), FILE_APPEND);

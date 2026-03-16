@@ -1,49 +1,35 @@
-# NAS CSV Read and Fallback
+# NAS CSV Download
 
-> Version: 260205D | Updated: 2026-03-14
+> Version: 260316K | Updated: 2026-03-16
 
 ## Purpose
-This document explains how CSV reading prefers NAS files and how fallback to SD root works.
+At boot, the firmware downloads CSV configuration files from the NAS
+directly to SD root, overwriting the existing copies.
 
-## Read Order
-When a CSV file is needed, the firmware uses this order:
-1. `/nas/<filename>` if it exists
-2. `/<filename>` from SD root if `/nas/` file is missing
+## Downloaded CSVs (6)
+- globals.csv
+- calendar.csv
+- theme_boxes.csv
+- audioShifts.csv
+- colorsShifts.csv
+- patternShifts.csv
 
-This is implemented through `chooseCsvPath()`.
+## Excluded from NAS download (device-specific)
+- **light_patterns.csv** — contains PNF calibrations written by the ESP32
+- **light_colors.csv** — device-specific
 
-## Fallback Rules
-Fallback is based on the presence of files, not on runtime errors during parsing:
-- If `/nas/<filename>` exists, it is used.
-- If it does not exist, SD root is used.
+These files are only updated via WebGUI upload or direct SD write.
 
-## Failure Cleanup
-To ensure correct fallback behavior after failed downloads:
-- If a NAS download fails for a file, the existing `/nas/<filename>` is deleted.
-- This prevents stale NAS files from blocking SD root fallback.
+## Download Flow
+1. WiFi connects, NAS health check passes
+2. Each CSV is downloaded to `/<filename>.tmp`
+3. On success: `.tmp` is renamed to `/<filename>` (atomic overwrite)
+4. On failure: `.tmp` is deleted, existing root file stays untouched
 
-## Timeout Behavior
-If the overall NAS fetch waits too long:
-- A timeout triggers continuation of boot.
-- At that point, any missing `/nas/` files will fall back to SD root.
-
-## What This Means In Practice
-- Fresh NAS files override SD root files only when the download succeeds.
-- SD root files remain the safe fallback at all times.
-- A partial NAS fetch still allows fallback per-file.
-
-## Loader Coverage
-All CSV loaders now use the same `chooseCsvPath()` behavior:
-- Calendar
-- Theme boxes
-- Light patterns
-- Light colors
-- Pattern shifts
-- Color shifts
-- Audio shifts
-- Globals
+## Fallback
+- NAS unreachable → existing SD root files are used as-is
+- Boot patience timer ensures boot continues if NAS is slow
 
 ## Common Troubleshooting
-- If SD fallback is not happening, check for stale files in /nas/.
 - If NAS fetch never runs, verify WiFi boot and `Globals::csvBaseUrl`.
 - If files are empty, check NAS HTTP server and CSV content.

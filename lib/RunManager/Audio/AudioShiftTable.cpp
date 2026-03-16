@@ -7,7 +7,6 @@
 #include "AudioShiftTable.h"
 #include "CsvUtils.h"
 #include "SDController.h"
-#include "SdPathUtils.h"
 #include "StatusBits.h"
 #include "StatusFlags.h"
 #include "Globals.h"
@@ -74,7 +73,7 @@ void AudioShiftTable::begin() {
         return;
     }
 
-    const String csvPath = SdPathUtils::chooseCsvPath(audioShiftPath);
+    const String csvPath = String(audioShiftPath);
     if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         PF("[AudioShiftTable] %s not found\n", audioShiftPath);
         ready_ = true;

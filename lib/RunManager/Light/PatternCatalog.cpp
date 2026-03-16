@@ -11,7 +11,6 @@
 #include <ctype.h>
 
 #include "CsvUtils.h"
-#include "SdPathUtils.h"
 #include "SDController.h"
 #include "Alert/AlertState.h"
 
@@ -398,7 +397,7 @@ bool PatternCatalog::loadFromSD() {
     if (!AlertState::isSdOk()) {
         return false;
     }
-    const String csvPath = SdPathUtils::chooseCsvPath(patternPath);
+    const String csvPath = String(patternPath);
     if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         return false;
     }

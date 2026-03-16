@@ -1,8 +1,8 @@
 /**
  * @file WiFiBoot.cpp
  * @brief WiFi connection one-time initialization implementation
- * @version 260308E
- * @date 2026-03-08
+ * @version 260316K
+ * @date 2026-03-16
  */
 #include <Arduino.h>
 #include "WiFiBoot.h"
@@ -32,8 +32,6 @@ namespace {
     constexpr const char* csvFiles[] = {
         "globals.csv",
         "calendar.csv",
-        "light_patterns.csv",
-        "light_colors.csv",
         "theme_boxes.csv",
         "audioShifts.csv",
         "colorsShifts.csv",
@@ -52,43 +50,17 @@ namespace {
     }
 
     String buildCsvPath(const char* filename) {
-        String path = "/nas/";
+        String path = "/";
         path += filename;
         return path;
     }
 
     String buildCsvTempPath(const char* filename) {
-        String path = "/nas/";
+        String path = "/";
         path += filename;
         path += ".tmp";
         return path;
     }
-    bool ensureNasDirectory() {
-        SDController::lockSD();
-        const bool ok = SD.exists("/nas") || SD.mkdir("/nas");
-        SDController::unlockSD();
-        if (!ok) {
-            PL("[WiFiBoot] Failed to create /nas directory");
-        }
-        return ok;
-    }
-
-    void removeNasCsvFile(const char* filename) {
-        if (!filename || !*filename) {
-            return;
-        }
-        const String path = buildCsvPath(filename);
-        if (SDController::fileExists(path.c_str())) {
-            SDController::deleteFile(path.c_str());
-        }
-    }
-
-    void removeAllNasCsvFiles() {
-        for (const char* filename : csvFiles) {
-            removeNasCsvFile(filename);
-        }
-    }
-
     bool commitCsvTempFile(const String& tempPath, const String& finalPath) {
         SDController::deleteFile(finalPath.c_str());
         SDController::lockSD();
@@ -113,12 +85,8 @@ namespace {
             return 0;
         }
 
-        if (!ensureNasDirectory()) {
-            return 0;
-        }
         String url = buildCsvUrl(filename);
         if (url.isEmpty()) {
-            removeNasCsvFile(filename);
             return 0;
         }
 
@@ -126,14 +94,12 @@ namespace {
         WiFiClient client;
         http.setTimeout(Globals::csvHttpTimeoutMs);
         if (!http.begin(client, url)) {
-            removeNasCsvFile(filename);
             return 0;
         }
 
         int httpCode = http.GET();
         if (httpCode != HTTP_CODE_OK) {
             http.end();
-            removeNasCsvFile(filename);
             return 0;
         }
 
@@ -143,7 +109,6 @@ namespace {
         File file = SDController::openFileWrite(tempPath.c_str());
         if (!file) {
             http.end();
-            removeNasCsvFile(filename);
             return 0;
         }
 
@@ -153,12 +118,10 @@ namespace {
 
         if (written == 0) {
             SDController::deleteFile(tempPath.c_str());
-            removeNasCsvFile(filename);
             return 0;
         }
 
         if (!commitCsvTempFile(tempPath, finalPath)) {
-            removeNasCsvFile(filename);
             return 0;
         }
 

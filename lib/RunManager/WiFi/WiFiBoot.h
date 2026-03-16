@@ -1,8 +1,8 @@
 /**
  * @file WiFiBoot.h
  * @brief WiFi connection one-time initialization
- * @version 260131A
- $12026-02-05
+ * @version 260316K
+ * @date 2026-03-16
  */
 #pragma once
 

@@ -1,8 +1,8 @@
 /**
  * @file SdPathUtils.cpp
  * @brief SD card path helper functions implementation
- * @version 260204A
- $12026-02-05
+ * @version 260316K
+ * @date 2026-03-16
  */
 #include "SdPathUtils.h"
 
@@ -138,26 +138,6 @@ String buildUploadTarget(const String &directory, const String &filename) {
         return dir + name;
     }
     return dir + "/" + name;
-}
-
-String chooseCsvPath(const char *filename) {
-    if (!filename || !*filename) {
-        return String();
-    }
-    const String baseName = extractBaseName(filename);
-    if (baseName.isEmpty()) {
-        return String();
-    }
-
-    String nasPath = "/nas/";
-    nasPath += baseName;
-    if (SDController::fileExists(nasPath.c_str())) {
-        return nasPath;
-    }
-
-    String sdPath = "/";
-    sdPath += baseName;
-    return sdPath;
 }
 
 } // namespace SdPathUtils

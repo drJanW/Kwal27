@@ -9,7 +9,6 @@
 #include "CsvUtils.h"
 #include "SDController.h"
 #include "Globals.h"
-#include "SdPathUtils.h"
 #include "StatusFlags.h"
 #include "Alert/AlertState.h"
 #include <algorithm>
@@ -130,7 +129,7 @@ bool ShiftTable::loadColorShiftsFromSD() {
         return false;
     }
     
-    const String csvPath = SdPathUtils::chooseCsvPath(colorShiftPath);
+    const String csvPath = String(colorShiftPath);
     if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         PF("[ShiftTable] %s not found\n", colorShiftPath);
         return false;
@@ -222,7 +221,7 @@ bool ShiftTable::loadPatternShiftsFromSD() {
         return false;
     }
     
-    const String csvPath = SdPathUtils::chooseCsvPath(patternShiftPath);
+    const String csvPath = String(patternShiftPath);
     if (csvPath.isEmpty() || !SDController::fileExists(csvPath.c_str())) {
         PF("[ShiftTable] %s not found on SD\n", patternShiftPath);
         return false;

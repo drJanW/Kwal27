@@ -1,8 +1,8 @@
 /**
  * @file SdPathUtils.h
  * @brief SD card path helper functions interface
- * @version 260204A
- $12026-02-05
+ * @version 260316K
+ * @date 2026-03-16
  */
 #pragma once
 
@@ -16,6 +16,5 @@ String extractBaseName(const char *fullPath);
 bool removeSdPath(const String &targetPath, String &errorMessage);
 String sanitizeSdFilename(const String &raw);
 String buildUploadTarget(const String &directory, const String &filename);
-String chooseCsvPath(const char *filename);
 
 } // namespace SdPathUtils
