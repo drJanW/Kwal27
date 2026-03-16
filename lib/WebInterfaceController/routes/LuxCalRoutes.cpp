@@ -55,6 +55,10 @@ static void routeSample(AsyncWebServerRequest* request) {
         sendError(request, 409, F("Calibration mode is off"));
         return;
     }
+    if (LuxCalibration::instance().isFull()) {
+        sendError(request, 409, F("Buffer full — fit or clear first"));
+        return;
+    }
     Globals::luxCalSampleRequested = true;
     RunManager::touchCalActivity();
     // Trigger a fresh lux measurement cycle (fade-out → read → fade-in)
@@ -188,6 +192,39 @@ static void routeReload(AsyncWebServerRequest* request) {
     sendJson(request, LuxCalibration::instance().buildJson());
 }
 
+// GET /api/lux/points — all data points for chart rendering
+static void routePoints(AsyncWebServerRequest* request) {
+    auto& cal = LuxCalibration::instance();
+    const auto& pts = cal.samples();
+    uint8_t seedCount = Globals::seededLuxDataPoints;
+
+    String json;
+    json.reserve(64 + pts.size() * 40);
+    json += F("{\"luxMax\":");
+    json += String(Globals::luxMax, 0);
+    json += F(",\"brMax\":");
+    json += String(Globals::brMax, 1);
+    json += F(",\"luxRate\":");
+    json += String(Globals::luxRate, 4);
+    json += F(",\"seedCount\":");
+    json += seedCount;
+    json += F(",\"full\":");
+    json += cal.isFull() ? F("true") : F("false");
+    json += F(",\"points\":[");
+    for (size_t i = 0; i < pts.size(); ++i) {
+        if (i > 0) json += ',';
+        json += F("{\"lux\":");
+        json += String(pts[i].lux, 1);
+        json += F(",\"bri\":");
+        json += String(pts[i].brightness * pts[i].nf, 1);
+        json += F(",\"seed\":");
+        json += (i < seedCount) ? F("true") : F("false");
+        json += '}';
+    }
+    json += F("]}");
+    sendJson(request, json);
+}
+
 void attachRoutes(AsyncWebServer& server) {
     server.on("/api/lux/calibrate", HTTP_POST, routeCalibrate);
     server.on("/api/lux/sample",    HTTP_POST, routeSample);
@@ -196,6 +233,7 @@ void attachRoutes(AsyncWebServer& server) {
     server.on("/api/lux/accept",    HTTP_POST, routeAcceptFit);
     server.on("/api/lux/clear",     HTTP_POST, routeClear);
     server.on("/api/lux/csv",       HTTP_GET,  routeCsvDownload);
+    server.on("/api/lux/points",    HTTP_GET,  routePoints);
     server.on("/api/lux/reload",    HTTP_POST, routeReload);
 }
 

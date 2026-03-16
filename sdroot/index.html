@@ -17,12 +17,13 @@
   <div id="app">
 
     <section id="audio-panel" class="panel">
-      <div class="row audio-header-row">
+      <div class="audio-header-row">
         <h2 id="audio-box-label" class="audio-box-label" title="Speel uit themebox">Audio</h2>
-        <span class="fragment-id"><span id="audio-dir" class="clickable" title="Speel uit map">---</span>/<span id="audio-file"
-            class="clickable" title="Speel fragment opnieuw">---</span></span>
-        <button id="audio-next" class="btn-icon" title="Volgend fragment">⏭</button>
-        <span class="spacer"></span>
+        <span class="fragment-group">
+          <span class="fragment-id"><span id="audio-dir" class="clickable" title="Speel uit map">---</span>/<span id="audio-file"
+              class="clickable" title="Speel fragment opnieuw">---</span></span>
+          <button id="audio-next" class="btn-icon" title="Volgend fragment">⏭</button>
+        </span>
         <span class="vote-group">
           <span id="vote-min" class="vote-btn vote-set" title="Score = 10">−</span>
           <span id="vote-down" class="vote-btn" title="Score −5">👎</span>
@@ -169,6 +170,7 @@
         <span>💡 <span id="luxcal-bri">-</span></span>
       </div>
       <hr>
+      <canvas id="luxcal-chart" width="280" height="180" style="width:100%;background:#111;border-radius:4px"></canvas>
       <div class="row" style="justify-content:space-between">
         <button id="luxcal-fit" style="width:31%">Fit</button>
         <button id="luxcal-download" style="width:31%">⬇ CSV</button>
@@ -320,7 +322,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260316J"></script>
+  <script src="kwal.js?v=260316K"></script>
 </body>
 
 </html>

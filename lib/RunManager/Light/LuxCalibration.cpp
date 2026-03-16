@@ -26,10 +26,11 @@ LuxCalibration& LuxCalibration::instance() {
     return inst;
 }
 
+bool LuxCalibration::isFull() const {
+    return samples_.size() >= Globals::maxLuxDataPoints;
+}
+
 void LuxCalibration::addSample(const LuxCalSample& sample) {
-    if (samples_.size() >= Globals::maxLuxDataPoints) {
-        samples_.erase(samples_.begin());
-    }
     samples_.push_back(sample);
     ++realCount_;
     // luxMax is a physical boundary — grow on new high-water mark

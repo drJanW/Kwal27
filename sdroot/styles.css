@@ -7,6 +7,7 @@ header { text-align: center; padding: 0.5rem; color: #888; font-size: 0.9rem; }
 .panel h2 { font-size: 0.9rem; color: #aaa; margin-bottom: 0.5rem; }
 .row { display: flex; align-items: center; gap: 0.5rem; }
 .row label { width: 70px; min-width: 70px; font-size: 0.85rem; line-height: 1.15; }
+#audio-mute { width: 70px; min-width: 70px; text-align: center; }
 .row input[type="range"] { flex: 1; }
 .row span { width: 40px; text-align: right; font-size: 0.85rem; }
 input.slider-brown { background: #FF69B4 !important; }
@@ -163,13 +164,13 @@ footer #dev-btn:hover { background: #444; color: #aaa; }
 .slider-row input[type="range"] { flex: 1; }
 .slider-val { width: 50px; text-align: right; font-size: 0.75rem; color: #8af; }
 
-/* Audio control row: fragment+next left, voting right - ONE LINE */
-.audio-header-row { display: flex; align-items: center; gap: 0.4rem; }
-.audio-header-row h2 { margin: 0; margin-right: 0.5rem; }
+/* Audio header: all on one line */
+.audio-header-row { display: flex; align-items: center; gap: 0.3rem; }
+.audio-header-row h2 { margin: 0; flex-shrink: 0; }
 .audio-box-label { white-space: nowrap; font-size: 1rem !important; cursor: pointer; }
 .audio-box-label:hover { color: #adf; }
-.audio-header-row .spacer { flex: 1; }
-.fragment-id { font-family: monospace; font-size: 0.9rem; color: #8af; min-width: 5rem; }
+.fragment-group { display: flex; align-items: center; gap: 0.3rem; flex: 1; min-width: 0; }
+.fragment-id { font-family: monospace; font-size: 0.85rem; color: #8af; white-space: nowrap; width: 7ch; min-width: 7ch; }
 .fragment-id .clickable { cursor: pointer; }
 .fragment-id .clickable:hover { color: #adf; text-decoration: underline; }
 .fragment-id .clickable.disabled { color: #666; cursor: not-allowed; text-decoration: none; }
@@ -178,7 +179,7 @@ footer #dev-btn:hover { background: #444; color: #aaa; }
 .btn-icon { padding: 0.2rem 0.3rem; background: #3a3a5a; color: #eee; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; line-height: 1; }
 .btn-icon:hover { background: #4a4a6a; }
 .btn-icon:disabled { opacity: 0.5; cursor: not-allowed; }
-.vote-group { display: inline-flex; align-items: center; gap: 0.15rem; }
+.vote-group { display: inline-flex; align-items: center; gap: 0.15rem; flex-shrink: 0; }
 .vote-btn { cursor: pointer; user-select: none; font-size: 0.9rem; opacity: 0.7; }
 .vote-btn:hover { opacity: 1; }
 .vote-set { color: #FFD700; font-weight: bold; font-size: 1.1rem; }

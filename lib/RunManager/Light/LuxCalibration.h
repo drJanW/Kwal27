@@ -1,8 +1,8 @@
 /**
  * @file LuxCalibration.h
  * @brief Lux calibration data file and Gauss-Newton fit
- * @version 260313D
- * @date 2026-03-13
+ * @version 260316M
+ * @date 2026-03-16
  */
 #pragma once
 
@@ -28,8 +28,11 @@ class LuxCalibration {
 public:
     static LuxCalibration& instance();
 
-    /// Add a real data point. FIFO eviction when buffer exceeds maxLuxDataPoints.
+    /// Add a real data point.
     void addSample(const LuxCalSample& sample);
+
+    /// True when sample buffer has reached maxLuxDataPoints
+    bool isFull() const;
 
     /// Total data points in buffer (seeds + real)
     uint8_t sampleCount() const { return static_cast<uint8_t>(samples_.size()); }
@@ -66,6 +69,9 @@ public:
 
     /// Build JSON summary for API response
     String buildJson() const;
+
+    /// Read-only access to sample buffer (for points endpoint)
+    const std::vector<LuxCalSample>& samples() const { return samples_; }
 
 private:
     LuxCalibration() = default;

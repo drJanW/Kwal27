@@ -1,7 +1,7 @@
 /**
  * @file    luxcal.js
- * @version 260313C
- * @date    2026-03-13
+ * @version 260316K
+ * @date    2026-03-16
  *
  * Kwal - Lux Calibration module
  * Calibration panel for lux → brightness curve fitting
@@ -15,6 +15,7 @@ Kwal.luxcal = (function() {
   var statusEl, sampleCountEl, luxValueEl, brightnessValueEl, fitResultEl;
   var newFitEl, newParamsEl;
   var briSlider, briLabel;
+  var chartCanvas;
   var savedBrightness = -1;  // brightness before modal open (-1 = not saved)
   var hasLuxSensor = true;   // assume present until status says otherwise
 
@@ -90,6 +91,7 @@ Kwal.luxcal = (function() {
           .then(function(d) {
             updateUI(d);
             if (sampleBtn) sampleBtn.disabled = false;
+            fetchAndDraw();
           })
           .catch(function() { setStatus('Calibratie activeren mislukt'); });
       })
@@ -166,6 +168,8 @@ Kwal.luxcal = (function() {
             fitResultEl.textContent = 'Huidig: ' + formatParams(lastFitParams);
           }
           lastFitParams = null;
+          if (sampleBtn) sampleBtn.disabled = false;
+          fetchAndDraw();
           setStatus('Opgeslagen, seeds vernieuwd');
         } else {
           setStatus('Opslaan mislukt');
@@ -182,6 +186,8 @@ Kwal.luxcal = (function() {
         showCount(0);
         if (fitResultEl) fitResultEl.textContent = '-';
         hideAccept();
+        if (sampleBtn) sampleBtn.disabled = false;
+        fetchAndDraw();
         setStatus('Reset naar seeds');
       })
       .catch(function() { setStatus('Reset mislukt'); });
@@ -189,6 +195,94 @@ Kwal.luxcal = (function() {
 
   function doDownload() {
     window.open('/api/lux/csv', '_blank');
+  }
+
+  function drawChart(data) {
+    if (!chartCanvas) return;
+    var ctx = chartCanvas.getContext('2d');
+    var W = chartCanvas.width, H = chartCanvas.height;
+    var pad = { l: 36, r: 10, t: 10, b: 22 };
+    var pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Determine axis ranges
+    var xMax = data.luxMax || 300;
+    var yMax = data.brMax || 100;
+    // Expand yMax if any point exceeds it
+    var pts = data.points || [];
+    for (var i = 0; i < pts.length; i++) {
+      if (pts[i].bri > yMax) yMax = pts[i].bri * 1.1;
+    }
+
+    // Grid lines + labels
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 0.5;
+    ctx.fillStyle = '#666';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    var ySteps = 4;
+    for (var j = 0; j <= ySteps; j++) {
+      var yv = yMax * j / ySteps;
+      var yp = pad.t + ph - (j / ySteps) * ph;
+      ctx.beginPath(); ctx.moveTo(pad.l, yp); ctx.lineTo(pad.l + pw, yp); ctx.stroke();
+      ctx.fillText(Math.round(yv), pad.l - 4, yp);
+    }
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    var xSteps = 4;
+    for (var k = 0; k <= xSteps; k++) {
+      var xv = xMax * k / xSteps;
+      var xp = pad.l + (k / xSteps) * pw;
+      ctx.beginPath(); ctx.moveTo(xp, pad.t); ctx.lineTo(xp, pad.t + ph); ctx.stroke();
+      ctx.fillText(Math.round(xv), xp, pad.t + ph + 4);
+    }
+
+    // Axis labels
+    ctx.fillStyle = '#888';
+    ctx.textAlign = 'center';
+    ctx.fillText('lux', pad.l + pw / 2, H - 2);
+    ctx.save();
+    ctx.translate(8, pad.t + ph / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('bri', 0, 0);
+    ctx.restore();
+
+    // Fitted curve (green)
+    var brMax = data.brMax || 100;
+    var luxRate = data.luxRate || 0.02;
+    ctx.strokeStyle = '#0c0';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (var cx = 0; cx <= pw; cx++) {
+      var lux = (cx / pw) * xMax;
+      var bri = brMax * (1.0 - Math.exp(-luxRate * lux));
+      var py = pad.t + ph - (bri / yMax) * ph;
+      if (cx === 0) ctx.moveTo(pad.l + cx, py);
+      else ctx.lineTo(pad.l + cx, py);
+    }
+    ctx.stroke();
+
+    // Draw points: seeds blue, samples red
+    for (var p = 0; p < pts.length; p++) {
+      var pt = pts[p];
+      var px = pad.l + (pt.lux / xMax) * pw;
+      var pyPt = pad.t + ph - (pt.bri / yMax) * ph;
+      ctx.beginPath();
+      ctx.arc(px, pyPt, pt.seed ? 3 : 4, 0, 2 * Math.PI);
+      ctx.fillStyle = pt.seed ? '#48f' : '#f44';
+      ctx.fill();
+    }
+  }
+
+  function fetchAndDraw() {
+    fetch('/api/lux/points').then(function(r) { return r.json(); })
+      .then(function(data) {
+        drawChart(data);
+        if (data.full && sampleBtn) sampleBtn.disabled = true;
+      })
+      .catch(function() {});
   }
 
   function init() {
@@ -206,6 +300,7 @@ Kwal.luxcal = (function() {
     newParamsEl     = document.getElementById('luxcal-newparams');
     briSlider       = document.getElementById('luxcal-brightness');
     briLabel        = document.getElementById('luxcal-bri-num');
+    chartCanvas     = document.getElementById('luxcal-chart');
 
     if (briSlider && briLabel) {
       briSlider.oninput = function() {
@@ -232,6 +327,7 @@ Kwal.luxcal = (function() {
       showCount(data.realCount || 0);
       if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1);
       if (brightnessValueEl) brightnessValueEl.textContent = data.brightness.toFixed(1);
+      fetchAndDraw();
     });
 
     // SSE: auto-fit triggered by firmware — show accept UI
@@ -247,7 +343,9 @@ Kwal.luxcal = (function() {
       }
       if (newFitEl) newFitEl.style.display = 'block';
       lastFitParams = { brMax: data.brMax, luxRate: data.luxRate };
-      setStatus('Auto-fit — accepteer of sample verder');
+      if (sampleBtn) sampleBtn.disabled = true;
+      fetchAndDraw();
+      setStatus('Auto-fit — accepteer of wis');
     });
     // Early check: disable sun button if no lux sensor
     fetch('/api/lux/status').then(function(r) { return r.json(); })
