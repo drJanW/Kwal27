@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260316B - Built 2026-03-16 07:27
+ * Kwal WebGUI v260316D - Built 2026-03-16 07:52
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260316B';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260316D';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -1856,12 +1856,12 @@ Kwal.status = (function() {
 // === js/health.js ===
 /**
  * @file    health.js
- * @version 260312A
- * @date    2026-03-12
+ * @version 260316C
+ * @date    2026-03-16
  *
  * Kwal - Health module
  * System health status display in DEV modal
- * API: GET /api/health, POST /api/restart
+ * API: GET /api/health, POST /api/restart, POST /api/sleep
  */
 Kwal.health = (function() {
   'use strict';
@@ -1887,7 +1887,7 @@ Kwal.health = (function() {
   var STATUS_OK = 0;
   var STATUS_NOTOK = 15;
 
-  var container, restartBtn;
+  var container, sysRestartBtn, sysSleepBtn;
 
   // Extract 4-bit field from boot status uint64
   // Note: JS handles numbers up to 2^53 safely, uint64 fits
@@ -1904,9 +1904,13 @@ Kwal.health = (function() {
 
   function init() {
     container = document.getElementById('health-content');
-    restartBtn = document.getElementById('restart-btn');
-    if (restartBtn) {
-      restartBtn.onclick = doRestart;
+    sysRestartBtn = document.getElementById('sys-restart-btn');
+    sysSleepBtn = document.getElementById('sys-sleep-btn');
+    if (sysRestartBtn) {
+      sysRestartBtn.onclick = doRestart;
+    }
+    if (sysSleepBtn) {
+      sysSleepBtn.onclick = doSleep;
     }
   }
 
@@ -2005,11 +2009,23 @@ Kwal.health = (function() {
     fetch('/api/restart', { method: 'POST' })
       .then(function(r) {
         if (!r.ok) throw new Error(r.statusText);
-        if (restartBtn) restartBtn.textContent = '⏳';
+        if (sysRestartBtn) sysRestartBtn.textContent = '⏳';
         setTimeout(function() { location.reload(); }, 5000);
       })
       .catch(function(err) {
         alert('Restart failed: ' + err.message);
+      });
+  }
+
+  function doSleep() {
+    if (!confirm('Kwal slaapt tot 06:56. Alleen power off/on kan eerder wekken. Doorgaan?')) return;
+    fetch('/api/sleep', { method: 'POST' })
+      .then(function(r) {
+        if (!r.ok) throw new Error(r.statusText);
+        if (sysSleepBtn) sysSleepBtn.textContent = '💤';
+      })
+      .catch(function(err) {
+        alert('Sleep failed: ' + err.message);
       });
   }
 

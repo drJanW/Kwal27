@@ -1,8 +1,8 @@
 /**
  * @file HealthRoutes.cpp
  * @brief Health API endpoint routes
- * @version 260307B
- * @date 2026-03-07
+ * @version 260316C
+ * @date 2026-03-16
  */
 #include <Arduino.h>
 #include "HealthRoutes.h"
@@ -13,6 +13,7 @@
 #include "ContextController.h"
 #include "Calendar/CalendarRun.h"
 #include "TodayState.h"
+#include "RunManager.h"
 #include <ESP.h>
 
 namespace HealthRoutes {
@@ -97,6 +98,16 @@ void routeRestart(AsyncWebServerRequest *request) {
     timers.create(500, 1, cb_restart);
 }
 
+void routeSleep(AsyncWebServerRequest *request) {
+    request->send(200, "text/plain", "Entering deep sleep...");
+    RunManager::requestDeepSleep();
+}
+
+void routeSleepCancel(AsyncWebServerRequest *request) {
+    RunManager::cancelDeepSleep();
+    request->send(200, "text/plain", "Sleep cancelled");
+}
+
 void routeWifiConfig(AsyncWebServerRequest *request) {
     if (!request->hasParam("pin", true) || !request->hasParam("ssid", true)) {
         request->send(400, "application/json", F("{\"error\":\"Missing pin or ssid\"}"));
@@ -127,6 +138,8 @@ void routeWifiConfig(AsyncWebServerRequest *request) {
 void attachRoutes(AsyncWebServer &server) {
     server.on("/api/health", HTTP_GET, routeHealth);
     server.on("/api/restart", HTTP_POST, routeRestart);
+    server.on("/api/sleep", HTTP_POST, routeSleep);
+    server.on("/api/sleep/cancel", HTTP_POST, routeSleepCancel);
     server.on("/api/wifi/config", HTTP_POST, routeWifiConfig);
 }
 

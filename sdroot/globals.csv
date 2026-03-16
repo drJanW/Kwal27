@@ -128,6 +128,15 @@ locationLon;f;4.90;lengtegraad voor zonsopkomst/ondergang
 #sdHealthCheckIntervalMs;u;360000;periodic SD card presence probe (6 min default)
 
 # ═══════════════════════════════════════════════════════════════════
+# DEEP SLEEP (5 params)
+# ═══════════════════════════════════════════════════════════════════
+deepSleepEnabled;u;1;deep sleep enabled (0=off, 1=on)
+sleepHour;u;0;sleep start hour (0-23)
+sleepMinute;u;11;sleep start minute (0-59)
+wakeHour;u;6;wake hour (0-23)
+wakeMinute;u;56;wake minute (0-59)
+
+# ═══════════════════════════════════════════════════════════════════
 # DEBUG (2 params)
 # ═══════════════════════════════════════════════════════════════════
 #timerStatusIntervalMs;u;60000;Serial output of timer slot usage

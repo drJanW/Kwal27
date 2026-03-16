@@ -1,8 +1,8 @@
 /**
  * @file RunManager.h
  * @brief Central coordinator header for all Kwal modules
- * @version 260313B
- * @date 2026-03-13
+ * @version 260316C
+ * @date 2026-03-16
  */
 #pragma once
 #include <Arduino.h>
@@ -58,4 +58,8 @@ public:
     // TV Simulator
     static void enterTvMode(uint8_t hours);
     static void exitTvMode();
+
+    // Deep Sleep
+    static void requestDeepSleep();
+    static void cancelDeepSleep();
 };

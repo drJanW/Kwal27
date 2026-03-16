@@ -1,8 +1,8 @@
 /**
  * @file Globals.cpp
  * @brief CSV override loader for Globals
- * @version 260313C
- * @date 2026-03-13
+ * @version 260316C
+ * @date 2026-03-16
  */
 #include "Arduino.h"
 #include "Globals.h"
@@ -654,6 +654,39 @@ static void applyOverride(const char* key, char type, const char* value) {
         if (parseUint32(value, &u32)) {
             Globals::tvAudioMaxMs = u32;
             PF_BOOT("[Globals] tvAudioMaxMs = %lu\n", (unsigned long)u32);
+        }
+    }
+    // ═══════════════════════════════════════════════════════════
+    // DEEP SLEEP
+    // ═══════════════════════════════════════════════════════════
+    else if (strcmp(key, "deepSleepEnabled") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 <= 1) {
+            Globals::deepSleepEnabled = (u32 == 1);
+            PF_BOOT("[Globals] deepSleepEnabled = %u\n", u32);
+        }
+    }
+    else if (strcmp(key, "sleepHour") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 <= 23) {
+            Globals::sleepHour = static_cast<uint8_t>(u32);
+            PF_BOOT("[Globals] sleepHour = %u\n", Globals::sleepHour);
+        }
+    }
+    else if (strcmp(key, "sleepMinute") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 <= 59) {
+            Globals::sleepMinute = static_cast<uint8_t>(u32);
+            PF_BOOT("[Globals] sleepMinute = %u\n", Globals::sleepMinute);
+        }
+    }
+    else if (strcmp(key, "wakeHour") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 <= 23) {
+            Globals::wakeHour = static_cast<uint8_t>(u32);
+            PF_BOOT("[Globals] wakeHour = %u\n", Globals::wakeHour);
+        }
+    }
+    else if (strcmp(key, "wakeMinute") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 <= 59) {
+            Globals::wakeMinute = static_cast<uint8_t>(u32);
+            PF_BOOT("[Globals] wakeMinute = %u\n", Globals::wakeMinute);
         }
     }
     // ═══════════════════════════════════════════════════════════

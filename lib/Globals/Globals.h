@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260313C
- * @date 2026-03-13
+ * @version 260316C
+ * @date 2026-03-16
  */
 #pragma once
 
@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260314C"
+#define FIRMWARE_VERSION_CODE "260316D"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -214,6 +214,16 @@ struct Globals {
     // DAILY REBOOT (1 param)
     // ─────────────────────────────────────────────────────────────
     inline static uint8_t  dailyRebootHour          = 4U;          // Hour (1-23) for daily auto-reboot (0 = disabled, so midnight reboot not possible)
+
+    // ─────────────────────────────────────────────────────────────
+    // DEEP SLEEP (5 params + 1 runtime)
+    // ─────────────────────────────────────────────────────────────
+    inline static bool     deepSleepEnabled         = true;        // Deep sleep enabled (false = only daily reboot)
+    inline static uint8_t  sleepHour                = 0U;          // Sleep start hour (0-23)
+    inline static uint8_t  sleepMinute              = 11U;         // Sleep start minute (0-59)
+    inline static uint8_t  wakeHour                 = 6U;          // Wake hour (0-23)
+    inline static uint8_t  wakeMinute               = 56U;         // Wake minute (0-59)
+    inline static bool     sleepArmed               = false;       // Runtime: deep sleep timer is active (RAM only)
 
     // ─────────────────────────────────────────────────────────────
     // TV SIMULATOR (4 params + 1 runtime)

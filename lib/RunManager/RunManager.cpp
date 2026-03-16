@@ -1,11 +1,14 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260310B
- * @date 2026-03-10
+ * @version 260316C
+ * @date 2026-03-16
  */
 #include <Arduino.h>
 #include <math.h>
+#include <esp_sleep.h>
+#include <SD.h>
+#include <WiFi.h>
 #include "LightController.h"
 #include "TvShow.h"
 #include "TimerManager.h"
@@ -128,6 +131,143 @@ void armDailyReboot() {
        Globals::dailyRebootHour, totalMin / 60, totalMin % 60);
 }
 
+// ─── Deep sleep ─────────────────────────────────────────────
+
+uint8_t sleepRetries = 0;
+constexpr uint8_t maxSleepRetries = 30;
+constexpr uint32_t sleepCooldownMs = 60000;  // Refuse sleep within 60s of boot
+
+// Calculate ms from now until target hour:minute (next occurrence)
+uint32_t calcMsUntilTime(uint8_t targetHour, uint8_t targetMinute) {
+    const int16_t nowMin = static_cast<int16_t>(prtClock.getHour()) * 60
+                         + prtClock.getMinute();
+    const int16_t targetMin = static_cast<int16_t>(targetHour) * 60
+                            + targetMinute;
+    int16_t deltaMin = targetMin - nowMin;
+    if (deltaMin <= 2) deltaMin += 1440;  // Next day (skip if <2 min away)
+    return static_cast<uint32_t>(deltaMin) * 60000UL;
+}
+
+// Check if current time is inside the sleep window (sleepTime..wakeTime)
+bool isInSleepWindow() {
+    const int16_t nowMin = static_cast<int16_t>(prtClock.getHour()) * 60
+                         + prtClock.getMinute();
+    const int16_t sleepMin = static_cast<int16_t>(Globals::sleepHour) * 60
+                           + Globals::sleepMinute;
+    const int16_t wakeMin = static_cast<int16_t>(Globals::wakeHour) * 60
+                          + Globals::wakeMinute;
+    // Window wraps midnight: sleep 00:11, wake 06:56
+    if (sleepMin < wakeMin) {
+        return nowMin >= sleepMin && nowMin < wakeMin;
+    }
+    // Window does NOT wrap: sleep 23:00, wake 06:00
+    return nowMin >= sleepMin || nowMin < wakeMin;
+}
+
+// Calculate deep sleep duration in microseconds (from now until wake time)
+uint64_t calcSleepDurationUs() {
+    const int16_t nowMin = static_cast<int16_t>(prtClock.getHour()) * 60
+                         + prtClock.getMinute();
+    const int16_t wakeMin = static_cast<int16_t>(Globals::wakeHour) * 60
+                          + Globals::wakeMinute;
+    int16_t deltaMin = wakeMin - nowMin;
+    if (deltaMin <= 0) deltaMin += 1440;
+    return static_cast<uint64_t>(deltaMin) * 60ULL * 1000000ULL;
+}
+
+void enterDeepSleep() {
+    const uint64_t durationUs = calcSleepDurationUs();
+    const uint16_t durationMin = static_cast<uint16_t>(durationUs / 60000000ULL);
+    PF("[Sleep] Entering deep sleep for %uu%02u (until %02u:%02u)\n",
+       durationMin / 60, durationMin % 60, Globals::wakeHour, Globals::wakeMinute);
+
+    // Cleanup: LEDs off
+    FastLED.clear();
+    FastLED.show();
+
+    // Cleanup: audio stop
+    audio.stop();
+
+    // Cleanup: WiFi off
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
+
+    // Cleanup: SD unmount
+    SD.end();
+
+    Serial.flush();
+    delay(50);
+
+    esp_sleep_enable_timer_wakeup(durationUs);
+    esp_deep_sleep_start();
+}
+
+void cb_enterDeepSleep();  // Forward declaration
+
+void cb_sleepAfterTTS() {
+    // Wait until TTS finishes, then enter deep sleep
+    if (isSentencePlaying()) {
+        timers.restart(SECONDS(1), 1, cb_sleepAfterTTS);
+        return;
+    }
+    enterDeepSleep();
+}
+
+void cb_enterDeepSleep() {
+    // Guard: boot cooldown — refuse sleep within 60s of boot
+    // Prevents stale TCP retransmits from triggering immediate re-sleep
+    if (millis() < sleepCooldownMs) {
+        PF("[Sleep] Blocked — boot cooldown (%lus remaining)\n",
+           (sleepCooldownMs - millis()) / 1000UL);
+        return;  // Don't retry — armDeepSleep will re-arm later
+    }
+    // Guard: don't sleep mid-write or mid-playback
+    if (AlertState::isSdBusy() || isFragmentPlaying()) {
+        if (++sleepRetries <= maxSleepRetries) {
+            PF("[Sleep] busy, retry %u/%u in 1 min\n", sleepRetries, maxSleepRetries);
+            timers.restart(MINUTES(1), 1, cb_enterDeepSleep);
+        } else {
+            PL("[Sleep] still busy after 30 min — sleeping anyway");
+            enterDeepSleep();
+        }
+        return;
+    }
+    // Stop any playing sentence, then speak "welterusten"
+    PlaySentence::stop();
+    PlaySentence::addTTS("welterusten");
+    PL("[Sleep] TTS welterusten queued");
+    // Wait for TTS to finish, then enter deep sleep
+    timers.create(SECONDS(3), 1, cb_sleepAfterTTS);
+}
+
+void armDeepSleep() {
+    if (!Globals::deepSleepEnabled) return;
+    if (timers.isActive(cb_enterDeepSleep)) return;
+    if (timers.isActive(cb_sleepAfterTTS)) return;
+    if (!prtClock.isTimeFetched()) return;
+
+    // After power cycle during sleep window: stay active (option B)
+    // esp_sleep_get_wakeup_cause() is reliable; esp_reset_reason() is not
+    const auto wakeReason = esp_sleep_get_wakeup_cause();
+    static bool wakeLogged = false;
+    if (!wakeLogged) {
+        PF("[Sleep] Wake reason: %d (0=coldboot, 4=timer)\n", static_cast<int>(wakeReason));
+        wakeLogged = true;
+    }
+    if (wakeReason == ESP_SLEEP_WAKEUP_UNDEFINED && isInSleepWindow()) {
+        PL("[Sleep] Power cycle during sleep window — staying active");
+        return;
+    }
+
+    sleepRetries = 0;
+    const uint32_t delayMs = calcMsUntilTime(Globals::sleepHour, Globals::sleepMinute);
+    timers.create(delayMs, 1, cb_enterDeepSleep);
+    Globals::sleepArmed = true;
+    const uint16_t totalMin = static_cast<uint16_t>(delayMs / 60000UL);
+    PF("[Sleep] Armed at %02u:%02u, in %uu%02u\n",
+       Globals::sleepHour, Globals::sleepMinute, totalMin / 60, totalMin % 60);
+}
+
 // ─── Clock tick ─────────────────────────────────────────────
 
 void cb_clockUpdate() {
@@ -136,6 +276,9 @@ void cb_clockUpdate() {
 
     // Arm daily reboot once clock is valid (idempotent)
     armDailyReboot();
+
+    // Arm deep sleep once clock is valid (idempotent)
+    armDeepSleep();
 
     // Detect day change → reload calendar for new day
     const uint8_t currentDay = prtClock.getDay();
@@ -730,4 +873,24 @@ void RunManager::exitTvMode() {
     timers.cancel(cb_tvTimeout);
 
     PL("[TvSim] Stopped");
+}
+
+// ─── Deep Sleep API ─────────────────────────────────────────
+
+void RunManager::requestDeepSleep() {
+    if (millis() < sleepCooldownMs) {
+        PF("[Sleep] Manual request blocked — boot cooldown (%lus)\n",
+           (sleepCooldownMs - millis()) / 1000UL);
+        return;
+    }
+    PL("[Sleep] Manual deep sleep requested");
+    sleepRetries = 0;
+    timers.restart(500, 1, cb_enterDeepSleep);
+}
+
+void RunManager::cancelDeepSleep() {
+    timers.cancel(cb_enterDeepSleep);
+    timers.cancel(cb_sleepAfterTTS);
+    Globals::sleepArmed = false;
+    PL("[Sleep] Cancelled");
 }
