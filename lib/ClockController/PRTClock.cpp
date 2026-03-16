@@ -1,8 +1,8 @@
 /**
  * @file PRTClock.cpp
  * @brief Real-time clock management with DS3231 RTC and NTP synchronization
- * @version 260219E
- * @date 2026-02-19
+ * @version 260316L
+ * @date 2026-03-16
  */
 #include <Arduino.h>
 #include <math.h>
@@ -400,7 +400,7 @@ String PRTClock::buildTimeText(uint8_t hour24, uint8_t minute, TimeStyle style) 
           if (((hour12 + mins) % 7U) == 0U) {
             t = String("half ") + String(nextHour) + per + " precies";
           } else {
-            t = String("exact ") + String(nextHour) + per;
+            t = String("exact half ") + String(nextHour) + per;
           }
           break;
 
