@@ -17,6 +17,10 @@ input.slider-gold { background: #FFD700 !important; }
 input.slider-gold::-webkit-slider-thumb { border-color: #FFD700 !important; }
 input.slider-gold::-moz-range-thumb { border-color: #FFD700 !important; }
 .label-gold { color: #FFD700 !important; }
+input.slider-red { background: #FF4444 !important; }
+input.slider-red::-webkit-slider-thumb { border-color: #FF4444 !important; }
+input.slider-red::-moz-range-thumb { border-color: #FF4444 !important; }
+.label-red { color: #FF4444 !important; }
 .row span.status { width: auto; flex: 1; text-align: left; color: #8af; }
 
 /* Slider track styling for custom gradient backgrounds */

@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260316D - Built 2026-03-16 07:52
+ * Kwal WebGUI v260316E - Built 2026-03-16 08:42
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260316D';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260316E';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -534,13 +534,13 @@ Kwal.brightness = (function() {
           setDarkVisual(true);
           slider.value = 0;
           label.textContent = '0%';
-          fetch('/setBrightness?value=0', { method: 'POST' }).catch(function() {});
+          fetch('/setBrightness?value=0&dark=1&was=' + savedBrightness, { method: 'POST' }).catch(function() {});
         } else {
           dark = false;
           setDarkVisual(false);
           slider.value = savedBrightness;
           label.textContent = savedBrightness + '%';
-          fetch('/setBrightness?value=' + savedBrightness, { method: 'POST' }).catch(function() {});
+          fetch('/setBrightness?value=' + savedBrightness + '&dark=0', { method: 'POST' }).catch(function() {});
         }
       };
     }

@@ -69,13 +69,13 @@ Kwal.brightness = (function() {
           setDarkVisual(true);
           slider.value = 0;
           label.textContent = '0%';
-          fetch('/setBrightness?value=0', { method: 'POST' }).catch(function() {});
+          fetch('/setBrightness?value=0&dark=1&was=' + savedBrightness, { method: 'POST' }).catch(function() {});
         } else {
           dark = false;
           setDarkVisual(false);
           slider.value = savedBrightness;
           label.textContent = savedBrightness + '%';
-          fetch('/setBrightness?value=' + savedBrightness, { method: 'POST' }).catch(function() {});
+          fetch('/setBrightness?value=' + savedBrightness + '&dark=0', { method: 'POST' }).catch(function() {});
         }
       };
     }

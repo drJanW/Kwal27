@@ -136,6 +136,16 @@ void routeSetBrightness(AsyncWebServerRequest *request)
     
     WEBIF_LOG("[Web] sliderPct=%d → webMultiplier=%.2f shiftedHi=%u\n", sliderPct, webMultiplier, shiftedHi);
     
+    if (request->hasParam("dark")) {
+        bool darkOn = request->getParam("dark")->value() == "1";
+        if (darkOn) {
+            int was = request->hasParam("was") ? request->getParam("was")->value().toInt() : -1;
+            PF("[Web] Dark mode ON (brightness was %d%%)\n", was);
+        } else {
+            PF("[Web] Dark mode OFF (brightness now %d%%)\n", sliderPct);
+        }
+    }
+    
     request->send(200, "text/plain", "OK");
 }
 

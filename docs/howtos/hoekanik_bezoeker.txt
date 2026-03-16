@@ -17,6 +17,8 @@ Helderheid aanpassen
 Sleep de ☀️ schuif links/rechts (0-100%).
    Helderheid verandert meteen.
    De Kwal past helderheid ook automatisch aan op het omgevingslicht.
+Klik 💡 om de LEDs uit te zetten (dark mode).
+   Klik nogmaals om terug te gaan naar de vorige helderheid.
 
 ───────────────────────────────────────
 Patroon wisselen
