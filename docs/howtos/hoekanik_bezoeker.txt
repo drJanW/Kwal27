@@ -1,0 +1,68 @@
+HOE KAN IK — BEZOEKER
+Korte antwoorden voor dagelijks gebruik.
+Alles via de WebGUI, geen technische kennis nodig.
+
+Stap 0 (altijd): Open de WebGUI → http://192.168.2.188
+
+───────────────────────────────────────
+Volume aanpassen
+───────────────────────────────────────
+1) Sleep de 🔊 schuif links/rechts (0-100%).
+2) Klik 🔊 om te muten, nogmaals om te unmuten (🔇).
+   Volume verandert meteen, geen herstart nodig.
+
+───────────────────────────────────────
+Helderheid aanpassen
+───────────────────────────────────────
+Sleep de ☀️ schuif links/rechts (0-100%).
+   Helderheid verandert meteen.
+   De Kwal past helderheid ook automatisch aan op het omgevingslicht.
+
+───────────────────────────────────────
+Patroon wisselen
+───────────────────────────────────────
+Gebruik ⏮ / ⏭ naast de 🌀 patroon-naam.
+
+───────────────────────────────────────
+Kleuren veranderen
+───────────────────────────────────────
+Gebruik ⏮ / ⏭ naast de 🎨 kleurenschema-naam.
+
+───────────────────────────────────────
+Minder vaak geluids-fragmenten horen
+───────────────────────────────────────
+Sleep 🔊⏱ (Fragment Interval) naar rechts.
+   Hoe hoger, hoe langer de pauze tussen fragmenten.
+
+───────────────────────────────────────
+Minder vaak de tijd laten zeggen
+───────────────────────────────────────
+Sleep 🗣⏱ (Spraak Interval) naar rechts.
+
+───────────────────────────────────────
+Kwal stil zetten (muten)
+───────────────────────────────────────
+Klik 🔊 zodat het 🔇 wordt. Of: sleep volume naar 0%.
+   De LEDs blijven aan, alleen geluid stopt.
+   Unmute door nogmaals te klikken.
+   Mute blijft aan tot je unmute of de volgende ochtend.
+
+───────────────────────────────────────
+Stemmen op fragmenten (voting)
+───────────────────────────────────────
+1) Tijdens of na een fragment:
+   👍 = +3 punten (vaker afspelen)
+   👎 = -5 punten (minder vaak afspelen)
+2) Score is zichtbaar tussen de knoppen.
+   Stemmen worden onthouden, ook na reboot.
+
+───────────────────────────────────────
+TV Simulator aan/uit zetten
+───────────────────────────────────────
+1) Klik 📺 TV (onderaan).
+2) Stel de duur in met de schuif (1-12 uur).
+   De Kwal simuleert TV-licht (flikkering).
+   Na de ingestelde tijd keert hij terug naar normaal.
+
+───────────────────────────────────────
+Problemen? → Meld het aan de beheerder.

@@ -1,0 +1,225 @@
+============================================================
+HOE KAN IK - BEHEERDER
+============================================================
+
+Doel:
+  Technische taken: configuratie, kalibratie, uploads,
+  firmware updates, troubleshooting.
+  Voor dagelijks gebruik → zie hoekanik_bezoeker.txt
+
+WebGUI:
+  HOUT  (dev):  http://192.168.2.189
+  MARMER (prod): http://192.168.2.188
+
+
+============================================================
+VRAAG 1 - Fragment interval via globals.csv
+============================================================
+
+Stappen:
+1) Open: sdroot\globals.csv
+2) Wijzig:
+     minAudioIntervalMs;u;900000
+     maxAudioIntervalMs;u;2700000
+3) Upload alleen globals.csv:
+     .\upload_file.ps1 globals.csv 192.168.2.189
+4) Herstart de Kwal.
+5) Later waarden terugzetten als je weer normaal wilt.
+
+  ⚠ Gebruik NOOIT upload_csv.ps1 — zie voetnoot 6.
+
+
+============================================================
+VRAAG 2 - Speak interval via globals.csv
+============================================================
+
+Stappen:
+1) Open: sdroot\globals.csv
+2) Wijzig:
+     minSaytimeIntervalMs;u;5400000
+     maxSaytimeIntervalMs;u;10800000
+3) Upload alleen globals.csv:
+     .\upload_file.ps1 globals.csv 192.168.2.189
+4) Herstart de Kwal.
+
+
+============================================================
+VRAAG 3 - Fragmenten uit 1 specifieke directory
+============================================================
+
+Stappen:
+1) Open WebGUI → ⚙ → 🎵 Audio Settings.
+2) Klik 🎶 (MP3 Grid).
+3) Gebruik de DIR schuif (◀/▶) om de directory te kiezen.
+4) Klik op een cel in het grid om dat fragment af te spelen.
+
+Terug naar normaal:
+  - Herstart de Kwal, of kies een andere directory.
+
+
+============================================================
+VRAAG 4 - Status en gezondheid controleren
+============================================================
+
+Stappen:
+1) Open WebGUI → ⚙ → ⚙ System Settings.
+2) Bekijk het Health-overzicht:
+   - 💾 SD, 📶 WiFi, 🕐 RTC, ☀️ Lux, ⏰ NTP
+   - 🧠 Geheugen (heap, PSRAM)
+   - ⏱️ Timers (gebruikt / beschikbaar)
+   - Firmware en WebGUI versie
+
+Alles ✅ = in orde. Een ❌ = onderzoeken.
+
+
+============================================================
+VRAAG 5 - Kwal herstarten via WebGUI
+============================================================
+
+Stappen:
+1) Open WebGUI → ⚙ → ⚙ System Settings.
+2) Klik ⚠️ Restart (rechtsonder).
+3) Bevestig met OK.
+4) Wacht ~10 seconden, pagina ververst automatisch.
+
+  → Doe dit NIET tijdens een Save of NAS-sync.
+
+
+============================================================
+VRAAG 6 - Lux kalibratie (alleen MARMER)
+============================================================
+
+Kort antwoord:
+  De Kwal past brightness automatisch aan op
+  omgevingslicht. Kalibratie verbetert die aanpassing.
+
+Stappen:
+1) Open WebGUI → ⚙ → 💡 Light Settings.
+2) Klik ☀️ Lux Calibration.
+3) Stel brightness in zodat het licht er goed uitziet.
+4) Klik 👍 Sample.
+5) Herhaal stap 3-4 bij verschillende lichtomstandigheden
+   (minstens 5 samples, liefst 10+).
+6) Klik Fit — bekijk R² (hoger = beter).
+7) Klik ✓ om het resultaat te accepteren.
+
+Extra:
+  - ⬇ CSV = download samples als back-up.
+  - 🗑 Wis = verwijder alle samples en begin opnieuw.
+
+  → Alleen beschikbaar op MARMER (lux sensor).
+    HOUT heeft geen sensor.
+
+
+============================================================
+VRAAG 7 - OTA firmware update
+============================================================
+
+Stappen:
+1) Open WebGUI → ⚙ → ⚙ System Settings.
+2) Open het OTA-venster.
+3) Klik 📂 en selecteer het .bin bestand.
+4) Klik "Upload Firmware".
+5) Wacht tot de voortgangsbalk 100% toont.
+6) De Kwal herstart automatisch.
+
+  ⚠ Onderbreek het uploaden NIET.
+  ⚠ Alleen op HOUT zonder overleg.
+    Upload naar MARMER alleen als de gebruiker
+    dat expliciet aangeeft.
+
+
+============================================================
+VRAAG 8 - WebGUI bestanden bijwerken
+============================================================
+
+Stappen:
+1) Bouw de JS:
+     cd sdroot\webgui-src
+     .\build.ps1
+     cd ..\..
+2) Upload naar HOUT:
+     .\upload_web.ps1 192.168.2.189
+3) Ververs de browser (Ctrl+F5).
+
+  ⚠ upload_web.ps1 stuurt index.html, styles.css
+    en kwal.js. Het raakt GEEN CSV's aan.
+
+
+============================================================
+VRAAG 9 - Eén bestand uploaden naar de Kwal
+============================================================
+
+Stappen:
+1) Zorg dat het bestand in sdroot/ staat.
+2) Upload:
+     .\upload_file.ps1 <bestandsnaam> <IP>
+
+Voorbeeld:
+     .\upload_file.ps1 globals.csv 192.168.2.189
+
+  ⚠ Gebruik dit in plaats van upload_csv.ps1.
+    Zie voetnoot 6 voor waarom.
+
+
+============================================================
+VRAAG 10 - WiFi configuratie wijzigen
+============================================================
+
+Stappen:
+1) Bewerk sdroot\wifi.txt (4 regels):
+     <SSID>
+     <Wachtwoord>
+     <IP-adres>
+     <Gateway>
+2) Upload:
+     .\upload_file.ps1 wifi.txt <IP>
+3) Herstart de Kwal.
+
+Voorbeeld wifi.txt:
+     keijebijter
+     Helmondia;55
+     192.168.2.189
+     192.168.2.254
+
+
+============================================================
+VOETNOTEN - ALLEEN BIJ PROBLEMEN
+============================================================
+
+1) Colors definitief vastzetten
+  1. Open:
+       http://192.168.2.189/api/sd/file?path=/light_colors.csv
+  2. Sla op als light_colors.csv
+  3. Overschrijf centrale light_colors.csv
+  4. Wacht 10 seconden
+  5. Herstart de Kwal
+
+2) Lux kalibratie levert laag R²
+  - Neem meer samples met grotere lux-spreiding.
+  - Zorg dat het donker én licht in de ruimte kan zijn.
+  - Minimaal 5 samples, liefst 10+.
+  - R² > 0.80 is goed, < 0.50 is onvoldoende.
+
+3) Colors valt terug na reboot (bezoeker meldt dit)
+  - Download huidige light_colors.csv van het apparaat.
+  - Vergelijk met sdroot/light_colors.csv.
+  - Overschrijf en herstart. Zie voetnoot 1.
+
+4) NAS-sync mislukt
+  - Check WiFi (Health → 📶).
+  - Check NAS bereikbaarheid.
+  - Probeer Save opnieuw, wacht tot NAS = ✅.
+
+5) Health toont ❌
+  - Noteer welk onderdeel ❌ toont.
+  - Herstart de Kwal.
+  - Als ❌ blijft: check hardware-aansluiting,
+    serial monitor (.\trace.ps1 COM12).
+
+6) Waarom NOOIT upload_csv.ps1 gebruiken?
+  - Dit script upload ALLE CSV's tegelijk.
+  - Dat overschrijft light_patterns.csv met PNF-kalibraties
+    die op het apparaat staan, NIET in sdroot/.
+  - Gebruik altijd upload_file.ps1 voor losse bestanden.
+  - Bij twijfel: vraag eerst, upload niet.

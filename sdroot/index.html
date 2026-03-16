@@ -32,13 +32,23 @@
         <input type="range" id="volume" min="0" max="100" value="100">
         <span id="vol-num">100%</span>
       </div>
+      <div class="row">
+        <label style="font-size:1.4rem" title="Fragment interval">🔊⏱</label>
+        <input type="range" id="frag-interval" min="0" max="15" value="7">
+        <span id="frag-num">30m</span>
+      </div>
+      <div class="row">
+        <label class="label-brown" style="font-size:1.4rem" title="Spreek interval">🗣⏱</label>
+        <input type="range" id="speak-interval" class="slider-brown" min="0" max="16" value="9">
+        <span id="speak-num">60m</span>
+      </div>
     </section>
 
     <hr class="panel-sep">
 
     <section class="panel">
       <div class="row">
-        <label style="font-size:1.4rem">💡</label>
+        <label id="darkmode-toggle" style="font-size:1.4rem;cursor:pointer" title="Dark mode">💡</label>
         <input type="range" id="brightness" min="0" max="100" value="50">
         <span id="bri-num">50%</span>
       </div>
@@ -95,16 +105,6 @@
       <span class="modal-close" data-close>✕</span>
       <span data-open="mp3grid-modal" style="font-size:2rem;cursor:pointer;position:absolute;left:1.2rem;top:1rem" title="MP3 Grid">🎶</span>
       <div style="margin-top:3rem">
-        <div class="row" style="margin-bottom:1.5rem">
-          <label style="font-size:1.4rem" title="Fragment interval">🔊⏱</label>
-          <input type="range" id="frag-interval" min="0" max="15" value="7">
-          <span id="frag-num">30m</span>
-        </div>
-        <div class="row" style="margin-bottom:1.5rem">
-          <label class="label-brown" style="font-size:1.4rem" title="Spreek interval">🗣⏱</label>
-          <input type="range" id="speak-interval" class="slider-brown" min="0" max="16" value="9">
-          <span id="speak-num">60m</span>
-        </div>
         <div class="row">
           <label class="label-gold" style="font-size:1.4rem" title="Actieve uren">⏳</label>
           <input type="range" id="interval-duration" class="slider-gold" min="0" max="11" value="11">
@@ -313,7 +313,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260313F"></script>
+  <script src="kwal.js?v=260316B"></script>
 </body>
 
 </html>
