@@ -166,7 +166,8 @@ footer #dev-btn:hover { background: #444; color: #aaa; }
 /* Audio control row: fragment+next left, voting right - ONE LINE */
 .audio-header-row { display: flex; align-items: center; gap: 0.4rem; }
 .audio-header-row h2 { margin: 0; margin-right: 0.5rem; }
-.audio-box-label { white-space: nowrap; font-size: 1rem !important; }
+.audio-box-label { white-space: nowrap; font-size: 1rem !important; cursor: pointer; }
+.audio-box-label:hover { color: #adf; }
 .audio-header-row .spacer { flex: 1; }
 .fragment-id { font-family: monospace; font-size: 0.9rem; color: #8af; min-width: 5rem; }
 .fragment-id .clickable { cursor: pointer; }

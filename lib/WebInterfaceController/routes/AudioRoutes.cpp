@@ -1,8 +1,8 @@
 /**
  * @file AudioRoutes.cpp
  * @brief Audio API endpoint routes
- * @version 260226A
- * @date 2026-02-26
+ * @version 260316J
+ * @date 2026-03-16
  */
 #include <Arduino.h>
 #include "AudioRoutes.h"
@@ -122,6 +122,42 @@ void routeThemeBox(AsyncWebServerRequest *request)
     request->send(200, "text/plain", "OK");
 }
 
+void routePlayBox(AsyncWebServerRequest *request)
+{
+    if (!request->hasParam("dir")) {
+        request->send(400, "text/plain", "Missing ?dir");
+        return;
+    }
+    uint8_t srcDir = static_cast<uint8_t>(request->getParam("dir")->value().toInt());
+
+    // Find the theme box that contains this dir (smallest box wins)
+    const auto& boxes = GetAllThemeBoxes();
+    const ThemeBox* best = nullptr;
+    uint16_t bestSize = 0xFFFF;
+    for (const auto& box : boxes) {
+        uint16_t sz = static_cast<uint16_t>(box.entries.size());
+        for (uint16_t d : box.entries) {
+            if (d == srcDir && sz < bestSize) {
+                best = &box;
+                bestSize = sz;
+            }
+        }
+    }
+    if (!best || best->entries.size() < 2) {
+        // No box or only one dir — just play random from same dir
+        RunManager::requestPlaySpecificFragment(srcDir, -1, "box+");
+        request->send(200, "text/plain", "OK");
+        return;
+    }
+    // Pick a random different dir from the same box
+    uint8_t newDir = srcDir;
+    for (int i = 0; i < 20 && newDir == srcDir; ++i) {
+        newDir = static_cast<uint8_t>(best->entries[random(0, best->entries.size())]);
+    }
+    RunManager::requestPlaySpecificFragment(newDir, -1, "box+");
+    request->send(200, "text/plain", "OK");
+}
+
 void routeSetIntervals(AsyncWebServerRequest *request)
 {
     uint32_t speakMinMs = 0, speakMaxMs = 0;
@@ -176,6 +212,7 @@ void attachRoutes(AsyncWebServer &server)
     server.on("/api/audio/current", HTTP_GET, routeCurrent);
     server.on("/api/audio/play", HTTP_GET, routePlay);
     server.on("/api/audio/themebox", HTTP_GET, routeThemeBox);
+    server.on("/api/audio/playbox", HTTP_GET, routePlayBox);
     server.on("/api/audio/grid", HTTP_GET, routeGrid);
     server.on("/api/audio/intervals", HTTP_GET,  routeSetIntervals);
     server.on("/api/audio/intervals", HTTP_POST, routeSetIntervals);

@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260316I - Built 2026-03-16 10:19
+ * Kwal WebGUI v260316J - Built 2026-03-16 11:40
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260316I';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260316J';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -137,6 +137,7 @@ Kwal.audio = (function() {
 
   var slider, label, nextBtn, dirEl, fileEl, boxLabelEl;
   var voteUpBtn, voteDownBtn, voteScoreEl;
+  var voteDirtyUntil = 0;
   var currentDir = null, currentFile = null;
   var isPlaying = false;
   var playingTimeout = null;
@@ -261,6 +262,21 @@ Kwal.audio = (function() {
       };
     }
 
+    // Click box label: play random fragment from another dir in same theme box
+    if (boxLabelEl) {
+      boxLabelEl.onclick = function() {
+        if (currentDir !== null && !isPlaying && boxLabelEl.textContent !== 'Audio') {
+          setPlayingState(true);
+          if (playingTimeout) clearTimeout(playingTimeout);
+          playingTimeout = setTimeout(function() { setPlayingState(false); }, 32000);
+          fetch('/api/audio/playbox?dir=' + currentDir).catch(function() {
+            setPlayingState(false);
+          });
+        }
+      };
+      boxLabelEl.classList.add('clickable');
+    }
+
     if (voteUpBtn) {
       voteUpBtn.onclick = function() { vote(3); };
     }
@@ -283,6 +299,7 @@ Kwal.audio = (function() {
   }
 
   function vote(delta) {
+    voteDirtyUntil = Date.now() + 3000;
     // Optimistic UI - update score immediately, fire-and-forget
     if (voteScoreEl) {
       var current = parseInt(voteScoreEl.textContent, 10);
@@ -296,6 +313,7 @@ Kwal.audio = (function() {
   }
 
   function voteSet(score) {
+    voteDirtyUntil = Date.now() + 3000;
     if (voteScoreEl) voteScoreEl.textContent = String(score);
     fetch('/vote?set=' + score, { method: 'POST' }).catch(function() {});
   }
@@ -345,7 +363,7 @@ Kwal.audio = (function() {
     if (fileEl) {
       fileEl.textContent = String(file).padStart(3, '0');
     }
-    if (typeof score === 'number' && voteScoreEl) {
+    if (typeof score === 'number' && voteScoreEl && Date.now() > voteDirtyUntil) {
       voteScoreEl.textContent = score;
     }
     if (boxLabelEl && typeof boxName === 'string' && boxName.length > 0) {

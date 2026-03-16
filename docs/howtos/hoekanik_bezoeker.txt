@@ -63,6 +63,13 @@ Stemmen op fragmenten (voting)
    Stemmen worden onthouden, ook na reboot.
 
 ───────────────────────────────────────
+Ander fragment uit dezelfde themebox
+───────────────────────────────────────
+Klik op de themebox-naam (bijv. BIRDS4) bovenaan het audio-blok.
+   De Kwal speelt een willekeurig fragment uit een andere map
+   binnen dezelfde themebox.
+
+───────────────────────────────────────
 TV Simulator aan/uit zetten
 ───────────────────────────────────────
 1) Klik 📺 TV (onderaan).
