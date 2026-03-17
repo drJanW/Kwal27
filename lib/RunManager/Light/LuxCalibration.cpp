@@ -1,7 +1,7 @@
 /**
  * @file LuxCalibration.cpp
  * @brief Lux calibration data file and Gauss-Newton fit implementation
- * @version 260313D
+ * @version 260317E
  * @date 2026-03-13
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
@@ -227,21 +227,48 @@ bool LuxCalibration::fitParams(LuxFitResult& result) const {
     return true;
 }
 
+// Persist fitted calibration params to /config.txt (per-device file).
+// Uses read-modify-write: existing brMax=/luxRate=/luxMax= lines are
+// updated in-place; missing keys are appended.
+// config.txt is never overwritten by NAS CSV fetch, so calibration
+// survives reboots and upload_csv.ps1 runs.
+// Only Cal Lux Reset (🔄 in WebGUI) regenerates seeds from Globals.h defaults.
 bool LuxCalibration::saveFittedParams(const LuxFitResult& result) const {
     if (!AlertState::isSdOk()) return false;
-    const String csvPath = String("/globals.csv");
-    if (csvPath.isEmpty()) return false;
+    const char* path = "/config.txt";
 
-    File file = SD.open(csvPath.c_str(), FILE_APPEND);
-    if (!file) return false;
+    // Read existing config.txt, update or append brMax/luxRate/luxMax
+    File readFile = SD.open(path, FILE_READ);
+    String content;
+    bool hasBrMax = false, hasLuxRate = false, hasLuxMax = false;
+    if (readFile) {
+        while (readFile.available()) {
+            String line = readFile.readStringUntil('\n');
+            line.trim();
+            if (line.startsWith("brMax=")) {
+                line = "brMax=" + String(result.brMax, 1);
+                hasBrMax = true;
+            } else if (line.startsWith("luxRate=")) {
+                line = "luxRate=" + String(static_cast<double>(result.luxRate), 4);
+                hasLuxRate = true;
+            } else if (line.startsWith("luxMax=")) {
+                line = "luxMax=" + String(Globals::luxMax, 1);
+                hasLuxMax = true;
+            }
+            content += line + "\n";
+        }
+        readFile.close();
+    }
+    if (!hasBrMax)  content += "brMax=" + String(result.brMax, 1) + "\n";
+    if (!hasLuxRate) content += "luxRate=" + String(static_cast<double>(result.luxRate), 4) + "\n";
+    if (!hasLuxMax) content += "luxMax=" + String(Globals::luxMax, 1) + "\n";
 
-    file.printf("\n# ── Lux calibration fit ──\n");
-    file.printf("luxMax;f;%.1f;observed lux ceiling\n", static_cast<double>(Globals::luxMax));
-    file.printf("brMax;f;%.1f;fitted brightness asymptote\n", static_cast<double>(result.brMax));
-    file.printf("luxRate;f;%.4f;fitted saturation rate\n", static_cast<double>(result.luxRate));
-    file.close();
+    File writeFile = SD.open(path, FILE_WRITE);
+    if (!writeFile) return false;
+    writeFile.print(content);
+    writeFile.close();
 
-    PF("[LuxCal] Fitted params saved to %s\n", csvPath.c_str());
+    PF("[LuxCal] Fitted params saved to %s\n", path);
     return true;
 }
 

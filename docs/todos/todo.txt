@@ -1,20 +1,13 @@
 todo list
-Updated: 2026-03-12
+Updated: 2026-03-17
 
 REGEL: Geen "Completed" sectie. Succes = delete uit todo.
 
 === Active ===
 
-A3. Architecture cleanup (resterend)
-    - cb_* callbacks in verkeerde laag (deels geaccepteerd met NOCHECK)
 
 === Future ===
 
-F1. Sensor + Speak architecture completion
-    - Verplaats sensor orchestratie van SensorController naar SensorDirector
-    - Koppel sensor events aan SpeakRequest (DISTANCE_TOO_CLOSE, LUX_LOW, etc)
-    - Beide modules volledig Boot→Run→Policy→Director patroon
-    - Zie: docs/plan_f1_sensor_speak.md
 
 === Minor Bugs ===
 
@@ -23,6 +16,20 @@ F1. Sensor + Speak architecture completion
 
 
 === Sidelined ===
+
+A3. Architecture cleanup (resterend)
+    - cb_* callbacks in verkeerde laag (deels geaccepteerd met NOCHECK)
+
+F1. Sensor + Speak architecture completion
+    - Verplaats sensor orchestratie van SensorController naar SensorDirector
+    - Koppel sensor events aan SpeakRequest (DISTANCE_TOO_CLOSE, LUX_LOW, etc)
+    - Beide modules volledig Boot→Run→Policy→Director patroon
+    - Zie: docs/plan_f1_sensor_speak.md
+
+F9. Implement distanceAnimationFor() in LightPolicy
+    - Currently a stub returning false
+    - Distance-driven LED animation modulation
+    - Stub location: LightPolicy.cpp:48
 
 H9. Normalize say → speak naming in time/temperature paths
     - ~20 referenties, puur cosmetisch

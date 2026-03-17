@@ -1,7 +1,7 @@
 /**
  * @file Globals.cpp
  * @brief CSV override loader for Globals
- * @version 260316C
+ * @version 260317E
  * @date 2026-03-16
  */
 #include "Arduino.h"
@@ -273,24 +273,9 @@ static void applyOverride(const char* key, char type, const char* value) {
     // BRIGHTNESS/LUX
     // ═══════════════════════════════════════════════════════════
     // brightnessFloor REMOVED - use brightnessLo instead
-    else if (strcmp(key, "brMax") == 0 && type == 'f') {
-        if (parseFloat(value, &f32) && f32 > 0.0f && f32 <= 500.0f) {
-            Globals::brMax = f32;
-            PF_BOOT("[Globals] brMax = %.1f\n", f32);
-        }
-    }
-    else if (strcmp(key, "luxRate") == 0 && type == 'f') {
-        if (parseFloat(value, &f32) && f32 > 0.0f && f32 <= 1.0f) {
-            Globals::luxRate = f32;
-            PF_BOOT("[Globals] luxRate = %.4f\n", static_cast<double>(f32));
-        }
-    }
-    else if (strcmp(key, "luxMax") == 0 && type == 'f') {
-        if (parseFloat(value, &f32) && f32 > 0.0f) {
-            Globals::luxMax = f32;
-            PF_BOOT("[Globals] luxMax = %.1f\n", f32);
-        }
-    }
+    // brMax, luxRate, luxMax — per-device calibration in config.txt, not globals.csv.
+    // globals.csv is fetched from NAS at boot and would overwrite calibration.
+    // See docs/coding_tech/lux_calibration_storage.md
     else if (strcmp(key, "brightnessLo") == 0 && type == 'u') {
         if (parseUint32(value, &u32) && u32 <= 255) {
             Globals::brightnessLo = static_cast<uint8_t>(u32);
@@ -801,7 +786,17 @@ static bool loadConfigFromNvs() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Load config.txt: key=value pairs for device identity & hardware presence
+// Load config.txt: key=value pairs for device identity, hardware
+// presence, and per-device lux calibration parameters.
+//
+// Calibration params (brMax, luxRate, luxMax) live here because:
+//  - They are per-device (MARMER vs HOUT have different sensors/optics)
+//  - config.txt is never overwritten by NAS CSV fetch (WiFiBoot)
+//  - config.txt survives upload_csv.ps1 which replaces globals.csv
+//  - saveFittedParams() in LuxCalibration.cpp updates these in-place
+//  - Only Cal Lux Reset (🔄) reverts to Globals.h compiled defaults
+//
+// See docs/coding_tech/lux_calibration_storage.md for full workflow.
 // ─────────────────────────────────────────────────────────────
 static bool loadConfigTxt() {
     const String path = String("/config.txt");
@@ -875,6 +870,24 @@ static bool loadConfigTxt() {
         } else if (strcmp(key, "nas") == 0) {
             Globals::nasPresent = (val[0] == '1');
             PF_BOOT("[Globals] nasPresent = %d (from config.txt)\n", Globals::nasPresent);
+        } else if (strcmp(key, "brMax") == 0) {
+            float f = atof(val);
+            if (f > 0.0f && f <= 500.0f) {
+                Globals::brMax = f;
+                PF_BOOT("[Globals] brMax = %.1f (from config.txt)\n", static_cast<double>(f));
+            }
+        } else if (strcmp(key, "luxRate") == 0) {
+            float f = atof(val);
+            if (f > 0.0f && f <= 1.0f) {
+                Globals::luxRate = f;
+                PF_BOOT("[Globals] luxRate = %.4f (from config.txt)\n", static_cast<double>(f));
+            }
+        } else if (strcmp(key, "luxMax") == 0) {
+            float f = atof(val);
+            if (f > 0.0f) {
+                Globals::luxMax = f;
+                PF_BOOT("[Globals] luxMax = %.1f (from config.txt)\n", static_cast<double>(f));
+            }
         }
         keysLoaded++;
     }
@@ -892,6 +905,8 @@ void Globals::begin() {
     const char* source = hadNvs ? "Flash" : "defaults";
 
     // ── Step 2: If SD available, config.txt overrides NVS and re-caches ──
+    // config.txt contains: device identity, hardware flags, AND lux calibration
+    // params (brMax, luxRate, luxMax). These are per-device and survive NAS fetch.
     if (AlertState::isSdOk()) {
         bool hadFile = loadConfigTxt();
         Globals::configFilePresent = hadFile;
