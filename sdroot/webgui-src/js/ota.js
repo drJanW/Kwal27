@@ -1,7 +1,7 @@
 /**
  * @file    ota.js
- * @version 260312A
- * @date    2026-03-12
+ * @version 260317I
+ * @date    2026-03-17
  *
  * Kwal - OTA module
  * API: POST /ota/upload (multipart firmware binary)
@@ -10,6 +10,12 @@ Kwal.ota = (function() {
   'use strict';
 
   var fileInput, uploadBtn, status, progressBar, filenameEl;
+  var canUpload = false;
+
+  function setUploadEnabled(enabled) {
+    canUpload = enabled;
+    if (uploadBtn) uploadBtn.style.opacity = enabled ? '1' : '0.3';
+  }
 
   function init() {
     fileInput   = document.getElementById('ota-file');
@@ -20,14 +26,14 @@ Kwal.ota = (function() {
 
     if (uploadBtn) uploadBtn.onclick = uploadFirmware;
     if (fileInput) fileInput.onchange = function() {
-      if (uploadBtn) uploadBtn.disabled = !fileInput.files.length;
+      setUploadEnabled(!!fileInput.files.length);
       if (filenameEl) filenameEl.textContent = fileInput.files.length ? fileInput.files[0].name : 'geen bestand';
       showStatus('', false);
     };
   }
 
   function uploadFirmware() {
-    if (!fileInput || !fileInput.files.length) {
+    if (!canUpload || !fileInput || !fileInput.files.length) {
       showStatus('Kies eerst een .bin bestand', true);
       return;
     }
@@ -37,7 +43,8 @@ Kwal.ota = (function() {
       return;
     }
 
-    if (uploadBtn) uploadBtn.disabled = true;
+    if (uploadBtn) uploadBtn.style.opacity = '0.3';
+    canUpload = false;
     showStatus('Uploading ' + file.name + ' (' + formatSize(file.size) + ')...', false);
     setProgress(0);
 

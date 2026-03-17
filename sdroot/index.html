@@ -165,16 +165,16 @@
         <button id="luxcal-sample" style="width:100%" disabled>👍 Sample</button>
       </div>
       <div class="row" style="margin-top:0.5rem;gap:1rem;font-size:0.85rem;color:#aaa">
-        <span id="luxcal-count">0 samples</span>
         <span>☀️ <span id="luxcal-lux">-</span></span>
         <span>💡 <span id="luxcal-bri">-</span></span>
       </div>
       <hr>
-      <canvas id="luxcal-chart" width="280" height="180" style="width:100%;background:#111;border-radius:4px"></canvas>
-      <div class="row" style="justify-content:space-between">
-        <button id="luxcal-fit" style="width:31%">Fit</button>
-        <button id="luxcal-download" style="width:31%">⬇ CSV</button>
-        <button id="luxcal-clear" style="width:31%">🗑 Wis</button>
+      <canvas id="luxcal-chart" width="280" height="200" style="width:100%;background:#111;border-radius:4px"></canvas>
+      <div class="row" style="justify-content:center;gap:2rem;margin-top:0.5rem;font-size:1.5rem">
+        <span id="luxcal-approve" style="cursor:pointer;opacity:0.6" title="Accepteer fit">✅</span>
+        <span id="luxcal-download" style="cursor:pointer;opacity:0.6" title="Download CSV">⬇️</span>
+        <span id="luxcal-clear" style="cursor:pointer;opacity:0.6" title="Wis samples">🗑️</span>
+        <span id="luxcal-reset" style="cursor:pointer;opacity:0.6" title="Reset naar defaults">🔄</span>
       </div>
       <div id="luxcal-fitresult" style="margin-top:0.5rem;font-size:0.8rem;color:#aaa;word-break:break-all">-</div>
       <div id="luxcal-newfit" style="display:none;margin-top:0.3rem;font-size:0.8rem">
@@ -221,9 +221,9 @@
       <div style="margin:8px 0;display:flex;align-items:center;gap:0.5rem">
         <input type="file" id="ota-file" accept=".bin" style="display:none">
         <label for="ota-file" style="cursor:pointer;font-size:1.5rem" title="Kies .bin bestand">📂</label>
-        <span id="ota-filename" style="font-size:0.85rem;color:#aaa">geen bestand</span>
+        <span id="ota-filename" style="font-size:0.85rem;color:#aaa;flex:1">geen bestand</span>
+        <span id="ota-upload" style="font-size:1.5rem;cursor:pointer;opacity:0.3" title="Upload firmware">⬆️</span>
       </div>
-      <button id="ota-upload" class="btn-warn" disabled>Upload Firmware</button>
       <progress id="ota-progress" max="100" value="0" style="display:none;width:100%;margin:8px 0"></progress>
       <div id="ota-status"></div>
     </div>
@@ -322,7 +322,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260317A"></script>
+  <script src="kwal.js?v=260317L"></script>
 </body>
 
 </html>

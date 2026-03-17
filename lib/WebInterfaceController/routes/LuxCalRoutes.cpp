@@ -1,8 +1,8 @@
 /**
  * @file LuxCalRoutes.cpp
  * @brief Lux calibration API endpoint routes implementation
- * @version 260313C
- * @date 2026-03-13
+ * @version 260317D
+ * @date    2026-03-17
  */
 #include <Arduino.h>
 #include "LuxCalRoutes.h"
@@ -151,8 +151,22 @@ static void routeAcceptFit(AsyncWebServerRequest* request) {
     sendJson(request, json);
 }
 
-// POST /api/lux/clear — reset to seeds from current params
+// POST /api/lux/clear — remove samples, keep seeds intact
 static void routeClear(AsyncWebServerRequest* request) {
+    LuxCalibration::instance().clearSamples();
+    if (AlertState::isSdOk() && !AlertState::isSdBusy()) {
+        LuxCalibration::instance().saveToSd();
+    }
+    String json;
+    json.reserve(48);
+    json += F("{\"ok\":true,\"sampleCount\":");
+    json += LuxCalibration::instance().sampleCount();
+    json += '}';
+    sendJson(request, json);
+}
+
+// POST /api/lux/reset — regenerate seeds from current Globals (factory defaults)
+static void routeReset(AsyncWebServerRequest* request) {
     if (AlertState::isSdOk() && !AlertState::isSdBusy()) {
         LuxCalibration::instance().generateSeeds();
     } else {
@@ -210,6 +224,19 @@ static void routePoints(AsyncWebServerRequest* request) {
     json += seedCount;
     json += F(",\"full\":");
     json += cal.isFull() ? F("true") : F("false");
+    // Live fit from current data
+    LuxFitResult liveFit;
+    if (cal.fitParams(liveFit)) {
+        json += ',';
+        json += F("\"fitBrMax\":");
+        json += String(liveFit.brMax, 1);
+        json += ',';
+        json += F("\"fitLuxRate\":");
+        json += String(liveFit.luxRate, 4);
+        json += ',';
+        json += F("\"fitR2\":");
+        json += String(liveFit.r2, 4);
+    }
     json += F(",\"points\":[");
     for (size_t i = 0; i < pts.size(); ++i) {
         if (i > 0) json += ',';
@@ -232,6 +259,7 @@ void attachRoutes(AsyncWebServer& server) {
     server.on("/api/lux/fit",       HTTP_POST, routeFit);
     server.on("/api/lux/accept",    HTTP_POST, routeAcceptFit);
     server.on("/api/lux/clear",     HTTP_POST, routeClear);
+    server.on("/api/lux/reset",     HTTP_POST, routeReset);
     server.on("/api/lux/csv",       HTTP_GET,  routeCsvDownload);
     server.on("/api/lux/points",    HTTP_GET,  routePoints);
     server.on("/api/lux/reload",    HTTP_POST, routeReload);

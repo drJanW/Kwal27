@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260317A - Built 2026-03-17 08:10
+ * Kwal WebGUI v260317L - Built 2026-03-17 09:44
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260317A';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260317L';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -1717,8 +1717,8 @@ Kwal.colors = (function() {
 // === js/ota.js ===
 /**
  * @file    ota.js
- * @version 260312A
- * @date    2026-03-12
+ * @version 260317I
+ * @date    2026-03-17
  *
  * Kwal - OTA module
  * API: POST /ota/upload (multipart firmware binary)
@@ -1727,6 +1727,12 @@ Kwal.ota = (function() {
   'use strict';
 
   var fileInput, uploadBtn, status, progressBar, filenameEl;
+  var canUpload = false;
+
+  function setUploadEnabled(enabled) {
+    canUpload = enabled;
+    if (uploadBtn) uploadBtn.style.opacity = enabled ? '1' : '0.3';
+  }
 
   function init() {
     fileInput   = document.getElementById('ota-file');
@@ -1737,14 +1743,14 @@ Kwal.ota = (function() {
 
     if (uploadBtn) uploadBtn.onclick = uploadFirmware;
     if (fileInput) fileInput.onchange = function() {
-      if (uploadBtn) uploadBtn.disabled = !fileInput.files.length;
+      setUploadEnabled(!!fileInput.files.length);
       if (filenameEl) filenameEl.textContent = fileInput.files.length ? fileInput.files[0].name : 'geen bestand';
       showStatus('', false);
     };
   }
 
   function uploadFirmware() {
-    if (!fileInput || !fileInput.files.length) {
+    if (!canUpload || !fileInput || !fileInput.files.length) {
       showStatus('Kies eerst een .bin bestand', true);
       return;
     }
@@ -1754,7 +1760,8 @@ Kwal.ota = (function() {
       return;
     }
 
-    if (uploadBtn) uploadBtn.disabled = true;
+    if (uploadBtn) uploadBtn.style.opacity = '0.3';
+    canUpload = false;
     showStatus('Uploading ' + file.name + ' (' + formatSize(file.size) + ')...', false);
     setProgress(0);
 
@@ -2071,8 +2078,8 @@ Kwal.health = (function() {
 // === js/luxcal.js ===
 /**
  * @file    luxcal.js
- * @version 260316K
- * @date    2026-03-16
+ * @version 260317L
+ * @date    2026-03-17
  *
  * Kwal - Lux Calibration module
  * Calibration panel for lux → brightness curve fitting
@@ -2082,8 +2089,8 @@ Kwal.health = (function() {
 Kwal.luxcal = (function() {
   'use strict';
 
-  var sampleBtn, fitBtn, clearBtn, downloadBtn, acceptBtn;
-  var statusEl, sampleCountEl, luxValueEl, brightnessValueEl, fitResultEl;
+  var sampleBtn, approveBtn, clearBtn, resetBtn, downloadBtn, acceptBtn;
+  var statusEl, luxValueEl, brightnessValueEl, fitResultEl;
   var newFitEl, newParamsEl;
   var briSlider, briLabel;
   var chartCanvas;
@@ -2096,17 +2103,13 @@ Kwal.luxcal = (function() {
 
   function formatParams(d) {
     var s = 'brMax=' + (d.brMax != null ? Number(d.brMax).toFixed(1) : '?') +
-           ' rate=' + (d.luxRate != null ? Number(d.luxRate).toFixed(4) : '?');
+           ' slope=' + (d.luxRate != null ? Number(d.luxRate).toFixed(4) : '?');
     if (d.luxMax != null) s += ' (lux 0-' + Number(d.luxMax).toFixed(0) + ')';
     return s;
   }
 
   function setStatus(text) {
     if (statusEl) statusEl.textContent = text;
-  }
-
-  function showCount(real) {
-    if (sampleCountEl) sampleCountEl.textContent = real + ' samples';
   }
 
   function hideAccept() {
@@ -2117,15 +2120,11 @@ Kwal.luxcal = (function() {
 
   function setDisabledAll(disabled) {
     if (sampleBtn)   sampleBtn.disabled = disabled;
-    if (fitBtn)      fitBtn.disabled = disabled;
-    if (clearBtn)    clearBtn.disabled = disabled;
-    if (downloadBtn) downloadBtn.disabled = disabled;
     if (briSlider)   briSlider.disabled = disabled;
   }
 
   function updateUI(data) {
     if (!data) return;
-    showCount(data.realCount || 0);
     if (typeof data.lastLux === 'number' && luxValueEl) {
       luxValueEl.textContent = data.lastLux.toFixed(1);
     }
@@ -2193,7 +2192,6 @@ Kwal.luxcal = (function() {
       .then(function(data) {
         if (data.ok) {
           setStatus('Sample opgeslagen');
-          showCount(data.realCount || 0);
           if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1);
           if (brightnessValueEl) brightnessValueEl.textContent = data.brightness.toFixed(1);
         } else {
@@ -2204,28 +2202,7 @@ Kwal.luxcal = (function() {
       .catch(function() { setStatus('Sample mislukt'); sampleBtn.disabled = false; });
   }
 
-  function doFit() {
-    setStatus('Fitting...');
-    fetch('/api/lux/fit', { method: 'POST' })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.ok) {
-          if (fitResultEl) {
-            fitResultEl.textContent = 'Oud: ' + formatParams({
-              brMax: data.oldBrMax, luxRate: data.oldLuxRate, luxMax: data.luxMax
-            });
-          }
-          if (newParamsEl) {
-            newParamsEl.textContent = 'Nieuw: ' + formatParams(data) +
-              ' R\u00b2=' + (data.r2 != null ? Number(data.r2).toFixed(3) : '?') + ' (n=' + (data.realCount || 0) + ')';
-          }
-          if (newFitEl) newFitEl.style.display = 'block';          lastFitParams = { brMax: data.brMax, luxRate: data.luxRate };          setStatus('Fit berekend — accepteer of sample verder');
-        } else {
-          setStatus(data.error || 'Fit mislukt');
-        }
-      })
-      .catch(function() { setStatus('Fit mislukt'); });
-  }
+
 
   function doAccept() {
     setStatus('Opslaan...');
@@ -2234,7 +2211,6 @@ Kwal.luxcal = (function() {
       .then(function(data) {
         if (data.ok) {
           hideAccept();
-          showCount(data.realCount || 0);
           if (fitResultEl && lastFitParams) {
             fitResultEl.textContent = 'Huidig: ' + formatParams(lastFitParams);
           }
@@ -2249,17 +2225,52 @@ Kwal.luxcal = (function() {
       .catch(function() { setStatus('Opslaan mislukt'); });
   }
 
+  function doApprove() {
+    setStatus('Fitting + opslaan...');
+    fetch('/api/lux/fit', { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.ok) throw new Error(data.error || 'Fit mislukt');
+        return fetch('/api/lux/accept', { method: 'POST' })
+          .then(function(r) { return r.json(); });
+      })
+      .then(function(data) {
+        if (data.ok) {
+          hideAccept();
+          if (sampleBtn) sampleBtn.disabled = false;
+          fetchAndDraw();
+          setStatus('Opgeslagen, seeds vernieuwd');
+        } else {
+          setStatus('Opslaan mislukt');
+        }
+      })
+      .catch(function(e) { setStatus(e.message || 'Approve mislukt'); });
+  }
+
   function doClear() {
-    if (!confirm('Reset naar seeds?')) return;
+    if (!confirm('Wis samples?')) return;
     fetch('/api/lux/clear', { method: 'POST' })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        showCount(0);
         if (fitResultEl) fitResultEl.textContent = '-';
         hideAccept();
         if (sampleBtn) sampleBtn.disabled = false;
         fetchAndDraw();
-        setStatus('Reset naar seeds');
+        setStatus('Samples gewist');
+      })
+      .catch(function() { setStatus('Wissen mislukt'); });
+  }
+
+  function doReset() {
+    if (!confirm('Reset naar fabrieksinstellingen?')) return;
+    fetch('/api/lux/reset', { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (fitResultEl) fitResultEl.textContent = '-';
+        hideAccept();
+        if (sampleBtn) sampleBtn.disabled = false;
+        fetchAndDraw();
+        setStatus('Reset naar defaults');
       })
       .catch(function() { setStatus('Reset mislukt'); });
   }
@@ -2268,11 +2279,49 @@ Kwal.luxcal = (function() {
     window.open('/api/lux/csv', '_blank');
   }
 
+  // JS-side Gauss-Newton fit: y = B * (1 - exp(-r * lux))
+  function jsFit(pts, initB, initR) {
+    if (!pts || pts.length < 2) return null;
+    var B = initB || 100, r = initR || 0.02;
+    for (var iter = 0; iter < 12; iter++) {
+      var jj00 = 0, jj01 = 0, jj11 = 0, jr0 = 0, jr1 = 0;
+      for (var i = 0; i < pts.length; i++) {
+        var lux = Math.max(pts[i].lux, 0);
+        var obs = pts[i].bri;
+        var e = 1 - Math.exp(-r * lux);
+        var res = obs - B * e;
+        var w = 1 / (1 + lux);
+        var j0 = e, j1 = B * lux * (1 - e);
+        jj00 += w * j0 * j0; jj01 += w * j0 * j1;
+        jj11 += w * j1 * j1; jr0 += w * j0 * res; jr1 += w * j1 * res;
+      }
+      var det = jj00 * jj11 - jj01 * jj01;
+      if (Math.abs(det) < 1e-20) break;
+      var dB = (jj11 * jr0 - jj01 * jr1) / det;
+      var dr = (-jj01 * jr0 + jj00 * jr1) / det;
+      B += dB; r += dr;
+      if (B < 10) B = 10; if (B > 500) B = 500;
+      if (r < 0.001) r = 0.001; if (r > 0.5) r = 0.5;
+      if (Math.abs(dB) < 1e-6 && Math.abs(dr) < 1e-6) break;
+    }
+    var ssRes = 0, ssTot = 0, meanY = 0;
+    for (var j = 0; j < pts.length; j++) meanY += pts[j].bri;
+    meanY /= pts.length;
+    for (var k = 0; k < pts.length; k++) {
+      var lk = Math.max(pts[k].lux, 0);
+      var diff = pts[k].bri - B * (1 - Math.exp(-r * lk));
+      ssRes += diff * diff;
+      var dm = pts[k].bri - meanY;
+      ssTot += dm * dm;
+    }
+    return { brMax: B, luxRate: r, r2: ssTot > 0 ? 1 - ssRes / ssTot : 0 };
+  }
+
   function drawChart(data) {
     if (!chartCanvas) return;
     var ctx = chartCanvas.getContext('2d');
     var W = chartCanvas.width, H = chartCanvas.height;
-    var pad = { l: 36, r: 10, t: 10, b: 22 };
+    var pad = { l: 36, r: 10, t: 10, b: 32 };
     var pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
 
     ctx.clearRect(0, 0, W, H);
@@ -2285,6 +2334,10 @@ Kwal.luxcal = (function() {
     for (var i = 0; i < pts.length; i++) {
       if (pts[i].bri > yMax) yMax = pts[i].bri * 1.1;
     }
+
+    // Quadratic X-axis: pixel = sqrt(lux/xMax) * pw, lux = (px/pw)² * xMax
+    function luxToX(lux) { return Math.sqrt(lux / xMax) * pw; }
+    function xToLux(px)  { var t = px / pw; return t * t * xMax; }
 
     // Grid lines + labels
     ctx.strokeStyle = '#333';
@@ -2304,7 +2357,7 @@ Kwal.luxcal = (function() {
     ctx.textBaseline = 'top';
     var xSteps = 4;
     for (var k = 0; k <= xSteps; k++) {
-      var xv = xMax * k / xSteps;
+      var xv = (k / xSteps) * (k / xSteps) * xMax;
       var xp = pad.l + (k / xSteps) * pw;
       ctx.beginPath(); ctx.moveTo(xp, pad.t); ctx.lineTo(xp, pad.t + ph); ctx.stroke();
       ctx.fillText(Math.round(xv), xp, pad.t + ph + 4);
@@ -2313,32 +2366,49 @@ Kwal.luxcal = (function() {
     // Axis labels
     ctx.fillStyle = '#888';
     ctx.textAlign = 'center';
-    ctx.fillText('lux', pad.l + pw / 2, H - 2);
+    ctx.fillText('lux', pad.l + pw / 2, pad.t + ph + 20);
     ctx.save();
     ctx.translate(8, pad.t + ph / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.fillText('bri', 0, 0);
     ctx.restore();
 
-    // Fitted curve (green)
-    var brMax = data.brMax || 100;
-    var luxRate = data.luxRate || 0.02;
-    ctx.strokeStyle = '#0c0';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    for (var cx = 0; cx <= pw; cx++) {
-      var lux = (cx / pw) * xMax;
-      var bri = brMax * (1.0 - Math.exp(-luxRate * lux));
-      var py = pad.t + ph - (bri / yMax) * ph;
-      if (cx === 0) ctx.moveTo(pad.l + cx, py);
-      else ctx.lineTo(pad.l + cx, py);
+    // Seeds-only fit (yellow) — the curve the seeds represent
+    var seedBrMax = data.seedBrMax;
+    var seedLuxRate = data.seedLuxRate;
+    if (seedBrMax != null && seedLuxRate != null) {
+      ctx.strokeStyle = '#fc0';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (var cx = 0; cx <= pw; cx++) {
+        var lux = xToLux(cx);
+        var bri = seedBrMax * (1.0 - Math.exp(-seedLuxRate * lux));
+        var py = pad.t + ph - (bri / yMax) * ph;
+        if (cx === 0) ctx.moveTo(pad.l + cx, py);
+        else ctx.lineTo(pad.l + cx, py);
+      }
+      ctx.stroke();
     }
-    ctx.stroke();
+
+    // Live fit curve (green)
+    if (data.fitBrMax != null && data.fitLuxRate != null) {
+      ctx.strokeStyle = '#0c0';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (var cx2 = 0; cx2 <= pw; cx2++) {
+        var lux2 = xToLux(cx2);
+        var bri2 = data.fitBrMax * (1.0 - Math.exp(-data.fitLuxRate * lux2));
+        var py2 = pad.t + ph - (bri2 / yMax) * ph;
+        if (cx2 === 0) ctx.moveTo(pad.l + cx2, py2);
+        else ctx.lineTo(pad.l + cx2, py2);
+      }
+      ctx.stroke();
+    }
 
     // Draw points: seeds blue, samples red
     for (var p = 0; p < pts.length; p++) {
       var pt = pts[p];
-      var px = pad.l + (pt.lux / xMax) * pw;
+      var px = pad.l + luxToX(pt.lux);
       var pyPt = pad.t + ph - (pt.bri / yMax) * ph;
       ctx.beginPath();
       ctx.arc(px, pyPt, pt.seed ? 3 : 4, 0, 2 * Math.PI);
@@ -2350,20 +2420,59 @@ Kwal.luxcal = (function() {
   function fetchAndDraw() {
     fetch('/api/lux/points').then(function(r) { return r.json(); })
       .then(function(data) {
+        // Compute fits from data: seeds-only + all-points
+        var pts = data.points || [];
+        var seedCount = data.seedCount || 0;
+        var seeds = pts.slice(0, seedCount);
+        var sc = pts.length - seedCount;
+        // Seeds-only fit → "old" row
+        var seedFit = jsFit(seeds, data.brMax, data.luxRate);
+        if (seedFit) {
+          data.seedBrMax = seedFit.brMax;
+          data.seedLuxRate = seedFit.luxRate;
+          data.seedR2 = seedFit.r2;
+        }
+        // All-points fit → "new" row
+        if (data.fitBrMax == null && pts.length >= 2) {
+          var allFit = jsFit(pts, data.brMax, data.luxRate);
+          if (allFit) { data.fitBrMax = allFit.brMax; data.fitLuxRate = allFit.luxRate; data.fitR2 = allFit.r2; }
+        }
         drawChart(data);
         if (data.full && sampleBtn) sampleBtn.disabled = true;
+        // Always show table: old + new(+N)
+        if (fitResultEl) {
+          var lm = data.luxMax ? Number(data.luxMax).toFixed(0) : '?';
+          var ts = 'width:100%;font-size:0.75rem;color:#aaa;border-collapse:collapse';
+          var html = '<table style="' + ts + '">';
+          html += '<tr><th style="text-align:left;width:35%">0-' + lm + '</th>';
+          html += '<th style="text-align:right;width:25%">brMax</th>';
+          html += '<th style="text-align:right;width:22%">Slope</th>';
+          html += '<th style="text-align:right;width:18%">R\u00b2</th></tr>';
+          html += '<tr style="color:#fc0"><td>old</td>';
+          html += '<td style="text-align:right">' + (data.seedBrMax != null ? Number(data.seedBrMax).toFixed(1) : '?') + '</td>';
+          html += '<td style="text-align:right">' + (data.seedLuxRate != null ? Number(data.seedLuxRate).toFixed(4) : '?') + '</td>';
+          html += '<td style="text-align:right">' + (data.seedR2 != null ? Number(data.seedR2).toFixed(3) : '') + '</td></tr>';
+          if (data.fitBrMax != null) {
+            html += '<tr style="color:#0c0"><td>new(+' + sc + ')</td>';
+            html += '<td style="text-align:right">' + Number(data.fitBrMax).toFixed(1) + '</td>';
+            html += '<td style="text-align:right">' + Number(data.fitLuxRate).toFixed(4) + '</td>';
+            html += '<td style="text-align:right">' + Number(data.fitR2).toFixed(3) + '</td></tr>';
+          }
+          html += '</table>';
+          fitResultEl.innerHTML = html;
+        }
       })
       .catch(function() {});
   }
 
   function init() {
     sampleBtn       = document.getElementById('luxcal-sample');
-    fitBtn          = document.getElementById('luxcal-fit');
+    approveBtn      = document.getElementById('luxcal-approve');
     clearBtn        = document.getElementById('luxcal-clear');
+    resetBtn        = document.getElementById('luxcal-reset');
     downloadBtn     = document.getElementById('luxcal-download');
     acceptBtn       = document.getElementById('luxcal-accept');
     statusEl        = document.getElementById('luxcal-status');
-    sampleCountEl   = document.getElementById('luxcal-count');
     luxValueEl      = document.getElementById('luxcal-lux');
     brightnessValueEl = document.getElementById('luxcal-bri');
     fitResultEl     = document.getElementById('luxcal-fitresult');
@@ -2385,8 +2494,9 @@ Kwal.luxcal = (function() {
     }
 
     if (sampleBtn)   sampleBtn.onclick = takeSample;
-    if (fitBtn)      fitBtn.onclick = doFit;
+    if (approveBtn)  approveBtn.onclick = doApprove;
     if (clearBtn)    clearBtn.onclick = doClear;
+    if (resetBtn)    resetBtn.onclick = doReset;
     if (downloadBtn) downloadBtn.onclick = doDownload;
     if (acceptBtn)   acceptBtn.onclick = doAccept;
 
@@ -2395,7 +2505,6 @@ Kwal.luxcal = (function() {
 
     // SSE: update UI when firmware captures sample asynchronously
     Kwal.sse.onLuxcal(function(data) {
-      showCount(data.realCount || 0);
       if (luxValueEl) luxValueEl.textContent = data.lux.toFixed(1);
       if (brightnessValueEl) brightnessValueEl.textContent = data.brightness.toFixed(1);
       fetchAndDraw();
@@ -2403,20 +2512,10 @@ Kwal.luxcal = (function() {
 
     // SSE: auto-fit triggered by firmware — show accept UI
     Kwal.sse.onLuxcalFit(function(data) {
-      if (fitResultEl) {
-        fitResultEl.textContent = 'Oud: ' + formatParams({
-          brMax: data.oldBrMax, luxRate: data.oldLuxRate, luxMax: data.luxMax
-        });
-      }
-      if (newParamsEl) {
-        newParamsEl.textContent = 'Nieuw: ' + formatParams(data) +
-          ' R\u00b2=' + (data.r2 != null ? Number(data.r2).toFixed(3) : '?') + ' (n=' + (data.realCount || 0) + ')';
-      }
-      if (newFitEl) newFitEl.style.display = 'block';
       lastFitParams = { brMax: data.brMax, luxRate: data.luxRate };
       if (sampleBtn) sampleBtn.disabled = true;
       fetchAndDraw();
-      setStatus('Auto-fit — accepteer of wis');
+      setStatus('Auto-fit \u2014 klik \u2713 om te accepteren');
     });
     // Early check: disable sun button if no lux sensor
     fetch('/api/lux/status').then(function(r) { return r.json(); })
