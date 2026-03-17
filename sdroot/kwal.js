@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260316K - Built 2026-03-16 14:30
+ * Kwal WebGUI v260317A - Built 2026-03-17 08:10
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260316K';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260317A';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
