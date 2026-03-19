@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260317L - Built 2026-03-17 09:44
+ * Kwal WebGUI v260319A - Built 2026-03-19 07:55
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260317L';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260319A';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -2078,8 +2078,8 @@ Kwal.health = (function() {
 // === js/luxcal.js ===
 /**
  * @file    luxcal.js
- * @version 260317L
- * @date    2026-03-17
+ * @version 260319A
+ * @date    2026-03-19
  *
  * Kwal - Lux Calibration module
  * Calibration panel for lux → brightness curve fitting
@@ -2252,7 +2252,6 @@ Kwal.luxcal = (function() {
     fetch('/api/lux/clear', { method: 'POST' })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (fitResultEl) fitResultEl.textContent = '-';
         hideAccept();
         if (sampleBtn) sampleBtn.disabled = false;
         fetchAndDraw();
@@ -2448,10 +2447,10 @@ Kwal.luxcal = (function() {
           html += '<th style="text-align:right;width:25%">brMax</th>';
           html += '<th style="text-align:right;width:22%">Slope</th>';
           html += '<th style="text-align:right;width:18%">R\u00b2</th></tr>';
-          html += '<tr style="color:#fc0"><td>old</td>';
+          html += '<tr style="color:#fc0"><td>now</td>';
           html += '<td style="text-align:right">' + (data.seedBrMax != null ? Number(data.seedBrMax).toFixed(1) : '?') + '</td>';
           html += '<td style="text-align:right">' + (data.seedLuxRate != null ? Number(data.seedLuxRate).toFixed(4) : '?') + '</td>';
-          html += '<td style="text-align:right">' + (data.seedR2 != null ? Number(data.seedR2).toFixed(3) : '') + '</td></tr>';
+          html += '<td style="text-align:right"></td></tr>';
           if (data.fitBrMax != null) {
             html += '<tr style="color:#0c0"><td>new(+' + sc + ')</td>';
             html += '<td style="text-align:right">' + Number(data.fitBrMax).toFixed(1) + '</td>';

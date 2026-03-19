@@ -1,8 +1,8 @@
 /**
  * @file LuxCalibration.cpp
  * @brief Lux calibration data file and Gauss-Newton fit implementation
- * @version 260317E
- * @date 2026-03-13
+ * @version 260319A
+ * @date 2026-03-19
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include <Arduino.h>
@@ -47,6 +47,15 @@ void LuxCalibration::clearSamples() {
     samples_.clear();
     realCount_ = 0;
     PL("[LuxCal] Data points cleared");
+}
+
+void LuxCalibration::clearRealSamples() {
+    uint8_t seedCount = Globals::seededLuxDataPoints;
+    if (samples_.size() > seedCount) {
+        samples_.erase(samples_.begin() + seedCount, samples_.end());
+    }
+    realCount_ = 0;
+    PL("[LuxCal] Real samples cleared, seeds kept");
 }
 
 bool LuxCalibration::generateSeeds() {

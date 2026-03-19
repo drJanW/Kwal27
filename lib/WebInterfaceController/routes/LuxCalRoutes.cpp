@@ -1,8 +1,8 @@
 /**
  * @file LuxCalRoutes.cpp
  * @brief Lux calibration API endpoint routes implementation
- * @version 260317D
- * @date    2026-03-17
+ * @version 260319A
+ * @date    2026-03-19
  */
 #include <Arduino.h>
 #include "LuxCalRoutes.h"
@@ -151,9 +151,9 @@ static void routeAcceptFit(AsyncWebServerRequest* request) {
     sendJson(request, json);
 }
 
-// POST /api/lux/clear — remove samples, keep seeds intact
+// POST /api/lux/clear — remove real samples, keep seeds intact
 static void routeClear(AsyncWebServerRequest* request) {
-    LuxCalibration::instance().clearSamples();
+    LuxCalibration::instance().clearRealSamples();
     if (AlertState::isSdOk() && !AlertState::isSdBusy()) {
         LuxCalibration::instance().saveToSd();
     }

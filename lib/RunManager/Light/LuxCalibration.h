@@ -1,8 +1,8 @@
 /**
  * @file LuxCalibration.h
  * @brief Lux calibration data file and Gauss-Newton fit
- * @version 260316M
- * @date 2026-03-16
+ * @version 260319A
+ * @date 2026-03-19
  */
 #pragma once
 
@@ -42,6 +42,9 @@ public:
 
     /// Clear all data points from RAM (does not touch SD)
     void clearSamples();
+
+    /// Clear real samples only, keep seeds intact
+    void clearRealSamples();
 
     /// Generate seed data points from current Globals params, store in RAM + SD
     bool generateSeeds();
