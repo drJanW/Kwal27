@@ -1,35 +1,38 @@
-# Web Interface REST API (Post-Refactor)
+# Web Interface REST API
 
-_Gebaseerd op: webgui_refactor_plan.md_  
-_Status: NA IMPLEMENTATIE_
+> Version: 260319A | Updated: 2026-03-19
 
-## 1. Conventies
+## 1. Conventions
 
-1. **Transport** - HTTP port 80, geen authenticatie (netwerk perimeter zorgt voor access control)
-2. **Content types** - `text/plain` voor responses, `application/json` voor SSE en CRUD payloads
-3. **Cache** - `Cache-Control: no-store` op alle JSON responses
-4. **Error codes** -
-   - `400` → malformed parameters / validation error
-   - `404` → SD path not found
-   - `500` → internal failure
-  - `503` → SD card busy of TodayState unavailable
+1. **Transport** — HTTP port 80, no authentication (network perimeter provides access control)
+2. **Content types** — `text/plain` for simple responses, `application/json` for SSE and structured payloads
+3. **Cache** — `Cache-Control: no-store` on JSON responses
+4. **Error codes** — 400 (bad params), 404 (not found), 500 (internal), 503 (SD busy)
 
-## 2. SSE Events (primaire communicatie)
+## 2. SSE Events
 
-Alle state communicatie verloopt via Server-Sent Events. Geen polling endpoints meer.
+All state communication via Server-Sent Events at `/api/events`.
 
-| Event | Trigger | Payload | Grootte |
-|-------|---------|---------|---------|
-| `state` | Connect + elke setter | WebGuiStatus JSON | ~200 B |
-| `patterns` | Connect + Pattern CRUD | Volledige patterns lijst | ~4 KB |
-| `colors` | Connect + Color CRUD | Volledige colors lijst | ~2 KB |
+| Event | Trigger | Payload |
+|-------|---------|---------|
+| `state` | Connect + any setter | WebGuiStatus JSON |
+| `pushPatterns` | Connect + pattern change | Patterns list |
+| `pushColors` | Connect + colors change | Colors list |
+| `pushLuxcal` | Lux calibration update | Calibration data |
+| `pushLuxcalFit` | Fit result | Fit parameters |
 
 ### State Event Payload
 
 ```json
 {
-  "brightness": 128,
-  "audioLevel": 0.75,
+  "sliderPct": 75,
+  "brightnessLo": 70,
+  "brightnessHi": 242,
+  "brightnessMax": 242,
+  "audioSliderPct": 65,
+  "volumeLo": 0.05,
+  "volumeHi": 0.37,
+  "volumeMax": 0.47,
   "patternId": "rainbow",
   "patternLabel": "Rainbow Fade",
   "colorId": "sunset",
@@ -37,307 +40,143 @@ Alle state communicatie verloopt via Server-Sent Events. Geen polling endpoints 
   "fragment": {
     "dir": 3,
     "file": 7,
-    "score": 2
-  }
+    "score": 2,
+    "durationMs": 45000,
+    "boxName": "Lente"
+  },
+  "silence": false,
+  "speakMin": 30,
+  "fragMin": 10,
+  "durMin": 20000,
+  "tvMode": false,
+  "hasLuxSensor": true,
+  "sleepArmed": false
 }
 ```
 
-### Bij Connect
+### On Connect
 
-Server pusht automatisch in volgorde:
-1. `patterns` → volledige lijst
-2. `colors` → volledige lijst
-3. `state` → actuele WebGuiStatus
-
-Browser krijgt gegarandeerd complete data zonder extra requests.
-
----
+Server pushes in order:
+1. `pushPatterns` — full pattern list
+2. `pushColors` — full colors list
+3. `state` — current WebGuiStatus
 
 ## 3. Static Assets
 
-| Endpoint | Methode | Response |
-|----------|---------|----------|
-| `/` | GET | `index.html` van SD |
-| `/styles.css` | GET | CSS van SD |
-| `/kwal.js` | GET | JS bundle van SD |
-
----
+| Endpoint | Method | Response |
+|----------|--------|----------|
+| `/` | GET | index.html from SD |
+| `/favicon.ico` | GET | 204 No Content |
+| `/styles.css` | GET | CSS from SD (served by SD handler) |
+| `/kwal.js` | GET | JS bundle from SD (served by SD handler) |
 
 ## 4. Brightness & Audio Controls
 
-| Endpoint | Methode | Query/Body | Response | Actie |
-|----------|---------|------------|----------|-------|
-| `/setBrightness` | **POST** | `value=0..255` | `"OK"` | `WebGuiStatus::setBrightness()` → SSE state |
-| `/setWebAudioLevel` | **POST** | `value=0.0..1.0` | `"OK"` | `WebGuiStatus::setAudioLevel()` → SSE state |
-
-**Verwijderd:**
-- ~~`GET /getBrightness`~~ → via SSE state
-- ~~`GET /getWebAudioLevel`~~ → via SSE state
-
----
+| Endpoint | Method | Params | Response | Action |
+|----------|--------|--------|----------|--------|
+| `/setBrightness` | GET/POST | `value=0..100` | `"OK"` | Set brightness slider |
+| `/getBrightness` | GET | — | brightness value | Query current |
+| `/setWebAudioLevel` | GET/POST | `value=0..100` | `"OK"` | Set audio slider |
+| `/getWebAudioLevel` | GET | — | audio level | Query current |
 
 ## 5. Audio Endpoints
 
-| Endpoint | Methode | Query | Response | Actie |
-|----------|---------|-------|----------|-------|
-| `/api/audio/next` | POST | - | `"OK"` | Skip naar volgend fragment |
-| `/api/audio/play` | GET | `dir=X` | `"OK"` | Play random uit dir |
-| `/api/audio/play` | GET | `dir=X&file=Y` | `"OK"` | Play exact fragment |
-
-**Verwijderd:**
-- ~~`GET /api/audio/current`~~ → via SSE state `fragment` object
-
----
-
-## 6. Voting
-
-| Endpoint | Methode | Query | Response |
-|----------|---------|-------|----------|
-| `/vote` | POST | `delta=X` (±) | `"VOTE applied dir=X file=Y delta=D score=N"` |
-| `/vote` | POST | `delta=0` | `"SCORE dir=X file=Y score=N"` |
-
-Vote met `delta≠0` triggert `WebGuiStatus::setFragmentScore()` → SSE state.
-
----
-
-## 7. Patterns API
-
-### Lijst ophalen (init/reconnect)
-
-| Endpoint | Methode | Response |
-|----------|---------|----------|
-| `/api/patterns` | GET | JSON array met patterns + `X-Pattern` header |
-
-Response:
-```json
-[
-  { "id": "rainbow", "label": "Rainbow Fade", "speed": 50, ... },
-  { "id": "pulse", "label": "Pulse Wave", "speed": 30, ... }
-]
-```
-
-Header: `X-Pattern: rainbow` (active pattern ID)
-
-### CRUD operaties
-
-| Endpoint | Methode | Body | Response | Side effect |
-|----------|---------|------|----------|-------------|
-| `/api/patterns` | POST | `{ label, speed, ... }` | Updated list | → SSE patterns + state |
-| `/api/patterns` | POST | `{ id, label, ... }` | Updated list | Update existing → SSE |
-| `/api/patterns/select` | POST | `{ "id": "rainbow" }` | `"OK"` | → SSE state |
-| `/api/patterns/delete` | POST | `{ "id": "rainbow" }` | Updated list | → SSE patterns + state |
-| `/api/patterns/next` | POST | - | `"OK"` | → SSE state |
-| `/api/patterns/prev` | POST | - | `"OK"` | → SSE state |
-| `/api/patterns/preview` | POST | `{ params... }` | `{ "status": "ok" }` | Transient, geen SSE |
-
-**Create payload (geen id):**
-```json
-{ "label": "Mijn Pattern", "speed": 50, "preset": 2, "select": true }
-```
-
-**Update payload (met id):**
-```json
-{ "id": "existing", "label": "Nieuwe Naam", "speed": 60 }
-```
-
----
-
-## 8. Colors API
-
-### Lijst ophalen (init/reconnect)
-
-| Endpoint | Methode | Response |
-|----------|---------|----------|
-| `/api/colors` | GET | JSON array met colors + `X-Color` header |
-
-Response:
-```json
-[
-  { "id": "sunset", "label": "Warm Sunset", "rgb1_hex": "#FF7F00", "rgb2_hex": "#552200" },
-  { "id": "ocean", "label": "Ocean Blue", "rgb1_hex": "#0066FF", "rgb2_hex": "#003366" }
-]
-```
-
-Header: `X-Color: sunset` (active color ID)
-
-### CRUD operaties
-
-| Endpoint | Methode | Body | Response | Side effect |
-|----------|---------|------|----------|-------------|
-| `/api/colors` | POST | `{ label, rgb1_hex, ... }` | Updated list | → SSE colors + state |
-| `/api/colors` | POST | `{ id, label, ... }` | Updated list | Update existing → SSE |
-| `/api/colors/select` | POST | `{ "id": "sunset" }` | `"OK"` | → SSE state |
-| `/api/colors/delete` | POST | `{ "id": "sunset" }` | Updated list | → SSE colors + state |
-| `/api/colors/next` | POST | - | `"OK"` | → SSE state |
-| `/api/colors/prev` | POST | - | `"OK"` | → SSE state |
-| `/api/colors/preview` | POST | `{ rgb1_hex, rgb2_hex }` | `{ "status": "ok" }` | Transient, geen SSE |
-
----
-
-## 9. SD Card Endpoints
-
-| Endpoint | Methode | Payload | Response |
-|----------|---------|---------|----------|
-| `/api/sd/status` | GET | - | `{"ready":true,"busy":false,"hasIndex":true}` |
-| `/api/sd/upload` | POST | Multipart form | `{"status":"ok","path":"/..."}` |
-| `/api/sd/delete` | POST | `{ "path": "/foo/bar" }` | `{"status":"ok"}` |
-
-CSV upload triggert catalog reload → SSE patterns/colors indien relevant.
-
----
-
-## 10. OTA Endpoints
-
-| Endpoint | Methode | Response |
-|----------|---------|----------|
-| `/ota/arm` | GET | `"OK"` (arms 300s window) |
-| `/ota/confirm` | POST | `200` of `400 EXPIRED` |
-| `/ota/start` | POST | `200` (arm + confirm combo) |
-
----
-
-## 11. Status & Health
-
-| Endpoint | Methode | Response |
-|----------|---------|----------|
-| `/api/health` | GET | System diagnostics JSON |
-| `/api/context/today` | GET | TodayState snapshot |
-
-### /api/health Response (v260104+)
-
-```json
-{
-  "firmware": "260104M",
-  "timers": 12,
-  "maxTimers": 60,
-  "health": 2047,
-  "boot": 0,
-  "absent": 100
-}
-```
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `firmware` | string | Firmware version |
-| `timers` | int | Active timer slots |
-| `maxTimers` | int | Total timer capacity |
-| `health` | uint16 | Bitmask: 1=OK for each component |
-| `boot` | uint64 | 4-bit fields: retries remaining per component |
-| `absent` | uint16 | **NEW**: Bitmask: 1=hardware not present per HWconfig |
-
-#### Component Bit Positions
-
-| Bit | Component | HWconfig guard |
-|-----|-----------|----------------|
-| 0 | SD | - |
-| 1 | WiFi | - |
-| 2 | RTC | `RTC_PRESENT` |
-| 3 | Audio | - |
-| 4 | Distance | `DISTANCE_SENSOR_PRESENT` |
-| 5 | Lux | `LUX_SENSOR_PRESENT` |
-| 6 | Sensor3 | `SENSOR3_PRESENT` |
-| 7 | NTP | - |
-| 8 | Weather | - |
-| 9 | Calendar | - |
-| 10 | TTS | - |
-
-#### WebGUI Status Display
-
-- `✅` = OK (health bit set)
-- `❌` = Failed (health bit clear, absent bit clear)
-- `⟳N` = Init in progress (N retries remaining)
-- `—` = Hardware absent (absent bit set)
-
-**Verwijderd:**
-- ~~`GET /api/light/status`~~ → via SSE state (patternId/colorId)
-
----
-
-## 12. Endpoint Summary
-
-### Actieve Endpoints (26 total)
-
-| Categorie | Endpoints |
-|-----------|-----------|
-| Static | `/`, `/styles.css`, `/kwal.js` |
-| Brightness | `POST /setBrightness` |
-| Audio | `POST /setWebAudioLevel`, `POST /api/audio/next`, `GET /api/audio/play`, `POST /vote` |
-| Patterns | `GET /api/patterns`, `POST /api/patterns`, `POST /api/patterns/select`, `POST /api/patterns/delete`, `POST /api/patterns/next`, `POST /api/patterns/prev`, `POST /api/patterns/preview` |
-| Colors | `GET /api/colors`, `POST /api/colors`, `POST /api/colors/select`, `POST /api/colors/delete`, `POST /api/colors/next`, `POST /api/colors/prev`, `POST /api/colors/preview` |
-| SD | `GET /api/sd/status`, `POST /api/sd/upload`, `POST /api/sd/delete` |
-| OTA | `GET /ota/arm`, `POST /ota/confirm`, `POST /ota/start` |
-| Status | `GET /api/health`, `GET /api/context/today` |
-
-### Verwijderde Endpoints (4)
-
-| Endpoint | Vervanger |
-|----------|-----------|
-| `GET /getBrightness` | SSE state `brightness` |
-| `GET /getWebAudioLevel` | SSE state `audioLevel` |
-| `GET /api/audio/current` | SSE state `fragment` |
-| `GET /api/light/status` | SSE state `patternId`/`colorId` |
-
-### Gewijzigde Endpoints (2)
-
-| Endpoint | Was | Wordt |
-|----------|-----|-------|
-| `/setBrightness` | GET | **POST** |
-| `/setWebAudioLevel` | GET | **POST** |
-
----
-
-## 13. JavaScript Client Pattern
-
-```javascript
-// SSE setup
-const es = new EventSource('/events');
-
-es.addEventListener('state', (e) => {
-    const data = JSON.parse(e.data);
-    // Update UI: brightness, audioLevel, patternId, colorId, fragment
-});
-
-es.addEventListener('patterns', (e) => {
-    const patterns = JSON.parse(e.data);
-    // Cache patterns list
-});
-
-es.addEventListener('colors', (e) => {
-    const colors = JSON.parse(e.data);
-    // Cache colors list
-});
-
-// Setters (fire-and-forget)
-fetch('/setBrightness?value=128', { method: 'POST' });
-fetch('/setWebAudioLevel?value=0.75', { method: 'POST' });
-fetch('/api/patterns/select', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id: 'rainbow' })
-});
-```
-
----
-
-## 14. Migratie Notes
-
-### Voor JavaScript
-
-| Verwijder | Vervang door |
-|-----------|--------------|
-| `Kwal.brightness.load()` | SSE `onState` |
-| `Kwal.audio.loadCurrent()` | SSE `onState` |
-| `Kwal.sse.onFragment()` | SSE `onState` |
-| `Kwal.sse.onLight()` | SSE `onState` |
-| `status.js` | Alles in `onState` handler |
-
-### Voor Firmware Handlers
-
-| Was | Wordt |
-|-----|-------|
-| Direct response met waarde | `"OK"` + SSE push |
-| Callback naar SseController | `WebGuiStatus::pushState()` |
-
----
-
-_Zie webgui_refactor_plan.md voor implementatie details._
+| Endpoint | Method | Params | Response |
+|----------|--------|--------|----------|
+| `/api/audio/next` | POST | — | `"OK"` — skip to next fragment |
+| `/api/audio/play` | GET | `dir=X` | Play random from dir |
+| `/api/audio/play` | GET | `dir=X&file=Y` | Play exact fragment |
+| `/api/audio/current` | GET | — | Current fragment info |
+| `/api/audio/themebox` | GET | — | Current theme box info |
+| `/api/audio/playbox` | GET | — | Play from current theme box |
+| `/api/audio/grid` | GET | — | Audio grid data |
+| `/api/audio/intervals` | GET/POST | GET: query, POST: set | Fragment/speak intervals |
+| `/api/audio/silence` | GET/POST | GET: query, POST: toggle | Silence mode |
+
+## 6. Patterns API
+
+| Endpoint | Method | Response |
+|----------|--------|----------|
+| `/api/patterns` | GET | JSON array + `X-Pattern` header (active ID) |
+| `/api/patterns/next` | POST | `"OK"` — advance to next pattern |
+| `/api/patterns/prev` | POST | `"OK"` — go to previous pattern |
+
+## 7. Colors API
+
+| Endpoint | Method | Response |
+|----------|--------|----------|
+| `/api/colors` | GET | JSON array + `X-Color` header (active ID) |
+| `/api/colors/next` | POST | `"OK"` — advance to next colors |
+| `/api/colors/prev` | POST | `"OK"` — go to previous colors |
+
+## 8. Voting
+
+| Endpoint | Method | Params | Response |
+|----------|--------|--------|----------|
+| `/vote` | ANY | `delta=N` (+/-) | `"VOTE applied dir=X file=Y delta=D score=N"` |
+| `/vote` | ANY | `delta=0` | `"SCORE dir=X file=Y score=N"` (query only) |
+
+## 9. Lux Calibration
+
+| Endpoint | Method | Response |
+|----------|--------|----------|
+| `/api/lux/calibrate` | POST | Start calibration |
+| `/api/lux/sample` | POST | Add calibration sample |
+| `/api/lux/status` | GET | Current calibration state |
+| `/api/lux/fit` | POST | Run curve fit |
+| `/api/lux/accept` | POST | Accept fit result |
+| `/api/lux/clear` | POST | Clear samples (keep seeds) |
+| `/api/lux/reset` | POST | Full reset |
+| `/api/lux/csv` | GET | Download calibration CSV |
+| `/api/lux/points` | GET | Get calibration data points |
+| `/api/lux/reload` | POST | Reload from SD |
+
+## 10. Health & System
+
+| Endpoint | Method | Response |
+|----------|--------|----------|
+| `/api/health` | GET | Health status JSON (component bits) |
+| `/api/restart` | POST | Restart ESP32 |
+| `/api/sleep` | POST | Arm sleep timer |
+| `/api/sleep/cancel` | POST | Cancel sleep timer |
+| `/api/wifi/config` | POST | Update WiFi credentials |
+
+## 11. SD Card
+
+| Endpoint | Method | Params | Response |
+|----------|--------|--------|----------|
+| `/api/sd/status` | GET | — | `{"ready":true,"busy":false}` |
+| `/api/sd/list` | GET | path | Directory listing |
+| `/api/sd/file` | GET | path | File download |
+| `/api/sd/delete` | POST | path | Delete file |
+| `/api/sd/upload` | POST | multipart | Upload file |
+| `/api/sd/rebuild` | POST | — | Rebuild SD index |
+| `/api/sd/syncdir` | POST | — | Sync directory |
+| `/api/sd/syncstart` | POST | — | Start sync mode |
+| `/api/sd/syncstop` | POST | — | Stop sync mode |
+
+## 12. OTA
+
+| Endpoint | Method | Response |
+|----------|--------|----------|
+| `/ota/upload` | POST | Firmware upload (multipart) |
+
+## 13. Context
+
+| Endpoint | Method | Response |
+|----------|--------|----------|
+| `/api/context/today` | GET | Current TodayState JSON |
+
+## 14. TV Mode
+
+| Endpoint | Method | Response |
+|----------|--------|----------|
+| `/api/tvmode` | GET | Activate TV simulator |
+| `/api/tvstop` | GET | Stop TV simulator |
+
+## 15. Logging
+
+| Endpoint | Method | Response |
+|----------|--------|----------|
+| `/log` | GET | Current log buffer |
+| `/log/clear` | GET | Clear log buffer |

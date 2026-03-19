@@ -1,8 +1,8 @@
 /**
  * @file AudioRun.h
  * @brief Audio playback state management
- * @version 260131A
- $12026-02-05
+ * @version 260212D
+ * @date 2026-02-12
  */
 #pragma once
 

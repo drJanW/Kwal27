@@ -1,8 +1,8 @@
 /**
  * @file ClockRun.h
  * @brief RTC/NTP clock state management
- * @version 260131A
- $12026-02-05
+ * @version 260204A
+ * @date 2026-02-04
  */
 #pragma once
 

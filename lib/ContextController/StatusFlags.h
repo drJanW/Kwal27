@@ -1,8 +1,8 @@
 /**
  * @file StatusFlags.h
  * @brief Hardware failure bits and status tracking interface
- * @version 260212A
- * @date 2026-02-12
+ * @version 260215B
+ * @date 2026-02-15
  */
 #pragma once
 

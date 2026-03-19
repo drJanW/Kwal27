@@ -1,8 +1,8 @@
 /**
  * @file SystemBoot.h
  * @brief System-level boot stages
- * @version 260205A
- * @date 2026-02-05
+ * @version 260219E
+ * @date 2026-02-19
  */
 #pragma once
 

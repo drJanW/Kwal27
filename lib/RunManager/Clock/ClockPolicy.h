@@ -1,8 +1,8 @@
 /**
  * @file ClockPolicy.h
  * @brief RTC/NTP clock business logic
- * @version 260204A
- $12026-02-05
+ * @version 260212H
+ * @date 2026-02-12
  */
 #pragma once
 

@@ -1,8 +1,8 @@
 /**
  * @file WebGuiStatus.h
  * @brief Centralized WebGUI state management
- * @version 260313C
- * @date 2026-03-13
+ * @version 260316C
+ * @date 2026-03-16
  */
 #pragma once
 

@@ -1,36 +1,36 @@
 # Sensor4 Implementation Guide
 
-> **Basis:** Volg [sensor3_implementation_guide.md](sensor3_implementation_guide.md) - dit document beschrijft alleen de **extra** stappen.
+> Version: 260319A | Updated: 2026-03-19
+>
+> **Basis:** Follow [sensor3_implementation_guide.md](sensor3_implementation_guide.md) — this document describes only the **extra** steps.
 
-## Sensor4 bestaat nog NIET
+## Sensor4 does not exist yet
 
-Sensor3 heeft al stubs/placeholders. Sensor4 moet volledig nieuw aangemaakt worden.
+Sensor3 has stubs and placeholders. Sensor4 must be created from scratch.
 
-## Toe te voegen per file
+## Files to add/modify
 
-### 1. HWconfig.h
+### 1. Globals.h — add presence flag
 
 ```cpp
-#define SENSOR4_FLASH_ENABLED false  // true wanneer hardware aanwezig
-#define SENSOR4_DUMMY_TEMP 25.0f     // of andere default
+inline static bool sensor4Present = false;  // placeholder
 ```
 
-### 2. Globals.h / Globals.cpp
+### 2. Globals.h / Globals.cpp — add dummy value
 
 ```cpp
 // Globals.h
-extern float sensor4DummyTemp;
+inline static float sensor4DummyTemp = 25.0f;
 
-// Globals.cpp
-float sensor4DummyTemp = 25.0f;
-
-// In loadFromCSV:
+// Globals.cpp — in loadFromCSV:
 PARSE_FLOAT("sensor4DummyTemp", sensor4DummyTemp)
+PARSE_BOOL("sensor4Present", sensor4Present)
 ```
 
 ### 3. globals.csv
 
 ```csv
+#sensor4Present;b;false;activate sensor4 hardware
 #sensor4DummyTemp;f;25.0;fallback when sensor4 absent
 ```
 
@@ -44,15 +44,16 @@ SENSOR4_FAIL,
 ### 5. AlertState.h / AlertState.cpp
 
 ```cpp
-// AlertState.h - in Component enum
-COMP_SENSOR4 = 7,  // bit 7 (na COMP_SENSOR3 = 6)
+// AlertState.h — in StatusComponent enum
+SC_SENSOR4,   // after SC_SENSOR3
+SC_COUNT = 13 // bump count
 
-// AlertState.cpp
-void setSensor4Status(bool isOK);
+// AlertState.cpp — add legacy convenience functions
 bool isSensor4Ok();
-
-// Implementatie identiek aan setSensor3Status
+void setSensor4Status(bool);
 ```
+
+Update `isPresent()` to check `Globals::sensor4Present`.
 
 ### 6. AlertRun.cpp
 
@@ -65,17 +66,9 @@ case AlertRequest::SENSOR4_FAIL:
     break;
 ```
 
-### 7. AlertRGB.cpp (optioneel)
+### 7. AlertRGB.cpp
 
-```cpp
-// Nieuwe kleur definiëren in AlertPolicy.h
-static constexpr CRGB COLOR_SENSOR4 = CRGB::Cyan;  // kies kleur
-
-// In AlertRGB.cpp flash functie
-#if SENSOR4_FLASH_ENABLED
-if (!AlertState::isSensor4Ok()) flashColor(COLOR_SENSOR4);
-#endif
-```
+Check `Globals::sensor4Present` before flashing (same pattern as sensor3).
 
 ### 8. SpeakRequest.h
 
@@ -90,52 +83,51 @@ SENSOR4_FAIL,
 case SpeakRequest::SENSOR4_FAIL:
     return "Sensor vier ontbreekt.";
 
-// In getMp3Words()
-case SpeakRequest::SENSOR4_FAIL:
-    return {MP3_SENSOR, 4, MP3_END};
-
 // In speakFailures()
-if (!AlertState::isSensor4Ok()) speak(SpeakRequest::SENSOR4_FAIL);
+if (!AlertState::isSensor4Ok() && Globals::sensor4Present)
+    speak(SpeakRequest::SENSOR4_FAIL);
 ```
 
 ### 10. SensorController.cpp
 
 ```cpp
-// Namespace variabelen
 bool sensor4Ready = false;
 bool sensor4InitFailed = false;
 
-// Callback en begin functies (zie sensor3 guide)
 void cb_sensor4Init();
 void beginSensor4();
 bool isSensor4Ready();
 float getSensor4Value();
 ```
 
+Follow exact same pattern as sensor3 (see sensor3 guide section 3-4).
+
 ### 11. SensorsBoot.cpp
 
 ```cpp
-SensorController::beginSensor4();
+if (Globals::sensor4Present)
+    SensorController::beginSensor4();
 ```
 
 ### 12. WebGUI health.js
 
 ```javascript
-// In parseHealth()
-{ bit: 7, name: "Sensor4", icon: "🔧" },  // kies icon
+// In health bit mapping
+{ comp: SC_SENSOR4, name: "Sensor4", icon: "..." }
 ```
 
-## Checklist nieuwe sensor
+## Checklist
 
-- [ ] HWconfig.h defines
-- [ ] Globals variabele + CSV
+- [ ] Globals.h presence flag + dummy value
+- [ ] Globals.cpp CSV parsing
+- [ ] globals.csv entries (commented out)
 - [ ] AlertRequest enum (OK + FAIL)
-- [ ] COMP_SENSOR4 in Component enum
-- [ ] AlertState set/is functies
+- [ ] SC_SENSOR4 in StatusComponent enum
+- [ ] AlertState set/is functions
 - [ ] AlertRun case handlers
-- [ ] AlertRGB flash kleur (optioneel)
+- [ ] AlertRGB flash guard
 - [ ] SpeakRequest enum
-- [ ] SpeakRun TTS + MP3 + speakFailures
+- [ ] SpeakRun TTS + speakFailures
 - [ ] SensorController init + read
-- [ ] SensorsBoot aanroep
-- [ ] WebGUI bit mapping
+- [ ] SensorsBoot guard + call
+- [ ] WebGUI health mapping

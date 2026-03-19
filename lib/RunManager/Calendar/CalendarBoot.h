@@ -1,8 +1,8 @@
 /**
  * @file CalendarBoot.h
  * @brief Calendar subsystem one-time initialization
- * @version 260131A
- $12026-02-05
+ * @version 260218B
+ * @date 2026-02-18
  */
 #pragma once
 

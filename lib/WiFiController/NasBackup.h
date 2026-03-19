@@ -1,8 +1,8 @@
 /**
  * @file NasBackup.h
  * @brief Push pattern/color CSVs to NAS after save
- * @version 260220B
- * @date 2026-02-20
+ * @version 260227B
+ * @date 2026-02-27
  */
 #pragma once
 

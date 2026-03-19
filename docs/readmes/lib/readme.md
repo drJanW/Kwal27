@@ -1,13 +1,13 @@
 # Kwal27 - An Art Project (Jellyfish)
 
-> Version: 260313H | Updated: 2026-03-14
+> Version: 260319A | Updated: 2026-03-19
 
 ## Project Overview
 
 ESP32-S3 ambient art installation (jellyfish sculpture) with LED lights, audio playback, web interface, and sensor integration. PlatformIO project, Arduino framework, 16MB flash.
 
 **Core subsystems:**
-- **Audio** — MP3 fragment playback (random 6-48 min intervals), TTS via PlaySentence, PCM clips, I2S output
+- **Audio** — MP3 fragment playback (random intervals, configurable via globals.csv), TTS via PlaySentence, PCM clips, I2S output
 - **LED** — 160 WS2812B LEDs with pattern-based light shows, position-mapped (x,y from ledmap.bin), TV simulator mode
 - **Web Interface** — Browser UI (volume, brightness, pattern/color selection, OTA, diagnostics, lux calibration)
 - **WiFi & OTA** — Auto-connect with retry, static IP, wireless firmware update

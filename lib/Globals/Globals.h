@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260316C
- * @date 2026-03-16
+ * @version 260319A
+ * @date 2026-03-19
  */
 #pragma once
 

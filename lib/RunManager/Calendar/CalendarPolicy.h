@@ -1,8 +1,8 @@
 /**
  * @file CalendarPolicy.h
  * @brief Calendar business logic
- * @version 260131A
- $12026-02-05
+ * @version 260306E
+ * @date 2026-03-06
  */
 #pragma once
 

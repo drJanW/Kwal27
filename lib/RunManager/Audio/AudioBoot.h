@@ -1,8 +1,8 @@
 /**
  * @file AudioBoot.h
  * @brief Audio subsystem one-time initialization
- * @version 260201A
- $12026-02-05
+ * @version 260308A
+ * @date 2026-03-08
  */
 #pragma once
 

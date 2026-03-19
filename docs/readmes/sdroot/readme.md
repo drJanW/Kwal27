@@ -1,6 +1,6 @@
 # SD Card Root Files
 
-> Version: 260313F | Updated: 2026-03-14
+> Version: 260319A | Updated: 2026-03-19
 
 This folder contains all files that should be copied to the SD card root for the Kwal27 installation.
 

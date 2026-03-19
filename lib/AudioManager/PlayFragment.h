@@ -1,8 +1,8 @@
 /**
  * @file PlayFragment.h
  * @brief MP3 fragment playback with fade-in/fade-out support
- * @version 260219E
- * @date 2026-02-19
+ * @version 260227B
+ * @date 2026-02-27
  * 
  * PlayAudioFragment handles playback of MP3 files from SD card subdirectories.
  * Each fragment is played from a specified start position for a given duration,

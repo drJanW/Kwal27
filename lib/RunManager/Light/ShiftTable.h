@@ -1,8 +1,8 @@
 /**
  * @file ShiftTable.h
  * @brief LED parameter shift storage
- * @version 260205A
- * @date 2026-02-05
+ * @version 260314B
+ * @date 2026-03-14
  */
 #pragma once
 

@@ -1,7 +1,7 @@
 /**
  * @file SDBoot.h
  * @brief SD card one-time initialization
- * @version 260218M
+ * @version 260218N
  * @date 2026-02-18
  */
 #pragma once

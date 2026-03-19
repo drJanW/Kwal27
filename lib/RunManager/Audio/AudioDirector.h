@@ -1,8 +1,8 @@
 /**
  * @file AudioDirector.h
  * @brief Audio fragment selection logic
- * @version 260131A
- $12026-02-05
+ * @version 260306G
+ * @date 2026-03-06
  */
 #pragma once
 

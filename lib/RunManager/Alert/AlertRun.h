@@ -1,8 +1,8 @@
 /**
  * @file AlertRun.h
  * @brief Hardware failure alert state management
- * @version 260206C
- * @date 2026-02-06
+ * @version 260307B
+ * @date 2026-03-07
  */
 #pragma once
 

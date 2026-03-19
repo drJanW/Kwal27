@@ -1,115 +1,78 @@
-# LightController Struct-API Architecture
+# LightController
 
-> Version: 260307C | Updated: 2026-03-14
+> Version: 260319A | Updated: 2026-03-19
 
-## Pattern Overview
+LED control interface for 160 WS2812B LEDs via FastLED, with pattern playback, brightness management, and TV simulator mode.
 
-Elke LightShow gebruikt:
+## Files
 
-Universele struct: LightShowParams (kleur, cycli, type)
+| File | Version | Purpose |
+|------|---------|---------|
+| `LightController.h/.cpp` | 260307A | Main LED control: brightness, patterns, color cycles, show playback |
+| `LightManager.cpp` | — | Lifecycle management (implementation-only, no .h) |
+| `LEDMap.h/.cpp` | 260227B | Physical LED strip mapping to logical (x,y) positions via `ledmap.bin` |
+| `TvShow.h/.cpp` | 260307C | TV simulator renderer — 6 ring zones matching PMMA circles |
 
-Show-specifieke struct: ExtraXXParams (alleen in LightController.h)
+## Architecture
 
-Play entry points: PlayXXShow() in LightController.cpp
+LightController is a **Controller** layer module — it owns the FastLED hardware driver.
+Pattern orchestration lives in `lib/RunManager/Light/` (LightRun, LightPolicy, LightDirector).
 
-Geen eigen timers, geen millis(), geen struct-definities in show-headers
+## API
 
-Nieuwe LightShow toevoegen: Werkwijze
+```cpp
+// LightController.h — main show control
+void PlayLightShow(const LightShowParams& params);
+LightShowParams MakeSolidParams(CRGB color);
+void updateLightController();        // Called from main loop
 
-Kopieer EmptyShow.cpp en EmptyShow.h als basis. Hernoem naar jouw show (bv FireflyShow).
+// Brightness
+float getWebMultiplier();
+void setWebMultiplier(float value);
+int getSliderPct();
+uint8_t getBrightnessShiftedHi();
+void setBrightnessShiftedHi(float value);
+uint8_t getBrightnessBaseHi();
+void setBrightnessBaseHi(uint8_t value);
+void applyBrightness();              // Runs every 50ms
 
-Maak een struct ExtraFireflyParams in LightController.h
+// Color/brightness cycles
+void cb_colorCycle();
+void cb_brightCycle();
+void generateColorGradient(const CRGB& colorA, const CRGB& colorB, CRGB* gradient, int n);
 
-Voeg aan enum LightShow in LightController.h je nieuwe show toe.
+// LEDMap.h — position mapping
+LEDPos getLEDPos(int index);
+bool loadLEDMapFromSD(const char* path);
 
-Voeg play entry point toe in LightController.h: void PlayFireflyShow(const LightShowParams&, const ExtraFireflyParams& = dummyFireflyParams);
+// TvShow.h — TV simulator
+void setTvZoneTargets(const TvZoneTarget targets[TV_ZONES]);
+void updateTvShow();
+```
 
-Voeg include toe in LightController.h: #include "FireflyShow.h"
+## Light Shows
 
-Implementeer play entry point in LightController.cpp (zie voorbeeld)
+Each light show uses:
+- `LightShowParams` — universal struct (colors, cycles, type)
+- Show-specific extra params struct (defined in `LightController.h`)
+- Play entry point in `LightController.cpp`
+- No own timers — all timing via central cycles
 
-Voeg aan switch/case van updateLightController() en PlayLightShow() jouw show toe.
+Adding a new show:
+1. Define `ExtraXXParams` struct in `LightController.h`
+2. Add to `enum LightShow`
+3. Add play entry point and update switch/case in `updateLightController()` and `PlayLightShow()`
 
-Skeleton: EmptyShow.h
+## TvShow — TV Simulator (v260307C)
 
-#ifndef EMPTYSHOW_H
-#define EMPTYSHOW_H
-
-#include "LightController.h"
-#include <FastLED.h>
-
-extern CRGB leds[];
-
-void initEmptyShow(const LightShowParams& p, const ExtraEmptyParams& extra = dummyEmptyParams);
-void updateEmptyShow();
-
-#endif
-
-Skeleton: EmptyShow.cpp
-
-#include "EmptyShow.h"
-
-static ExtraEmptyParams emptyParams = {};
-const ExtraEmptyParams dummyEmptyParams = ExtraEmptyParams();
-
-void initEmptyShow(const LightShowParams& p, const ExtraEmptyParams& extra) {
-emptyParams = extra;
-// Initialisatiecode hier
-}
-
-void updateEmptyShow() {
-// Gebruik cycli via getColorPhase() / getBrightPhase()
-for (int i = 0; i < NUM_LEDS; i++) {
-leds[i] = CRGB::Black;
-}
-FastLED.show();
-}
-
-Declaratie/aanroepen
-
-In LightController.h:
-
-struct ExtraEmptyParams { ... } // ALLEEN hier!
-
-enum LightShow { ..., emptyShow }
-
-void PlayEmptyShow(const LightShowParams&, const ExtraEmptyParams& = dummyEmptyParams);
-
-#include "EmptyShow.h"
-
-In LightController.cpp:
-
-void PlayEmptyShow(const LightShowParams&, const ExtraEmptyParams&)
-
-case emptyShow: updateEmptyShow(); break; // in updateLightController()
-
-case emptyShow: PlayEmptyShow(p); break; // in PlayLightShow()
-
-Samengevat:
-
-Structs/enums nooit in show-headers
-
-Alleen functieprototypes in show-headers
-
-Geen eigen timers in shows, alles via centrale cycli
-
-Test alles na toevoegen
-
-Dit skelet voorkomt spaghetti en houdt alles schaalbaar en onderhoudbaar.
-
-Ambient lux coordination
-- **Sensor**: VEML7700 (replaced BH1750 in v260215+)
-- RunManager: `requestLuxMeasurement()` turns LEDs off, waits ~120 ms, triggers `SensorController::performLuxMeasurement()`, then calls `updateBaseBrightness()` before restoring LEDs.
-- **LuxCalibration** (v260313D): Gauss-Newton fit engine replaces the simple exponential mapper. Model: `brightness = brMax × (1 - exp(-luxRate × lux))`. Defaults: brMax=222.0, luxRate=0.02. User-trainable via WebGUI calibration panel. See `lib/RunManager/Light/LuxCalibration.h`.
-- Logging: When `LOCAL_LOG_LEVEL >= LOG_LEVEL_INFO`, each recalculation prints `[Lux->Brightness] lux=... base=... (beta=...)`.
-
-## TvShow - TV Simulator Renderer (v260307C)
-
-Ring-based TV simulator for the 6 concentric PMMA ring zones of the jellyfish sculpture:
-
+Ring-based TV simulator for the 6 concentric PMMA ring zones:
 - **6 zones** (0-5, innermost to outermost): 8→16→24→32→36→44 LEDs per ring (160 total)
 - `setTvZoneTargets(targets[6])` — set target colors per ring
-- `updateTvShow()` — lerp-based smooth rendering (hard cuts or gradual fades)
+- `updateTvShow()` — lerp-based smooth rendering
 - Controlled via `tv.js` in the WebGUI
 
-Files: `TvShow.h`, `TvShow.cpp`
+## Ambient Lux Coordination
+
+- **Sensor**: VEML7700 (replaced BH1750 in v260215+)
+- RunManager `requestLuxMeasurement()` turns LEDs off, waits ~120 ms, triggers `SensorController::performLuxMeasurement()`, then calls `updateBaseBrightness()` before restoring LEDs
+- **LuxCalibration** (v260319A): Gauss-Newton fit engine. Model: `brightness = brMax × (1 - exp(-luxRate × lux))`. User-trainable via WebGUI calibration panel. See `lib/RunManager/Light/LuxCalibration.h`

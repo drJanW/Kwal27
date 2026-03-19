@@ -1,8 +1,8 @@
 /**
  * @file HeartbeatRun.h
  * @brief Heartbeat LED state management
- * @version 260131A
- $12026-02-05
+ * @version 260205A
+ * @date 2026-02-05
  */
 #pragma once
 

@@ -1,8 +1,8 @@
 /**
  * @file CalendarRun.h
  * @brief Calendar state management
- * @version 260202A
- $12026-02-05
+ * @version 260206C
+ * @date 2026-02-06
  */
 #pragma once
 

@@ -1,8 +1,8 @@
 /**
  * @file AlertState.h
  * @brief Hardware status state storage
- * @version 260218A
- * @date 2026-02-18
+ * @version 260308B
+ * @date 2026-03-08
  */
 #pragma once
 

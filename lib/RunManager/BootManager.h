@@ -1,8 +1,8 @@
 /**
  * @file BootManager.h
  * @brief Boot sequence coordinator
- * @version 260205A
- * @date 2026-02-05
+ * @version 260304F
+ * @date 2026-03-04
  */
 #pragma once
 

@@ -1,8 +1,8 @@
 /**
  * @file LogBuffer.cpp
  * @brief LogBuffer implementation
- * @version 260127A
- $12026-02-05
+ * @version 260202A
+ * @date 2026-02-02
  */
 #include <Arduino.h>
 #include "LogBuffer.h"

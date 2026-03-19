@@ -1,8 +1,8 @@
 /**
  * @file WiFiController.h
  * @brief WiFi connection control with AP fallback
- * @version 260205A
- * @date 2026-02-05
+ * @version 260215B
+ * @date 2026-02-15
  */
 #pragma once
 

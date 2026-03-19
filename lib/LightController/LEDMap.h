@@ -1,8 +1,8 @@
 /**
  * @file LEDMap.h
  * @brief Physical LED strip mapping to logical positions
- * @version 260205A
- * @date 2026-02-05
+ * @version 260227B
+ * @date 2026-02-27
  */
 #pragma once
 

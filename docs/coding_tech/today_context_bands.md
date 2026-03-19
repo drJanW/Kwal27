@@ -1,53 +1,78 @@
 # Today Context - Time-of-Day Bands
 
-This note snapshot captures the phase scheme from the spreadsheet screenshot so
-we do not lose it across sessions.
+> Version: 260319A | Updated: 2026-03-19
 
-## Fixed Anchors
+## Time-of-Day Constants (TimeOfDay.cpp)
 
-| Symbol       | Time  | Notes                         |
-|--------------|-------|-------------------------------|
-| `startday`   | 07:00 | Earliest daytime request start |
-| `endday`     | 18:00 | Latest daytime request end     |
-| `endevening` | 23:00 | Hard cutoff for evening band  |
+Namespace-scoped constants in minutes since midnight:
 
-`startmorning = max(sunrise, startday)`  and
-`endafternoon = min(sunset, endday)`.
+| Symbol | Time | Minutes | Notes |
+|--------|------|---------|-------|
+| `dawnStart` | 05:00 | 300 | Start of dawn period |
+| `morningStart` | 07:00 | 420 | Start of morning |
+| `dayStart` | 09:00 | 540 | Start of full day |
+| `afternoonStart` | 12:00 | 720 | Start of afternoon |
+| `duskStart` | 17:00 | 1020 | Start of dusk period |
+| `eveningStart` | 19:00 | 1140 | Start of evening |
+| `nightStart` | 22:00 | 1320 | Start of night |
+| `fallbackSunrise` | 07:00 | 420 | Used when real sunrise unknown |
+| `fallbackSunset` | 19:00 | 1140 | Used when real sunset unknown |
 
-## Derived Boundaries
+## Boolean Functions (TimeOfDay.h)
 
-| Band          | From           | To             |
-|---------------|----------------|----------------|
-| `isNight`     | midnight       | `startmorning` |
-| `isDawn`      | `sunrise - 1h` | `sunrise + 1h` |
-| `isLight`     | `sunrise + 1h` | `sunset - 1h`  |
-| `isMorning`   | `startmorning` | noon           |
-| `isDay`       | `startday`     | `endday`       |
-| `isAM`        | 00:00          | 11:59          |
-| `isPM`        | 12:00          | 23:59          |
-| `isAfternoon` | noon           | `endday`       |
-| `isDusk`      | `sunset - 1h`  | `sunset + 1h`  |
-| `isEvening`   | `endafternoon` | midnight       |
-| `isDark`      | `sunset + 1h`  | `sunrise + 1h` |
+Bands use a mix of fixed constants and real sunrise/sunset data.
 
-Minutes are kept inclusive of the left boundary and exclusive of the right.
+### Fixed-boundary bands
 
-## Evaluation Guidance
+| Function | From | To | Notes |
+|----------|------|----|-------|
+| `isNight()` | nightStart (22:00) | dawnStart (05:00) | Wraps midnight |
+| `isMorning()` | morningStart (07:00) | afternoonStart (12:00) | |
+| `isDay()` | dayStart (09:00) | duskStart (17:00) | |
+| `isAfternoon()` | afternoonStart (12:00) | duskStart (17:00) | |
+| `isEvening()` | eveningStart (19:00) | nightStart (22:00) | |
+| `isAM()` | 00:00 | 11:59 | Before noon |
+| `isPM()` | 12:00 | 23:59 | From noon onward |
 
-* Always compute `startmorning` and `endafternoon` after sunrise/sunset are
-  known for the day. When the solar data is missing, fall back to the fixed
-  anchors above.
-* Evaluate periods every 10 minutes; crossing guards decide when each boolean
-  flips.
-* Each band lives on TodayState and is consumed by policy layers.
-* Keep terminology stable (`isMorning`, `isDusk`, etc.) so it matches the
-  spreadsheet and charter clause 2.2.
+### Sunrise/sunset-dependent bands
+
+| Function | From | To | Fallback |
+|----------|------|----|----------|
+| `isDawn()` | sunrise - 1h | sunrise | fallbackSunrise |
+| `isLight()` | sunrise | sunset | fallbackSunrise/Sunset |
+| `isDusk()` | sunset | sunset + 1h | fallbackSunset |
+| `isDark()` | NOT isLight() | | |
+
+### Status bits
+
+`getActiveStatusBits()` returns a `uint64_t` bitmask of all currently active
+time-of-day flags. Used by shift tables to look up time-dependent adjustments.
+
+## Band Overlap
+
+Bands are NOT mutually exclusive. Multiple bands can be active simultaneously:
+
+```
+05:00  06:00  07:00  09:00  12:00  17:00  19:00  22:00
+  |      |      |      |      |      |      |      |
+  |--dawn-|      |      |      |      |      |      |
+  |      |------morning--------|      |      |      |
+  |      |      |------day------------|      |      |
+  |      |      |      |--afternoon---|      |      |
+  |      |      |      |      |      |--evening-----|
+night----|      |      |      |      |      |      |--night
+         |------isLight (sunrise..sunset)---|      |
+```
+
+Example at 07:30 with sunrise at 06:30:
+- `isMorning()` = true (07:00-12:00)
+- `isLight()` = true (sunrise-sunset)
+- `isDay()` = false (not yet 09:00)
+- `isDawn()` = false (dawn ended at sunrise)
 
 ## Dynamic Adjustment Principle
 
-External factors (such as time-of-day, sensor input, or user overrides) act as modifiers to the system's parameters, rather than setting absolute values. These modifiers apply shifts relative to the current/actual parameter values, allowing the environment to adapt in real-time to context changes (e.g., morning, evening, special events).
-
-Key points:
-- External factors act as modifiers, not absolute setters.
-- Shifts are applied relative to the current/actual parameter values, preserving the base state and allowing for cumulative or reversible changes.
-- This principle can be extended to brightness, patterns, audio volume, etc., for a unified adjustment system.
+External factors (time-of-day, sensor input, user overrides) act as modifiers
+to parameter values via shift tables, not as absolute setters. Shifts are
+applied relative to current values, preserving base state and allowing
+cumulative or reversible changes.

@@ -1,11 +1,10 @@
 todo list
-Updated: 2026-03-17
+Updated: 2026-03-19
 
 REGEL: Geen "Completed" sectie. Succes = delete uit todo.
 
 === Active ===
-xx.webgui - callux: wis removes both parameters, bug!
-
+xx. nieuw kwal iconup
 === Future ===
 
 

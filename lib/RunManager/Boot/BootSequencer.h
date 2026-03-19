@@ -1,8 +1,8 @@
 /**
  * @file BootSequencer.h
  * @brief Declarative boot sequence coordinator
- * @version 260304F
- * @date 2026-03-04
+ * @version 260305B
+ * @date 2026-03-05
  *
  * Replaces the ad-hoc boolean-flag boot chain with a manifest-driven
  * sequencer. Each boot step declares its dependencies (requiresAll) and

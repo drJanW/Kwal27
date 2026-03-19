@@ -1,8 +1,8 @@
 /**
  * @file VL53L1X.h
  * @brief Time-of-flight distance sensor driver interface
- * @version 260205A
- * @date 2026-02-05
+ * @version 260215B
+ * @date 2026-02-15
  */
 #pragma once
 #include <Arduino.h>

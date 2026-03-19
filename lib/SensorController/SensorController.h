@@ -1,8 +1,8 @@
 /**
  * @file SensorController.h
  * @brief Sensor initialization and reading interface for distance (VL53L1X) and lux (BH1750/VEML7700)
- * @version 260202A
- $12026-02-05
+ * @version 260215B
+ * @date 2026-02-15
  */
 // lib/SensorController20251004/SensorController.h
 #pragma once

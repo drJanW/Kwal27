@@ -1,8 +1,8 @@
 /**
  * @file SensorsRun.h
  * @brief Sensor data update state management
- * @version 260202A
- $12026-02-10
+ * @version 260205A
+ * @date 2026-02-05
  */
 #pragma once
 

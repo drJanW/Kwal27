@@ -1,6 +1,6 @@
 # Globals - Shared Configuration
 
-> Version: 260313C | Updated: 2026-03-14
+> Version: 260319A | Updated: 2026-03-19
 
 Contains all parameters used by more than one module or file.
 
@@ -13,7 +13,7 @@ Contains all parameters used by more than one module or file.
 | `HWconfig.h` | Hardware pins, Wi-Fi credentials, static IP, `*_PRESENT` flags |
 | `macros.inc` | Logging macros (`PL`/`PP`/`PF`), module verbosity toggles, `SECONDS`/`MINUTES`/`HOURS` |
 | `MathUtils.h` | `clamp`, `map`, `mapRange`, `lerp`, `inverseLerp`, `wrap`, `nearlyEqual`, etc. |
-| `CsvUtils.h` | CSV parsing: `csv::readLine()`, `csv::splitColumns()`, `csv::stripBom()`, `csv::isNumericId()` |
+| `CsvUtils.h` / `.cpp` | CSV parsing: `csv::readLine()`, `csv::splitColumns()`, `csv::stripBom()`, `csv::isNumericId()` |
 | `AudioState.h` / `.cpp` | Thread-safe audio state accessors (moved from AudioManager for cross-layer access) |
 | `LogBuffer.h` / `.cpp` | Ring buffer for in-memory log capture |
 | `I2CInitHelper.h` / `.cpp` | Shared I²C bus initialization |

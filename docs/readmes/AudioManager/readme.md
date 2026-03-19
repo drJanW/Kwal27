@@ -1,6 +1,6 @@
 # Audio Subsystem
 
-> Version: 260227B | Updated: 2026-03-14
+> Version: 260319A | Updated: 2026-03-19
 
 This module describes the responsibilities and collaboration between AudioManager, PlayFragment, and PlaySentence. The design is optimized for reliable, non-blocking MP3 playback on ESP32, with fade support for fragments and sequential playback of individual words using a fixed word dictionary.
 
@@ -127,13 +127,15 @@ PlayFragment.h/.cpp: non-blocking fragment playback with fade support
 
 PlaySentence.h/.cpp: sequential word playback using fixed MP3 word IDs
 
+PlayPCM.h/.cpp: raw PCM audio playback for sound effects (ping, alerts)
+
 ~~PlayStream.cpp/h~~: **Removed** (Dec 2025) - was unused dead code for URL streaming
 
 This structure is designed for robustness, non-blocking operation, and precise playback timing — without reliance on decoder state or blocking loops.
 
 ## Audio Timing
 
-Fragment playback uses a **random interval** between 6-18 minutes (configurable via `MIN_AUDIO_INTERVAL_MS` / `MAX_AUDIO_INTERVAL_MS` in `globals.h`). This replaces the previous fixed 10-minute interval to create more natural, less predictable audio behavior.
+Fragment playback uses a **random interval** (configurable via `Globals::minAudioIntervalMs` / `Globals::maxAudioIntervalMs`, default 6-48 minutes). This replaces the previous fixed 10-minute interval to create more natural, less predictable audio behavior.
 
 6. PCM Clip Policy and Integration 
 - Any clip is distributed as `/?????.wav` and must remain a 44-byte header PCM WAV: RIFF, WAVE, `fmt ` chunk, 16-bit little-endian, mono, 22 050 Hz.

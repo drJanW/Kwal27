@@ -1,8 +1,8 @@
 /**
  * @file TodayRoutes.h
  * @brief Today API endpoint routes
- * @version 260202A
- $12026-02-05
+ * @version 260221A
+ * @date 2026-02-21
  */
 #pragma once
 

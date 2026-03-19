@@ -1,8 +1,8 @@
 /**
  * @file Calendar.h
  * @brief Calendar day structure and parsing interface
- * @version 260202A
- $12026-02-05
+ * @version 260216H
+ * @date 2026-02-16
  */
 #pragma once
 

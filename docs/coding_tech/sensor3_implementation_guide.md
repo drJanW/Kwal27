@@ -1,69 +1,79 @@
 # Sensor3 Implementation Guide
 
-## Wat is Sensor3?
+> Version: 260319A | Updated: 2026-03-19
 
-Sensor3 is een placeholder voor een toekomstige I2C sensor, waarschijnlijk:
-- Board temperatuur sensor (ESP32 interne temp of externe I2C)
+## What is Sensor3?
+
+Sensor3 is a placeholder for a future I2C sensor, likely:
+- Board temperature sensor (ESP32 internal temp or external I2C)
 - Voltage monitor
-- Andere omgevingssensor
+- Other environmental sensor
 
-## Huidige staat (v260104+)
+## Current State (v260319A)
 
-Sensor3 is **disabled by design** via `SENSOR3_PRESENT false` in `HWconfig.h`.
+Sensor3 is **disabled by design** via `Globals::sensor3Present = false`.
 
-### Hardware Presence Architecture
+### Runtime Presence Architecture
 
-Sinds v260104 gebruikt het systeem `*_PRESENT` defines in `HWconfig.h`:
-- **Absent hardware** (`*_PRESENT false`): geen init, geen flash, geen reminders, status = `—`
-- **Present hardware** (`*_PRESENT true`): normale init met retries, flash bij fail
+Since v260207, the system uses runtime `inline static bool` flags in Globals.h:
 
 ```cpp
-// HWconfig.h
-#define RTC_PRESENT false              // DS3231 RTC module
-#define DISTANCE_SENSOR_PRESENT true   // VL53L1X ToF sensor
-#define LUX_SENSOR_PRESENT false       // VEML7700 ambient light sensor
-#define SENSOR3_PRESENT false          // Board temp sensor (placeholder)
+// Globals.h
+inline static bool luxSensorPresent      = true;
+inline static bool distanceSensorPresent = false;
+inline static bool sensor3Present        = false;  // placeholder
+inline static bool audioPresent          = true;
+inline static bool nasPresent            = true;
+inline static bool rtcPresent            = true;
 ```
 
-### Bestaande stubs/placeholders:
+These are CSV-overridable via globals.csv. When `sensor3Present = false`:
+- No init attempt
+- No failure flash
+- No TTS announcement
+- AlertState marks SC_SENSOR3 as ABSENT
+- WebGUI health shows dash
 
-| File | Wat | Status |
-|------|-----|--------|
-| `HWconfig.h` | `SENSOR3_PRESENT false` | **NEW**: Hardware presence flag |
-| `HWconfig.h` | `SENSOR3_DUMMY_TEMP 25.0f` | Fallback waarde |
-| `Globals.h/cpp` | `sensor3DummyTemp` | Configureerbaar via CSV |
-| `globals.csv` | `#sensor3DummyTemp;f;25.0` | Uitgecommentarieerd |
-| `SensorsBoot.cpp` | Guard: skip init if `!SENSOR3_PRESENT` | **NEW**: Geen init poging |
-| `AlertRGB.cpp` | Guard: skip flash if `!SENSOR3_PRESENT` | **NEW**: Geen flash |
-| `AlertState.cpp` | `isPresent(SC_SENSOR3)` | **NEW**: Returns false |
-| `health.js` | WebGUI shows `—` for absent | **NEW**: v0104A |
-| `SpeakRun.cpp` | TTS "Sensor drie ontbreekt" | Klaar (niet getriggerd als absent) |
+### Existing stubs/placeholders
 
-## Implementatie stappenplan (wanneer hardware beschikbaar)
+| File | What | Status |
+|------|------|--------|
+| Globals.h | `sensor3Present = false` | Runtime presence flag |
+| HWconfig.h | `SENSOR3_DUMMY_TEMP 25.0f` | Fallback value |
+| Globals.h/cpp | `sensor3DummyTemp` | Configurable via CSV |
+| globals.csv | `#sensor3DummyTemp;f;25.0` | Commented out |
+| SensorsBoot.cpp | Guard: skip init if `!sensor3Present` | No init attempt |
+| AlertRGB.cpp | Guard: skip flash if `!sensor3Present` | No flash |
+| AlertState.h | `isPresent(SC_SENSOR3)` | Returns false (ABSENT) |
+| health.js | WebGUI shows dash for absent | Active |
+| SpeakRun.cpp | TTS "Sensor drie ontbreekt" | Not triggered when absent |
 
-### 1. Hardware keuze
+## Implementation Steps (when hardware becomes available)
 
-Kies I2C sensor, bijv:
-- **TMP117** - precisie temperatuur
-- **INA219** - stroom/voltage monitor
-- **BMP280** - druk/temp
+### 1. Choose I2C sensor
 
-### 2. HWconfig.h aanpassen
+Examples:
+- **TMP117** — precision temperature
+- **INA219** — current/voltage monitor
+- **BMP280** — pressure/temperature
 
-```cpp
-#define SENSOR3_PRESENT true   // Activeer hardware (was false)
+### 2. Enable in globals.csv
+
+```csv
+sensor3Present;b;true;activate sensor3 hardware
 ```
 
-### 3. SensorController.cpp aanpassen
+Or set `Globals::sensor3Present = true` in Globals.h as new default.
 
-Vervang placeholder door echte init:
+### 3. SensorController.cpp — add init callback
+
+Follow the same pattern as VL53L1X and VEML7700:
 
 ```cpp
-// Include sensor library
-#include <TMP117.h>  // of andere
+#include <TMP117.h>
 
 namespace {
-    TMP117 sensor3;  // Instantie
+    TMP117 sensor3;
     
     void cb_sensor3Init() {
         if (sensor3Ready || sensor3InitFailed) return;
@@ -89,12 +99,11 @@ namespace {
 }
 
 void SensorController::beginSensor3() {
-    TimerManager::instance().create(1000, 10, cb_sensor3Init, 1.5f);  // 10 exp retries
-    PL("[SensorController] Sensor3 init, max 10 retries with growing interval");
+    TimerManager::instance().create(1000, 10, cb_sensor3Init, 1.5f);
 }
 ```
 
-### 4. Read functie toevoegen
+### 4. Add read function
 
 ```cpp
 // SensorController.h
@@ -107,62 +116,28 @@ float SensorController::getSensor3Value() {
 }
 ```
 
-### 5. AlertState.cpp reset() aanpassen
+### 5. Activate globals.csv entry
 
-Verwijder deze regel (sensor3 start nu als "nog niet geïnitialiseerd"):
-```cpp
-setOk(COMP_SENSOR3, false);  // DELETE: was placeholder
-```
-
-### 6. speakFailures() check
-
-`SpeakRun::speakFailures()` bevat al:
-```cpp
-if (!AlertState::isOk(COMP_SENSOR3)) speak(SpeakRequest::SENSOR3_FAIL);
-```
-
-Dit werkt automatisch zodra sensor3 faalt.
-
-### 7. globals.csv activeren
-
-Uncomment en pas aan:
 ```csv
 sensor3DummyTemp;f;25.0;fallback temp when sensor3 absent
 ```
 
-## Niet vergeten
+## Reminders
 
-1. **I2C adres conflict check** - scan bus eerst
-2. **Retry count** - volg patroon: `-10` voor 10 retries met growing interval
-3. **TTS tekst** - "Sensor drie ontbreekt" al klaar, of wijzig in SpeakRun.cpp
-4. **Flash kleur** - `AlertPolicy::COLOR_SENSOR3` al gedefinieerd
+1. **I2C address conflict check** — scan bus first
+2. **Retry pattern** — use `create(1000, 10, cb, 1.5f)` for exponential retries
+3. **TTS text** — "Sensor drie ontbreekt" already exists in SpeakRun.cpp
+4. **Flash color** — `AlertPolicy::COLOR_SENSOR3` already defined
 
-## Architectuur patroon
-
-Volg exact hetzelfde patroon als VL53L1X en VEML7700:
+## Architecture Pattern
 
 ```
 SensorsBoot::configure()
-    └── SensorController::beginSensor3()
-        └── TimerManager::create(..., cb_sensor3Init)
-              └── cb_sensor3Init() [growing interval retries]
-                    ├── Success: AlertRun::report(SENSOR3_OK)
-                    └── Fail: AlertRun::report(SENSOR3_FAIL)
-                                └── AlertState::setSensor3Status(false)
-                                      └── speakFailure() + RGB flash
-```
-
-## Toekomstig: F2 I2C Init refactor
-
-Zie `docs/plan_i2c_init_refactor.md` - als die geïmplementeerd is, wordt sensor3 init nog simpeler:
-
-```cpp
-void SensorController::beginSensor3() {
-    I2CInitHelper::start({
-        "Sensor3", COMP_SENSOR3,
-        []() { return sensor3.begin(); },
-        -10, 1000,
-        AlertRequest::SENSOR3_OK, AlertRequest::SENSOR3_FAIL
-    });
-}
+    +-- SensorController::beginSensor3()
+        +-- TimerManager::create(..., cb_sensor3Init)
+              +-- cb_sensor3Init() [growing interval retries]
+                    +-- Success: AlertRun::report(SENSOR3_OK)
+                    +-- Fail:    AlertRun::report(SENSOR3_FAIL)
+                                   +-- AlertState marks FAILED
+                                   +-- speakFailure() + RGB flash
 ```

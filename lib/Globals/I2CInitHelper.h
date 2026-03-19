@@ -1,8 +1,8 @@
 /**
  * @file I2CInitHelper.h
  * @brief Generic I2C device initialization with growing retry interval
- * @version 260201A
- $12026-02-05
+ * @version 260206A
+ * @date 2026-02-06
  */
 #pragma once
 

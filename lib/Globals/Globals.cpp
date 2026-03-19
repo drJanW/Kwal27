@@ -1,8 +1,8 @@
 /**
  * @file Globals.cpp
  * @brief CSV override loader for Globals
- * @version 260317E
- * @date 2026-03-16
+ * @version 260319A
+ * @date 2026-03-19
  */
 #include "Arduino.h"
 #include "Globals.h"

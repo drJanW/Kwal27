@@ -1,6 +1,6 @@
 # Web Interface Controller
 
-> Version: 260313C | Updated: 2026-03-14
+> Version: 260319A | Updated: 2026-03-19
 
 ## Purpose
 Serve a lightweight UI from the SD card so operators can monitor and steer the installation without reflashing firmware. The ESP32 hosts `index.html`, `styles.css`, and `kwal.js` directly from the SD root; updates only require copying new files and bumping the cache-buster query (`?v=`) in `index.html`.
@@ -19,7 +19,7 @@ Serve a lightweight UI from the SD card so operators can monitor and steer the i
 
 ## Route Architecture
 
-Routes are organized per domain in `lib/WebInterfaceController/Routes/`:
+Routes are organized per domain in `lib/WebInterfaceController/routes/`:
 
 | File | Endpoints | Purpose |
 |------|-----------|---------|
@@ -57,9 +57,9 @@ The WebGUI uses Server-Sent Events (SSE) for real-time updates. When the connect
 Note: Pattern next/prev no longer forces an immediate status refresh; this avoids duplicate `/api/patterns` fetches that can cause transient UI "?" under load.
 
 ## Asset Refresh Workflow
-1. Edit the files under `sdroot/`.
-2. Update the version string in `kwal.js` (`APP_BUILD_INFO.version`) and the `?v=` query parameters in `index.html`.
-3. Copy the files to the SD card and reboot the board. The UI self-validates via the version tag.
+1. Edit the files under `sdroot/` (JS sources: `webgui-src/js/`).
+2. Run `build.ps1` to rebuild `kwal.js`; this also updates the `APP_BUILD_INFO.version` and `?v=` cache-buster in `index.html`.
+3. Upload to SD card with `upload_web.ps1` and reboot.
 
 ## Future Work
 - Optional translation hooks for non-Dutch operators.

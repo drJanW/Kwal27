@@ -1,8 +1,8 @@
 /**
  * @file PlayPCM.h
  * @brief Raw PCM audio playback for sound effects (ping, alerts)
- * @version 260205A
- * @date 2026-02-05
+ * @version 260227B
+ * @date 2026-02-27
  * 
  * Loads and plays 16-bit mono PCM WAV files from SD card.
  * Used for distance sensor feedback (ping.wav) and alert sounds.

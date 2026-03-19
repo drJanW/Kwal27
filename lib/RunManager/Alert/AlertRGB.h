@@ -1,8 +1,8 @@
 /**
  * @file AlertRGB.h
  * @brief RGB LED failure flash coordination
- * @version 260131A
- $12026-02-05
+ * @version 260304E
+ * @date 2026-03-04
  */
 #pragma once
 

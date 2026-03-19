@@ -1,6 +1,6 @@
 # RunManager Architecture
 
-> Version: 260313B | Updated: 2026-03-14
+> Version: 260319A | Updated: 2026-03-19
 
 Every subsystem that lives under `lib/RunManager/**` follows the same stack so we can iterate on behaviour without touching boot code, timers, or hardware drivers. The stack is strict—skip a layer and you get bugs that are impossible to reason about later.
 

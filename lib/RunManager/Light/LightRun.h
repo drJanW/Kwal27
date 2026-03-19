@@ -1,8 +1,8 @@
 /**
  * @file LightRun.h
  * @brief LED show state management
- * @version 260310B
- * @date 2026-03-10
+ * @version 260313C
+ * @date 2026-03-13
  */
 #pragma once
 

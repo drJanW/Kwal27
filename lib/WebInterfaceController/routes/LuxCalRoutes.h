@@ -1,8 +1,8 @@
 /**
  * @file LuxCalRoutes.h
  * @brief Lux calibration API endpoint routes
- * @version 260303A
- * @date 2026-03-03
+ * @version 260319A
+ * @date 2026-03-19
  */
 #pragma once
 

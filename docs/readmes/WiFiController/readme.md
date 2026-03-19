@@ -1,19 +1,40 @@
 # WiFiController
 
-> Version: 260205D | Updated: 2026-03-14
+> Version: 260319A | Updated: 2026-03-19
 
-Manages WiFi connection with automatic retry and health monitoring.
+Manages WiFi connection with automatic retry and health monitoring, plus HTTP fetch for NTP/weather/sunrise APIs and NAS CSV backup.
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `WiFiController.h/.cpp` | WiFi connect/retry/health, AP fallback |
+| `WiFiManager.cpp` | WiFi lifecycle management (implementation-only, no .h) |
+| `FetchController.h/.cpp` | HTTP fetch for weather/sunrise APIs and NTP time |
+| `FetchManager.cpp` | Fetch lifecycle management (implementation-only, no .h) |
+| `NasBackup.h/.cpp` | Push pattern/color CSVs to NAS after save |
 
 ## Architecture
 
-WiFiController is a **Controller** layer module - it owns the WiFi hardware driver
-and exposes a simple query API. No Run/Policy layers needed.
+WiFiController is a **Controller** layer module — it owns the WiFi hardware driver
+and exposes a simple boot API. FetchController handles HTTP fetches. NasBackup pushes CSVs to NAS.
 
 ## API
 
 ```cpp
-void bootWiFiConnect();    // Start connection sequence (call once at boot)
-bool isWiFiConnected();    // Query current connection state
+// WiFiController.h
+void bootWiFiConnect();        // Start connection sequence (call once at boot)
+
+// FetchController.h
+bool bootFetchController();    // Initialize fetch subsystem
+namespace FetchController { void requestNtpResync(); }
+
+// NasBackup.h
+namespace NasBackup {
+    void requestPush(const char* filename);  // Queue CSV push to NAS
+    void checkHealth();                       // Verify NAS reachability
+    void startHealthTimer();                  // Start periodic health check
+}
 ```
 
 ## Connection Flow
@@ -31,18 +52,17 @@ bool isWiFiConnected();    // Query current connection state
 |----------|----------|---------|
 | `cb_checkWiFiStatus` | 250ms continuous | Poll WiFi.status() |
 | `cb_retryConnect` | 2s growing | Retry WiFi.begin() on failure |
-| `cb_healthCheck` | 5s continuous | Detect connection loss |
 
 ## State
 
-- `connected` - module state, accessible via `isWiFiConnected()`
-- `stationConfigured` - one-time hardware init flag
-- `loggedStart` - log-once flag for connection start message
+- `connected` — module state
+- `stationConfigured` — one-time hardware init flag
+- `loggedStart` — log-once flag for connection start message
 
 ## Configuration
 
 Static IP configured via `HWconfig.h`:
-- `USE_STATIC_IP` - enable/disable
+- `USE_STATIC_IP` — enable/disable
 - `STATIC_IP_ADDRESS`, `STATIC_GATEWAY`, `STATIC_SUBNET`, `STATIC_DNS`
 
 WiFi credentials from `HWconfig.h`:
