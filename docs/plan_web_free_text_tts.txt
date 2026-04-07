@@ -36,9 +36,11 @@ Why Not Calendar/Today
 Preferred Data Model
 - text: String
 - intervalMs: uint32_t
-- durationMs: uint32_t
+- repeatCount: uint8_t
 
 No active flag. Active = !text.isEmpty() or timers.isActive(cb_webFreeTextRepeat).
+No durationMs stored. Route computes repeatCount = min(durationMs / intervalMs, 255)
+and passes it to RunManager. Duration is a UI concept, not firmware state.
 
 repeatCount is computed locally in requestSet, not stored.
 
@@ -147,7 +149,8 @@ routeSetFreeTextTts(request):
   if text is empty:
     RunManager::requestClearWebFreeTextTts()
     return OK
-  RunManager::requestSetWebFreeTextTts(text, intervalMs, durationMs)
+  repeatCount = min(durationMs / intervalMs, 255)
+  RunManager::requestSetWebFreeTextTts(text, intervalMs, repeatCount)
   return OK
 
 routeClearFreeTextTts(request):
@@ -156,17 +159,16 @@ routeClearFreeTextTts(request):
 
 Pseudo-code: RunManager Layer
 
-requestSetWebFreeTextTts(text, intervalMs, durationMs):
+requestSetWebFreeTextTts(text, intervalMs, repeatCount):
   requestClearWebFreeTextTts()
-  store text, intervalMs, durationMs
+  store text, intervalMs, repeatCount
   speak immediately once
-  repeatCount = min(durationMs / intervalMs, 255)
   if repeatCount > 0:
     create(intervalMs, repeatCount, cb_webFreeTextRepeat)
 
 requestClearWebFreeTextTts():
   cancel(cb_webFreeTextRepeat)
-  clear text, intervalMs, durationMs
+  clear text, intervalMs, repeatCount
 
 cb_webFreeTextRepeat():
   speak stored text
