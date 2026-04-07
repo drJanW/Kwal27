@@ -34,10 +34,11 @@ Why Not Calendar/Today
 - Mixing them would create wrong ownership and reload side effects.
 
 Preferred Data Model
-- active: bool
 - text: String
 - intervalMs: uint32_t
 - durationMs: uint32_t
+
+No active flag. Active = !text.isEmpty() or timers.isActive(cb_webFreeTextRepeat).
 
 repeatCount is computed locally in requestSet, not stored.
 
@@ -158,7 +159,6 @@ Pseudo-code: RunManager Layer
 requestSetWebFreeTextTts(text, intervalMs, durationMs):
   requestClearWebFreeTextTts()
   store text, intervalMs, durationMs
-  mark active
   speak immediately once
   repeatCount = min(durationMs / intervalMs, 255)
   if repeatCount > 0:
@@ -167,7 +167,6 @@ requestSetWebFreeTextTts(text, intervalMs, durationMs):
 requestClearWebFreeTextTts():
   cancel(cb_webFreeTextRepeat)
   clear text, intervalMs, durationMs
-  mark inactive
 
 cb_webFreeTextRepeat():
   speak stored text
