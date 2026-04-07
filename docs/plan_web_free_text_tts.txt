@@ -186,8 +186,12 @@ onClearIcon():
   textarea.value = ""
 
 UI Notes
+- Use emoji <span> icons, not buttons. Matches existing WebGUI pattern (luxcal, OTA, mp3grid).
+- ▶️ icon = submit/start. Sends text + interval + duration to set endpoint.
+- ⏹ icon = clear/stop. Sends clear request.
+- Empty text + ▶️ = same as ⏹ (clear/stop).
+- Both icons styled as cursor:pointer spans, no button background.
 - Stop icon should remain visible even when textarea is non-empty.
-- Empty submit and clear icon should call the same backend clear behavior.
 - UI label should make clear that interval = repeat frequency, duration = how long the free-text TTS stays active.
 
 Rules To Preserve
