@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260319A"
+#define FIRMWARE_VERSION_CODE "260407D"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -192,7 +192,7 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     // CSV HTTP (3 params)
     // ─────────────────────────────────────────────────────────────
-    inline static char     csvBaseUrl[96]            = "http://192.168.2.23:8081/csv/"; // Base URL for CSV fetch
+    inline static char     csvBaseUrl[96]            = "http://192.168.2.23:8081/csv/"; // Base URL for CSV fetch (NAS runs csv_server)
     inline static uint32_t csvHttpTimeoutMs          = 5000UL;    // HTTP timeout per CSV
     inline static uint32_t csvFetchWaitMs            = 6000UL;    // Wait for WiFi before SD fallback
 

@@ -1,8 +1,8 @@
 /**
  * @file FetchController.cpp
  * @brief HTTP fetch for weather/sunrise APIs and NTP time
- * @version 260227B
- * @date 2026-02-27
+ * @version 260407D
+ * @date 2026-04-07
  */
 #include <Arduino.h>
 #include "FetchController.h"
@@ -63,10 +63,6 @@ static bool loadTimeFromSD();
 static void cb_fetchNTP() {
     static bool clientStarted = false;
     static bool wifiWarned = false;
-
-    if (ContextController::isTimeSynced()) {
-        return;
-    }
 
     // Update boot status with remaining retries
     auto remaining = timers.remaining();
@@ -472,12 +468,12 @@ bool bootFetchController() {
         return false;
     }
 
-    // Load time from SD if available before trying NTP
+    // Load time from SD as temporary seed (NTP will override)
     if (loadTimeFromSD()) {
-        ContextController::setTimeSynced(true);
-        AlertState::setNtpStatus(true);
+        // Do NOT set timeSynced or ntpStatus — NTP must always run
+        // to correct any stale DS3231 time. The SD time is just a seed.
         if (DEBUG_FETCH) {
-            PL("[Fetch] Time loaded from SD");
+            PL("[Fetch] Time seeded from SD (NTP will override)");
         }
     }
 
@@ -485,7 +481,7 @@ bool bootFetchController() {
     timers.create(Globals::clockBootstrapIntervalMs, Globals::wifiRetryCount, cb_fetchNTP, Globals::wifiRetryGrowth);
     // Weather: boot retries with growing intervals, switches to periodic on success
     weatherFetched = false;
-    timers.create(Globals::weatherBootstrapIntervalMs, Globals::wifiRetryCount, cb_fetchWeather, Globals::wifiRetryGrowth);
+    timers.create(Globals::weatherBootstrapIntervalMs, 100, cb_fetchWeather, Globals::wifiRetryGrowth);
     // Sunrise/sunset fetch timer (starts after NTP success)
     timers.create(Globals::sunRefreshIntervalMs, 0, cb_fetchSunrise);
 
