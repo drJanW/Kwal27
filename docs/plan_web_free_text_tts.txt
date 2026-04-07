@@ -9,22 +9,22 @@ Goal
 - Do NOT reuse or hack calendar/today text as transport or storage.
 
 Agreed Semantics
-- Exactly one active free-text job exists at any time.
-- Submit with non-empty text replaces the full previous job.
-- Submit with empty text clears/stops the current job.
-- Clear/stop icon also clears/stops the current job.
+- Exactly one free-text TTS can be active at any time.
+- Submit with non-empty text fully replaces the previous one.
+- Submit with empty text clears/stops.
+- Clear/stop icon also clears/stops.
 - Clear/stop always means the same thing:
   - text removed
   - interval removed
   - duration/end-time removed
   - repeat timer cancelled
-- Existing modal duration remains the lifetime of the free-text job.
+- Existing modal duration remains the lifetime of the free-text TTS.
 - A new interval slider is added for how often the text is spoken.
 
 Architecture Decision
 - Use a parallel web workflow, not calendar/today.
 - Web handler stores desired state in memory only.
-- RunManager owns orchestration: replace, clear, arm timer, cancel timer, expiry.
+- RunManager owns orchestration: replace, clear, create/cancel timer.
 - AudioPolicy / PlaySentence remain the playback path.
 - This is a single-slot scheduled TTS override, not a queue.
 
@@ -37,8 +37,9 @@ Preferred Data Model
 - active: bool
 - text: String
 - intervalMs: uint32_t
-- expiresAtMs or remainingDurationMs: uint32_t
-- lastSubmitSeq or equivalent optional guard: uint32_t
+- durationMs: uint32_t
+
+repeatCount is computed locally in requestSet, not stored.
 
 The state belongs with temporary web-audio control, not with calendar context.
 
@@ -53,128 +54,123 @@ Preferred Flow
 2. User enters text, interval, and duration.
 3. WebGUI sends one request.
 4. Web route validates and forwards to RunManager.
-5. RunManager clears previous free-text job if present.
+5. RunManager clears previous free-text state if present.
 6. If text is empty: stop here after clear.
-7. Else store new state, speak once immediately, and arm repeat/expiry timers.
-8. On timer fire, RunManager checks active/expiry and requests sentence playback.
-9. On clear icon or empty submit, RunManager cancels timers and clears state.
+7. Else store new state, speak once immediately, and create repeat timer.
+8. On repeat timer fire, RunManager requests sentence playback.
+9. On clear icon or empty submit, RunManager cancels timer and clears state.
 
-Affected Files
+Timer Strategy
+- One timer only: cb_webFreeTextRepeat. No separate clear timer.
+- Immediate speak happens outside the timer (before creating it).
+- Compute repeatCount = durationMs / intervalMs, capped at 255.
+- If repeatCount == 0: no timer needed; spoke once, done.
+- If repeatCount > 0: create(intervalMs, repeatCount, cb_webFreeTextRepeat).
+- Timer self-cleans after the last counted fire (repeat reaches 1 → slot deactivated).
+  No manual cleanup, no second timer, no remaining() needed.
+- State (text, intervalMs, durationMs) remains in memory after timer expires.
+  Next requestSet or requestClear cleans it. Harmless until then.
+- Replace (new text while active): requestClear cancels the timer,
+  then requestSet stores new state and calls create().
+  create() succeeds because cancel guarantees no active (cb, token) conflict.
+- cancel() is safe on non-active timers — no guard needed in requestClear.
+
+Exact Minimal Scope
+
+Confirmed required files
 
 Firmware
 - lib/WebInterfaceController/routes/AudioRoutes.h
-  - Add route declarations for free-text set/clear endpoints.
+  - Add route declarations for set/replace and clear/stop.
 - lib/WebInterfaceController/routes/AudioRoutes.cpp
-  - Parse text, interval, duration.
-  - Empty text maps to clear.
-  - Clear icon endpoint maps to same clear path.
-  - No direct TTS or blocking work inside route.
+  - Parse text, interval, and existing duration value.
+  - Map empty text to clear.
+  - Map clear icon to the same clear path.
+  - Keep route memory-only; no direct playback or blocking work.
 - lib/RunManager/RunManager.h
-  - Add request API for set/replace free-text job.
-  - Add request API for clear/stop free-text job.
+  - Add request API for set/replace free-text TTS.
+  - Add request API for clear/stop free-text TTS.
 - lib/RunManager/RunManager.cpp
+  - Hold the single active free-text state.
   - Implement replace/clear orchestration.
-  - Add callback(s) for repeat tick and expiry.
-  - Cancel previous timer(s) before arming new ones.
-- lib/WebInterfaceController/WebGuiStatus.h
-  - Add state exposure for current free-text job summary if UI should reflect active state.
-- lib/WebInterfaceController/WebGuiStatus.cpp
-  - Include free-text active/text/interval/duration data in SSE or state JSON if needed.
-
-Possible firmware touch, depending on chosen ownership
-- lib/RunManager/Audio/AudioPolicy.h
-- lib/RunManager/Audio/AudioPolicy.cpp
-  - Only if a small helper is wanted for speech request semantics.
-  - Not needed if RunManager calls existing requestSentence path directly.
+  - Add repeat callback (cb_webFreeTextRepeat).
+  - Compute repeat count from duration and interval, cap at 255.
 
 WebGUI
 - sdroot/index.html
-  - Add textarea/input in modal dev/audio.
-  Exact Minimal Scope
+  - Add text input area in modal dev/audio.
+  - Add repeat-interval slider in modal dev/audio.
+  - Add clear/stop icon in modal dev/audio.
+- sdroot/webgui-src/js/audio.js
+  - Read text field.
+  - Read new interval slider.
+  - Submit set/replace request.
+  - Submit clear/stop request.
+  - Treat empty text submit as clear/stop.
+- sdroot/webgui-src/build.ps1
+  - Version bump only because JS source changes.
 
-  Confirmed required files
+Conditionally required
+- sdroot/styles.css
+  - Needed if the new text input uses textarea styling or needs custom row/icon layout.
+  - Probably required in practice, but not logically required for backend behavior.
 
-  Firmware
-  - lib/WebInterfaceController/routes/AudioRoutes.h
-    - Add route declarations for set/replace and clear/stop.
-  - lib/WebInterfaceController/routes/AudioRoutes.cpp
-    - Parse text, interval, and existing duration value.
-    - Map empty text to clear.
-    - Map clear icon to the same clear path.
-    - Keep route memory-only; no direct playback or blocking work.
-  - lib/RunManager/RunManager.h
-    - Add request API for set/replace free-text job.
-    - Add request API for clear/stop free-text job.
-  - lib/RunManager/RunManager.cpp
-    - Hold the single active free-text state.
-    - Implement replace/clear orchestration.
-    - Add repeat callback and expiry callback.
-    - Cancel old timers before arming new timers.
+Probably NOT needed for the first correct implementation
+- lib/WebInterfaceController/WebGuiStatus.h
+- lib/WebInterfaceController/WebGuiStatus.cpp
+  - Not needed unless the UI must reflect active free-text state after reload or via SSE.
+- lib/RunManager/Audio/AudioPolicy.h
+- lib/RunManager/Audio/AudioPolicy.cpp
+  - Not needed if RunManager reuses the existing sentence request path as-is.
 
-  WebGUI
-  - sdroot/index.html
-    - Add text input area in modal dev/audio.
-    - Add repeat-interval slider in modal dev/audio.
-    - Add clear/stop icon in modal dev/audio.
-  - sdroot/webgui-src/js/audio.js
-    - Read text field.
-    - Read new interval slider.
-    - Submit set/replace request.
-    - Submit clear/stop request.
-    - Treat empty text submit as clear/stop.
-  - sdroot/webgui-src/build.ps1
-    - Version bump only because JS source changes.
+Not Affected By Design
+- lib/ContextController/Calendar.h/.cpp
+- lib/RunManager/Calendar/CalendarPolicy.cpp
+- lib/RunManager/Calendar/CalendarRun.cpp
+- lib/WebInterfaceController/WebGuiStatus.h/.cpp for the minimal backend-only feature
+- lib/RunManager/Web/WebRun.h/.cpp
 
-  Conditionally required
-  - sdroot/styles.css
-    - Needed if the new text input uses textarea styling or needs custom row/icon layout.
-    - Probably required in practice, but not logically required for backend behavior.
+Minimal first implementation boundary
+- No queue.
+- No calendar integration.
+- No persistence across reboot.
+- No SSE reflection of current free-text state.
+- No new policy layer unless a concrete need appears.
 
-  Probably NOT needed for the first correct implementation
-  - lib/WebInterfaceController/WebGuiStatus.h
-  - lib/WebInterfaceController/WebGuiStatus.cpp
-    - Not needed unless the UI must reflect active free-text state after reload or via SSE.
-  - lib/RunManager/Audio/AudioPolicy.h
-  - lib/RunManager/Audio/AudioPolicy.cpp
-    - Not needed if RunManager reuses the existing sentence request path as-is.
-  - sdroot/styles.css
-    - Can be skipped only if existing modal/button/input styles are sufficient.
+Pseudo-code: Route Layer
 
-  Not Affected By Design
-  - lib/ContextController/Calendar.h/.cpp
-  - lib/RunManager/Calendar/CalendarPolicy.cpp
-  - lib/RunManager/Calendar/CalendarRun.cpp
-  - lib/WebInterfaceController/WebGuiStatus.h/.cpp for the minimal backend-only feature
-  - lib/RunManager/Web/WebRun.h/.cpp
+routeSetFreeTextTts(request):
+  text = trim(request.text)
+  intervalMs = parse/clamp interval
+  durationMs = parse/clamp duration
+  if text is empty:
+    RunManager::requestClearWebFreeTextTts()
+    return OK
+  RunManager::requestSetWebFreeTextTts(text, intervalMs, durationMs)
+  return OK
 
-  Minimal first implementation boundary
-  - No queue.
-  - No calendar integration.
-  - No persistence across reboot.
-  - No SSE reflection of current free-text job.
-  - No new policy layer unless a concrete need appears.
+routeClearFreeTextTts(request):
+  RunManager::requestClearWebFreeTextTts()
+  return OK
+
+Pseudo-code: RunManager Layer
+
+requestSetWebFreeTextTts(text, intervalMs, durationMs):
+  requestClearWebFreeTextTts()
+  store text, intervalMs, durationMs
   mark active
-  request immediate speech once
-  arm repeat timer with intervalMs
-  arm expiry timer with durationMs
-  push WebGuiStatus update
+  speak immediately once
+  repeatCount = min(durationMs / intervalMs, 255)
+  if repeatCount > 0:
+    create(intervalMs, repeatCount, cb_webFreeTextRepeat)
 
 requestClearWebFreeTextTts():
-  cancel repeat timer
-  cancel expiry timer
-  clear text/interval/expiry
+  cancel(cb_webFreeTextRepeat)
+  clear text, intervalMs, durationMs
   mark inactive
-  push WebGuiStatus update
 
 cb_webFreeTextRepeat():
-  if not active: return
-  if expired:
-    clear current free-text job
-    return
-  request speech for stored text
-
-cb_webFreeTextExpire():
-  clear current free-text job
+  speak stored text
 
 Pseudo-code: UI Layer
 
@@ -191,11 +187,13 @@ onClearIcon():
 UI Notes
 - Stop icon should remain visible even when textarea is non-empty.
 - Empty submit and clear icon should call the same backend clear behavior.
-- UI label should make clear that interval = repeat frequency, duration = how long the temporary job stays active.
+- UI label should make clear that interval = repeat frequency, duration = how long the free-text TTS stays active.
 
 Rules To Preserve
 - Web handlers: memory only, no blocking network or SD work.
 - TimerManager only for timing.
+- Prefer counted timers for constant intervals when the count fits in `uint8_t`.
+- Do not use self-`restart()` for a constant interval repeat.
 - Do not create a parallel TTS engine.
 - Reuse existing speech pipeline.
 
