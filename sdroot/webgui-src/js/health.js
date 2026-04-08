@@ -1,7 +1,7 @@
 /**
  * @file    health.js
- * @version 260316C
- * @date    2026-03-16
+ * @version 260407E
+ * @date    2026-04-07
  *
  * Kwal - Health module
  * System health status display in DEV modal
@@ -98,16 +98,20 @@ Kwal.health = (function() {
     for (var i = 0; i < FLAGS.length; i++) {
       var f = FLAGS[i];
       var status;
+      var fieldOk = false;
       // Check if hardware is absent (not present per HWconfig)
       if (absentBits & (1 << f.bit)) {
         status = '—';
       } else if (useBoot) {
         var value = getStatusField(bootStatus, f.bit);
         status = renderStatus(value);
+        fieldOk = (value === STATUS_OK);
       } else {
-        var ok = (healthBits & (1 << f.bit)) !== 0;
-        status = ok ? '✅' : '❌';
+        fieldOk = (healthBits & (1 << f.bit)) !== 0;
+        status = fieldOk ? '✅' : '❌';
       }
+      // Expose TTS status for other modules
+      if (f.name === 'TTS') Kwal.ttsOk = fieldOk;
       // Append RTC temperature after RTC status
       if (f.name === 'RTC' && data.rtcTempC !== undefined) {
         status += ' ' + data.rtcTempC.toFixed(1) + '°';
@@ -146,6 +150,7 @@ Kwal.health = (function() {
 
     html += '</table>';
     container.innerHTML = html;
+    if (Kwal.audio && Kwal.audio.updateTtsState) Kwal.audio.updateTtsState();
   }
 
   function doRestart() {

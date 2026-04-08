@@ -17,6 +17,9 @@ input.slider-brown::-moz-range-thumb { border-color: #FF69B4 !important; }
 input.slider-gold { background: #FFD700 !important; }
 input.slider-gold::-webkit-slider-thumb { border-color: #FFD700 !important; }
 input.slider-gold::-moz-range-thumb { border-color: #FFD700 !important; }
+input.slider-blue { background: #4682B4 !important; }
+input.slider-blue::-webkit-slider-thumb { border-color: #4682B4 !important; }
+input.slider-blue::-moz-range-thumb { border-color: #4682B4 !important; }
 .label-gold { color: #FFD700 !important; }
 input.slider-red { background: #FF4444 !important; }
 input.slider-red::-webkit-slider-thumb { border-color: #FF4444 !important; }

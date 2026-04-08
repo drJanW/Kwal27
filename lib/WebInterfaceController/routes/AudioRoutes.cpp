@@ -1,8 +1,8 @@
 /**
  * @file AudioRoutes.cpp
  * @brief Audio API endpoint routes
- * @version 260316J
- * @date 2026-03-16
+ * @version 260407A
+ * @date 2026-04-07
  */
 #include <Arduino.h>
 #include "AudioRoutes.h"
@@ -218,6 +218,9 @@ void attachRoutes(AsyncWebServer &server)
     server.on("/api/audio/intervals", HTTP_POST, routeSetIntervals);
     server.on("/api/audio/silence", HTTP_GET,  routeSetSilence);
     server.on("/api/audio/silence", HTTP_POST, routeSetSilence);
+    server.on("/api/audio/freetext", HTTP_GET,  routeSetFreeTextTts);
+    server.on("/api/audio/freetext", HTTP_POST, routeSetFreeTextTts);
+    server.on("/api/audio/freetext/clear", HTTP_POST, routeClearFreeTextTts);
 }
 
 void routeGrid(AsyncWebServerRequest *request)
@@ -281,6 +284,41 @@ void routeGrid(AsyncWebServerRequest *request)
     json += F("]}");
 
     request->send(200, "application/json", json);
+}
+
+void routeSetFreeTextTts(AsyncWebServerRequest *request) {
+    String text = "";
+    if (request->hasParam("text")) {
+        text = request->getParam("text")->value();
+        text.trim();
+    }
+    if (text.isEmpty()) {
+        RunManager::requestClearWebFreeTextTts();
+        request->send(200, "text/plain", "OK");
+        return;
+    }
+    if (text.length() > 160) {
+        text = text.substring(0, 160);
+    }
+    uint32_t intervalMs = MINUTES(5);
+    if (request->hasParam("interval")) {
+        int raw = request->getParam("interval")->value().toInt();
+        intervalMs = MINUTES(static_cast<uint32_t>(clamp(raw, 1, 720)));
+    }
+    uint32_t durationMs = MINUTES(60);
+    if (request->hasParam("dur")) {
+        int raw = request->getParam("dur")->value().toInt();
+        durationMs = MINUTES(static_cast<uint32_t>(clamp(raw, 1, 780)));
+    }
+    uint32_t rc = durationMs / intervalMs;
+    uint8_t repeatCount = (rc > 255) ? 255 : static_cast<uint8_t>(rc);
+    RunManager::requestSetWebFreeTextTts(text, intervalMs, repeatCount);
+    request->send(200, "text/plain", "OK");
+}
+
+void routeClearFreeTextTts(AsyncWebServerRequest *request) {
+    RunManager::requestClearWebFreeTextTts();
+    request->send(200, "text/plain", "OK");
 }
 
 } // namespace AudioRoutes

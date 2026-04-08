@@ -115,6 +115,19 @@
           <input type="range" id="interval-duration" class="slider-gold" min="0" max="11" value="11">
           <span id="dur-num">13u</span>
         </div>
+        <div style="margin-top:1.5rem;border-top:1px solid #555;padding-top:1rem">
+          <div class="row">
+            <label class="label-gold" style="font-size:1.4rem" title="Vrije tekst TTS">💬</label>
+            <input type="text" id="freetext-input" maxlength="99" placeholder="Vrije tekst..." style="flex:1;background:#2a2a3a;color:#eee;border:1px solid #555;border-radius:4px;padding:0.3rem 0.5rem;font-size:0.95rem">
+            <span id="freetext-play" style="font-size:1.5rem;cursor:pointer" title="Start">▶️</span>
+            <span id="freetext-stop" style="font-size:1.5rem;cursor:pointer" title="Stop">⏹</span>
+          </div>
+          <div class="row">
+            <label class="label-gold" style="font-size:1.4rem" title="Herhaal interval">🔁</label>
+            <input type="range" id="freetext-interval" class="slider-blue" min="0" max="7" value="4">
+            <span id="freetext-interval-num">10m</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -322,7 +335,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260319A"></script>
+  <script src="kwal.js?v=260407E"></script>
 </body>
 
 </html>

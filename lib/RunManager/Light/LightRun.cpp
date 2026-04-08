@@ -35,8 +35,7 @@ bool luxRequestPending = false;      // Slider requested measurement (B6)
 bool luxInCooldown = false;          // 100ms cooldown active (B6)
 
 // Brightness fade state — uses shared Globals::fadeCurve (15-step sine²)
-constexpr uint16_t brightnessFadeMs = 400;
-constexpr uint16_t brightnessStepMs = brightnessFadeMs / Globals::fadeStepCount;  // ~26ms
+// Step interval = luxMeasurementDelayMs / 2 / fadeStepCount (computed inline)
 uint8_t  fadeStep = 0;
 uint8_t  fadeStartBrightness = 0;
 
@@ -250,7 +249,7 @@ void LightRun::cb_luxMeasure() {
     fadeStartBrightness = getBrightnessShiftedHi();
     fadeStep = 0;
     brightnessFading = true;
-    timers.create(brightnessStepMs, Globals::fadeStepCount, LightRun::cb_fadeBrightnessOut);
+    timers.create(Globals::luxMeasurementDelayMs / 2 / Globals::fadeStepCount, Globals::fadeStepCount, LightRun::cb_fadeBrightnessOut);
 }
 
 void LightRun::cb_measureLux() {
@@ -343,7 +342,7 @@ void LightRun::cb_measureLux() {
     fadeStartBrightness = getBrightnessShiftedHi();
     fadeStep = 0;
     brightnessFading = true;
-    timers.create(brightnessStepMs, Globals::fadeStepCount, LightRun::cb_fadeBrightnessIn);
+    timers.create(Globals::luxMeasurementDelayMs / 2 / Globals::fadeStepCount, Globals::fadeStepCount, LightRun::cb_fadeBrightnessIn);
     
     // Cooldown, check for pending slider request
     luxInCooldown = true;

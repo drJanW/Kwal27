@@ -1,8 +1,8 @@
 /**
  * @file WebGuiStatus.cpp
  * @brief Centralized WebGUI state management implementation
- * @version 260316C
- * @date 2026-03-16
+ * @version 260407C
+ * @date 2026-04-07
  */
 #include "WebGuiStatus.h"
 #include "Globals.h"
@@ -12,6 +12,7 @@
 #include "LightController.h"
 #include "AudioState.h"
 #include "Audio/AudioPolicy.h"
+#include "RunManager.h"
 #include "SensorController.h"
 #include "TodayState.h"
 #include <ESPAsyncWebServer.h>
@@ -192,6 +193,12 @@ void pushState() {
     json += Globals::luxSensorPresent ? F("true") : F("false");
     json += F(",\"sleepArmed\":");
     json += Globals::sleepArmed ? F("true") : F("false");
+    const String& ft = RunManager::getWebFreeTextTtsText();
+    if (ft.length() > 0) {
+        json += F(",\"freeText\":\"");
+        json += ft;
+        json += '"';
+    }
     json += '}';
     
     eventsPtr_->send(json.c_str(), "state", millis());

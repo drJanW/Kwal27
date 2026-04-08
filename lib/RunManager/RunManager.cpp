@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260316C
- * @date 2026-03-16
+ * @version 260407C
+ * @date 2026-04-07
  */
 #include <Arduino.h>
 #include <math.h>
@@ -896,4 +896,36 @@ void RunManager::cancelDeepSleep() {
     timers.cancel(cb_sleepAfterTTS);
     Globals::sleepArmed = false;
     PL("[Sleep] Cancelled");
+}
+
+// ─── Free-text TTS ──────────────────────────────────────────
+
+static String   freeTextTtsText;
+static uint32_t freeTextTtsIntervalMs = 0;
+static uint8_t  freeTextTtsRepeatCount = 0;
+
+static void cb_webFreeTextRepeat() {
+    AudioPolicy::requestSentence(freeTextTtsText);
+}
+
+void RunManager::requestClearWebFreeTextTts() {
+    timers.cancel(cb_webFreeTextRepeat);
+    freeTextTtsText = "";
+    freeTextTtsIntervalMs = 0;
+    freeTextTtsRepeatCount = 0;
+}
+
+void RunManager::requestSetWebFreeTextTts(const String& text, uint32_t intervalMs, uint8_t repeatCount) {
+    requestClearWebFreeTextTts();
+    freeTextTtsText = text;
+    freeTextTtsIntervalMs = intervalMs;
+    freeTextTtsRepeatCount = repeatCount;
+    AudioPolicy::requestSentence(freeTextTtsText);
+    if (repeatCount > 0) {
+        timers.create(intervalMs, repeatCount, cb_webFreeTextRepeat);
+    }
+}
+
+const String& RunManager::getWebFreeTextTtsText() {
+    return freeTextTtsText;
 }

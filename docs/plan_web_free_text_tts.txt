@@ -42,8 +42,6 @@ No active flag. Active = !text.isEmpty() or timers.isActive(cb_webFreeTextRepeat
 No durationMs stored. Route computes repeatCount = min(durationMs / intervalMs, 255)
 and passes it to RunManager. Duration is a UI concept, not firmware state.
 
-repeatCount is computed locally in requestSet, not stored.
-
 The state belongs with temporary web-audio control, not with calendar context.
 
 Text Length Limits

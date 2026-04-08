@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.cpp
  * @brief TTS sentence playback with word dictionary and VoiceRSS API
- * @version 260227B
- * @date 2026-02-27
+ * @version 260407E
+ * @date 2026-04-07
  * 
  * Implements sequential word playback from /000/ directory.
  * Uses unified SpeakItem queue for mixing MP3 words and TTS sentences.
@@ -305,7 +305,8 @@ bool voicerss_ok(const String& url, String& err) {
 }
 
 // Internal TTS start (called by playNextSpeakItem)
-void startTTSInternal(const char* text) {
+// Returns true if VoiceRSS stream started, false on API error
+bool startTTSInternal(const char* text) {
     // Stop any current audio first
     if (audio.audioMp3Decoder) {
         audio.audioMp3Decoder->stop();
@@ -336,13 +337,14 @@ void startTTSInternal(const char* text) {
             setSentencePlaying(false);
             setTtsActive(false);
             AlertRun::report(AlertRequest::TTS_FAIL);
-            return;
+            return false;
         }
     }
 
     audio.audioFile = new AudioFileSourceHTTPStream(url.c_str());
     audio.audioMp3Decoder = new AudioGeneratorMP3();
     audio.audioMp3Decoder->begin(audio.audioFile, &audio.audioOutput);
+    return true;
 }
 
 void playNextSpeakItem() {
@@ -360,12 +362,16 @@ void playNextSpeakItem() {
     
     if (item.type == SpeakItemType::TTS_SENTENCE) {
         const char* sentence = static_cast<const char*>(item.payload);
-        
-        startTTSInternal(sentence);
+        bool ok = startTTSInternal(sentence);
         durationMs = calcTtsDurationMs(sentence);
-        PF("[TTS] %s (%ums)\n", sentence, durationMs);
+        PF("[TTS] %s (%ums)%s\n", sentence, durationMs, ok ? "" : " FAIL");
         free(const_cast<void*>(item.payload));  // release strdup'd copy
         
+        if (!ok) {
+            // VoiceRSS failed — skip to next queue item
+            playNextSpeakItem();
+            return;
+        }
         // T4: Timer-based completion
         timers.cancel(cb_ttsReady);
         timers.create(durationMs, 1, cb_ttsReady);
@@ -494,6 +500,7 @@ void addWords(const uint8_t* words) {
 }
 
 void addTTS(const char* sentence) {
+
     bool wasEmpty = (speakQueueHead == speakQueueTail);
     enqueue(SpeakItemType::TTS_SENTENCE, sentence);
     

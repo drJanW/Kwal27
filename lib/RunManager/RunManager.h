@@ -1,8 +1,8 @@
 /**
  * @file RunManager.h
  * @brief Central coordinator header for all Kwal modules
- * @version 260316C
- * @date 2026-03-16
+ * @version 260407C
+ * @date 2026-04-07
  */
 #pragma once
 #include <Arduino.h>
@@ -58,6 +58,11 @@ public:
     // TV Simulator
     static void enterTvMode(uint8_t hours);
     static void exitTvMode();
+
+    // Free-text TTS
+    static void requestSetWebFreeTextTts(const String& text, uint32_t intervalMs, uint8_t repeatCount);
+    static void requestClearWebFreeTextTts();
+    static const String& getWebFreeTextTtsText();
 
     // Deep Sleep
     static void requestDeepSleep();

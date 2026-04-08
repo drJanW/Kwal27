@@ -50,7 +50,7 @@ brightnessLo;u;16;slider left boundary (fraction of MAX_BRIGHTNESS)
 # ═══════════════════════════════════════════════════════════════════
 # SENSORS (12 params)
 # ═══════════════════════════════════════════════════════════════════
-luxMeasurementDelayMs;u;200;LED blackout time before lux read
+luxMeasurementDelayMs;u;3800;LED blackout+fade time before lux read
 #luxMeasurementIntervalMs;u;10000;how often to sample ambient light
 # I2C sensor init retry timing (first delay and growth multiplier for exponential backoff)
 #distanceSensorInitDelayMs;u;500;VL53L1X first retry delay (ms)

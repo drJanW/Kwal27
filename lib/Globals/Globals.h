@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260407D"
+#define FIRMWARE_VERSION_CODE "260407E"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -53,8 +53,8 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     inline static uint32_t minAudioIntervalMs     = MINUTES(6);   // Min wait between ambient audio
     inline static uint32_t maxAudioIntervalMs     = MINUTES(48);  // Max wait between ambient audio
-    inline static uint32_t singleDirMinIntervalMs  = MINUTES(1);   // Min wait during single-dir theme box
-    inline static uint32_t singleDirMaxIntervalMs  = MINUTES(5);   // Max wait during single-dir theme box
+    inline static uint32_t singleDirMinIntervalMs  = MINUTES(1);  // Min wait during single-dir theme box
+    inline static uint32_t singleDirMaxIntervalMs  = MINUTES(5);  // Max wait during single-dir theme box
     inline static uint16_t baseFadeMs             = SECONDS(5);   // Default fade duration
     inline static uint16_t webAudioNextFadeMs     = 957U;         // Fade when web UI skips track
     inline static uint8_t  fragmentStartFraction  = 50U;          // Start position % into file (0-100)
@@ -70,11 +70,11 @@ struct Globals {
     // ─────────────────────────────────────────────────────────────
     // SPEECH (2 params)
     // ─────────────────────────────────────────────────────────────
-    inline static uint32_t minSaytimeIntervalMs   = MINUTES(85);  // Min wait between time announcements
-    inline static uint32_t maxSaytimeIntervalMs   = MINUTES(145); // Max wait between time announcements
-    inline static uint32_t minTemperatureSpeakIntervalMs = MINUTES(60); // Min wait between temperature announcements
+    inline static uint32_t minSaytimeIntervalMs   = MINUTES(195);        // Min wait between time announcements
+    inline static uint32_t maxSaytimeIntervalMs   = MINUTES(295);        // Max wait between time announcements
+    inline static uint32_t minTemperatureSpeakIntervalMs = MINUTES(60);  // Min wait between temperature announcements
     inline static uint32_t maxTemperatureSpeakIntervalMs = MINUTES(140); // Max wait between temperature announcements
-    inline static uint32_t defaultWebExpiryMs     = HOURS(13);    // Web audio settings auto-reset after 13 hours
+    inline static uint32_t defaultWebExpiryMs     = HOURS(13);           // Web audio settings auto-reset after 13 hours
 
     // ─────────────────────────────────────────────────────────────
     // LIGHT/PATTERN (5 params)
@@ -83,7 +83,7 @@ struct Globals {
     inline static uint32_t shiftCheckIntervalMs    = MINUTES(1);  // Check CSV shifts interval
     inline static float    defaultFadeWidth        = 64.0f;       // LED color fade smoothness
     inline static uint32_t colorChangeIntervalMs   = 20880000UL;  // Random color change (5.8h)
-    inline static uint32_t patternChangeIntervalMs  = 17640000UL;  // Random pattern change (4.9h)
+    inline static uint32_t patternChangeIntervalMs  = 17640000UL; // Random pattern change (4.9h)
 
     // ─────────────────────────────────────────────────────────────
     // BRIGHTNESS/LUX (10 params)
@@ -93,8 +93,8 @@ struct Globals {
     inline static uint8_t  brightnessLo            = 70U;         // Operational Lo boundary
     inline static uint8_t  brightnessHi            = 242U;        // Operational Hi boundary
     inline static uint8_t  defaultBrightnessSliderPct = 60U;      // Boot default brightness slider position (0-100%); CSV-overridable
-    inline static constexpr int loPct               = 0;           // Slider percentage lower bound
-    inline static constexpr int hiPct               = 100;         // Slider percentage upper bound
+    inline static constexpr int loPct               = 0;          // Slider percentage lower bound
+    inline static constexpr int hiPct               = 100;        // Slider percentage upper bound
     inline static float    brMax                   = 222.0f;      // Exponential saturation brightness asymptote
     inline static float    luxRate                 = 0.02f;       // Exponential saturation rate
     inline static float    luxMax                  = 300.0f;      // Highest observed lux (grows via samples, defines seed range)
@@ -102,7 +102,7 @@ struct Globals {
     inline static uint8_t  maxLuxDataPoints        = 50U;         // Auto-fit trigger (seeds + real samples)
     inline static int8_t   calendarShiftLo         = -20;         // Calendar shift minimum
     inline static int8_t   calendarShiftHi         = +20;         // Calendar shift maximum
-    inline static uint16_t maxMilliamps            = 1200U;       // FastLED power limit
+    inline static uint16_t maxMilliamps            = 1300U;       // FastLED power limit
 
     // ─────────────────────────────────────────────────────────────
     // SENSORS (16 params)
@@ -112,8 +112,8 @@ struct Globals {
     inline static float    distanceSensorInitGrowth  = 1.5f;      // VL53L1X: interval multiplier per retry (5000 -> 7500 -> 11250...)
     inline static uint16_t luxSensorInitDelayMs      = 1000U;     // VEML7700: first retry delay (ms)
     inline static float    luxSensorInitGrowth       = 1.5f;      // VEML7700: interval multiplier per retry (1000 -> 1500 -> 2250...)
-    inline static uint32_t luxMeasurementDelayMs     = 800UL;     // Delay after lux trigger
-    inline static uint32_t luxMeasurementIntervalMs  = MINUTES(2); // Lux polling interval
+    inline static uint32_t luxMeasurementDelayMs     = 3800UL;    // Delay after lux trigger
+    inline static uint32_t luxMeasurementIntervalMs  = MINUTES(5);// Lux polling interval
     inline static uint16_t sensorBaseDefaultMs       = 100U;      // Distance sensor base interval
     inline static uint16_t sensorFastIntervalMs      = 30U;       // Fast interval (motion)
     inline static uint16_t sensorFastDurationMs      = 800U;      // Fast interval duration

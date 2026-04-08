@@ -5,9 +5,9 @@ from datetime import datetime
 import os
 import shutil
 
-BASE_DIR = "/shares/Public/Kwal/csv"
-DONE_DIR = "/shares/Public/Kwal/csv/done"
-HISTORY_DIR = "/shares/Public/Kwal/csv/history"
+BASE_DIR = os.environ.get("CSV_BASE_DIR", "/shares/Public/Kwal/csv")
+DONE_DIR = os.path.join(BASE_DIR, "done")
+HISTORY_DIR = os.path.join(BASE_DIR, "history")
 
 # Files that ESP32 is allowed to push back
 ALLOWED_FILES = {

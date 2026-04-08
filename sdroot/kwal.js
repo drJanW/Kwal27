@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260319A - Built 2026-03-19 07:55
+ * Kwal WebGUI v260407E - Built 2026-04-08 09:01
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260319A';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260407E';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -121,8 +121,8 @@ Kwal.state = (function() {
 // === js/audio.js ===
 /**
  * @file    audio.js
- * @version 260312A
- * @date    2026-03-12
+ * @version 260407E
+ * @date    2026-04-07
  *
  * Kwal - Audio module
  * See docs/glossary_slider_semantics.md for terminology
@@ -150,6 +150,11 @@ Kwal.audio = (function() {
   var muteBtn, speakSlider, fragSlider, durSlider, lightDurSlider;
   var speakLabel, fragLabel, durLabel, lightDurLabel;
   var debounceTimer = null;
+
+  // Free-text TTS elements
+  var freetextInput, freetextPlayBtn, freetextStopBtn;
+  var freetextIntervalSlider, freetextIntervalLabel;
+  var freetextIntervalSteps = [1,2,3,5,10,15,30,60];
 
   // Non-linear step tables (logarithmic distribution)
   var speakSteps = [1,2,3,5,10,15,20,30,45,60,90,120,180,240,360,480,720];
@@ -426,6 +431,52 @@ Kwal.audio = (function() {
         if (lightDurLabel) lightDurLabel.textContent = durLabel.textContent;
       };
     }
+
+    // Free-text TTS controls
+    initFreeTextControls();
+  }
+
+  function initFreeTextControls() {
+    freetextInput = document.getElementById('freetext-input');
+    freetextPlayBtn = document.getElementById('freetext-play');
+    freetextStopBtn = document.getElementById('freetext-stop');
+    freetextIntervalSlider = document.getElementById('freetext-interval');
+    freetextIntervalLabel = document.getElementById('freetext-interval-num');
+
+    if (freetextIntervalSlider && freetextIntervalLabel) {
+      freetextIntervalSlider.oninput = function() {
+        var val = freetextIntervalSteps[parseInt(freetextIntervalSlider.value, 10)];
+        freetextIntervalLabel.textContent = formatMinutes(val);
+      };
+    }
+
+    if (freetextPlayBtn) {
+      freetextPlayBtn.onclick = function() {
+        if (Kwal.ttsOk === false) return;
+        var text = freetextInput ? freetextInput.value.trim() : '';
+        if (!text) {
+          sendFreeTextClear();
+          return;
+        }
+        var intervalMin = freetextIntervalSteps[parseInt(freetextIntervalSlider.value, 10)];
+        var durMin = durSteps[parseInt(durSlider.value, 10)];
+        var url = '/api/audio/freetext?text=' + encodeURIComponent(text)
+          + '&interval=' + intervalMin
+          + '&dur=' + durMin;
+        fetch(url, {method:'POST'}).catch(function(){});
+      };
+    }
+
+    if (freetextStopBtn) {
+      freetextStopBtn.onclick = function() {
+        sendFreeTextClear();
+      };
+    }
+  }
+
+  function sendFreeTextClear() {
+    if (freetextInput) freetextInput.value = '';
+    fetch('/api/audio/freetext/clear', {method:'POST'}).catch(function(){});
   }
 
   function scheduleIntervalSend() {
@@ -486,13 +537,24 @@ Kwal.audio = (function() {
       lightDurSlider.value = findStep(durSteps, data.durMin);
       lightDurLabel.textContent = formatMinutes(data.durMin);
     }
+    if (freetextInput) {
+      freetextInput.value = (typeof data.freeText === 'string') ? data.freeText : '';
+    }
+  }
+
+  function updateTtsState() {
+    var disabled = (Kwal.ttsOk === false);
+    var opacity = disabled ? '0.3' : '1';
+    if (freetextInput) { freetextInput.disabled = disabled; freetextInput.style.opacity = opacity; }
+    if (freetextPlayBtn) freetextPlayBtn.style.opacity = opacity;
   }
 
   return {
     init: init,
     updateVolumeFromState: updateVolumeFromState,
     updateFragment: updateFragment,
-    updateIntervalsFromState: updateIntervalsFromState
+    updateIntervalsFromState: updateIntervalsFromState,
+    updateTtsState: updateTtsState
   };
 })();
 
@@ -1898,8 +1960,8 @@ Kwal.status = (function() {
 // === js/health.js ===
 /**
  * @file    health.js
- * @version 260316C
- * @date    2026-03-16
+ * @version 260407E
+ * @date    2026-04-07
  *
  * Kwal - Health module
  * System health status display in DEV modal
@@ -1996,16 +2058,20 @@ Kwal.health = (function() {
     for (var i = 0; i < FLAGS.length; i++) {
       var f = FLAGS[i];
       var status;
+      var fieldOk = false;
       // Check if hardware is absent (not present per HWconfig)
       if (absentBits & (1 << f.bit)) {
         status = '—';
       } else if (useBoot) {
         var value = getStatusField(bootStatus, f.bit);
         status = renderStatus(value);
+        fieldOk = (value === STATUS_OK);
       } else {
-        var ok = (healthBits & (1 << f.bit)) !== 0;
-        status = ok ? '✅' : '❌';
+        fieldOk = (healthBits & (1 << f.bit)) !== 0;
+        status = fieldOk ? '✅' : '❌';
       }
+      // Expose TTS status for other modules
+      if (f.name === 'TTS') Kwal.ttsOk = fieldOk;
       // Append RTC temperature after RTC status
       if (f.name === 'RTC' && data.rtcTempC !== undefined) {
         status += ' ' + data.rtcTempC.toFixed(1) + '°';
@@ -2044,6 +2110,7 @@ Kwal.health = (function() {
 
     html += '</table>';
     container.innerHTML = html;
+    if (Kwal.audio && Kwal.audio.updateTtsState) Kwal.audio.updateTtsState();
   }
 
   function doRestart() {
