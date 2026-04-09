@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260407C
- * @date 2026-04-07
+ * @version 260409A
+ * @date 2026-04-09
  */
 #include <Arduino.h>
 #include <math.h>
@@ -898,21 +898,59 @@ void RunManager::cancelDeepSleep() {
     PL("[Sleep] Cancelled");
 }
 
-// ─── Free-text TTS ──────────────────────────────────────────
+// ─── Free-text TTS (download-to-SD, play via PlayFragment) ──
 
 static String   freeTextTtsText;
 static uint32_t freeTextTtsIntervalMs = 0;
 static uint8_t  freeTextTtsRepeatCount = 0;
+static uint32_t freeTextTtsDurationMs = 0;
+
+static void cb_startWebFreeTextTts();
+static void cb_webFreeTextRepeat();
+
+static bool playFreeTextFromCache() {
+    if (freeTextTtsDurationMs == 0) return false;
+    AudioFragment frag{};
+    frag.dirIndex   = Globals::ttsCacheDirIndex;
+    frag.fileIndex  = Globals::ttsCacheFileIndex;
+    frag.durationMs = freeTextTtsDurationMs;
+    frag.fadeMs     = 500;
+    strlcpy(frag.source, "freetext", sizeof(frag.source));
+    return AudioPolicy::requestFragment(frag);
+}
 
 static void cb_webFreeTextRepeat() {
-    AudioPolicy::requestSentence(freeTextTtsText);
+    playFreeTextFromCache();
+}
+
+static void cb_startWebFreeTextTts() {
+    PF("[FreeText] \"%s\" interval=%ums repeat=%u\n",
+       freeTextTtsText.c_str(), freeTextTtsIntervalMs, freeTextTtsRepeatCount);
+    // Stop any playing audio before SD I/O
+    if (isFragmentPlaying()) PlayAudioFragment::stop(0);
+    if (isSentencePlaying()) PlaySentence::stop();
+
+    uint32_t durationMs = PlaySentence::downloadTtsToCache(freeTextTtsText.c_str());
+    if (durationMs == 0) {
+        PF("[FreeText] Download failed, skipping\n");
+        return;
+    }
+    freeTextTtsDurationMs = durationMs;
+
+    playFreeTextFromCache();
+
+    if (freeTextTtsRepeatCount > 0) {
+        timers.create(freeTextTtsIntervalMs, freeTextTtsRepeatCount, cb_webFreeTextRepeat);
+    }
 }
 
 void RunManager::requestClearWebFreeTextTts() {
+    timers.cancel(cb_startWebFreeTextTts);
     timers.cancel(cb_webFreeTextRepeat);
     freeTextTtsText = "";
     freeTextTtsIntervalMs = 0;
     freeTextTtsRepeatCount = 0;
+    freeTextTtsDurationMs = 0;
 }
 
 void RunManager::requestSetWebFreeTextTts(const String& text, uint32_t intervalMs, uint8_t repeatCount) {
@@ -920,10 +958,8 @@ void RunManager::requestSetWebFreeTextTts(const String& text, uint32_t intervalM
     freeTextTtsText = text;
     freeTextTtsIntervalMs = intervalMs;
     freeTextTtsRepeatCount = repeatCount;
-    AudioPolicy::requestSentence(freeTextTtsText);
-    if (repeatCount > 0) {
-        timers.create(intervalMs, repeatCount, cb_webFreeTextRepeat);
-    }
+    // Defer all I/O to timer callback (web handler must be memory-only)
+    timers.create(1, 1, cb_startWebFreeTextTts);
 }
 
 const String& RunManager::getWebFreeTextTtsText() {

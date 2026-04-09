@@ -1,6 +1,6 @@
 # Globals - Shared Configuration
 
-> Version: 260319A | Updated: 2026-03-19
+> Version: 260409G | Updated: 2026-04-09
 
 Contains all parameters used by more than one module or file.
 
@@ -85,6 +85,16 @@ One flash burst = `black(1s) + color(1-2s) + black(1s)` ≈ 3-4s per failing com
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `dailyRebootHour` | 4 | Hour (1-23) for daily auto-reboot. 0 = disabled (midnight not possible since 0 means off). |
+
+## TTS Cache Parameters (v260409G)
+
+| Parameter | Type | Default | Range | Description |
+|-----------|------|---------|-------|-------------|
+| `ttsCacheDirIndex` | u | 127 | 0-200 | SD directory index for cached TTS MP3 |
+| `ttsCacheFileIndex` | u | 0 | 0-101 | File index within cache directory (000.mp3) |
+| `ttsCacheDurationFactor` | f | 3.0 | 1.0-5.0 | Multiplier for filesize→duration estimation |
+
+Duration estimation: `(bytesWritten * ttsCacheDurationFactor) / 16` milliseconds. Factor 3.0 compensates for VoiceRSS outputting ~48kbps (vs the 128kbps assumed by the standard `/16` formula).
 
 ## Diagnostics flags
 

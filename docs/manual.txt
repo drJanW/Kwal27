@@ -31,6 +31,25 @@ Geluid speelt automatisch: ambient fragmenten wisselen vanzelf af.
 De kwal spreekt ook (firmware-versie bij opstarten, kalenderberichten).
 
 
+VRIJE TEKST SPREKEN
+-------------------
+Via het dev-menu kun je de kwal zelf tekst laten uitspreken:
+
+  1. Klik rechtsonder op het tandwiel ⚙
+  2. Open het Audio-menu
+  3. Typ een tekst (Nederlands, max 99 tekens)
+  4. Kies eventueel een herhalingsinterval en duur
+  5. Klik op "Spreken"
+
+De tekst wordt via internet (VoiceRSS) omgezet naar spraak, opgeslagen
+op de SD-kaart en afgespeeld. Bij herhalingen speelt de kwal vanuit de
+opslag — er is geen internet meer nodig na de eerste keer.
+
+  - Leeg tekstveld + verzenden = stop/wis de huidige tekst
+  - Speciale tekens (? ! @ # € & enz.) worden ondersteund
+  - WiFi moet verbonden zijn voor de eerste afspeling
+
+
 LICHT PANEEL
 ------------
   Helderheid slider  0-100%  Regelt de LED-helderheid.
@@ -348,6 +367,7 @@ API ROUTES (referentie)
   GET  /api/audio/play?d=X&f=Y  Speel specifiek bestand
   GET  /api/audio/grid          MP3-grid data
   GET  /api/audio/themebox      Huidige themebox info
+  POST /api/audio/freetext      Vrije tekst spreken (text, interval, duration)
   GET  /setWebAudioLevel?v=X    Volume instellen (0-100)
   GET  /getWebAudioLevel        Volume ophalen
   GET  /api/patterns            Lijst patronen

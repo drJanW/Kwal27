@@ -1,6 +1,6 @@
 # RunManager Architecture
 
-> Version: 260319A | Updated: 2026-03-19
+> Version: 260409G | Updated: 2026-04-09
 
 Every subsystem that lives under `lib/RunManager/**` follows the same stack so we can iterate on behaviour without touching boot code, timers, or hardware drivers. The stack is strict—skip a layer and you get bugs that are impossible to reason about later.
 
@@ -112,3 +112,25 @@ Timer cost: 1 transient slot.
 - ❌ Runners do not normalise raw sensor readings—that belongs to the relevant input policy/controller.
 
 Keeping these contracts tight lets us replace a policy, director, or even an entire subsystem without rewriting the rest of the pipeline.
+
+## Free Text TTS-to-SD Cache (v260409G)
+
+The web UI allows users to type arbitrary Dutch text, which is sent to VoiceRSS TTS, downloaded as MP3, cached on the SD card, and played back via `PlayFragment`. Repeats play from the SD cache (no repeated HTTP calls).
+
+### Flow
+
+1. **Web handler** (`/api/audio/freetext`) stores text, interval, and repeat count in memory. No blocking I/O.
+2. **Deferred timer** — `requestSetWebFreeTextTts()` creates a 1ms one-shot timer → `cb_startWebFreeTextTts()`.
+3. **Download** — `cb_startWebFreeTextTts()` stops ongoing audio, calls `PlaySentence::downloadTtsToCache(text)` which:
+   - Builds VoiceRSS URL (reuses existing `makeVoiceRSSUrl()`)
+   - HTTP GET → writes MP3 to `/127/000.mp3` (dir/file indices from `Globals::ttsCacheDirIndex` / `ttsCacheFileIndex`)
+   - Returns estimated duration: `(bytesWritten * ttsCacheDurationFactor) / 16`
+4. **First play** — requests `AudioPolicy::requestFragment()` with `source="freetext"`, `dirIndex=127`, `fileIndex=0`.
+5. **Repeat timer** — `timers.create(intervalMs, repeatCount, cb_webFreeTextRepeat)` for subsequent plays from SD cache only.
+6. **Clear** — `requestClearWebFreeTextTts()` cancels both timers and clears state.
+
+### Architecture Compliance
+
+- Download logic lives in `PlaySentence` (controller layer) — RunManager never includes HTTP or SD headers.
+- Web handler is memory-only; all I/O deferred to timer callbacks.
+- Playback uses the standard `AudioPolicy::requestFragment()` path — no special-case audio code.

@@ -1,6 +1,6 @@
 # Web Interface Controller
 
-> Version: 260319A | Updated: 2026-03-19
+> Version: 260409G | Updated: 2026-04-09
 
 ## Purpose
 Serve a lightweight UI from the SD card so operators can monitor and steer the installation without reflashing firmware. The ESP32 hosts `index.html`, `styles.css`, and `kwal.js` directly from the SD root; updates only require copying new files and bumping the cache-buster query (`?v=`) in `index.html`.
@@ -8,14 +8,15 @@ Serve a lightweight UI from the SD card so operators can monitor and steer the i
 ## Current Features
 1. **Audio panel** — Fragment display, web volume slider, status text
 2. **Light panel** — Brightness control, pattern/color dropdowns, summary values
-3. **Lux calibration panel** — Sample, fit, accept/wis cycle for VEML7700→brightness mapping
-4. **TV simulator panel** — 6-ring zone color control
-5. **OTA modal** — Firmware upload with progress bar and auto-reboot detection
-6. **SD controller modal** — File listing, upload, delete
-7. **MP3 grid** — Visual mp3 directory/file browser
-8. **Log viewer** — Real-time serial log display in browser
-9. **Health / diagnostics** — Component status, version, uptime
-10. **Diagnostics** — `kwal.js` exposes `window.APP_BUILD_INFO` for asset version validation
+3. **Free text TTS** — Type arbitrary Dutch text, spoken via VoiceRSS with optional repeat
+4. **Lux calibration panel** — Sample, fit, accept/wis cycle for VEML7700→brightness mapping
+5. **TV simulator panel** — 6-ring zone color control
+6. **OTA modal** — Firmware upload with progress bar and auto-reboot detection
+7. **SD controller modal** — File listing, upload, delete
+8. **MP3 grid** — Visual mp3 directory/file browser
+9. **Log viewer** — Real-time serial log display in browser
+10. **Health / diagnostics** — Component status, version, uptime
+11. **Diagnostics** — `kwal.js` exposes `window.APP_BUILD_INFO` for asset version validation
 
 ## Route Architecture
 
@@ -23,7 +24,7 @@ Routes are organized per domain in `lib/WebInterfaceController/routes/`:
 
 | File | Endpoints | Purpose |
 |------|-----------|---------|
-| `AudioRoutes` | `/setWebAudioLevel`, `/getWebAudioLevel`, `/api/audio/*` | Audio volume and fragment control |
+| `AudioRoutes` | `/setWebAudioLevel`, `/getWebAudioLevel`, `/api/audio/*` | Audio volume, fragment control, free text TTS |
 | `ColorsRoutes` | `/api/colors`, `/api/colors/select` | Color palette CRUD |
 | `PatternsRoutes` | `/api/patterns`, `/api/patterns/select` | Pattern CRUD and selection |
 | `HealthRoutes` | `/api/health` | Component status, version, uptime |

@@ -1,6 +1,6 @@
 # Speak Module
 
-> Version: 260218M | Updated: 2026-03-14
+> Version: 260409G | Updated: 2026-04-09
 
 ## Purpose
 The Speak module is the Run layer for status and error audio feedback.
@@ -147,6 +147,17 @@ Plus WORD_EXTRA_FACTOR and WORD_INTERVAL_MS between words.
 // Speak a component failure:
 SpeakRun::speak(SpeakRequest::WIFI_FAIL);      // "wifi mislukt"
 SpeakRun::speak(SpeakRequest::RTC_FAIL);       // "tijd fout"
+```
+
+## Note: Free Text TTS
+
+Free text TTS from the web UI does **not** use the Speak module. It uses a separate flow in RunManager:
+
+- Download: `PlaySentence::downloadTtsToCache()` (HTTP → SD `/127/000.mp3`)
+- Playback: `AudioPolicy::requestFragment()` via `PlayFragment` (with sine² fade)
+- Repeat: timer-driven replay from SD cache
+
+The Speak module handles only structured word-queue sentences (boot messages, time announcements, status feedback). Free text is arbitrary user input and uses a fundamentally different playback path.
 
 // Speak failure via StatusComponent:
 SpeakRun::speakFail(SC_WIFI);                 // "wifi mislukt"

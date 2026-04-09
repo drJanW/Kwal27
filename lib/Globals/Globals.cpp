@@ -231,6 +231,27 @@ static void applyOverride(const char* key, char type, const char* value) {
         }
     }
     // ═══════════════════════════════════════════════════════════
+    // TTS CACHE
+    // ═══════════════════════════════════════════════════════════
+    else if (strcmp(key, "ttsCacheDirIndex") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 <= 200) {
+            Globals::ttsCacheDirIndex = static_cast<uint8_t>(u32);
+            PF_BOOT("[Globals] ttsCacheDirIndex = %u\n", Globals::ttsCacheDirIndex);
+        }
+    }
+    else if (strcmp(key, "ttsCacheFileIndex") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 <= 101) {
+            Globals::ttsCacheFileIndex = static_cast<uint8_t>(u32);
+            PF_BOOT("[Globals] ttsCacheFileIndex = %u\n", Globals::ttsCacheFileIndex);
+        }
+    }
+    else if (strcmp(key, "ttsCacheDurationFactor") == 0 && type == 'f') {
+        if (parseFloat(value, &f32) && f32 >= 1.0f && f32 <= 5.0f) {
+            Globals::ttsCacheDurationFactor = f32;
+            PF_BOOT("[Globals] ttsCacheDurationFactor = %.2f\n", f32);
+        }
+    }
+    // ═══════════════════════════════════════════════════════════
     // LIGHT/PATTERN
     // ═══════════════════════════════════════════════════════════
     else if (strcmp(key, "lightFallbackIntervalMs") == 0 && type == 'u') {

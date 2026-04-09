@@ -28,6 +28,7 @@ Files in SD root (`/`) needed for full operation.
 ```
 /000/           TTS word fragments (001.mp3 .. NNN.mp3)
 /001/ .. /200/  Music/ambient MP3s (max 101 per dir)
+/127/           TTS cache (free text TTS downloaded from VoiceRSS, overwritten each request)
 ```
 
 MP3s: mono, 128 kbps max, no ID3 tags, filenames `001.mp3`..`101.mp3`.

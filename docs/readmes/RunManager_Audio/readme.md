@@ -1,6 +1,6 @@
 # Audio Run - Distance Playback Notes
 
-> Version: 260212D | Updated: 2026-03-14
+> Version: 260409G | Updated: 2026-04-09
 
 This file captures the current understanding of how distance driven PCM playback is coordinated with the rest of the audio stack. It is mostly here as a reminder for future maintenance sessions.
 
@@ -59,3 +59,19 @@ Effective speakMin multiplier = (1 + 1.0) × (1 + 0.5) = 3.0×. If globals.csv s
 The multiplier is applied inside `AudioPolicy::effectiveSpeakMin/Max()` and `effectiveFragmentMin/Max()`, so it works on both the globals base values AND any active web override. The multiplier floor is 0.1 (can never reduce interval to near-zero).
 
 Implementation: `AudioShiftTable` parses the columns and computes multipliers. `AudioPolicy` calls `getSpeakMinMultiplier()` etc. using `StatusFlags::getFullStatusBits()` on each call.
+
+## Free Text TTS via AudioPolicy::requestFragment (v260409G)
+
+The web free text TTS feature plays cached MP3 files through `AudioPolicy::requestFragment()` — the same path used for normal ambient fragment playback.
+
+### How it integrates with AudioRun
+
+- **Source tag:** The fragment is submitted with `source="freetext"` to distinguish it from ambient/calendar fragments in logs and policy decisions.
+- **Fragment parameters:** `dirIndex=127`, `fileIndex=0`, `fadeMs=500` (sine² fade via PlayFragment), duration estimated from file size.
+- **No special audio code:** Free text TTS does not bypass any audio policy rules. If audio is busy, the same fragment scheduling applies.
+- **Repeat plays:** After the initial download+play, the repeat timer (`cb_webFreeTextRepeat`) calls `playFreeTextFromCache()` which builds an `AudioFragment` and calls `AudioPolicy::requestFragment()` again — no HTTP, purely from SD cache.
+
+### Interaction with ambient fragments
+
+- Free text playback stops any currently playing fragment (via `AudioManager::stop()` before the first play).
+- During repeats, ambient fragments continue their normal scheduling. If a repeat and an ambient fragment collide, standard policy arbitration applies.

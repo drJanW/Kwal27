@@ -1,6 +1,6 @@
 # Web Interface REST API
 
-> Version: 260319A | Updated: 2026-03-19
+> Version: 260409G | Updated: 2026-04-09
 
 ## 1. Conventions
 
@@ -92,6 +92,22 @@ Server pushes in order:
 | `/api/audio/grid` | GET | — | Audio grid data |
 | `/api/audio/intervals` | GET/POST | GET: query, POST: set | Fragment/speak intervals |
 | `/api/audio/silence` | GET/POST | GET: query, POST: toggle | Silence mode |
+| `/api/audio/freetext` | POST | `text`, `interval`, `duration` | Start/clear free text TTS |
+
+### Free Text TTS (`/api/audio/freetext`)
+
+Submit arbitrary Dutch text for TTS playback with optional repeat.
+
+**Parameters:**
+- `text` — String (max 160 chars, recommended ≤99). Empty string = clear/stop.
+- `interval` — Repeat interval in minutes (0 = once only).
+- `duration` — Total duration in minutes (repeat count = duration / interval).
+
+**Behavior:**
+- Non-empty text: downloads VoiceRSS MP3 → caches to SD `/127/000.mp3` → plays via PlayFragment → optional repeat timer from SD cache.
+- Empty text or clear: cancels timers, stops repeat.
+- Web handler is memory-only; actual download and playback deferred to timer callback.
+- Characters `? ! / \ @ # € &` etc. are all supported (URL-encoded by PlaySentence).
 
 ## 6. Patterns API
 

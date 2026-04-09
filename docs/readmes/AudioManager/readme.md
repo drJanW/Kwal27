@@ -1,6 +1,6 @@
 # Audio Subsystem
 
-> Version: 260319A | Updated: 2026-03-19
+> Version: 260409G | Updated: 2026-04-09
 
 This module describes the responsibilities and collaboration between AudioManager, PlayFragment, and PlaySentence. The design is optimized for reliable, non-blocking MP3 playback on ESP32, with fade support for fragments and sequential playback of individual words using a fixed word dictionary.
 
@@ -98,6 +98,26 @@ Estimates duration as (fileSize / 16) - HEADER_MS
 Starts a timer that sets setSentencePlaying(false) when done
 
 No use of decoder loop() or state checks
+
+4. PlaySentence - TTS Cache Download
+
+PlaySentence also provides `downloadTtsToCache(const char* text)` for the free text TTS feature.
+
+Responsibilities:
+
+Builds VoiceRSS URL via existing `makeVoiceRSSUrl()` (reuses voice, rate, language settings)
+
+HTTP GET with 5s timeout → writes MP3 to SD at `/127/000.mp3`
+
+Creates directory `/127/` if it does not exist
+
+Returns estimated duration in ms: `(bytesWritten * ttsCacheDurationFactor) / 16`
+
+Returns 0 on any failure (HTTP error, SD write error)
+
+Logs: `[TTS] Cached N bytes to /127/000.mp3`
+
+The cache file is a single-slot overwrite: each new free text request replaces the previous one. Playback is handled by PlayFragment (not PlaySentence), so the cached MP3 benefits from sine² fade and standard fragment scheduling.
 
 Only one sentence is active at a time
 

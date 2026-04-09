@@ -27,6 +27,13 @@
 #maxSaytimeIntervalMs;u;8700000;longest wait, keeps it unpredictable
 
 # ═══════════════════════════════════════════════════════════════════
+# TTS CACHE (3 params)
+# ═══════════════════════════════════════════════════════════════════
+#ttsCacheDirIndex;u;127;SD directory for cached free-text TTS file
+#ttsCacheFileIndex;u;0;file index for cached free-text TTS file
+#ttsCacheDurationFactor;f;3.0;duration margin applied to filesize/16 (VoiceRSS ~48kbps)
+
+# ═══════════════════════════════════════════════════════════════════
 # LIGHT/PATTERN (4 params)
 # ═══════════════════════════════════════════════════════════════════
 #lightFallbackIntervalMs;u;300;animation step when no distance trigger

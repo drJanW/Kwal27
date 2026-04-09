@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260407E - Built 2026-04-08 09:01
+ * Kwal WebGUI v260407E - Built 2026-04-09 10:39
  */
 
 // === js/namespace.js ===

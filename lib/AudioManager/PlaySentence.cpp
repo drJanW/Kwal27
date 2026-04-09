@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.cpp
  * @brief TTS sentence playback with word dictionary and VoiceRSS API
- * @version 260407E
- * @date 2026-04-07
+ * @version 260408B
+ * @date 2026-04-08
  * 
  * Implements sequential word playback from /000/ directory.
  * Uses unified SpeakItem queue for mixing MP3 words and TTS sentences.
@@ -567,6 +567,55 @@ void forceMaxVolume() {
 // Legacy API - for backwards compatibility
 void startTTS(const String& text) {
     addTTS(text.c_str());
+}
+
+uint32_t downloadTtsToCache(const char* text) {
+    if (!text || !*text) return 0;
+
+    String url = makeVoiceRSSUrl(text);
+
+    // Ensure cache directory exists
+    char dirPath[8];
+    snprintf(dirPath, sizeof(dirPath), "/%03u", Globals::ttsCacheDirIndex);
+    if (!SD.exists(dirPath)) {
+        SD.mkdir(dirPath);
+    }
+
+    HTTPClient http;
+    WiFiClient client;
+    http.setTimeout(5000);
+    if (!http.begin(client, url)) {
+        PF("[TTS] Cache download: HTTP init failed\n");
+        return 0;
+    }
+
+    int code = http.GET();
+    if (code != HTTP_CODE_OK) {
+        PF("[TTS] Cache download: HTTP %d\n", code);
+        http.end();
+        return 0;
+    }
+
+    const char* path = getMP3Path(Globals::ttsCacheDirIndex, Globals::ttsCacheFileIndex);
+    File file = SD.open(path, FILE_WRITE);
+    if (!file) {
+        PF("[TTS] Cache download: cannot open %s\n", path);
+        http.end();
+        return 0;
+    }
+
+    size_t written = http.writeToStream(&file);
+    file.close();
+    http.end();
+
+    if (written == 0) {
+        SD.remove(path);
+        PF("[TTS] Cache download: 0 bytes written\n");
+        return 0;
+    }
+
+    PF("[TTS] Cached %u bytes to %s\n", written, path);
+    return static_cast<uint32_t>((written * Globals::ttsCacheDurationFactor) / 16);
 }
 
 } // namespace PlaySentence

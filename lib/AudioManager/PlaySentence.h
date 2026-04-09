@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.h
  * @brief TTS sentence playback using word dictionary from SD card
- * @version 260227B
- * @date 2026-02-27
+ * @version 260408B
+ * @date 2026-04-08
  * 
  * Plays sequences of pre-recorded words from /000/ directory.
  * Words are played sequentially with configurable inter-word pause.
@@ -48,6 +48,12 @@ uint8_t* getScratchpad();
 
 /// Process next item from speak queue (called after playback completes)
 void speakNext();
+
+/// Download TTS audio to SD cache file (dir/file from Globals)
+/// Caller must ensure audio is stopped and SD is free before calling.
+/// @param text Text to synthesize via VoiceRSS
+/// @return Estimated playback duration in ms, or 0 on failure
+uint32_t downloadTtsToCache(const char* text);
 
 /// Update playback state (pump decoder if needed)
 void update();

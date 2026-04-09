@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260319A
- * @date 2026-03-19
+ * @version 260408B
+ * @date 2026-04-08
  */
 #pragma once
 
@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260407E"
+#define FIRMWARE_VERSION_CODE "260409G"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -66,6 +66,9 @@ struct Globals {
     inline static float    pingVolumeMax          = 1.0f;         // Ping sound max volume
     inline static float    pingVolumeMin          = 0.35f;        // Ping sound min volume
     inline static uint16_t busyRetryMs            = 120U;         // Retryinterval when audio busy
+    inline static uint8_t  ttsCacheDirIndex        = 127U;         // SD directory for cached TTS file
+    inline static uint8_t  ttsCacheFileIndex       = 0U;           // File index for cached TTS file
+    inline static float    ttsCacheDurationFactor  = 3.0f;         // Duration margin for TTS cache (VoiceRSS ~48kbps vs 128kbps SD format)
 
     // ─────────────────────────────────────────────────────────────
     // SPEECH (2 params)
