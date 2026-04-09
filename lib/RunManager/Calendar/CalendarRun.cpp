@@ -1,8 +1,8 @@
 /**
  * @file CalendarRun.cpp
  * @brief Calendar state management implementation
- * @version 260206C
- * @date 2026-02-06
+ * @version 260409K
+ * @date 2026-04-09
  */
 #include <Arduino.h>
 #include "CalendarRun.h"
@@ -18,6 +18,10 @@
 #include "Light/LightRun.h"
 #include "Alert/AlertState.h"
 #include "Alert/AlertRun.h"
+#include "PlaySentence.h"
+#include "PlayFragment.h"
+#include "AudioState.h"
+#include "Audio/AudioPolicy.h"
 
 namespace {
 
@@ -63,11 +67,39 @@ void refreshTodayStateRead() {
 
 String sentence;
 uint32_t sentenceIntervalMs = 0;
+uint32_t calSentenceDurationMs = 0;
+
+bool playCalendarSentenceFromCache() {
+  if (calSentenceDurationMs == 0) return false;
+  AudioFragment frag{};
+  frag.dirIndex   = Globals::ttsCacheDirIndex;
+  frag.fileIndex  = Globals::ttsCacheCalFileIndex;
+  frag.durationMs = calSentenceDurationMs;
+  frag.fadeMs     = 500;
+  strlcpy(frag.source, "calendar", sizeof(frag.source));
+  return AudioPolicy::requestFragment(frag);
+}
+
+bool downloadCalendarSentence(const String& text) {
+  if (text.isEmpty()) return false;
+  if (isFragmentPlaying()) PlayAudioFragment::stop(0);
+  if (isSentencePlaying()) PlaySentence::stop();
+  uint32_t durationMs = PlaySentence::downloadTtsToCache(
+      text.c_str(), -1, 99, Globals::ttsCacheCalFileIndex);
+  if (durationMs == 0) {
+    PF("[Calendar] TTS cache download failed\n");
+    return false;
+  }
+  calSentenceDurationMs = durationMs;
+  return true;
+}
 
 void clearSentenceTimer() {
+  timers.cancel(CalendarRun::cb_downloadCalendarSentence);
   timers.cancel(CalendarRun::cb_calendarSentence);
   sentence = "";
   sentenceIntervalMs = 0;
+  calSentenceDurationMs = 0;
 }
 
 bool getValidDate(uint16_t& year, uint8_t& month, uint8_t& day) {
@@ -190,19 +222,8 @@ void CalendarRun::cb_loadCalendar() {
     sentence = calData.day.ttsSentence;
     sentenceIntervalMs = decision.sentenceIntervalMs;
 
-    if (sentenceIntervalMs > 0) {
-      // Use restart() - calendar can reload, replacing previous sentence timer
-      if (!timers.restart(sentenceIntervalMs, 0, CalendarRun::cb_calendarSentence)) {
-        PF("[CalendarRun] Failed to start calendar sentence timer (%lu ms)\n",
-           static_cast<unsigned long>(sentenceIntervalMs));
-      } else {
-        // timer started successfully
-      }
-    } else {
-      clearSentenceTimer();
-    }
-
-    CalendarPolicy::speakSentence(calData.day.ttsSentence);
+    // Defer HTTP download to separate callback (max 5s block)
+    timers.create(1, 1, CalendarRun::cb_downloadCalendarSentence);
   } else {
     clearSentenceTimer();
   }
@@ -226,11 +247,37 @@ void CalendarRun::cb_loadCalendar() {
   resetLogFlags();
 }
 
+void CalendarRun::cb_downloadCalendarSentence() {
+  if (sentence.isEmpty()) return;
+
+  bool cached = downloadCalendarSentence(sentence);
+
+  // Start repeat timer (plays from cache or live fallback)
+  if (sentenceIntervalMs > 0) {
+    if (!timers.restart(sentenceIntervalMs, 0, CalendarRun::cb_calendarSentence)) {
+      PF("[CalendarRun] Failed to start sentence timer (%lu ms)\n",
+         static_cast<unsigned long>(sentenceIntervalMs));
+    }
+  }
+
+  // First play
+  if (cached) {
+    playCalendarSentenceFromCache();
+  } else {
+    CalendarPolicy::speakSentence(sentence);
+  }
+}
+
 void CalendarRun::cb_calendarSentence() {
   if (sentence.isEmpty()) {
     return;
   }
-  CalendarPolicy::speakSentence(sentence);
+  // Play from SD cache if available, otherwise fall back to live TTS
+  if (calSentenceDurationMs > 0) {
+    playCalendarSentenceFromCache();
+  } else {
+    CalendarPolicy::speakSentence(sentence);
+  }
 }
 
 bool CalendarRun::todayReady() const {

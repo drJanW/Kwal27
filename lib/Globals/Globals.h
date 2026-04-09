@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260409J"
+#define FIRMWARE_VERSION_CODE "260409K"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -67,7 +67,8 @@ struct Globals {
     inline static float    pingVolumeMin          = 0.35f;        // Ping sound min volume
     inline static uint16_t busyRetryMs            = 120U;         // Retryinterval when audio busy
     inline static uint8_t  ttsCacheDirIndex        = 127U;         // SD directory for cached TTS file
-    inline static uint8_t  ttsCacheFileIndex       = 0U;           // File index for cached TTS file
+    inline static uint8_t  ttsCacheFileIndex       = 0U;           // File index for cached free-text TTS
+    inline static uint8_t  ttsCacheCalFileIndex    = 1U;           // File index for cached calendar TTS
     inline static float    ttsCacheDurationFactor  = 3.0f;         // Duration margin for TTS cache (VoiceRSS ~48kbps vs 128kbps SD format)
 
     // ─────────────────────────────────────────────────────────────

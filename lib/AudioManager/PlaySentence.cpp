@@ -568,8 +568,10 @@ void startTTS(const String& text) {
     addTTS(text.c_str());
 }
 
-uint32_t downloadTtsToCache(const char* text, int8_t voiceIndex, int8_t tempo) {
+uint32_t downloadTtsToCache(const char* text, int8_t voiceIndex, int8_t tempo, uint8_t fileIndex) {
     if (!text || !*text) return 0;
+
+    const uint8_t actualFileIndex = (fileIndex == 255) ? Globals::ttsCacheFileIndex : fileIndex;
 
     String url = makeVoiceRSSUrl(text, voiceIndex, tempo);
 
@@ -595,7 +597,7 @@ uint32_t downloadTtsToCache(const char* text, int8_t voiceIndex, int8_t tempo) {
         return 0;
     }
 
-    const char* path = getMP3Path(Globals::ttsCacheDirIndex, Globals::ttsCacheFileIndex);
+    const char* path = getMP3Path(Globals::ttsCacheDirIndex, actualFileIndex);
     File file = SD.open(path, FILE_WRITE);
     if (!file) {
         PF("[TTS] Cache download: cannot open %s\n", path);
