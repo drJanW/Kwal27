@@ -25,6 +25,18 @@ input.slider-red { background: #FF4444 !important; }
 input.slider-red::-webkit-slider-thumb { border-color: #FF4444 !important; }
 input.slider-red::-moz-range-thumb { border-color: #FF4444 !important; }
 .label-red { color: #FF4444 !important; }
+input.slider-green { background: #3CB371 !important; }
+input.slider-green::-webkit-slider-thumb { border-color: #3CB371 !important; }
+input.slider-green::-moz-range-thumb { border-color: #3CB371 !important; }
+.label-green { color: #3CB371 !important; }
+input.slider-orange { background: #FF8C00 !important; }
+input.slider-orange::-webkit-slider-thumb { border-color: #FF8C00 !important; }
+input.slider-orange::-moz-range-thumb { border-color: #FF8C00 !important; }
+.label-orange { color: #FF8C00 !important; }
+input.slider-purple { background: #9370DB !important; }
+input.slider-purple::-webkit-slider-thumb { border-color: #9370DB !important; }
+input.slider-purple::-moz-range-thumb { border-color: #9370DB !important; }
+.label-purple { color: #9370DB !important; }
 .row span.status { width: auto; flex: 1; text-align: left; color: #8af; }
 
 /* Slider track styling for custom gradient backgrounds */

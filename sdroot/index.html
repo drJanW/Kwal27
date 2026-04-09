@@ -108,7 +108,7 @@
   <div id="audio-settings-modal" class="modal">
     <div class="modal-box modal-wide" style="min-height:60vh">
       <span class="modal-close" data-close>✕</span>
-      <span data-open="mp3grid-modal" style="font-size:2rem;cursor:pointer;position:absolute;left:1.2rem;top:1rem" title="MP3 Grid">🎶</span>
+      <span data-open="mp3grid-modal" style="font-size:2rem;cursor:pointer;position:absolute;left:1.2rem;top:1rem" title="MP3 Grid">🎶 <span style="font-size:0.8rem;vertical-align:middle">jukebox</span></span>
       <div style="margin-top:3rem">
         <div class="row">
           <label class="label-gold" style="font-size:1.4rem" title="Actieve uren">⏳</label>
@@ -119,13 +119,34 @@
           <div class="row">
             <label class="label-gold" style="font-size:1.4rem" title="Vrije tekst TTS">💬</label>
             <input type="text" id="freetext-input" maxlength="99" placeholder="Vrije tekst..." style="flex:1;background:#2a2a3a;color:#eee;border:1px solid #555;border-radius:4px;padding:0.3rem 0.5rem;font-size:0.95rem">
-            <span id="freetext-play" style="font-size:1.5rem;cursor:pointer" title="Start">▶️</span>
             <span id="freetext-stop" style="font-size:1.5rem;cursor:pointer" title="Stop">⏹</span>
           </div>
           <div class="row">
-            <label class="label-gold" style="font-size:1.4rem" title="Herhaal interval">🔁</label>
-            <input type="range" id="freetext-interval" class="slider-blue" min="0" max="7" value="4">
+            <label class="label-green" style="font-size:1.4rem" title="Volume">🔊</label>
+            <input type="range" id="freetext-vol" class="slider-green" min="0" max="100" value="0">
+            <span id="freetext-vol-num" style="min-width:2.5em;text-align:right">auto</span>
+          </div>
+          <div class="row">
+            <label class="label-gold" style="font-size:1.4rem" title="Stem">🗣</label>
+            <select id="freetext-voice" style="flex:1;background:#2a2a3a;color:#eee;border:1px solid #555;border-radius:4px;padding:0.2rem 0.4rem;font-size:0.9rem">
+              <option value="-1">Random</option>
+              <option value="0">Lotte</option>
+              <option value="1">Bram</option>
+              <option value="2">Daan</option>
+            </select>
+          </div>
+          <div class="row">
+            <label class="label-orange" style="font-size:1.4rem" title="Tempo">🎛</label>
+            <input type="range" id="freetext-tempo" class="slider-orange" min="-3" max="3" value="0">
+            <span id="freetext-tempo-num" style="min-width:1.5em;text-align:right">0</span>
+          </div>
+          <div class="row">
+            <label class="label-purple" style="font-size:1.4rem" title="Herhaal interval">🔁</label>
+            <input type="range" id="freetext-interval" class="slider-purple" min="0" max="7" value="4">
             <span id="freetext-interval-num">10m</span>
+          </div>
+          <div class="row" style="justify-content:center;margin-top:0.5rem">
+            <span id="freetext-play" style="font-size:2.2rem;cursor:pointer" title="Start">▶️</span>
           </div>
         </div>
       </div>
@@ -335,7 +356,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260407E"></script>
+  <script src="kwal.js?v=260409J"></script>
 </body>
 
 </html>

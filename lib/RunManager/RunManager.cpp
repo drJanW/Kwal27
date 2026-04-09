@@ -904,6 +904,9 @@ static String   freeTextTtsText;
 static uint32_t freeTextTtsIntervalMs = 0;
 static uint8_t  freeTextTtsRepeatCount = 0;
 static uint32_t freeTextTtsDurationMs = 0;
+static int8_t   freeTextTtsVoice = -1;     // -1 = random
+static int8_t   freeTextTtsTempo = 99;     // 99 = random
+static float    freeTextTtsVolumeOverride = 0.0f; // 0 = use system default
 
 static void cb_startWebFreeTextTts();
 static void cb_webFreeTextRepeat();
@@ -915,6 +918,7 @@ static bool playFreeTextFromCache() {
     frag.fileIndex  = Globals::ttsCacheFileIndex;
     frag.durationMs = freeTextTtsDurationMs;
     frag.fadeMs     = 500;
+    frag.volumeOverride = freeTextTtsVolumeOverride;
     strlcpy(frag.source, "freetext", sizeof(frag.source));
     return AudioPolicy::requestFragment(frag);
 }
@@ -930,7 +934,8 @@ static void cb_startWebFreeTextTts() {
     if (isFragmentPlaying()) PlayAudioFragment::stop(0);
     if (isSentencePlaying()) PlaySentence::stop();
 
-    uint32_t durationMs = PlaySentence::downloadTtsToCache(freeTextTtsText.c_str());
+    uint32_t durationMs = PlaySentence::downloadTtsToCache(freeTextTtsText.c_str(),
+                                                            freeTextTtsVoice, freeTextTtsTempo);
     if (durationMs == 0) {
         PF("[FreeText] Download failed, skipping\n");
         return;
@@ -951,13 +956,20 @@ void RunManager::requestClearWebFreeTextTts() {
     freeTextTtsIntervalMs = 0;
     freeTextTtsRepeatCount = 0;
     freeTextTtsDurationMs = 0;
+    freeTextTtsVoice = -1;
+    freeTextTtsTempo = 99;
+    freeTextTtsVolumeOverride = 0.0f;
 }
 
-void RunManager::requestSetWebFreeTextTts(const String& text, uint32_t intervalMs, uint8_t repeatCount) {
+void RunManager::requestSetWebFreeTextTts(const String& text, uint32_t intervalMs, uint8_t repeatCount,
+                                          int8_t voiceIndex, int8_t tempo, uint8_t volumePct) {
     requestClearWebFreeTextTts();
     freeTextTtsText = text;
     freeTextTtsIntervalMs = intervalMs;
     freeTextTtsRepeatCount = repeatCount;
+    freeTextTtsVoice = voiceIndex;
+    freeTextTtsTempo = tempo;
+    freeTextTtsVolumeOverride = (volumePct > 0) ? static_cast<float>(clamp(volumePct, (uint8_t)1, (uint8_t)100)) / 100.0f : 0.0f;
     // Defer all I/O to timer callback (web handler must be memory-only)
     timers.create(1, 1, cb_startWebFreeTextTts);
 }

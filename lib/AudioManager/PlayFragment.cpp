@@ -1,8 +1,8 @@
 /**
  * @file PlayFragment.cpp
  * @brief MP3 fragment playback with sine-power fade curves
- * @version 260227B
- * @date 2026-02-27
+ * @version 260409J
+ * @date 2026-04-09
  * 
  * Implements fade-in/fade-out using shared Globals::fadeCurve (sine² curve).
  * Timer-driven: no polling, no loop() dependency.
@@ -29,6 +29,7 @@ struct FadeState {
     uint8_t  outIndex = 0;
     uint8_t  lastCurveIndex = 0;
     float    currentFraction = 0.0f;
+    float    volumeOverride = 0.0f;  ///< If > 0: use instead of web multiplier
 };
 
 FadeState& fade() {
@@ -45,6 +46,9 @@ inline float fadeFraction() {
 }
 
 inline float currentVolumeMultiplier() {
+    if (fade().volumeOverride > 0.0f) {
+        return fadeFraction() * fade().volumeOverride;
+    }
     return getVolumeShiftedHi() * fadeFraction() * getVolumeWebMultiplier();
 }
 
@@ -101,6 +105,7 @@ bool start(const AudioFragment& fragment) {
         state.fadeOutDelayMs = 0;
     }
     resetFadeIndices();
+    state.volumeOverride = fragment.volumeOverride;
 
     setFadeFraction(0.0f);
     applyVolume();
@@ -155,10 +160,12 @@ bool start(const AudioFragment& fragment) {
         LOG_WARN("[Audio] Failed to create fragment completion timer\n");
     }
 
+    float logVol = (state.volumeOverride > 0.0f) ? state.volumeOverride
+                                                   : getVolumeShiftedHi() * getVolumeWebMultiplier();
     PF("[Audio][%s] %u-%u (fade=%.1fs vol=%.2f)\n",
        fragment.source[0] ? fragment.source : "?",
        fragment.dirIndex, fragment.fileIndex,
-       static_cast<double>(state.effectiveMs) / 1000.0, static_cast<double>(getVolumeShiftedHi() * getVolumeWebMultiplier()));
+       static_cast<double>(state.effectiveMs) / 1000.0, static_cast<double>(logVol));
 
     return true;
 }

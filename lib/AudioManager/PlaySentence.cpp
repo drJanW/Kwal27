@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.cpp
  * @brief TTS sentence playback with word dictionary and VoiceRSS API
- * @version 260408B
- * @date 2026-04-08
+ * @version 260409J
+ * @date 2026-04-09
  * 
  * Implements sequential word playback from /000/ directory.
  * Uses unified SpeakItem queue for mixing MP3 words and TTS sentences.
@@ -248,18 +248,17 @@ void enqueue(SpeakItemType type, const void* payload) {
 // === TTS Helper functions (within anonymous namespace) ===
 struct TtsVoice { const char* lang; const char* name; };
 constexpr TtsVoice ttsVoices[] = {
-    { "nl-nl", "Daan" },   // Netherlands male
-    { "nl-nl", "Lotte" },  // Netherlands female
+    { "nl-nl", "Lotte" },  // Netherlands female (default)
     { "nl-nl", "Bram" },   // Netherlands male
-    { "nl-be", "Daan" },   // Flemish male
-    { "nl-be", "Lotte" },  // Flemish female
-    { "nl-be", "Bram" },   // Flemish male
+    { "nl-be", "Daan" },   // Flemish male (default)
 };
 constexpr uint8_t TTS_VOICE_COUNT = sizeof(ttsVoices) / sizeof(ttsVoices[0]);
 
-String makeVoiceRSSUrl(const String& text) {
-    const TtsVoice& v = ttsVoices[random(0, TTS_VOICE_COUNT)];
-    int ttsRate = random(-3, 2);  // -3, -2, -1, 0, or 1
+String makeVoiceRSSUrl(const String& text, int8_t voiceIndex = -1, int8_t tempo = 99) {
+    const TtsVoice& v = (voiceIndex >= 0 && voiceIndex < TTS_VOICE_COUNT)
+        ? ttsVoices[voiceIndex]
+        : ttsVoices[random(0, TTS_VOICE_COUNT)];
+    int ttsRate = (tempo >= -10 && tempo <= 10) ? tempo : random(-2, 3);
     lastTtsRate = ttsRate;
     PF("[PlaySentence] %s  rate: %d\n", v.name, ttsRate);
     return String("http://api.voicerss.org/?key=") + VOICERSS_API_KEY +
@@ -569,10 +568,10 @@ void startTTS(const String& text) {
     addTTS(text.c_str());
 }
 
-uint32_t downloadTtsToCache(const char* text) {
+uint32_t downloadTtsToCache(const char* text, int8_t voiceIndex, int8_t tempo) {
     if (!text || !*text) return 0;
 
-    String url = makeVoiceRSSUrl(text);
+    String url = makeVoiceRSSUrl(text, voiceIndex, tempo);
 
     // Ensure cache directory exists
     char dirPath[8];

@@ -1,8 +1,8 @@
 /**
  * @file AudioRoutes.cpp
  * @brief Audio API endpoint routes
- * @version 260407A
- * @date 2026-04-07
+ * @version 260409J
+ * @date 2026-04-09
  */
 #include <Arduino.h>
 #include "AudioRoutes.h"
@@ -312,7 +312,22 @@ void routeSetFreeTextTts(AsyncWebServerRequest *request) {
     }
     uint32_t rc = durationMs / intervalMs;
     uint8_t repeatCount = (rc > 255) ? 255 : static_cast<uint8_t>(rc);
-    RunManager::requestSetWebFreeTextTts(text, intervalMs, repeatCount);
+    int8_t voiceIndex = -1;
+    if (request->hasParam("voice")) {
+        int raw = request->getParam("voice")->value().toInt();
+        voiceIndex = static_cast<int8_t>(clamp(raw, -1, 2));
+    }
+    int8_t tempo = 99;
+    if (request->hasParam("tempo")) {
+        int raw = request->getParam("tempo")->value().toInt();
+        tempo = static_cast<int8_t>(clamp(raw, -3, 3));
+    }
+    uint8_t volumePct = 0;
+    if (request->hasParam("vol")) {
+        int raw = request->getParam("vol")->value().toInt();
+        volumePct = static_cast<uint8_t>(clamp(raw, 0, 100));
+    }
+    RunManager::requestSetWebFreeTextTts(text, intervalMs, repeatCount, voiceIndex, tempo, volumePct);
     request->send(200, "text/plain", "OK");
 }
 

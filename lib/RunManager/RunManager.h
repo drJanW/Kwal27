@@ -60,7 +60,8 @@ public:
     static void exitTvMode();
 
     // Free-text TTS
-    static void requestSetWebFreeTextTts(const String& text, uint32_t intervalMs, uint8_t repeatCount);
+    static void requestSetWebFreeTextTts(const String& text, uint32_t intervalMs, uint8_t repeatCount,
+                                         int8_t voiceIndex = -1, int8_t tempo = 99, uint8_t volumePct = 0);
     static void requestClearWebFreeTextTts();
     static const String& getWebFreeTextTtsText();
 

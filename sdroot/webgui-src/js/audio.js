@@ -33,6 +33,9 @@ Kwal.audio = (function() {
   // Free-text TTS elements
   var freetextInput, freetextPlayBtn, freetextStopBtn;
   var freetextIntervalSlider, freetextIntervalLabel;
+  var freetextVolSlider, freetextVolLabel;
+  var freetextVoiceSelect;
+  var freetextTempoSlider, freetextTempoLabel;
   var freetextIntervalSteps = [1,2,3,5,10,15,30,60];
 
   // Non-linear step tables (logarithmic distribution)
@@ -321,11 +324,29 @@ Kwal.audio = (function() {
     freetextStopBtn = document.getElementById('freetext-stop');
     freetextIntervalSlider = document.getElementById('freetext-interval');
     freetextIntervalLabel = document.getElementById('freetext-interval-num');
+    freetextVolSlider = document.getElementById('freetext-vol');
+    freetextVolLabel = document.getElementById('freetext-vol-num');
+    freetextVoiceSelect = document.getElementById('freetext-voice');
+    freetextTempoSlider = document.getElementById('freetext-tempo');
+    freetextTempoLabel = document.getElementById('freetext-tempo-num');
 
     if (freetextIntervalSlider && freetextIntervalLabel) {
       freetextIntervalSlider.oninput = function() {
         var val = freetextIntervalSteps[parseInt(freetextIntervalSlider.value, 10)];
         freetextIntervalLabel.textContent = formatMinutes(val);
+      };
+    }
+
+    if (freetextVolSlider && freetextVolLabel) {
+      freetextVolSlider.oninput = function() {
+        var val = parseInt(freetextVolSlider.value, 10);
+        freetextVolLabel.textContent = val === 0 ? 'auto' : val + '%';
+      };
+    }
+
+    if (freetextTempoSlider && freetextTempoLabel) {
+      freetextTempoSlider.oninput = function() {
+        freetextTempoLabel.textContent = freetextTempoSlider.value;
       };
     }
 
@@ -339,9 +360,15 @@ Kwal.audio = (function() {
         }
         var intervalMin = freetextIntervalSteps[parseInt(freetextIntervalSlider.value, 10)];
         var durMin = durSteps[parseInt(durSlider.value, 10)];
+        var voice = freetextVoiceSelect ? freetextVoiceSelect.value : '-1';
+        var tempo = freetextTempoSlider ? freetextTempoSlider.value : '99';
+        var vol = freetextVolSlider ? freetextVolSlider.value : '0';
         var url = '/api/audio/freetext?text=' + encodeURIComponent(text)
           + '&interval=' + intervalMin
-          + '&dur=' + durMin;
+          + '&dur=' + durMin
+          + '&voice=' + voice
+          + '&tempo=' + tempo
+          + '&vol=' + vol;
         fetch(url, {method:'POST'}).catch(function(){});
       };
     }

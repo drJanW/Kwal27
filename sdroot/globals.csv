@@ -1,30 +1,26 @@
 # globals.csv - Runtime-overridable parameters
 # Format: key;type;value;comment
-# Types: u=uint, f=float, b=bool, s=string
+# Types: u=uint, f=float, b=bool, s=string, i=int
 # Lines starting with # or // are ignored
 # Missing/corrupt file = use code defaults
 
 # ═══════════════════════════════════════════════════════════════════
-# AUDIO (11 params)
+# AUDIO (15 params)
 # ═══════════════════════════════════════════════════════════════════
-#minAudioIntervalMs;u;360000;lower=more frequent, creature feels restless
-#maxAudioIntervalMs;u;1080000;higher=longer silence, creature feels calm
-#baseFadeMs;u;5000;crossfade between fragments, smooth transitions
-#webAudioNextFadeMs;u;957;quick fade for manual skip via webgui
-#fragmentStartFraction;u;50;0=always start, 100=random position in file
+#minAudioIntervalMs;u;360000;min wait between ambient audio (6 min)
+#maxAudioIntervalMs;u;2880000;max wait between ambient audio (48 min)
+#singleDirMinIntervalMs;u;60000;min wait during single-dir theme box (1 min)
+#singleDirMaxIntervalMs;u;300000;max wait during single-dir theme box (5 min)
+#baseFadeMs;u;5000;crossfade between fragments
+#webAudioNextFadeMs;u;957;fade for manual skip via webgui
+#fragmentStartFraction;u;50;start position % into file (0-100)
 #volumeLo;f;0.05;slider left boundary (fraction of MAX_VOLUME)
 #basePlaybackVolume;f;0.6;normal playback level before distance scaling
-#minDistanceVolume;f;0.2;minimal when visitor far away, never silent
-#pingVolumeMax;f;1.0;ping volume at distanceMinMm (hand close)
-#pingVolumeMin;f;0.35;ping volume at distanceMaxMm (hand far)
-#busyRetryMs;u;120;how long to wait before retry if audio busy
+#minDistanceVolume;f;0.2;volume floor near sensor
+#pingVolumeMax;f;1.0;ping volume at distanceMinMm
+#pingVolumeMin;f;0.35;ping volume at distanceMaxMm
+#busyRetryMs;u;120;retry interval when audio busy
 #defaultAudioSliderPct;u;70;boot default audio slider position (0-100%)
-
-# ═══════════════════════════════════════════════════════════════════
-# SPEECH (2 params)
-# ═══════════════════════════════════════════════════════════════════
-#minSaytimeIntervalMs;u;2700000;shortest wait between time announcements
-#maxSaytimeIntervalMs;u;8700000;longest wait, keeps it unpredictable
 
 # ═══════════════════════════════════════════════════════════════════
 # TTS CACHE (3 params)
@@ -34,31 +30,41 @@
 #ttsCacheDurationFactor;f;3.0;duration margin applied to filesize/16 (VoiceRSS ~48kbps)
 
 # ═══════════════════════════════════════════════════════════════════
-# LIGHT/PATTERN (4 params)
+# SPEECH (4 params)
+# ═══════════════════════════════════════════════════════════════════
+#minSaytimeIntervalMs;u;11700000;min wait between time announcements (195 min)
+#maxSaytimeIntervalMs;u;17700000;max wait between time announcements (295 min)
+#minTemperatureSpeakIntervalMs;u;3600000;min wait between temperature announcements (60 min)
+#maxTemperatureSpeakIntervalMs;u;8400000;max wait between temperature announcements (140 min)
+
+# ═══════════════════════════════════════════════════════════════════
+# LIGHT/PATTERN (5 params)
 # ═══════════════════════════════════════════════════════════════════
 #lightFallbackIntervalMs;u;300;animation step when no distance trigger
 #shiftCheckIntervalMs;u;60000;how often to check shift CSVs for changes
 #defaultFadeWidth;f;64.0;LED gradient softness, higher=more blur
 colorChangeIntervalMs;u;20880000;pick new random color (5.8 hours)
 patternChangeIntervalMs;u;17640000;pick new random pattern (4.9 hours)
-#maxBrightness;u;242;cap to prevent eye strain, 255=full blast
+#maxBrightness;u;248;cap to prevent eye strain, 255=full blast
 
 # ═══════════════════════════════════════════════════════════════════
-# BRIGHTNESS/LUX (5 params)
+# BRIGHTNESS/LUX (7 params)
 # ═══════════════════════════════════════════════════════════════════
-brightnessLo;u;16;slider left boundary (fraction of MAX_BRIGHTNESS)
-#defaultBrightnessSliderPct;u;60;boot default brightness slider position (0-100%)
+brightnessLo;u;16;slider left boundary
+#brightnessHi;u;242;slider right boundary
+#defaultBrightnessSliderPct;u;60;boot default brightness slider (0-100%)
 # brMax, luxRate, luxMax — per-device calibration, stored in config.txt
 #seededLuxDataPoints;i;20;seed count after lux cal fit
 #maxLuxDataPoints;i;50;auto-fit trigger (seeds + real)
-#maxMilliamps;u;1200;power budget, prevents PSU overload
+#calendarShiftLo;i;-20;calendar brightness shift minimum
+#calendarShiftHi;i;20;calendar brightness shift maximum
+#maxMilliamps;u;1300;power budget, prevents PSU overload
 
 # ═══════════════════════════════════════════════════════════════════
-# SENSORS (12 params)
+# SENSORS (16 params)
 # ═══════════════════════════════════════════════════════════════════
 luxMeasurementDelayMs;u;3800;LED blackout+fade time before lux read
-#luxMeasurementIntervalMs;u;10000;how often to sample ambient light
-# I2C sensor init retry timing (first delay and growth multiplier for exponential backoff)
+#luxMeasurementIntervalMs;u;300000;how often to sample ambient light (5 min)
 #distanceSensorInitDelayMs;u;500;VL53L1X first retry delay (ms)
 #distanceSensorInitGrowth;f;1.5;VL53L1X interval multiplier per retry
 #luxSensorInitDelayMs;u;1000;VEML7700 first retry delay (ms)
@@ -82,37 +88,37 @@ luxMeasurementDelayMs;u;3800;LED blackout+fade time before lux read
 #heartbeatDefaultMs;u;500;flash rate before first distance reading
 
 # ═══════════════════════════════════════════════════════════════════
-# ALERT (6 params)
-# ═════════════════════════════════════════════════════════════════
-# Flash burst: immediate repeating flashes when error detected
-#flashBurstIntervalMs;u;50000;interval between flash bursts (ms)
+# ALERT (7 params)
+# ═══════════════════════════════════════════════════════════════════
+#flashBurstIntervalMs;u;10000;interval between flash bursts (10s)
 #flashBurstRepeats;u;2;number of flash bursts after error
-#flashBurstGrowth;f;5.0;multiplier for exponential backoff (1.0 = constant)
-# Long-term reminder: periodic flashes after burst completes
-#reminderIntervalMs;u;1140000;how often to flash failure colors
-#reminderIntervalGrowth;f;5.3;multiplier for exponential backoff on reminders
+#flashBurstGrowth;f;2.0;multiplier for exponential backoff
+#reminderIntervalMs;u;120000;first reminder after burst (2 min)
+#reminderIntervalGrowth;f;10.0;multiplier for growing reminder intervals
 #flashCriticalMs;u;2000;duration of SD/WiFi fail flash
 #flashNormalMs;u;1000;duration of sensor fail flash
 
 # ═══════════════════════════════════════════════════════════════════
-# WIFI — Alle netwerkinstellingen staan in wifi.txt
-# ═══════════════════════════════════════════════════════════════════
-
-# ═══════════════════════════════════════════════════════════════════
-# BOOT/CLOCK (3 params)
+# BOOT/CLOCK (4 params)
 # ═══════════════════════════════════════════════════════════════════
 #clockBootstrapIntervalMs;u;500;poll rate while waiting for NTP sync
 #ntpFallbackTimeoutMs;u;15000;give up on NTP after this, use RTC
 #bootPhaseMs;u;500;delay between boot stages for stability
+#rtcTemperatureIntervalMs;u;180000;RTC temperature read interval (3 min)
 
 # ═══════════════════════════════════════════════════════════════════
 # NETWORK/FETCH (4 params)
 # ═══════════════════════════════════════════════════════════════════
 #csvBaseUrl;s;http://192.168.2.23:8081/csv/;CSV server on NAS
-#timeCacheIntervalMs;u;300000;how often to refresh time cache file
-#weatherRefreshIntervalMs;u;3600000;weather API call spacing (rate limit)
-#sunRefreshIntervalMs;u;7200000;sunrise API call spacing
-#calendarRefreshIntervalMs;u;3600000;how often to re-parse calendar.csv
+#weatherRefreshIntervalMs;u;3600000;weather API call spacing (1 hour)
+#sunRefreshIntervalMs;u;7200000;sunrise API call spacing (2 hours)
+#calendarRefreshIntervalMs;u;21600000;calendar re-parse interval (6 hours)
+
+# ═══════════════════════════════════════════════════════════════════
+# CSV HTTP (2 params)
+# ═══════════════════════════════════════════════════════════════════
+#csvHttpTimeoutMs;u;5000;HTTP timeout per CSV download
+#csvFetchWaitMs;u;6000;wait for WiFi before SD fallback
 
 # ═══════════════════════════════════════════════════════════════════
 # LOCATION (2 params)
@@ -131,7 +137,7 @@ locationLon;f;4.90;lengtegraad voor zonsopkomst/ondergang
 # ═══════════════════════════════════════════════════════════════════
 # SD HEALTH (1 param)
 # ═══════════════════════════════════════════════════════════════════
-#sdHealthCheckIntervalMs;u;360000;periodic SD card presence probe (6 min default)
+#sdHealthCheckIntervalMs;u;360000;periodic SD card presence probe (6 min)
 
 # ═══════════════════════════════════════════════════════════════════
 # DEEP SLEEP (5 params)
@@ -143,7 +149,14 @@ wakeHour;u;6;wake hour (0-23)
 wakeMinute;u;56;wake minute (0-59)
 
 # ═══════════════════════════════════════════════════════════════════
-# DEBUG (2 params)
+# TV SIMULATOR (4 params)
 # ═══════════════════════════════════════════════════════════════════
-#timerStatusIntervalMs;u;60000;Serial output of timer slot usage
-#timeDisplayIntervalMs;u;60000;Serial output of current time
+#tvThemeBoxId;u;34;theme box ID for TVSIM audio
+#tvMaxBrightness;u;250;FastLED brightness during TV mode
+#tvAudioMinMs;u;5000;min wait between TV audio fragments (5s)
+#tvAudioMaxMs;u;15000;max wait between TV audio fragments (15s)
+
+# ═══════════════════════════════════════════════════════════════════
+# DEBUG (1 param)
+# ═══════════════════════════════════════════════════════════════════
+#timerStatusIntervalMs;u;2700000;timer pool status log interval (45 min)
