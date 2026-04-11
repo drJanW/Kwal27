@@ -210,3 +210,5 @@ footer button:hover { background: #444; color: #aaa; }
 .mg-wrap { height: 300px; overflow-y: auto; overflow-x: hidden; background: #070718; padding: 6px; }
 .mg-frame { border: 1px solid rgba(255,255,255,.08); border-radius: 10px; overflow: hidden; background: #000; width: fit-content; margin: auto; }
 .mg-frame canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+
+

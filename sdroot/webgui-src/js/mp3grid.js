@@ -1,7 +1,7 @@
 /**
  * @file    mp3grid.js
- * @version 260312A
- * @date    2026-03-12
+ * @version 260409K
+ * @date    2026-04-11
  *
  * Kwal - MP3 Grid module
  * Canvas grid showing dirs from root_dirs index + theme box colors.
@@ -18,7 +18,7 @@ Kwal.mp3grid = (function() {
 
   var canvas, ctx, wrap;
   var dirSlider, fileSlider, dirVal, fileVal;
-  var catpill, catlabel, closeBtn;
+  var catpill, catlabel, closeBtn, playBtn, selLabel;
 
   var selRow = 0, selCol = 0;
   var loaded = false;
@@ -97,6 +97,7 @@ Kwal.mp3grid = (function() {
     var box = boxById[bid];
     if (catlabel) catlabel.textContent = box ? box.name : '-';
     if (catpill) catpill.style.background = box ? box.color : '#444';
+    if (selLabel) selLabel.textContent = fmt3(selRow) + '/' + fmt3(selCol);
   }
 
   function keepRowVisible(row) {
@@ -149,6 +150,17 @@ Kwal.mp3grid = (function() {
     catpill = document.getElementById('mg-catpill');
     catlabel = document.getElementById('mg-catlabel');
     closeBtn = document.getElementById('mg-close');
+    playBtn = document.getElementById('mg-play-btn');
+    selLabel = document.getElementById('mg-sel-label');
+
+    if (playBtn) {
+      playBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (selRow > 0 && selCol > 0) {
+          fetch('/api/audio/play?dir=' + selRow + '&file=' + selCol + '&src=grid%2Fsel').catch(function() {});
+        }
+      });
+    }
 
     if (!canvas || !wrap) return;
 

@@ -7,6 +7,7 @@ REGEL: Geen "Completed" sectie. Succes = delete uit todo.
 xx. nieuw kwal iconup
 === Future ===
 
+---> voor free speech: gebruik niet 127 maar max_dirs -1 
 
 === Minor Bugs ===
 

@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260409K"
+#define FIRMWARE_VERSION_CODE "260411B"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000

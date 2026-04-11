@@ -119,7 +119,6 @@
           <div class="row">
             <label class="label-gold" style="font-size:1.4rem" title="Vrije tekst TTS">💬</label>
             <input type="text" id="freetext-input" maxlength="99" placeholder="Vrije tekst..." style="flex:1;background:#2a2a3a;color:#eee;border:1px solid #555;border-radius:4px;padding:0.3rem 0.5rem;font-size:0.95rem">
-            <span id="freetext-stop" style="font-size:1.5rem;cursor:pointer" title="Stop">⏹</span>
           </div>
           <div class="row">
             <label class="label-green" style="font-size:1.4rem" title="Volume">🔊</label>
@@ -129,14 +128,13 @@
           <div class="row">
             <label class="label-gold" style="font-size:1.4rem" title="Stem">🗣</label>
             <select id="freetext-voice" style="flex:1;background:#2a2a3a;color:#eee;border:1px solid #555;border-radius:4px;padding:0.2rem 0.4rem;font-size:0.9rem">
-              <option value="-1">Random</option>
               <option value="0">Lotte</option>
               <option value="1">Bram</option>
               <option value="2">Daan</option>
             </select>
           </div>
           <div class="row">
-            <label class="label-orange" style="font-size:1.4rem" title="Tempo">🎛</label>
+            <label class="label-orange" style="font-size:1.4rem" title="Spreeksnelheid"><span style="display:inline-block;transform:scaleX(-1)">🏃</span></label>
             <input type="range" id="freetext-tempo" class="slider-orange" min="-3" max="3" value="0">
             <span id="freetext-tempo-num" style="min-width:1.5em;text-align:right">0</span>
           </div>
@@ -145,8 +143,9 @@
             <input type="range" id="freetext-interval" class="slider-purple" min="0" max="7" value="4">
             <span id="freetext-interval-num">10m</span>
           </div>
-          <div class="row" style="justify-content:center;margin-top:0.5rem">
+          <div class="row" style="justify-content:center;gap:2rem;margin-top:0.5rem">
             <span id="freetext-play" style="font-size:2.2rem;cursor:pointer" title="Start">▶️</span>
+            <span id="freetext-stop" style="font-size:2.2rem;cursor:pointer;color:#f44" title="Stop">🗑️</span>
           </div>
         </div>
       </div>
@@ -331,6 +330,8 @@
           <div class="mg-toprow">
             <div id="mg-catpill" class="mg-catpill"></div>
             <div id="mg-catlabel" class="mg-catlabel">-</div>
+            <span id="mg-play-btn" style="font-size:1.4rem;cursor:pointer;margin-left:auto" title="Speel geselecteerde file">▶️</span>
+            <span id="mg-sel-label" style="font-size:0.85rem;color:#aaa;white-space:nowrap">000/000</span>
           </div>
           <div class="mg-sliderrow">
             <label id="mg-dir-label" for="mg-dir">DIR</label>
@@ -356,7 +357,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260409J"></script>
+  <script src="kwal.js?v=260411D"></script>
 </body>
 
 </html>
