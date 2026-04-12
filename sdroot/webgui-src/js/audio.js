@@ -1,7 +1,7 @@
 /**
  * @file    audio.js
- * @version 260407E
- * @date    2026-04-07
+ * @version 260411D
+ * @date    2026-04-11
  *
  * Kwal - Audio module
  * See docs/glossary_slider_semantics.md for terminology
