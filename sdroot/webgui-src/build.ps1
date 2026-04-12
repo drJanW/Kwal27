@@ -26,12 +26,13 @@ $modules = @(
     "js/mp3grid.js",
     "js/sse.js",
     "js/tv.js",
+    "js/adminSettings.js",
     "js/main.js"
 )
 
 # Output ONLY to sdroot - NO local copy to prevent accidental editing
 $sdroot_output = "../kwal.js"
-$version = "260411D"
+$version = "260412A"
 
 # Header with DO NOT EDIT warning (in case Copilot is being a cunt)
 $header = @"

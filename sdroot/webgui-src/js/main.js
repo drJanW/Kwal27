@@ -1,7 +1,7 @@
 /**
  * @file    main.js
- * @version 260312A
- * @date    2026-03-12
+ * @version 260412A
+ * @date    2026-04-12
  *
  * Kwal WebGUI - Main entry point
  */
@@ -21,6 +21,7 @@
     Kwal.health.init();
     Kwal.luxcal.init();
     Kwal.mp3grid.init();
+    Kwal.adminSettings.init();
     
     // Health modal: load on open, refresh button
     var healthModal = document.getElementById('health-modal');
@@ -70,6 +71,19 @@
         });
       });
       luxcalObserver.observe(luxcalModal, { attributes: true });
+    }
+    
+    // Admin settings modal: show on open (resets PIN gate, locks backdrop)
+    var adminModal = document.getElementById('admin-settings-modal');
+    if (adminModal) {
+      var adminObserver = new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+          if (m.attributeName === 'class' && adminModal.classList.contains('open')) {
+            Kwal.adminSettings.show();
+          }
+        });
+      });
+      adminObserver.observe(adminModal, { attributes: true });
     }
     
     // Initialize SSE and wire up live update listeners

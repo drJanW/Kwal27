@@ -182,6 +182,9 @@
         <button id="sys-restart-btn" style="font-size:2rem;padding:0.5rem 1rem" title="Restart ESP">⚠️</button>
         <button id="sys-sleep-btn" style="font-size:2rem;padding:0.5rem 1rem" title="Sleep Nu">😴</button>
       </div>
+      <div class="row" style="justify-content:center;gap:1.5rem;margin:0.5rem 0">
+        <button data-open="admin-settings-modal" style="font-size:2rem;padding:0.5rem 1rem" title="Admin Settings">🔧</button>
+      </div>
     </div>
   </div>
 
@@ -357,7 +360,26 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260411D"></script>
+  <div id="admin-settings-modal" class="modal">
+    <div class="modal-box wide">
+      <h3>Admin Settings</h3>
+      <div id="admin-pin-gate">
+        <div class="edit-row" style="justify-content:center">
+          <input type="password" id="admin-pin" placeholder="PIN" maxlength="4" inputmode="numeric" style="width:80px;text-align:center">
+          <button id="admin-pin-btn" class="btn-ok" style="width:auto;padding:0.5rem 1rem">Unlock</button>
+        </div>
+      </div>
+      <div id="admin-content" style="display:none">
+        <div id="admin-sections"></div>
+        <div class="admin-actions" style="margin-top:1rem;display:flex;gap:0.5rem">
+          <button id="admin-save-btn" class="btn-warn" style="flex:1">💾 Save & Restart</button>
+          <button id="admin-cancel-btn" class="btn-warn" style="flex:1">✕ Cancel & Restart</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="kwal.js?v=260412A"></script>
 </body>
 
 </html>

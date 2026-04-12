@@ -28,6 +28,7 @@
 #include "routes/HealthRoutes.h"
 #include "routes/LogRoutes.h"
 #include "routes/LuxCalRoutes.h"
+#include "routes/AdminRoutes.h"
 #include "routes/SseController.h"
 #include "Light/LightPolicy.h"
 #include "Light/ColorsCatalog.h"
@@ -202,6 +203,7 @@ void beginWebInterface()
     HealthRoutes::attachRoutes(server);
     LogRoutes::attachRoutes(server);
     LuxCalRoutes::attachRoutes(server);
+    AdminRoutes::attachRoutes(server);
 
     // Serve UI assets from SD card
     server.serveStatic("/styles.css", SD, "/styles.css");

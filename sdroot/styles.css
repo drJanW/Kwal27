@@ -108,6 +108,74 @@ footer #dev-btn:hover { background: #444; color: #aaa; }
 
 .btn-warn { background: #a44 !important; }
 .btn-warn:hover { background: #c55 !important; }
+
+/* ── Admin Settings Modal ────────────────────────────────── */
+#admin-settings-modal .modal-box {
+  max-height: 85vh;
+  overflow-y: auto;
+  min-width: 340px;
+}
+.admin-section { margin-bottom: 0.5rem; }
+.admin-section-header {
+  cursor: pointer;
+  color: #8af;
+  font-size: 0.85rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #444;
+  margin: 0.3rem 0;
+  user-select: none;
+}
+.admin-section-header::before {
+  content: '\25BC ';
+  font-size: 0.7rem;
+}
+.admin-section.collapsed .admin-section-header::before {
+  content: '\25B6 ';
+}
+.admin-section.collapsed .admin-section-body {
+  display: none;
+}
+#admin-content .edit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+  padding: 0.2rem 0;
+}
+#admin-content .edit-row .admin-active {
+  width: 16px;
+  min-width: 16px;
+  margin: 0;
+  cursor: pointer;
+}
+#admin-content .edit-row label {
+  width: 200px;
+  min-width: 120px;
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: #ccc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
+}
+#admin-content .edit-row input[type="text"] {
+  flex: 1;
+  min-width: 80px;
+  padding: 0.3rem 0.4rem;
+  background: #1a1a2e;
+  color: #eee;
+  border: 1px solid #444;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  font-family: monospace;
+}
+#admin-content .edit-row.disabled label { color: #666; }
+#admin-content .edit-row.disabled input[type="text"] { color: #555; background: #151525; }
+#admin-content .edit-row.dirty input[type="text"] { border-color: #cc0 !important; }
+#admin-content .edit-row.validation-error input[type="text"] { border-color: #f44 !important; background: #2a1a1a; }
+/* ── end Admin Settings ──────────────────────────────────── */
+
 #ota-status { margin: 0.5rem 0; font-size: 0.9rem; }
 #ota-status.err { color: #f88; }
 
