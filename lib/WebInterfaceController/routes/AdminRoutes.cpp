@@ -1,8 +1,8 @@
 /**
  * @file AdminRoutes.cpp
  * @brief Admin settings API endpoint routes (globals.csv editor)
- * @version 260412A
- * @date 2026-04-12
+ * @version 260413A
+ * @date 2026-04-13
  */
 #include <Arduino.h>
 #include "AdminRoutes.h"
@@ -28,33 +28,35 @@ static bool checkPin(AsyncWebServerRequest *request) {
 }
 
 // ── Section header detector ───────────────────────────────────────
-// Matches lines like: # ═══ SECTION NAME ═══
-static bool isSectionHeader(const char *line) {
+// globals.csv uses a 3-line pattern:
+//   # ═══════════════════════   (divider)
+//   # SECTION NAME (N params)   (name line)
+//   # ═══════════════════════   (divider)
+// Detect divider lines (contain ═), then use state to grab the next # line as name.
+static bool isDividerLine(const char *line) {
     if (line[0] != '#') return false;
-    // Look for ═ (UTF-8: 0xE2 0x95 0x90) in the line
     return strstr(line, "\xE2\x95\x90") != nullptr;
 }
 
-// Extract section name from header like "# ═══ SECTION NAME ═══"
+// Extract section name from a line like "# AUDIO (15 params)"
+// Strips leading "# " and trailing " (N params)" if present.
 static String extractSectionName(const char *line) {
     const char *start = line;
-    // Skip leading # and whitespace
     while (*start == '#' || *start == ' ') start++;
-    // Find first non-═ character after the leading ═══
-    // ═ is 3 bytes: E2 95 90
-    while (*start == '\xE2' && *(start+1) == '\x95' && *(start+2) == '\x90') start += 3;
-    while (*start == ' ') start++;
-
-    String name;
-    const char *end = start;
-    // Read until next ═ or end of line
-    while (*end && !(*end == '\xE2' && *(end+1) == '\x95' && *(end+2) == '\x90') && *end != '\n' && *end != '\r') {
-        end++;
+    // Find end — strip trailing " (N params)" pattern
+    const char *end = start + strlen(start);
+    // Trim trailing whitespace
+    while (end > start && (*(end-1) == ' ' || *(end-1) == '\r' || *(end-1) == '\n')) end--;
+    // Strip " (N params)" suffix
+    if (end > start && *(end-1) == ')') {
+        const char *paren = end - 1;
+        while (paren > start && *paren != '(') paren--;
+        if (paren > start && *(paren-1) == ' ') {
+            end = paren - 1;
+            while (end > start && *(end-1) == ' ') end--;
+        }
     }
-    // Trim trailing spaces
-    while (end > start && *(end-1) == ' ') end--;
-    name = String(start).substring(0, end - start);
-    return name;
+    return String(start).substring(0, end - start);
 }
 
 // ── GET /api/admin/globals ────────────────────────────────────────
@@ -87,6 +89,7 @@ static void routeGetGlobals(AsyncWebServerRequest *request) {
     String json = "[";
     bool first = true;
     char lineBuf[256];
+    bool expectSectionName = false;  // state: after divider, next # line is section name
 
     while (file.available()) {
         // Read one line
@@ -105,14 +108,26 @@ static void routeGetGlobals(AsyncWebServerRequest *request) {
         // but keep section headers and commented-out parameters
         if (lineBuf[0] == '/' && lineBuf[1] == '/') continue;
 
-        // Section header?
-        if (isSectionHeader(lineBuf)) {
-            if (!first) json += ',';
-            first = false;
+        // Divider line (contains ═)? Set state, skip the line itself.
+        if (isDividerLine(lineBuf)) {
+            expectSectionName = true;
+            continue;
+        }
+
+        // Section name line (# text after a divider)?
+        if (expectSectionName && lineBuf[0] == '#') {
+            expectSectionName = false;
             String name = extractSectionName(lineBuf);
-            json += F("{\"section\":\"");
-            appendJsonEscaped(json, name.c_str());
-            json += F("\"}");
+            if (!name.isEmpty()) {
+                if (!first) json += ',';
+                first = false;
+                json += F("{\"section\":\"");
+                appendJsonEscaped(json, name.c_str());
+                json += F("\"}");
+            }
+            continue;
+        }
+        expectSectionName = false;
             continue;
         }
 
