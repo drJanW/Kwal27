@@ -73,8 +73,8 @@ void start(uint32_t totalDurationMs) {
     // Safety: één-shot auto-stop timer (slider-duur)
     timers.create(totalDurationMs, 1, cb_demoEnd);
 
-    // Begin eerste chapter, fase A (TTS)
-    cb_demoStartPhase();
+    // Begin eerste chapter, fase A (TTS) — directe helper, geen timer
+    startPhase();
 }
 
 void stop() {
@@ -88,8 +88,8 @@ void stop() {
 bool isActive() { return Globals::demoActive; }
 
 // Start huidige (chapterIdx, phase): zet pattern+colors, speel audio,
-// plan volgende fase.
-static void cb_demoStartPhase() {
+// plan volgende fase. Géén cb_ prefix — directe helper, niet timer-callback.
+static void startPhase() {
     if (!Globals::demoActive) return;
     if (Globals::demoChapterIdx >= CHAPTER_COUNT) {
         stop();
@@ -126,7 +126,7 @@ static void cb_demoStartPhase() {
     timers.create(nextMs, 1, cb_demoNextPhase);
 }
 
-// Schakel naar volgende fase, of volgend chapter
+// Schakel naar volgende fase, of volgend chapter (timer-callback)
 static void cb_demoNextPhase() {
     if (!Globals::demoActive) return;
     if (Globals::demoPhase == 0) {
@@ -135,7 +135,7 @@ static void cb_demoNextPhase() {
         Globals::demoPhase = 0;          // fase B → volgend chapter, fase A
         Globals::demoChapterIdx++;
     }
-    cb_demoStartPhase();
+    startPhase();
 }
 
 // Slider-tijd op, of na laatste chapter
@@ -201,7 +201,7 @@ void routeDemoMode(AsyncWebServerRequest* request) {
     // Defer actual work to timer callback (memory-only here)
     Globals::demoRequestActive = active;
     Globals::demoRequestDurMs  = durationMs;
-    timers.create(0, 1, cb_demoApplyRequest);  // run ASAP outside web ctx
+    timers.create(1, 1, cb_demoApplyRequest);  // 1ms defer — buiten web context
 
     request->send(200, "application/json", "{\"ok\":true}");
 }
@@ -337,71 +337,77 @@ Reservering (vrij in te delen, geen hardcoded mapping):
 
 ## 15. `sdroot/tts_todo.csv`  (TTS render-queue, self-consuming)
 
-### Formaat
-```csv
-# tts_todo.csv — TTS render-queue, self-consuming bij boot
-# regel wordt na succesvolle render uit dit bestand verwijderd
-# formaat: lang; voice; tempo; dir; file; tekst
-# - lang  : NL (enige toegestane waarde nu)
-# - voice : 0=Lotte 1=Bram 2=Daan; -1=random
-# - tempo : -3..+3; 99=random
-# - dir   : 1-200 (SD-dir nummer)
-# - file  : 1-99
-# - tekst : alles na de 5e ';', max 160 chars
-NL; 1; -1; 150; 001; welkom bij kwal twee demo
-NL; 1; -1; 150; 005; ook vandaag is het mooi weer
+**Volledige spec verplaatst naar [docs/pseudo_ttsqueue.md](pseudo_ttsqueue.md)** —
+de queue is feature-agnostisch en niet demo-specifiek.
+
+Korte samenvatting:
+- Self-consuming queue op SD, 1× bij boot
+- Formaat: `lang; voice; tempo; dir; file; tekst` per regel
+- Hergebruikt `PlaySentence::downloadTtsToCache()` (geen wijzigingen)
+- Demo gebruikt regels 001-031 voor chapter-TTS (zie [demo_program.txt](demo_program.txt))
+
+---
+
+## 16. `lib/LightController/Spectrum.h/cpp`  (nieuw pattern #32)
+
+### Doel
+6 LED-ringen, elk een eigen kleur, langzaam roterend door de gradient.
+Showcase voor chapter 09. Hergebruikt bestaande infrastructuur:
+- `colorGradient[256]` uit `LightController.cpp` (al per frame berekend
+  via `generateColorGradient(RGB1, RGB2, ...)`)
+- Ring-zone tabel uit `TvShow.cpp`:
+  `ringStart[7] = { 0, 8, 24, 48, 80, 116, 160 }`
+
+### Render
+```cpp
+// Sample-offsets evenredig over 256-entry gradient (256/6 ≈ 42)
+static constexpr uint8_t ringOffset[6] = { 0, 42, 85, 128, 170, 213 };
+
+void renderSpectrum(const CRGB* gradient, uint16_t scrollPos) {
+    // scrollPos schuift elke render-tick op basis van color_cycle_sec,
+    // alle ringen verschuiven gelijktijdig (ring0=rood→oranje→geel→...→rood)
+    for (uint8_t z = 0; z < 6; z++) {
+        uint8_t idx = (scrollPos + ringOffset[z]) & 0xFF;  // 256-wrap
+        CRGB color = gradient[idx];
+        for (int i = ringStart[z]; i < ringStart[z + 1]; i++) {
+            leds[i] = color;
+        }
+    }
+}
 ```
 
-### Mechanisme
-
-Self-consuming queue. Eén regel per fire. Bij elke boot pikt-ie waar-ie
-gebleven was. Geen UI nodig — upload met `upload_file.ps1 tts_todo.csv <ip>`.
-
-```
-cb_ttsTodoBoot                 (1× bij boot, 30s delay)
- ├─ /tts_todo.csv niet bestaan of leeg → klaar
- └─ timers.create(1s, 1, cb_ttsTodoNext)
-
-cb_ttsTodoNext                 (één regel per fire)
- ├─ lees eerste niet-#/niet-lege regel uit /tts_todo.csv
- ├─ geen regels meer → log "tts queue klaar", exit (geen reschedule)
- ├─ parse fout (verkeerd aantal velden, lang ≠ NL, dir/file/voice/tempo
- │   out-of-range)
- │    → log waarschuwing met regel-inhoud
- │    → regel LATEN STAAN (jij moet hem zien om te fixen)
- │    → exit (geen reschedule — fout-regels blokkeren queue tot fix)
- ├─ PlaySentence::downloadTtsToCache(tekst, voice, tempo, dir, file)
- │    ├─ success → CSV rewrite zonder die regel (atomair via .tmp+rename)
- │    │           → timers.create(10s, 1, cb_ttsTodoNext)   [throttle]
- │    └─ fail (geen wifi, VoiceRSS down, SD-write fail)
- │           → log "tts render failed, retry next boot"
- │           → exit (regel blijft staan)
+### Hookup in LightController dispatcher
+```cpp
+// In de pattern-render switch (vóór de bestaande x,y,radius renderer):
+if (showParams.id == 32) {              // Spectrum
+    renderSpectrum(colorGradient, scrollPos);
+    return;
+}
+// ... bestaande renderer ...
 ```
 
-### Vangrails
-- Parse-fout = HARD STOP van de queue (regel blijft, jij ziet hem in
-  log, fix in editor, upload opnieuw). Anders zou een typo silently
-  alle volgende regels overslaan.
-- Network-fout = SOFT STOP (regel blijft, probeer volgende boot).
-- 10s throttle tussen renders (VoiceRSS rate-limit + SD-write rust).
-- Max 31 regels per CSV verwacht (= max chapters), maar geen hardcoded
-  limiet — werkt met elk aantal.
+`scrollPos` advance per tick volgt `color_cycle_sec` net als bestaande
+patterns (zelfde mechanisme).
 
-### Bestanden
-- **Nieuw**: `lib/RunManager/Tts/TtsTodoQueue.h`
-- **Nieuw**: `lib/RunManager/Tts/TtsTodoQueue.cpp` — `cb_ttsTodoBoot`,
-  `cb_ttsTodoNext`, parse + atomair-rewrite helpers
-- **Edit**: boot-sequencer registreert `cb_ttsTodoBoot` met 30s delay
-- **Hergebruik**: bestaande `PlaySentence::downloadTtsToCache()` —
-  geen wijzigingen aan VoiceRSS-laag
+### CSV-rijen (jij vult exacte parameters)
 
-### Bewust GÉÉN
-- Geen web-UI voor queue-beheer (overkill, upload via .ps1 is genoeg)
-- Geen SSE-progress (logs zijn genoeg voor v1)
-- Geen EN/andere talen (use-case 2 wachten, dan refactoren)
-- Geen `Globals::demoVoice` / `demoTempo` (per-regel in CSV is netter)
-- Geen retry-counter per regel (network-fout = next boot opnieuw,
-  parse-fout = jij fixt)
+[sdroot/light_patterns.csv](sdroot/light_patterns.csv):
+```
+32;Spectrum;30;0;0;0;0;0;0;0;0;0;0;0;0;0;1.0
+```
+(meeste velden irrelevant — pattern negeert radius/x/y; `color_cycle_sec=30`
+voor langzame rotatie)
+
+[sdroot/light_colors.csv](sdroot/light_colors.csv):
+```
+NN;Spectrum;FF0000;8000FF;1.0000
+```
+(rood → violet, breedst mogelijke regenboog uit 2-RGB gradient)
+
+### Hergebruikbaar buiten demo
+Andere chapters kunnen ook `pattern=32` kiezen met andere colors:
+- Spectrum + Sunset Orange = 6 warme tinten draaiend
+- Spectrum + Cool Ocean = 6 blauw-cyaan tinten
 
 ---
 
@@ -414,6 +420,8 @@ Firmware (C++):
 - [ ] `lib/RunManager/Demo/DemoRun.cpp`  — nieuw (chapter-tabel, callbacks)
 - [ ] `lib/RunManager/Tts/TtsTodoQueue.h`   — nieuw (TTS render-queue)
 - [ ] `lib/RunManager/Tts/TtsTodoQueue.cpp` — nieuw (cb_ttsTodoBoot, cb_ttsTodoNext, parse+rewrite)
+- [ ] `lib/LightController/Spectrum.h/cpp`  — nieuw pattern #32 (6 ringen, draaiend)
+- [ ] `lib/LightController/LightController.cpp` — dispatcher: id==32 → renderSpectrum()
 - [ ] `lib/RunManager/RunManager.cpp`    — `if (demoActive) return;` guards + register cb_ttsTodoBoot
 - [ ] `lib/WebInterfaceController/Handlers/DemoMode.cpp` — nieuw (web handler)
 - [ ] `lib/WebInterfaceController/Routes.cpp` (of equiv.) — route registratie
@@ -425,8 +433,8 @@ WebGUI:
 - [ ] `sdroot/webgui-src/js/controls.js` — `startDemo()`, `stopDemo()`, status
 
 Data (gebruiker):
-- [ ] `sdroot/light_patterns.csv`        — 7 nieuwe rijen (IDs 50–56)
-- [ ] `sdroot/light_colors.csv`          — 7 nieuwe rijen (IDs 50–56)
+- [ ] `sdroot/light_patterns.csv`        — Spectrum (#32) + 7 nieuwe rijen (IDs 50–56)
+- [ ] `sdroot/light_colors.csv`          — Spectrum + 7 nieuwe rijen (IDs 50–56)
 - [ ] `sdroot/tts_todo.csv`              — TTS render-queue (jij vult, firmware leegt)
 - [ ] `/150/051..081.mp3`                — muziek/sfx fragments (jij upload na ffmpeg-prep)
 

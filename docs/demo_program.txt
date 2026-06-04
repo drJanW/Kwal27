@@ -61,7 +61,16 @@ Hoofdstukken:
     light: alles een wisselende kleur, op audio-feedback
     058.mp3: fragment saturdaynight fever
 
-09-10: placeholder
+09: ringspectrum
+    009.mp3: "of zes ringen, elk een eigen kleur, langzaam draaiend"
+    light: pattern Spectrum (#32, NIEUW), colors Spectrum (NIEUW)
+           - 6 samples uit de gradient, één per ring (0-7, 8-23, 24-47, 48-79, 80-115, 116-159)
+           - color_cycle_sec laat alle samples langzaam door de gradient schuiven
+           - sample-offset: ring0=0, ring1=42, ring2=85, ring3=128, ring4=170, ring5=213 (256/6)
+    059.mp3: opwaartse glissando / 6 tonen
+    maxLux: 100
+
+10: placeholder
 
  ====================DEEL 2: WAT KWAL DAGELIJKS DOET==============================
 11: voorbeeld1: lounge
