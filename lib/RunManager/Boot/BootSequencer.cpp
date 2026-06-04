@@ -1,8 +1,8 @@
 /**
  * @file BootSequencer.cpp
  * @brief Declarative boot sequence coordinator implementation
- * @version 260305B
- * @date 2026-03-05
+ * @version 260604B
+ * @date 2026-06-04
  *
  * The manifest table describes the entire boot sequence.
  * Each step declares deps (requiresAll) and output (provides).
@@ -48,6 +48,7 @@
 #include "Alert/AlertState.h"
 #include "WebGuiStatus.h"
 #include "RunManager.h"
+#include "Tts/TtsTodoQueue.h"
 
 // ─── Static storage ─────────────────────────────────────────
 
@@ -477,6 +478,11 @@ void BootSequencer::enterSteadyState() {
 
     // Signal runtime start (stops boot phase flashing, starts reminders)
     AlertRun::report(AlertRequest::START_RUNTIME);
+
+    // Self-consuming TTS render-queue (boots only if SD+WiFi available)
+    if (hasSd && hasWifi) {
+        TtsTodoQueue::plan();
+    }
 
     PL("[Boot] \xE2\x9C\x93 Boot");
 }

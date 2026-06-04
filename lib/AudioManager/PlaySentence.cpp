@@ -1,8 +1,8 @@
 /**
  * @file PlaySentence.cpp
  * @brief TTS sentence playback with word dictionary and VoiceRSS API
- * @version 260409J
- * @date 2026-04-09
+ * @version 260604B
+ * @date 2026-06-04
  * 
  * Implements sequential word playback from /000/ directory.
  * Uses unified SpeakItem queue for mixing MP3 words and TTS sentences.
@@ -568,16 +568,17 @@ void startTTS(const String& text) {
     addTTS(text.c_str());
 }
 
-uint32_t downloadTtsToCache(const char* text, int8_t voiceIndex, int8_t tempo, uint8_t fileIndex) {
+uint32_t downloadTtsToCache(const char* text, int8_t voiceIndex, int8_t tempo, uint8_t fileIndex, uint8_t dirIndex) {
     if (!text || !*text) return 0;
 
     const uint8_t actualFileIndex = (fileIndex == 255) ? Globals::ttsCacheFileIndex : fileIndex;
+    const uint8_t actualDirIndex  = (dirIndex  == 255) ? Globals::ttsCacheDirIndex  : dirIndex;
 
     String url = makeVoiceRSSUrl(text, voiceIndex, tempo);
 
     // Ensure cache directory exists
     char dirPath[8];
-    snprintf(dirPath, sizeof(dirPath), "/%03u", Globals::ttsCacheDirIndex);
+    snprintf(dirPath, sizeof(dirPath), "/%03u", actualDirIndex);
     if (!SD.exists(dirPath)) {
         SD.mkdir(dirPath);
     }
@@ -597,7 +598,7 @@ uint32_t downloadTtsToCache(const char* text, int8_t voiceIndex, int8_t tempo, u
         return 0;
     }
 
-    const char* path = getMP3Path(Globals::ttsCacheDirIndex, actualFileIndex);
+    const char* path = getMP3Path(actualDirIndex, actualFileIndex);
     File file = SD.open(path, FILE_WRITE);
     if (!file) {
         PF("[TTS] Cache download: cannot open %s\n", path);

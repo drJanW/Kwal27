@@ -128,8 +128,6 @@ static void routeGetGlobals(AsyncWebServerRequest *request) {
             continue;
         }
         expectSectionName = false;
-            continue;
-        }
 
         // Plain comment (not a section header, not a data line)
         // Check if it's a commented-out parameter: #key;type;value;comment
