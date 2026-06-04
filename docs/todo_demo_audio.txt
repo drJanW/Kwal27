@@ -1,0 +1,107 @@
+DEMO AUDIO TODO — fragmenten zoeken voor /150/
+==============================================
+
+Bronformaat (na ffmpeg prep): mono, 44100Hz, 128kbps, loudnorm -16 LUFS
+Doel-locatie: V:\Kwal\SDcard\150\NNN.mp3 (of upload via upload_file.ps1)
+Tool: tools/ffmpeg/norm.bat of prep.bat na sourcing
+
+Lengte-richtlijn: meeste fragments 5-15 sec; muziek-fragments mogen langer
+(demo schaalt automatisch met demoAudioMaxDurationMs). Bij twijfel: korter
+is beter — lange fragments worden afgekapt.
+
+────────────────────────────────────────────────────────
+OPENING (DEEL 0) — chapters 01-05
+────────────────────────────────────────────────────────
+051.mp3  belgerinkel — kort, helder, "begin van iets"
+         (kerkklok, deurbel, tingel, zacht klokje — kies één type, varieer per chapter)
+052.mp3  belgerinkel — variant 2
+053.mp3  belgerinkel — variant 3
+054.mp3  belgerinkel — variant 4
+055.mp3  belgerinkel — variant 5
+         → kunnen 5x dezelfde zijn, of subtiel verschillend (toonhoogte, decay)
+
+────────────────────────────────────────────────────────
+DEEL 1 — extremen — chapters 06-08
+────────────────────────────────────────────────────────
+056.mp3  Frank Zappa — extreem, prikkelend fragment (~10-20s)
+         (denk: complex ritme, dissonant, "wat?!"-effect)
+057.mp3  Onweer — donder + regen, dramatisch (~10-15s)
+         (knal + roffel + regenruisje; niet te lang knal-loos)
+058.mp3  Saturday Night Fever — herkenbare disco-loop (~10-15s)
+         (intro of refrein van "Stayin' Alive" of "Night Fever")
+
+(059-060 onbezet — DEEL 1 kort, 09-10 zijn placeholder chapters)
+
+────────────────────────────────────────────────────────
+DEEL 2 — sfeer/dagelijks — chapters 11-16
+────────────────────────────────────────────────────────
+061.mp3  Lounge/zen — rustig, melodisch, geen vocals (~15-30s)
+         (Buddha Bar, Café del Mar stijl)
+062.mp3  Zachte zee/golven — natuurlijk, geen muziek (~15-30s)
+         (strand, geen meeuwen, gewoon water)
+063.mp3  Ambient drone — diep, sferisch, "noorderlicht" gevoel (~15-30s)
+         (Brian Eno-achtig, lage tonen)
+064.mp3  Knapperend haardvuur — droog hout, knetterend (~15-30s)
+         (geen achtergrondmuziek, puur vuur)
+065.mp3  Zachte nachtgeluiden / krekel — natuurlijk, sereen (~15-30s)
+         (krekel + lichte wind; geen uil/dieren-overdaad)
+066.mp3  Stilte met zachte ademhaling — bijna niets (~10-20s)
+         (heel zacht, fade-out vriendelijk)
+
+(067-071 onbezet — reserve)
+
+────────────────────────────────────────────────────────
+DEEL 4 — variaties — chapters 22-28
+────────────────────────────────────────────────────────
+072.mp3  Zachte tik — korte ding/tik (~1-2s)
+073.mp3  Zachte tik — variant 2
+074.mp3  Zachte tik — variant 3
+075.mp3  Zachte tik — variant 4
+076.mp3  Zachte tik — variant 5
+077.mp3  Zachte tik — variant 6
+078.mp3  Zachte tik — variant 7
+         → kunnen allemaal identiek zijn (één bestand 7× kopiëren), of
+           lichte toonvariatie als markering tussen variaties
+         (denk: kalimba pluk, vingerknip, water-druppel)
+
+(079 onbezet — reserve)
+
+────────────────────────────────────────────────────────
+DEEL 6 — afscheid — chapters 30-31
+────────────────────────────────────────────────────────
+080.mp3  Vuurwerk-knallen — meerdere knallen, sissen, dramatisch (~10-20s)
+         (oudejaarsavond stijl, niet één enkele knal)
+081.mp3  Applaus — warm, niet te lang (~5-8s)
+         (kleine zaal, niet stadion; fade-out vriendelijk)
+
+
+────────────────────────────────────────────────────────
+NIET NODIG (overslaan)
+────────────────────────────────────────────────────────
+- 001-031.mp3  → TTS, firmware rendert via tts_todo.csv
+- 086-090.mp3  → live TTS bij demo-start (info-chapters)
+- 082-085      → reserve
+- 091-099      → reserve
+- DEEL 3 (17-21) info-chapters → geen vaste audio, alleen live TTS
+- DEEL 5 (29) TV-simulatie     → geen audio, alleen flikker-effect
+
+
+────────────────────────────────────────────────────────
+WORKFLOW
+────────────────────────────────────────────────────────
+1. Verzamel bronbestanden in D:\sounds\new\ (elke met begrijpelijke naam)
+2. Hernoem of trim per chapter
+3. Run tools/ffmpeg/norm.bat "D:\sounds\new"  → output in D:\sounds\new\converted\
+4. Hernoem converted/<naam>.mp3 → 0NN.mp3 volgens lijst hierboven
+5. Upload één voor één: .\upload_file.ps1 0NN.mp3 192.168.2.189
+   OF in batch: kopieer naar V:\Kwal\SDcard\150\ als SD-card lokaal beschikbaar
+6. Test: speel /150/0NN.mp3 via web /api/audio/play?dir=150&file=NN
+
+TELLING
+────────────────────────────────────────────────────────
+- 5 belletjes        (051-055)
+- 3 extreem          (056-058)
+- 6 sfeer            (061-066)
+- 7 tikjes           (072-078) — mag 1 bestand 7× kopie
+- 2 afscheid         (080-081)
+- TOTAAL UNIEK: 23 fragments (of 17 als tikjes identiek)

@@ -318,24 +318,90 @@ Nieuwe rijen voor IDs 50–56 (kleurparen passend bij elk chapter).
 
 ---
 
-## 14. `/150/` op SD-kaart  (audio, jij maakt MP3's)
+## 14. `/150/` op SD-kaart  (audio)
+
+TTS-bestanden worden door firmware gerenderd via `tts_todo.csv` queue
+(zie sectie 15). Muziek/sfx-bestanden upload je zelf (na evt. prep via
+`tools/ffmpeg/`).
+
+Reservering (vrij in te delen, geen hardcoded mapping):
+```
+/150/001..031.mp3   TTS — chapter-zinnen (gerenderd via tts_todo.csv)
+/150/051..081.mp3   Audio — muziek/sfx voor chapters (jij upload)
+/150/082..085.mp3   Reserve
+/150/086..090.mp3   TTS — dynamisch bij demo-start (kalender, weer, ...)
+/150/091..099.mp3   Reserve
+```
+
+---
+
+## 15. `sdroot/tts_todo.csv`  (TTS render-queue, self-consuming)
+
+### Formaat
+```csv
+# tts_todo.csv — TTS render-queue, self-consuming bij boot
+# regel wordt na succesvolle render uit dit bestand verwijderd
+# formaat: lang; voice; tempo; dir; file; tekst
+# - lang  : NL (enige toegestane waarde nu)
+# - voice : 0=Lotte 1=Bram 2=Daan; -1=random
+# - tempo : -3..+3; 99=random
+# - dir   : 1-200 (SD-dir nummer)
+# - file  : 1-99
+# - tekst : alles na de 5e ';', max 160 chars
+NL; 1; -1; 150; 001; welkom bij kwal twee demo
+NL; 1; -1; 150; 005; ook vandaag is het mooi weer
+```
+
+### Mechanisme
+
+Self-consuming queue. Eén regel per fire. Bij elke boot pikt-ie waar-ie
+gebleven was. Geen UI nodig — upload met `upload_file.ps1 tts_todo.csv <ip>`.
 
 ```
-/150/001.mp3   TTS opening "Dit is Kwal..."
-/150/002.mp3   Bel/sirene (~2 sec)
-/150/003.mp3   TTS "Tientallen patronen..."
-/150/004.mp3   Muziek/sfx voor layered glow chapter
-/150/005.mp3   TTS "Eindeloze kleurcombinaties..."
-/150/006.mp3   Muziek voor pride/plasma
-/150/007.mp3   TTS "Soms feestelijk..."
-/150/008.mp3   Kermismuziek
-/150/009.mp3   TTS "...uitbundig"
-/150/010.mp3   Feestmuziek
-/150/011.mp3   TTS (kort, voor disco-intro)
-/150/012.mp3   Disco-track met vaste BPM
-/150/013.mp3   TTS afsluiting "Elke dag anders..."
-/150/014.mp3   Hartslag-geluid + fade
+cb_ttsTodoBoot                 (1× bij boot, 30s delay)
+ ├─ /tts_todo.csv niet bestaan of leeg → klaar
+ └─ timers.create(1s, 1, cb_ttsTodoNext)
+
+cb_ttsTodoNext                 (één regel per fire)
+ ├─ lees eerste niet-#/niet-lege regel uit /tts_todo.csv
+ ├─ geen regels meer → log "tts queue klaar", exit (geen reschedule)
+ ├─ parse fout (verkeerd aantal velden, lang ≠ NL, dir/file/voice/tempo
+ │   out-of-range)
+ │    → log waarschuwing met regel-inhoud
+ │    → regel LATEN STAAN (jij moet hem zien om te fixen)
+ │    → exit (geen reschedule — fout-regels blokkeren queue tot fix)
+ ├─ PlaySentence::downloadTtsToCache(tekst, voice, tempo, dir, file)
+ │    ├─ success → CSV rewrite zonder die regel (atomair via .tmp+rename)
+ │    │           → timers.create(10s, 1, cb_ttsTodoNext)   [throttle]
+ │    └─ fail (geen wifi, VoiceRSS down, SD-write fail)
+ │           → log "tts render failed, retry next boot"
+ │           → exit (regel blijft staan)
 ```
+
+### Vangrails
+- Parse-fout = HARD STOP van de queue (regel blijft, jij ziet hem in
+  log, fix in editor, upload opnieuw). Anders zou een typo silently
+  alle volgende regels overslaan.
+- Network-fout = SOFT STOP (regel blijft, probeer volgende boot).
+- 10s throttle tussen renders (VoiceRSS rate-limit + SD-write rust).
+- Max 31 regels per CSV verwacht (= max chapters), maar geen hardcoded
+  limiet — werkt met elk aantal.
+
+### Bestanden
+- **Nieuw**: `lib/RunManager/Tts/TtsTodoQueue.h`
+- **Nieuw**: `lib/RunManager/Tts/TtsTodoQueue.cpp` — `cb_ttsTodoBoot`,
+  `cb_ttsTodoNext`, parse + atomair-rewrite helpers
+- **Edit**: boot-sequencer registreert `cb_ttsTodoBoot` met 30s delay
+- **Hergebruik**: bestaande `PlaySentence::downloadTtsToCache()` —
+  geen wijzigingen aan VoiceRSS-laag
+
+### Bewust GÉÉN
+- Geen web-UI voor queue-beheer (overkill, upload via .ps1 is genoeg)
+- Geen SSE-progress (logs zijn genoeg voor v1)
+- Geen EN/andere talen (use-case 2 wachten, dan refactoren)
+- Geen `Globals::demoVoice` / `demoTempo` (per-regel in CSV is netter)
+- Geen retry-counter per regel (network-fout = next boot opnieuw,
+  parse-fout = jij fixt)
 
 ---
 
@@ -346,7 +412,9 @@ Firmware (C++):
 - [x] `lib/Globals/Globals.cpp`          — al: demoDir CSV parser
 - [ ] `lib/RunManager/Demo/DemoRun.h`    — nieuw
 - [ ] `lib/RunManager/Demo/DemoRun.cpp`  — nieuw (chapter-tabel, callbacks)
-- [ ] `lib/RunManager/RunManager.cpp`    — `if (demoActive) return;` guards
+- [ ] `lib/RunManager/Tts/TtsTodoQueue.h`   — nieuw (TTS render-queue)
+- [ ] `lib/RunManager/Tts/TtsTodoQueue.cpp` — nieuw (cb_ttsTodoBoot, cb_ttsTodoNext, parse+rewrite)
+- [ ] `lib/RunManager/RunManager.cpp`    — `if (demoActive) return;` guards + register cb_ttsTodoBoot
 - [ ] `lib/WebInterfaceController/Handlers/DemoMode.cpp` — nieuw (web handler)
 - [ ] `lib/WebInterfaceController/Routes.cpp` (of equiv.) — route registratie
 - [ ] `lib/WebInterfaceController/WebGuiStatus.cpp`     — status JSON velden
@@ -359,7 +427,8 @@ WebGUI:
 Data (gebruiker):
 - [ ] `sdroot/light_patterns.csv`        — 7 nieuwe rijen (IDs 50–56)
 - [ ] `sdroot/light_colors.csv`          — 7 nieuwe rijen (IDs 50–56)
-- [ ] `/150/001.mp3` … `/150/014.mp3`    — door gebruiker aangeleverd
+- [ ] `sdroot/tts_todo.csv`              — TTS render-queue (jij vult, firmware leegt)
+- [ ] `/150/051..081.mp3`                — muziek/sfx fragments (jij upload na ffmpeg-prep)
 
 Build/deploy:
 - [ ] `sdroot/webgui-src/build.ps1`      — JS version bump als JS edited
