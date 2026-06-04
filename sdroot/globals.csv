@@ -25,9 +25,14 @@
 # ═══════════════════════════════════════════════════════════════════
 # TTS CACHE (3 params)
 # ═══════════════════════════════════════════════════════════════════
-#ttsCacheDirIndex;u;127;SD directory for cached free-text TTS file
+#ttsCacheDirIndex;u;149;SD directory for cached free-text TTS file (moved from 127 to avoid BIRDS conflict)
 #ttsCacheFileIndex;u;0;file index for cached free-text TTS file
 #ttsCacheDurationFactor;f;3.0;duration margin applied to filesize/16 (VoiceRSS ~48kbps)
+
+# ═══════════════════════════════════════════════════════════════════
+# DEMO (1 param)
+# ═══════════════════════════════════════════════════════════════════
+#demoDir;u;150;SD directory for demo MP3's (TTS + music + sfx)
 
 # ═══════════════════════════════════════════════════════════════════
 # SPEECH (4 params)

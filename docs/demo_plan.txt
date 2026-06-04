@@ -1,0 +1,144 @@
+DEMO MODE — PLAN
+=================
+Status: discussie/ontwerp. Nog geen code.
+Datum: 2026-06-02
+
+DOEL
+----
+WebGUI-knop "Demo" start een demonstratiemodus voor een instelbare duur
+(gele slider). Demo toont aan publiek (binnen ~2 m) wat Kwal kan, zowel
+qua rustige Kwal-natuur als qua uitbundige/feestelijke effecten.
+Publiek: algemeen publiek, geen technici. Nederlandse TTS-narratie
+structureert de show.
+
+
+HARDE PRINCIPES
+---------------
+1. ZO WEINIG MOGELIJK NIEUWE INFRASTRUCTUUR.
+   - Geen nieuwe render-engine (geen DemoShow.cpp).
+   - Geen nieuwe audio-engine, geen beat-detectie bouwen (beat feedback
+     bestaat al).
+   - Geen nieuwe submap per categorie.
+
+2. ALLES VIA BESTAANDE MECHANISMEN.
+   - Patterns: nieuwe rijen in light_patterns.csv (demo-IDs).
+   - Colors:  nieuwe rijen in light_colors.csv (demo-IDs).
+   - Audio:   /150/NNN.mp3 (één submap voor alles: TTS + muziek + geluid).
+   - Render:  bestaande PlayLightShow engine, geen render-switch.
+   - Timing:  bestaande TimerManager.
+   - Audio play/stop: bestaande PlayAudioFragment + durationMs/fadeMs.
+
+3. DEMO = ORKESTRATIE, niet rendering.
+   - cb_demoNextChapter() in lib/RunManager/ schakelt chapters.
+   - Per chapter: requestPatternId() + requestColorsId() + audio.
+   - Eén flag (demoActive) onderdrukt normale kalender/context switches
+     tijdens de demo — analoog aan tvMode, maar op orchestratie-niveau.
+
+
+STRUCTUUR PER CHAPTER
+---------------------
+Elk chapter heeft twee fasen, sequentieel:
+
+  Fase A — Aankondiging (TTS)
+    - Audio:   /150/NNN.mp3 (TTS-tekst; jij maakt de MP3's)
+    - Duur:    = lengte van de TTS-MP3
+    - Visueel: hetzelfde effect als fase B van dit chapter
+
+  Fase B — Show (effect)
+    - Visueel: bestaand pattern + colors via demo-rijen in de CSV's
+    - Audio:   uit /150/ (muziek/geluid)
+    - Duur:    configureerbaar
+
+Alle audio loopt/stopt via timers + AudioFragment.durationMs (standaard).
+
+
+AUDIO-OPZET
+-----------
+Een submap: /150/   (demo)
+  - Bevat TTS, muziek en geluidseffecten door elkaar.
+  - Index vrij toe te wijzen per chapter.
+  - Jij genereert alle MP3's zelf (geen PowerShell, geen API-script).
+
+Apart: /149/        (TTS-cache, voor vrije-tekst WebGUI + kalender)
+  - ttsCacheDirIndex wordt verplaatst van 127 → 149.
+  - Reden: /127/ wordt gebruikt door theme boxes BIRDS / ALLBIRDS /
+    BIRDS8 (zie theme_boxes.csv). Conflict tussen TTS-cache writes en
+    vogelgeluid-fragments.
+  - Wijziging: Globals::ttsCacheDirIndex default 127 → 149 in Globals.h.
+  - /127/ blijft beschikbaar voor de bestaande BIRDS-fragments.
+
+
+VOORLOPIGE CHAPTER-LIJST (concept, niet definitief)
+---------------------------------------------------
+1. Opening / introductie
+   - Start: demo neemt direct over, geen pauze (1b).
+   - Eerste visueel: alle ringen kort flits-aan, dan opening-effect (2c).
+   - TTS: /150/001.mp3 ("Dit is Kwal..." — jouw tekst).
+   - Visueel onder TTS: Color Bath stijl met audio-feedback op color-morph.
+   - Show-fase 1B: bel/sirene + 2 sec flitsend licht.
+     * Audio: korte bel/sirene MP3 in /150/, durationMs=2000.
+     * Licht: bestaande pattern-rij met snelle bright-puls (sin, geen
+       echte vierkante flits — accepteren binnen optie (a)).
+
+2. Layered Glow / "tientallen patronen"
+3. Pride / Plasma stijl / "kleurcombinaties"
+4. Pinwheel / "soms feestelijk"
+5. Confetti-achtig / "uitbundig"
+6. Disco/Strobe-achtig (gebruik bestaande beat-feedback)
+7. Heartbeat / afsluiting → terug naar normale Kwal
+
+Per chapter nog te bepalen (volgende discussierondes):
+  - Concrete pattern-parameters (light_patterns.csv rij)
+  - Concrete colors (light_colors.csv rij)
+  - MP3-indexen in /149/
+  - durationMs per fase
+  - Overgang naar volgend chapter (cut / cross-fade)
+
+
+SLIDER
+------
+- Gele slider in WebGUI bepaalt totale demo-duur.
+- Voorlopig bereik: 30 – 180 sec, default ~90 sec.
+- Korte duur = alleen highlights; lange duur = alles + langere chapters.
+- Implementatie: chapter-tabel geeft min-duur per chapter; demo schaalt
+  of selecteert chapters op basis van slider — exacte regel nog te
+  bepalen.
+
+
+WAT WE WEL NIEUW MAKEN (minimaal)
+---------------------------------
+- Demo-rijen in light_patterns.csv  (bv. IDs 50–60)
+- Demo-rijen in light_colors.csv    (idem)
+- MP3-bestanden in /150/            (jij)
+- Chapter-tabel in code:            array van {patternId, colorsId,
+                                     audioFileIdx, durationMs, fase}
+- cb_demoNextChapter()              in lib/RunManager/
+- Web-API endpoint                  /api/demomode?active=1&duration=N
+- demoActive flag                   in Globals (onderdrukt normale
+                                     context/kalender switches)
+- WebGUI knop "Demo" + gele slider  in webgui-src/js/
+- Globals::ttsCacheDirIndex default 127 → 149 (TTS-cache verhuist weg
+  van conflict met BIRDS-fragments in /127/).
+
+
+WAT WE NIET MAKEN
+-----------------
+- Geen DemoShow.cpp / .h
+- Geen Globals::demoMode render-switch
+- Geen aparte demo-audio-engine
+- Geen ducking-logica
+- Geen tweede submap voor demo-audio
+- Geen aparte demo-CSV
+- Geen beat-detectie (bestaat al via audio-feedback)
+- Geen veiligheids-maatregelen voor strobe/helderheid (niet relevant
+  bij indirect PMMA-licht)
+
+
+OPEN PUNTEN
+-----------
+- Definitieve chapter-volgorde en aantal (nu 7, mag wijzigen).
+- Per chapter: pattern-parameters, colors-parameters, MP3-indexen.
+- Hoe schaalt slider-duur naar chapter-set/chapter-duur?
+- Welke bestaande audio-feedback hook gebruiken we voor de "color-morph
+  reageert op audio" in chapter 1A?
+- Overgangen tussen chapters: harde cut, cross-fade, of mix?

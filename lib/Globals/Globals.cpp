@@ -251,6 +251,12 @@ static void applyOverride(const char* key, char type, const char* value) {
             PF_BOOT("[Globals] ttsCacheDurationFactor = %.2f\n", f32);
         }
     }
+    else if (strcmp(key, "demoDir") == 0 && type == 'u') {
+        if (parseUint32(value, &u32) && u32 <= 200) {
+            Globals::demoDir = static_cast<uint8_t>(u32);
+            PF_BOOT("[Globals] demoDir = %u\n", Globals::demoDir);
+        }
+    }
     // ═══════════════════════════════════════════════════════════
     // LIGHT/PATTERN
     // ═══════════════════════════════════════════════════════════

@@ -1,0 +1,257 @@
+Notes:
+#A: de total demo duur kan worden ingesteld met 1 slider - de demo kan op elke moment worden gestopt
+#B:
+#C een demo-hoofdstuk bestaat uit:
+    tts-mp3: helemaal af te spelen
+    audio-mp3 
+        start demo AudioDelayMs milliseconden (2000 ms minimaal) na einde tts-mp3
+        speelt volledig, of wanneer korter: stopt na demoAudioMaxDurationMs milliseconden (2000 ms minimaal) af te spelen
+    lightshows start demoLightDelayMs (1000 minimaal msec) na start tts-mp3
+    voor langere demo's wordt (via 1 slider) AudioDelayMs, demoAudioMaxDurationMs,  demoLightDelayMs en  demoLightDurationMs
+    dynamisch aangepast
+#D
+
+#E: meet het ambient light voor elk hoofdstuk- wanneer teveel licht waarschuwing en zo nodig hoofdstuk overslaan
+
+
+
+
+
+
+Hoofdstukken:
+
+01: prompt: 
+    001.mp3: "Demonstratie voor Kwal2, versie een punt nul" 
+    light: witte flitsen, alle leds, 100msec aan, 900ms uit
+    051.mp3: belgerinkel
+
+02: welkom:
+    002.mp3: "welkom - deze kwal heeft bescheiden licht en geluidsvolume, zorg dat het stil en donker is"
+    light: alles groen
+    052.mp3:  belgerinkel
+
+03: inleiding1:
+    003.mp3: "er volgt nu een reeks voorbeelden" 
+    light: blauwe ringen in "zwarte" achtergrond, telkens een ring, van buiten naar binnen
+    053.mp3:  belgerinkel
+
+04: inleiding2:
+    004.mp3: "eerst voorbeelden van wat er allemaal kan" 
+    light: witte ringen in "zwarte" achtergrond, telkens een ring, van buiten naar binnen
+    054.mp3: belgerinkel
+
+05: inleiding3:
+    005.mp3: "daarna voorbeelden van wat kwal dagelijks doet" 
+    light: blauwe ring in witte achtergrond, telkens een ring, van buiten naar binnen
+    055.mp3: belgerinkel
+
+ ====================DEEL 1==============================
+06: extreem1: zappa
+    006.mp3: "een extreem, veronrustend voorbeeld wat kan"
+    light: alle kleuren, snelle wissels, extreem
+    056.mp3: extreem fragment zappa
+
+07: extreem2: onweer
+    007.mp3: "of zoiets - het kan wel"
+    light: flitsende kleurcombinaties kermis
+    057.mp3: onweer, donder, regen
+
+08: extreem3: disco
+    008.mp3: "of de onvermijdelijke disco.."
+    light: alles een wisselende kleur, op audio-feedback
+    058.mp3: fragment saturdaynight fever
+
+09-10: placeholder
+
+ ====================DEEL 2: WAT KWAL DAGELIJKS DOET==============================
+11: voorbeeld1: lounge
+    011.mp3: "voor dagelijks gebruik liever wat rustiger"
+    light: pattern Polar Lights, colors Lemon Yellow - licht volgens lux-algoritme/geijkt
+    061.mp3: lounge/zen
+    maxLux: 80
+
+12: voorbeeld2: ademen
+    012.mp3: "alsof de kwal rustig ademt"
+    light: pattern Slow Breathing, colors Cool Ocean
+    062.mp3: zachte zee/golven
+    maxLux: 80
+
+13: voorbeeld3: noorderlicht
+    013.mp3: "een verre herinnering aan het noorderlicht"
+    light: pattern Polar Lights, colors Mint Fresh
+    063.mp3: ambient drone
+    maxLux: 50
+
+14: voorbeeld4: gloed
+    014.mp3: "een warme avondgloed"
+    light: pattern Radiant Glow, colors Warm Sunset
+    064.mp3: knapperend haardvuur
+    maxLux: 100
+
+15: voorbeeld5: sterren
+    015.mp3: "of stille fonkelende sterren"
+    light: pattern Twinkling Stars, colors Midnight Blue
+    065.mp3: zachte nachtgeluiden / krekel
+    maxLux: 30
+
+16: voorbeeld6: rust
+    016.mp3: "tot slot - zo eindigt elke dag bij kwal"
+    light: pattern Calm Center, colors Deep Space
+    066.mp3: stilte met zachte ademhaling
+    maxLux: 20
+
+ ====================DEEL 3: KWAL ALS INFORMATIEBRON==============================
+ (info-chapters gebruiken LIVE gerenderde TTS uit /150/086-090)
+ (bij ontbrekend live-bestand: chapter stilletjes skippen)
+
+17: dagelijks1: tijd
+    017.mp3: "kwal kent de tijd - luister"
+    light: pattern Calm Center, colors Slate Gray
+    086.mp3: (live) "het is nu HH:MM"
+    maxLux: 0
+
+18: dagelijks2: temperatuur
+    018.mp3: "kwal voelt de kamer"
+    light: pattern Radiant Glow, colors volgens temperatuur
+           (koud=Cool Ocean, mild=Sunny Yellow, warm=Citrus Orange)
+    087.mp3: (live) "het is XX komma X graden in deze kamer"
+    maxLux: 0
+
+19: dagelijks3: zon
+    019.mp3: "kwal volgt de zon"
+    light: pattern Misty Bloom, colors volgens dagdeel
+           (ochtend=Sunrise Pink, dag=Sunny Yellow,
+            schemering=Citrus Orange, nacht=Midnight Blue)
+    088.mp3: (live) "de zon kwam vanmorgen om HH:MM op,
+                    en gaat onder om HH:MM"
+    maxLux: 0
+
+20: dagelijks4: maan
+    020.mp3: "en de maan"
+    light: pattern Calm Center, colors Snow White,
+           helderheid = maanfase
+    089.mp3: (live) "vanavond zien we een <wassende/afnemende/
+                    volle/nieuwe/halve> maan"
+    maxLux: 50
+
+21: dagelijks5: kalender
+    021.mp3: "kwal volgt de kalender - vandaag en wat komen gaat"
+    light: bij event vandaag → pattern + colors van vandaag's calendar entry
+           anders            → pattern + colors van next event entry
+    090.mp3: (live) bij event vandaag:
+                "vandaag is <ttsSentence>.
+                 de eerstvolgende bijzondere dag is <next.ttsSentence>,
+                 over <X> dagen"
+             anders:
+                "vandaag is een gewone dag.
+                 de eerstvolgende bijzondere dag is <next.ttsSentence>,
+                 over <X> dagen"
+             fallback bij geen next:
+                "vandaag is een gewone dag in kwal's kalender"
+    maxLux: 50
+
+ ====================DEEL 4: VARIATIES==============================
+ (toont dat kwal nooit precies hetzelfde herhaalt - basis als anker tussen variaties)
+
+22: variatie: basis1
+    022.mp3: "kwal varieert elke uitvoering. dit is de basis,"
+    light: pattern Slow Breathing, colors Cool Ocean (geen shift)
+    072.mp3: zachte tik
+    maxLux: 60
+
+23: variatie: patternShift
+    023.mp3: "patroon iets anders,"
+    light: pattern Slow Breathing + patternShift, colors Cool Ocean
+    073.mp3: zachte tik
+    maxLux: 60
+
+24: variatie: basis2
+    024.mp3: "weer de basis,"
+    light: pattern Slow Breathing, colors Cool Ocean
+    074.mp3: zachte tik
+    maxLux: 60
+
+25: variatie: colorsShift
+    025.mp3: "kleur iets anders,"
+    light: pattern Slow Breathing, colors Cool Ocean + colorsShift
+    075.mp3: zachte tik
+    maxLux: 60
+
+26: variatie: basis3
+    026.mp3: "weer de basis,"
+    light: pattern Slow Breathing, colors Cool Ocean
+    076.mp3: zachte tik
+    maxLux: 60
+
+27: variatie: beideShifts
+    027.mp3: "en allebei tegelijk."
+    light: pattern Slow Breathing + patternShift, colors Cool Ocean + colorsShift
+    077.mp3: zachte tik
+    maxLux: 60
+
+28: variatie: basis4
+    028.mp3: "tot slot - weer de basis."
+    light: pattern Slow Breathing, colors Cool Ocean
+    078.mp3: zachte tik
+    maxLux: 60
+
+ ====================DEEL 5: TV-SIMULATIE==============================
+29: tv-simulatie
+    029.mp3: "en tot slot - kwal kan ook een avondje televisie nabootsen,
+             alsof er iemand thuis is."
+    light: TV-simulator mode (bestaande feature, Globals::tvMode = true)
+    (geen audio - de TV-flikkering is het effect)
+    maxLux: 100
+
+ ====================DEEL 6: AFSCHEID==============================
+30: vuurwerk
+    030.mp3: "tot besluit - vuurwerk!"
+    light: pattern Fireworks (#28), colors Sunny Yellow
+    080.mp3: vuurwerk-knallen sfx
+    maxLux: 200
+
+31: afscheid
+    031.mp3: "bedankt voor het kijken naar kwal2 - tot ziens."
+    light: pattern Slow Breathing, colors Snow White (langzaam dimmend naar uit)
+    081.mp3: applaus (warm, ~5-8 sec)
+    maxLux: 100
+
+
+ ====================MP3-RESERVERING /150/==============================
+ Vast (door gebruiker geleverd):
+   001-031.mp3   TTS per chapter (31 chapters)
+   051-081.mp3   audio per chapter (parallel met TTS-nummer + 50)
+                 - 051-066 = opening + DEEL 1 + DEEL 2 sfeer
+                 - 072-078 = DEEL 4 variaties
+                 - 080-081 = afscheid (vuurwerk, applaus)
+                 - 067-071, 079 = ongebruikt/reserve
+                 - chapter 17-21 (info) + 29 (TV) hebben GEEN vaste audio
+
+ Dynamisch (live gerenderd bij elke demo-start, gewist aan einde):
+   086-090.mp3   live TTS voor info-chapters (tijd/temp/zon/maan/kalender)
+
+ Reserve:
+   082-085, 091-099 = vrij voor toekomstige uitbreidingen
+
+
+ ====================SLIDER-SCHALING==============================
+ Pair-drop bij korte demo (laatste paar eerst):
+   -1: drop 31 + 30   (afscheid weg → 29 wordt einde)
+   -2: drop 29 + 28   (TV-sim + laatste variatie weg)
+   -3: drop 27 + 21   (variatie compleet + kalender weg)
+   -4: drop 26 + 20   (basis3 + maan weg)
+   -5: drop 25 + 19   (colorsShift + zon weg)
+   -6: drop 24 + 18   (basis2 + temperatuur weg)
+   -7: drop 23 + 17   (patternShift + tijd weg → DEEL 3+4 leeg)
+   -8: drop 22 + 16   (laatste variatie weg + laatste sfeer)
+   ...DEEL 2 sfeer krimpt verder, DEEL 1 en opening blijven
+ 
+ Binnen geselecteerde chapter-set:
+   alle duraties (AudioDelayMs, demoAudioMaxDurationMs,
+   demoLightDelayMs, demoLightDurationMs) schalen continu
+   met factor = sliderSec / sum(chapter defaults)
+   begrensd door min-waardes uit #C
+
+
+
+
