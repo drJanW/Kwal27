@@ -189,6 +189,10 @@ void pushState() {
     json += static_cast<uint32_t>(Globals::defaultWebExpiryMs / 60000UL);
     json += F(",\"tvMode\":");
     json += Globals::tvMode ? F("true") : F("false");
+    json += F(",\"demoActive\":");
+    json += Globals::demoActive ? F("true") : F("false");
+    json += F(",\"demoChapter\":");
+    json += Globals::demoChapterIdx;
     json += F(",\"hasLuxSensor\":");
     json += Globals::luxSensorPresent ? F("true") : F("false");
     json += F(",\"sleepArmed\":");

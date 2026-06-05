@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260412A - Built 2026-04-12 15:47
+ * Kwal WebGUI v260605D - Built 2026-06-05 12:37
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260412A';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260605D';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -2728,25 +2728,20 @@ Kwal.mp3grid = (function() {
     // Per-dir: colored bar proportional to fileCount
     for (var r = 0; r < ROWS; r++) {
       var bid = dirBox[r];
-      if (!bid) continue;
-      var box = boxById[bid];
-      if (!box) continue;
-      var rgb = hexToRgb(box.color);
-      var y = r * CELL;
+      var box = bid ? boxById[bid] : null;
       var fc = dirFileCount[r];
+      if (fc <= 0) continue;
+      var y = r * CELL;
+      var barW = Math.min(fc, COLS) * CELL;
+      var rgb = box ? hexToRgb(box.color) : { r: 136, g: 136, b: 136 };
 
       // Fill bar: width proportional to fileCount (max COLS)
-      var barW = fc > 0 ? Math.min(fc, COLS) * CELL : 0;
-      if (barW > 0) {
-        ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0.35)';
-        ctx.fillRect(0, y, barW, CELL);
-      }
+      ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0.35)';
+      ctx.fillRect(0, y, barW, CELL);
 
       // Category line: 1px horizontal, same width as bar
-      if (barW > 0) {
-        ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0.95)';
-        ctx.fillRect(0, y + 1, barW, 1);
-      }
+      ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0.95)';
+      ctx.fillRect(0, y + 1, barW, 1);
     }
 
     // Vertical gridlines
@@ -3281,6 +3276,66 @@ Kwal.mp3grid = (function() {
     if (Kwal.sse && Kwal.sse.onState) {
         Kwal.sse.onState(function(data) {
             if (typeof data.tvMode === 'boolean') setActive(data.tvMode);
+        });
+    }
+})();
+
+
+// === js/demo.js ===
+/**
+ * @file    demo.js
+ * @version 260605A
+ * @date    2026-06-05
+ *
+ * Kwal - Demo controls (31-chapter showcase)
+ */
+(function() {
+    const slider = document.getElementById('demoDur');
+    const label  = document.getElementById('demoDurLabel');
+    const btn    = document.getElementById('btnDemo');
+    if (!slider || !label || !btn) return;
+
+    slider.addEventListener('input', function() {
+        label.textContent = this.value + ' s';
+    });
+
+    function setActive(active, chapter) {
+        if (active) {
+            const c = (typeof chapter === 'number') ? (chapter + 1) : 1;
+            btn.textContent = '⏹ Stop';
+            btn.title = 'Stop demo (chapter ' + c + ')';
+            btn.onclick = stopDemo;
+            btn.classList.add('demo-active');
+        } else {
+            btn.textContent = '🎬 Demo';
+            btn.title = 'Demo';
+            btn.onclick = startDemo;
+            btn.classList.remove('demo-active');
+        }
+    }
+
+    function startDemo() {
+        const seconds = parseInt(slider.value, 10) || 180;
+        const ms = seconds * 1000;
+        if (!confirm('Start demo (' + seconds + ' s)?')) return;
+        fetch('/api/demomode?duration=' + ms)
+            .then(function(r) { return r.json(); })
+            .then(function(d) { if (d.active) setActive(true, 0); });
+    }
+
+    function stopDemo() {
+        fetch('/api/demostop')
+            .then(function(r) { return r.json(); })
+            .then(function() { setActive(false); });
+    }
+
+    btn.onclick = startDemo;
+
+    if (Kwal.sse && Kwal.sse.onState) {
+        Kwal.sse.onState(function(data) {
+            if (typeof data.demoActive === 'boolean') {
+                setActive(data.demoActive, data.demoChapter);
+            }
         });
     }
 })();

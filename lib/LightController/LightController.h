@@ -1,8 +1,8 @@
 /**
  * @file LightController.h
  * @brief LED control interface via FastLED library
- * @version 260307A
- * @date 2026-03-07
+ * @version 260604D
+ * @date 2026-06-04
  */
 #pragma once
 
@@ -30,6 +30,7 @@ struct LightShowParams {
   uint8_t colorCycleSec, brightCycleSec, minBrightness, xCycleSec, yCycleSec;
   float fadeWidth, gradientSpeed, centerX, centerY, radius, radiusOsc, xAmp, yAmp;
   int   windowWidth;
+  uint8_t id{0};  // Pattern ID from CSV (0 = unset = use default circle renderer)
 
    LightShowParams() = default;
 

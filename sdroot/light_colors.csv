@@ -30,6 +30,7 @@ light_colors_id;light_colors_name;rgb1_hex;rgb2_hex;cnf
 29;Cobalt Blue;#0047AB;#002255;4.5416
 30;Emerald Isle;#50C878;#227744;1.5980
 31;Sunrise Pink;#FFB6C1;#AA5566;1.4044
+32;Spectrum;#FF0000;#8000FF;1.0000
 33;Buttercup Yellow;#FFFACD;#AAAA55;1.0324
 34;Periwinkle Blue;#F5F5F8;#6565F6;1.4223
 35;Crimson Red;#DC143C;#551111;4.3876

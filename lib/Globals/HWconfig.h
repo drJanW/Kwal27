@@ -100,7 +100,7 @@
 #define LED_RGB_ORDER GRB // Color order
 #define MAX_BRIGHTNESS 250
 #define MAX_VOLTS 6
-#define MAX_MILLIAMPS 1200
+#define MAX_MILLIAMPS 1400
 #define BRIGHTNESS_FLOOR 15   // Minimum runtime brightness when non-zero
 
 // ======================= Lux/Brightness =======================
@@ -112,7 +112,7 @@
 #define LUX_MAX_LUX 800.0f    // Clamp ambient lux readings
 #define LUX_MIN_BASE 70       // Minimum base brightness (0-255)
 // ======================= Audio Configuration =======================
-#define MAX_VOLUME                    0.47f // Maximum audio output volume
+#define MAX_VOLUME                    0.57f // Maximum audio output volume
 #define MAX_SPEAK_VOLUME_MULTIPLIER   1.5f  // Boot greeting volume multiplier (>2.0 clips VoiceRSS audio)
 
 

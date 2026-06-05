@@ -333,7 +333,9 @@ LightShowParams PatternCatalog::getActiveParams() const {
     }
     if (entry) {
         // Return RAW params - shifts are applied in LightRun::applyToLights()
-        return entry->params;
+        LightShowParams p = entry->params;
+        p.id = static_cast<uint8_t>(entry->id.toInt());
+        return p;
     }
     // Inline fallback - no CSV needed (matches ColorsCatalog fallback approach)
     return LightShowParams(
@@ -379,6 +381,7 @@ bool PatternCatalog::getParamsForId(const String& id, LightShowParams& out) cons
         return false;
     }
     out = entry->params;
+    out.id = static_cast<uint8_t>(entry->id.toInt());
     return true;
 }
 

@@ -1,12 +1,13 @@
 /**
  * @file LightController.cpp
  * @brief LED control implementation via FastLED library
- * @version 260307A
- * @date 2026-03-07
+ * @version 260604D
+ * @date 2026-06-04
  */
 #include <Arduino.h>
 #include "Globals.h"
 #include "LightController.h"
+#include "Spectrum.h"
 #include <FastLED.h>
 //#include <math.h>
 #include "AudioState.h"
@@ -90,6 +91,15 @@ void updateLightController() {
   if (Globals::tvMode) { updateTvShow(); return; }
 
   applyBrightness();
+
+  // Spectrum (pattern #32) — 6 rings, evenly-spaced gradient samples, scrolling.
+  // Reuses the existing colorPhase tick + colorGradient[]; no extra state.
+  if (showParams.id == 32) {
+    generateColorGradient(showParams.RGB1, showParams.RGB2, colorGradient, GRADIENT_SIZE);
+    renderSpectrum(colorGradient, colorPhase, getBrightnessBaseHi());
+    FastLED.show();
+    return;
+  }
 
   float baseRadius = showParams.radius;
   float radiusOsc  = showParams.radiusOsc;

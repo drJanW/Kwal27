@@ -26,13 +26,14 @@ $modules = @(
     "js/mp3grid.js",
     "js/sse.js",
     "js/tv.js",
+    "js/demo.js",
     "js/adminSettings.js",
     "js/main.js"
 )
 
 # Output ONLY to sdroot - NO local copy to prevent accidental editing
 $sdroot_output = "../kwal.js"
-$version = "260412A"
+$version = "260605D"
 
 # Header with DO NOT EDIT warning (in case Copilot is being a cunt)
 $header = @"
@@ -78,6 +79,8 @@ $indexPath = "../index.html"
 if (Test-Path $indexPath) {
     $html = Get-Content $indexPath -Raw
     $html = $html -replace 'kwal\.js\?v=[^"]+', "kwal.js?v=$version"
+    # Cache-bust styles.css too (handles both with/without existing ?v=)
+    $html = $html -replace 'styles\.css(\?v=[^"]+)?', "styles.css?v=$version"
     Set-Content -Path $indexPath -Value $html -Encoding UTF8 -NoNewline
     Write-Host "Updated index.html cache-bust to v=$version" -ForegroundColor Green
 }

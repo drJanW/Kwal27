@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260604C
- * @date 2026-06-04
+ * @version 260605A
+ * @date 2026-06-05
  */
 #pragma once
 
@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260604C"
+#define FIRMWARE_VERSION_CODE "260605A"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -71,6 +71,9 @@ struct Globals {
     inline static uint8_t  ttsCacheCalFileIndex    = 1U;           // File index for cached calendar TTS
     inline static float    ttsCacheDurationFactor  = 3.0f;         // Duration margin for TTS cache (VoiceRSS ~48kbps vs 128kbps SD format)
     inline static uint8_t  demoDir                 = 150U;         // SD directory for demo MP3's (TTS + music + sfx)
+    inline static bool     demoActive              = false;        // Demo orchestration running (RAM only, power-loss clears)
+    inline static uint8_t  demoChapterIdx          = 0U;           // Current demo chapter (0..N-1), only valid while demoActive
+    inline static uint32_t demoTotalMs             = 180000U;      // Requested total demo duration (ms); scales audio chapters
 
     // ─────────────────────────────────────────────────────────────
     // SPEECH (2 params)

@@ -1,7 +1,7 @@
 /**
  * @file TtsTodoQueue.cpp
  * @brief Self-consuming TTS render-queue from SD card
- * @version 260604C
+ * @version 260604E
  * @date 2026-06-04
  *
  * Implementation of plan() / cb_ttsTodoBoot / cb_ttsTodoNext.
@@ -14,6 +14,7 @@
 #include "Globals.h"
 #include "TimerManager.h"
 #include "PlaySentence.h"
+#include "SD/SDBoot.h"
 
 namespace {
 
@@ -140,9 +141,9 @@ bool readFirstActiveLine(char* rawLine, size_t rawLineSize) {
     return false;
 }
 
-// Rewrite the CSV, dropping the FIRST active line. All other lines
-// (including comments and blanks) preserved verbatim. Atomic via .tmp.
-bool rewriteWithoutFirstActiveLine() {
+// Rewrite the CSV, commenting out the FIRST active line (prepend '# ').
+// All other lines preserved verbatim. Atomic via .tmp.
+bool commentOutFirstActiveLine() {
     File in = SD.open(CSV_PATH, FILE_READ);
     if (!in) return false;
 
@@ -150,14 +151,14 @@ bool rewriteWithoutFirstActiveLine() {
     File out = SD.open(TMP_PATH, FILE_WRITE);
     if (!out) { in.close(); return false; }
 
-    bool dropped = false;
+    bool commented = false;
     char line[MAX_LINE_LEN];
     while (in.available()) {
         size_t n = in.readBytesUntil('\n', line, sizeof(line) - 1);
         line[n] = '\0';
 
-        if (!dropped) {
-            // Check if this is the line to drop
+        if (!commented) {
+            // Check if this is the line to comment out
             char trimmed[MAX_LINE_LEN];
             strncpy(trimmed, line, sizeof(trimmed) - 1);
             trimmed[sizeof(trimmed) - 1] = '\0';
@@ -169,8 +170,11 @@ bool rewriteWithoutFirstActiveLine() {
             }
             trim(checkStr);
             if (isActiveLine(checkStr)) {
-                dropped = true;
-                continue;  // Skip this line in output
+                commented = true;
+                out.write(reinterpret_cast<const uint8_t*>("# "), 2);
+                out.write(reinterpret_cast<const uint8_t*>(line), n);
+                out.write('\n');
+                continue;
             }
         }
         out.write(reinterpret_cast<const uint8_t*>(line), n);
@@ -179,7 +183,7 @@ bool rewriteWithoutFirstActiveLine() {
     in.close();
     out.close();
 
-    if (!dropped) {
+    if (!commented) {
         SD.remove(TMP_PATH);
         return false;
     }
@@ -195,11 +199,18 @@ bool rewriteWithoutFirstActiveLine() {
 
 void cb_ttsTodoNext();  // forward
 
+static uint8_t pendingDirSync_ = 0;  // Last dir written; sync on queue done
+
 void cb_ttsTodoNext() {
     char rawLine[MAX_LINE_LEN];
     if (!readFirstActiveLine(rawLine, sizeof(rawLine))) {
         PL("[TTS-Q] queue done");
         timers.cancel(cb_ttsTodoNext);
+        if (pendingDirSync_ != 0) {
+            // Re-index the dir we just wrote to so MP3 grid sees new files
+            SDBoot::requestSyncDir(pendingDirSync_);
+            pendingDirSync_ = 0;
+        }
         return;
     }
 
@@ -224,13 +235,14 @@ void cb_ttsTodoNext() {
         return;
     }
 
-    if (!rewriteWithoutFirstActiveLine()) {
+    if (!commentOutFirstActiveLine()) {
         PL("[TTS-Q] CSV rewrite failed — will retry same line next boot");
         timers.cancel(cb_ttsTodoNext);
         return;
     }
 
     PF("[TTS-Q] OK %u/%03u (%ums)\n", pl.dir, pl.file, durationMs);
+    pendingDirSync_ = pl.dir;
     // Next tick scheduled automatically by infinite timer (repeat=0).
 }
 

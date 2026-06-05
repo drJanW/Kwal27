@@ -293,6 +293,10 @@ void cb_clockUpdate() {
 }
 
 void cb_sayTime() {
+    if (Globals::demoActive) {
+        timers.restart(SECONDS(10), 1, cb_sayTime);
+        return;
+    }
     // 75% INFORMAL, 25% split between FORMAL and NORMAL
     TimeStyle style = (random(0, 4) < 3) ? TimeStyle::INFORMAL : static_cast<TimeStyle>(random(0, 2));
     RunManager::requestSayTime(style);
@@ -321,6 +325,10 @@ String buildTemperatureSentence(float tempC) {
 }
 
 void cb_sayRTCtemperature() {
+    if (Globals::demoActive) {
+        timers.restart(SECONDS(10), 1, cb_sayRTCtemperature);
+        return;
+    }
     RUN_LOG_INFO("[ClockRun] cb_sayRTCtemperature\n");
     RunManager::requestSayRTCtemperature();
     timers.restart(random(AudioPolicy::effectiveSpeakMin(),
@@ -329,6 +337,11 @@ void cb_sayRTCtemperature() {
 }
 
 void cb_playFragment() {
+    if (Globals::demoActive) {
+        // Demo orchestrator owns audio; reschedule far out
+        timers.restart(SECONDS(30), 1, cb_playFragment);
+        return;
+    }
     // Don't try to start a new fragment while one is still playing
     if (Globals::tvMode && isFragmentPlaying()) {
         timers.restart(SECONDS(5), 1, cb_playFragment);

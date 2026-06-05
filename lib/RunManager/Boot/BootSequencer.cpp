@@ -484,5 +484,16 @@ void BootSequencer::enterSteadyState() {
         TtsTodoQueue::plan();
     }
 
+    // Demo dir may have been populated outside the index (manual upload,
+    // TTS cache writes). Re-sync once at boot so /<demoDir>/ shows up in
+    // the MP3 grid and is selectable as a theme box.
+    if (hasSd) {
+        char demoPath[8];
+        snprintf(demoPath, sizeof(demoPath), "/%03u", Globals::demoDir);
+        if (SD.exists(demoPath)) {
+            SDBoot::requestSyncDir(Globals::demoDir);
+        }
+    }
+
     PL("[Boot] \xE2\x9C\x93 Boot");
 }

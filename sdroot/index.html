@@ -8,7 +8,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kwal</title>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css?v=260605D">
   <link rel="icon" href="/favicon.ico">
 </head>
 
@@ -85,10 +85,17 @@
     </div>
 
     <footer>
-      <div class="footer-left">
-        <button id="btnTvMode" class="btn-tv">📺 TV</button>
-        <input type="range" id="tvHours" min="1" max="12" value="4" step="1">
-        <span id="tvHoursLabel">4 uur</span>
+      <div class="footer-stack">
+        <div class="footer-left">
+          <button id="btnTvMode" class="btn-tv">📺 TV</button>
+          <input type="range" id="tvHours" min="1" max="12" value="4" step="1">
+          <span id="tvHoursLabel">4 uur</span>
+        </div>
+        <div class="footer-left">
+          <button id="btnDemo" class="btn-demo" title="Demo">🎬 Demo</button>
+          <input type="range" id="demoDur" class="slider-yellow" min="30" max="600" value="180" step="30">
+          <span id="demoDurLabel">180 s</span>
+        </div>
       </div>
       <button id="dev-btn">⚙</button>
     </footer>
@@ -379,7 +386,7 @@
     </div>
   </div>
 
-  <script src="kwal.js?v=260412A"></script>
+  <script src="kwal.js?v=260605D"></script>
 </body>
 
 </html>

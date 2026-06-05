@@ -14,6 +14,7 @@
 #include "LightController.h"
 #include "SDController.h"
 #include "RunManager.h"
+#include "Demo/DemoRun.h"
 #include "SDVoting.h"
 #include "Alert/AlertState.h"
 #include "Light/LightRun.h"
@@ -177,6 +178,30 @@ void routeExitTvMode(AsyncWebServerRequest *request)
     sendJson(request, F("{\"active\":false}"));
 }
 
+void routeStartDemo(AsyncWebServerRequest *request)
+{
+    if (Globals::demoActive) {
+        sendJson(request, F("{\"active\":true}"));
+        return;
+    }
+    uint32_t duration = Globals::demoTotalMs;
+    if (request->hasParam("duration")) {
+        duration = static_cast<uint32_t>(
+            request->getParam("duration")->value().toInt());
+    }
+    if (duration < 30000UL)  duration = 30000UL;
+    if (duration > 900000UL) duration = 900000UL;
+    Globals::demoTotalMs = duration;
+    DemoRun::start();
+    sendJson(request, F("{\"active\":true}"));
+}
+
+void routeStopDemo(AsyncWebServerRequest *request)
+{
+    if (Globals::demoActive) DemoRun::stop();
+    sendJson(request, F("{\"active\":false}"));
+}
+
 } // namespace
 
 void beginWebInterface()
@@ -192,6 +217,8 @@ void beginWebInterface()
     server.on("/getBrightness", HTTP_GET, routeGetBrightness);
     server.on("/api/tvmode", HTTP_GET, routeEnterTvMode);
     server.on("/api/tvstop", HTTP_GET, routeExitTvMode);
+    server.on("/api/demomode", HTTP_GET, routeStartDemo);
+    server.on("/api/demostop", HTTP_GET, routeStopDemo);
 
     // Attach route modules
     AudioRoutes::attachRoutes(server);

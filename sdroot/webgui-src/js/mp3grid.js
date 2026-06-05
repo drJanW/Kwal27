@@ -47,25 +47,20 @@ Kwal.mp3grid = (function() {
     // Per-dir: colored bar proportional to fileCount
     for (var r = 0; r < ROWS; r++) {
       var bid = dirBox[r];
-      if (!bid) continue;
-      var box = boxById[bid];
-      if (!box) continue;
-      var rgb = hexToRgb(box.color);
-      var y = r * CELL;
+      var box = bid ? boxById[bid] : null;
       var fc = dirFileCount[r];
+      if (fc <= 0) continue;
+      var y = r * CELL;
+      var barW = Math.min(fc, COLS) * CELL;
+      var rgb = box ? hexToRgb(box.color) : { r: 136, g: 136, b: 136 };
 
       // Fill bar: width proportional to fileCount (max COLS)
-      var barW = fc > 0 ? Math.min(fc, COLS) * CELL : 0;
-      if (barW > 0) {
-        ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0.35)';
-        ctx.fillRect(0, y, barW, CELL);
-      }
+      ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0.35)';
+      ctx.fillRect(0, y, barW, CELL);
 
       // Category line: 1px horizontal, same width as bar
-      if (barW > 0) {
-        ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0.95)';
-        ctx.fillRect(0, y + 1, barW, 1);
-      }
+      ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0.95)';
+      ctx.fillRect(0, y + 1, barW, 1);
     }
 
     // Vertical gridlines
