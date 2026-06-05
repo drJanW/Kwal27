@@ -1,6 +1,6 @@
 /**
  * @file    demo.js
- * @version 260605A
+ * @version 260605B
  * @date    2026-06-05
  *
  * Kwal - Demo controls (31-chapter showcase)
@@ -11,6 +11,7 @@
     const btn    = document.getElementById('btnDemo');
     if (!slider || !label || !btn) return;
 
+    label.textContent = slider.value + ' s';
     slider.addEventListener('input', function() {
         label.textContent = this.value + ' s';
     });
@@ -31,7 +32,7 @@
     }
 
     function startDemo() {
-        const seconds = parseInt(slider.value, 10) || 180;
+        const seconds = parseInt(slider.value, 10) || parseInt(slider.min, 10) || 300;
         const ms = seconds * 1000;
         if (!confirm('Start demo (' + seconds + ' s)?')) return;
         fetch('/api/demomode?duration=' + ms)

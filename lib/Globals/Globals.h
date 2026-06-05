@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260605A"
+#define FIRMWARE_VERSION_CODE "260605S"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -316,3 +316,4 @@ inline T getMux(const std::atomic<T>* ptr) {
 
 using MathUtils::clamp;
 using MathUtils::map;
+

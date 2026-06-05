@@ -1,8 +1,8 @@
 /**
  * @file ShiftTable.cpp
  * @brief LED parameter shift storage implementation
- * @version 260314B
- * @date 2026-03-14
+ * @version 260605B
+ * @date 2026-06-05
  */
 #include <Arduino.h>
 #include "ShiftTable.h"
@@ -82,7 +82,11 @@ bool ShiftTable::parseStatusString(const String& s, uint8_t& out) {
     if (s == "isWaxing")    { out = STATUS_WAXING; return true; }
     if (s == "isFullMoon")  { out = STATUS_FULL_MOON; return true; }
     if (s == "isWaning")    { out = STATUS_WANING; return true; }
-    
+
+    // Demo shift override bits
+    if (s == "shiftDemoPattern") { out = STATUS_DEMO_PAT_SHIFT; return true; }
+    if (s == "shiftDemoColors")  { out = STATUS_DEMO_COL_SHIFT; return true; }
+
     return false;
 }
 

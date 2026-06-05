@@ -1,8 +1,8 @@
 /**
  * @file StatusFlags.h
  * @brief Hardware failure bits and status tracking interface
- * @version 260215B
- * @date 2026-02-15
+ * @version 260605B
+ * @date 2026-06-05
  */
 #pragma once
 
@@ -25,5 +25,8 @@ uint64_t getMoonPhaseBits();    // NewMoon, Waxing, FullMoon, Waning
 uint64_t getHardwareFailBits(); // SD, WiFi, RTC, NTP, sensors
 uint64_t getTemperatureShiftBits();
 float getTemperatureSwing();
+
+// Demo override bits (set by DemoRun; OR'd into getFullStatusBits)
+void setDemoBit(uint8_t bit, bool on);
 
 } // namespace StatusFlags

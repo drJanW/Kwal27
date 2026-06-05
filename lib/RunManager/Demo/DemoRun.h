@@ -1,8 +1,8 @@
 /**
  * @file DemoRun.h
  * @brief 31-chapter demonstration orchestrator (Kwal2 v1.0 demo)
- * @version 260604E
- * @date 2026-06-04
+ * @version 260605C
+ * @date 2026-06-05
  *
  * Plays the full Kwal demo: per chapter TTS narration (from /<demoDir>/),
  * then a music/sfx fragment from the same dir, while driving pattern+colors.

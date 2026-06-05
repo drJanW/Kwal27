@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260605D - Built 2026-06-05 12:37
+ * Kwal WebGUI v260605D - Built 2026-06-05 20:56
  */
 
 // === js/namespace.js ===
@@ -3284,7 +3284,7 @@ Kwal.mp3grid = (function() {
 // === js/demo.js ===
 /**
  * @file    demo.js
- * @version 260605A
+ * @version 260605B
  * @date    2026-06-05
  *
  * Kwal - Demo controls (31-chapter showcase)
@@ -3295,6 +3295,7 @@ Kwal.mp3grid = (function() {
     const btn    = document.getElementById('btnDemo');
     if (!slider || !label || !btn) return;
 
+    label.textContent = slider.value + ' s';
     slider.addEventListener('input', function() {
         label.textContent = this.value + ' s';
     });
@@ -3315,7 +3316,7 @@ Kwal.mp3grid = (function() {
     }
 
     function startDemo() {
-        const seconds = parseInt(slider.value, 10) || 180;
+        const seconds = parseInt(slider.value, 10) || parseInt(slider.min, 10) || 300;
         const ms = seconds * 1000;
         if (!confirm('Start demo (' + seconds + ' s)?')) return;
         fetch('/api/demomode?duration=' + ms)

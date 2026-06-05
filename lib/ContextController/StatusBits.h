@@ -3,8 +3,8 @@
 /**
  * @file StatusBits.h
  * @brief StatusBits implementation
- * @version 260205A
- $12026-02-11
+ * @version 260605B
+ * @date 2026-06-05
  */
 #include <stdint.h>
 
@@ -67,8 +67,12 @@ enum TimeStatus : uint8_t {
 
     // Temperature shift flag (RTC temperature-based)
     STATUS_TEMPERATURE_SHIFT,
-    
-    STATUS_COUNT        // Must be < 64 for uint64_t bitmask
+
+    // Demo mode override bits (set by DemoRun, cleared on stop)
+    STATUS_DEMO_PAT_SHIFT = 60,
+    STATUS_DEMO_COL_SHIFT = 61,
+
+    STATUS_COUNT = 62   // Must be < 64 for uint64_t bitmask
 };
 
 // Color parameters for shift system

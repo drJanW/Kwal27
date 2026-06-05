@@ -32,3 +32,5 @@ isNewMoon;3;-2;3;-2;-3
 isWaxing;1;1;1;1;1
 isFullMoon;-3;3;-3;3;3
 isWaning;-2;-1;-2;-1;-1
+shiftDemoPattern;0;0;0;0;0
+shiftDemoColors;30;15;-30;-10;0

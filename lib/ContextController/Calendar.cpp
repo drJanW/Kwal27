@@ -1,8 +1,8 @@
 /**
  * @file Calendar.cpp
  * @brief Calendar day structure and parsing implementation
- * @version 260216H
- * @date 2026-02-16
+ * @version 260605C
+ * @date 2026-06-05
  */
 #include <Arduino.h>
 #include "Calendar.h"
@@ -160,6 +160,102 @@ bool CalendarSelector::loadCalendarRow(uint16_t year, uint8_t month, uint8_t day
 
 	file.close();
 	return false;
+}
+
+static void incrementDay(uint16_t& y, uint8_t& m, uint8_t& d) {
+    static const uint8_t dim[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+    uint8_t maxD = dim[m - 1];
+    if (m == 2 && (y % 4 == 0 && (y % 100 != 0 || y % 400 == 0))) maxD = 29;
+    if (++d > maxD) { d = 1; if (++m > 12) { m = 1; y++; } }
+}
+
+static int32_t toJulian(uint16_t y, uint8_t m, uint8_t d) {
+    int a = (14 - m) / 12;
+    int yy = y + 4800 - a;
+    int mm = m + 12 * a - 3;
+    return d + (153 * mm + 2) / 5 + 365 * yy + yy / 4 - yy / 100 + yy / 400 - 32045;
+}
+
+bool CalendarSelector::refreshNextEvent(uint16_t year, uint8_t month, uint8_t day) {
+    nextEvent_.valid = false;
+    if (!ready_ || !fs_) return false;
+
+    const String csvPath = pathFor(calendarFile);
+    File file = fs_->open(csvPath.c_str(), FILE_READ);
+    if (!file) return false;
+
+    int32_t todayJ = toJulian(year, month, day);
+    int32_t bestDays = INT32_MAX;
+    CalendarEntry bestEntry{};
+
+    String line;
+    std::vector<String> columns;
+    columns.reserve(10);
+    bool headerSkipped = false;
+
+    while (csv::readLine(file, line)) {
+        if (line.isEmpty() || line.charAt(0) == '#') continue;
+        if (!headerSkipped) {
+            headerSkipped = true;
+            if (line.startsWith(F("year"))) continue;
+        }
+        csv::splitColumns(line, columns);
+        CalendarCsvRow row;
+        if (!ParseCalendarCsvRow(columns, row)) continue;
+        int32_t eventJ = toJulian(row.year, row.month, row.day);
+        int32_t diff = eventJ - todayJ;
+        if (diff < 0 || diff > 730) continue;
+        if (diff >= bestDays) continue;
+        bestDays = diff;
+        bestEntry.valid          = true;
+        bestEntry.year           = row.year;
+        bestEntry.month          = row.month;
+        bestEntry.day            = row.day;
+        bestEntry.ttsSentence    = row.sentence;
+        bestEntry.themeBoxId     = row.themeBoxId;
+        bestEntry.patternId      = row.patternId;
+        bestEntry.colorId        = row.colorId;
+    }
+    file.close();
+
+    if (!bestEntry.valid) return false;
+    nextEvent_.valid         = true;
+    nextEvent_.year          = bestEntry.year;
+    nextEvent_.month         = bestEntry.month;
+    nextEvent_.day           = bestEntry.day;
+    nextEvent_.daysFromToday = static_cast<uint16_t>(bestDays);
+    nextEvent_.ttsSentence   = bestEntry.ttsSentence;
+    nextEvent_.themeBoxId    = bestEntry.themeBoxId;
+    nextEvent_.patternId     = bestEntry.patternId;
+    nextEvent_.colorId       = bestEntry.colorId;
+    return true;
+}
+
+bool CalendarSelector::getNextEvent(NextEventInfo& out) const {
+    if (!nextEvent_.valid) return false;
+    out = nextEvent_;
+    return true;
+}
+
+void CalendarSelector::clearNextEvent() {
+    nextEvent_.valid = false;
+}
+
+bool CalendarSelector::findNextEvent(uint16_t year, uint8_t month, uint8_t day,
+                                     uint8_t maxDays, CalendarEntry& nextOut,
+                                     uint8_t& daysAhead) const {
+    if (!ready_ || !fs_) return false;
+    uint16_t y = year; uint8_t mo = month, d = day;
+    for (uint8_t i = 1; i <= maxDays; i++) {
+        incrementDay(y, mo, d);
+        CalendarEntry e{};
+        if (const_cast<CalendarSelector*>(this)->loadCalendarRow(y, mo, d, e)) {
+            nextOut   = e;
+            daysAhead = i;
+            return true;
+        }
+    }
+    return false;
 }
 
 bool CalendarSelector::loadThemeBox(uint8_t id, CalendarThemeBox& out) {

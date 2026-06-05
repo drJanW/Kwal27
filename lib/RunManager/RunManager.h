@@ -32,6 +32,7 @@ public:
     static void requestSayTime(TimeStyle style = TimeStyle::NORMAL);
     static void requestSayRTCtemperature();
     static void requestSetAudioLevel(float value);
+    static void requestSetDemoVolume();  // max volume for demo, no web expiry
     static void requestSetAudioIntervals(
         uint32_t speakMinMs, uint32_t speakMaxMs, bool hasSpeakRange,
         uint32_t fragMinMs,  uint32_t fragMaxMs,  bool hasFragRange,

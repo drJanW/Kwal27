@@ -1,8 +1,8 @@
 /**
  * @file StatusFlags.cpp
  * @brief Hardware failure bits and status tracking implementation
- * @version 260215B
- * @date 2026-02-15
+ * @version 260605B
+ * @date 2026-06-05
  */
 #include <Arduino.h>
 #include "StatusFlags.h"
@@ -15,6 +15,13 @@
 #include "HWconfig.h"
 
 namespace StatusFlags {
+
+static uint64_t demoOverrideBits_ = 0;
+
+void setDemoBit(uint8_t bit, bool on) {
+    if (on) demoOverrideBits_ |=  (1ULL << bit);
+    else    demoOverrideBits_ &= ~(1ULL << bit);
+}
 
 // ============================================================
 // Season detection (based on month, Northern Hemisphere)
@@ -195,7 +202,8 @@ uint64_t getFullStatusBits() {
     bits |= getTemperatureShiftBits();
     bits |= getMoonPhaseBits();
     bits |= getHardwareFailBits();
-    
+    bits |= demoOverrideBits_;
+
     return bits;
 }
 

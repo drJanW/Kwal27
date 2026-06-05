@@ -1,8 +1,8 @@
 /**
  * @file TtsTodoQueue.h
  * @brief Self-consuming TTS render-queue from SD card
- * @version 260604C
- * @date 2026-06-04
+ * @version 260605B
+ * @date 2026-06-05
  *
  * Reads /tts_todo.csv at boot, renders each line via VoiceRSS to a
  * caller-specified SD location (/<dir>/<file>.mp3), then atomically
@@ -32,5 +32,9 @@ namespace TtsTodoQueue {
 /// when SD + WiFi are available. Does nothing if the queue file is
 /// missing or empty.
 void plan();
+
+/// Start the queue immediately (skip boot delay). Idempotent.
+/// Call from DemoRun::start() after appending live-TTS lines.
+void startNow();
 
 }  // namespace TtsTodoQueue

@@ -13,7 +13,7 @@
 #include "AudioState.h"
 #include "MathUtils.h"
 #include "TimerManager.h"
-#include "TvShow.h"
+#include "RingRenderer.h"
 
 LightController lightController;
 
@@ -88,14 +88,16 @@ static void cb_yPhase() { yPhase++; }
 
 // === Update ===
 void updateLightController() {
-  if (Globals::tvMode) { updateTvShow(); return; }
+  if (Globals::tvMode) { renderRings(); return; }
 
   applyBrightness();
 
-  // Spectrum (pattern #32) — 6 rings, evenly-spaced gradient samples, scrolling.
-  // Reuses the existing colorPhase tick + colorGradient[]; no extra state.
+  // Spectrum (pattern #32) — 6 rings, evenly-spaced hue sweep, scrolling.
+  // Uses full HSV rainbow (hue 0-255) so each ring shows a clearly distinct color.
   if (showParams.id == 32) {
-    generateColorGradient(showParams.RGB1, showParams.RGB2, colorGradient, GRADIENT_SIZE);
+    for (int i = 0; i < GRADIENT_SIZE; i++) {
+      colorGradient[i] = CHSV(i, 255, 255);
+    }
     renderSpectrum(colorGradient, colorPhase, getBrightnessBaseHi());
     FastLED.show();
     return;

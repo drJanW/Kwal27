@@ -1,8 +1,8 @@
 /**
  * @file Calendar.h
  * @brief Calendar day structure and parsing interface
- * @version 260216H
- * @date 2026-02-16
+ * @version 260605C
+ * @date 2026-06-05
  */
 #pragma once
 
@@ -36,6 +36,18 @@ struct CalendarData {
 	CalendarThemeBox theme;
 };
 
+struct NextEventInfo {
+	bool      valid{false};
+	uint16_t  year{0};
+	uint8_t   month{0};
+	uint8_t   day{0};
+	uint16_t  daysFromToday{0};
+	String    ttsSentence;
+	uint8_t   themeBoxId{0};
+	uint8_t   patternId{0};
+	uint8_t   colorId{0};
+};
+
 class CalendarSelector {
 public:
 	bool begin(fs::FS& sd, const char* rootPath = "/");
@@ -44,6 +56,16 @@ public:
 	bool hasCalendarData() const;
 	bool isReady() const;
 	void clear();
+
+	// Scan forward up to maxDays to find the next calendar entry.
+	// Returns true if found; daysAhead = number of days from the given date.
+	bool findNextEvent(uint16_t year, uint8_t month, uint8_t day,
+	                   uint8_t maxDays, CalendarEntry& nextOut, uint8_t& daysAhead) const;
+
+	// Next-event cache (RAM only, no SD I/O after refresh)
+	bool refreshNextEvent(uint16_t year, uint8_t month, uint8_t day);
+	bool getNextEvent(NextEventInfo& out) const;
+	void clearNextEvent();
 
 private:
 	bool loadCalendarRow(uint16_t year, uint8_t month, uint8_t day, CalendarEntry& out);
@@ -54,6 +76,7 @@ private:
 	fs::FS* fs_{nullptr};
 	String root_{"/"};
 	CalendarData data_{};
+	NextEventInfo nextEvent_{};
 	bool ready_{false};
 	bool hasData_{false};
 };

@@ -1,8 +1,8 @@
 /**
  * @file CalendarRun.cpp
  * @brief Calendar state management implementation
- * @version 260409K
- * @date 2026-04-09
+ * @version 260605C
+ * @date 2026-06-05
  */
 #include <Arduino.h>
 #include "CalendarRun.h"
@@ -189,6 +189,7 @@ void CalendarRun::cb_loadCalendar() {
     SDController::lockSD();
     calendarLoaded = calendarSelector.loadToday(year, month, day);
     SDController::unlockSD();
+    if (calendarLoaded) calendarSelector.refreshNextEvent(year, month, day);
   }
 
   if (!calendarLoaded) {
@@ -197,6 +198,7 @@ void CalendarRun::cb_loadCalendar() {
     LightRun::applyPattern(0);
     LightRun::applyColor(0);
     clearTodayStateRead();
+    calendarSelector.refreshNextEvent(year, month, day);
     AlertState::setCalendarStatus(true);  // OK - no special day
     AlertRun::playWelcomeIfPending();
     RunManager::triggerBootFragment();  // Theme box set, play first fragment

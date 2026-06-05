@@ -241,6 +241,8 @@ void LightRun::cb_shiftTimer() {
 }
 
 void LightRun::cb_luxMeasure() {
+    // Block lux measurement during demo — prevents sensor from dimming lights
+    if (Globals::demoActive) return;
     // Skip if no lux sensor present (preserves boot default brightness)
     if (!AlertState::isLuxSensorOk()) return;
     if (brightnessFading) return;  // Guard: fade already in progress
@@ -876,6 +878,7 @@ bool LightRun::isPnfCalibrating() {
 }
 
 void LightRun::cb_changeColor() {
+    if (Globals::demoActive) return;
     if (colorSource != LightSource::MANUAL) {
         ColorsCatalog& colCat = getColorsCatalog();
         if (colCat.selectRandomColor()) {
@@ -888,6 +891,7 @@ void LightRun::cb_changeColor() {
 }
 
 void LightRun::cb_changePattern() {
+    if (Globals::demoActive) return;
     if (patternSource != LightSource::MANUAL) {
         PatternCatalog& patCat = getPatternCatalog();
         if (patCat.selectRandom()) {

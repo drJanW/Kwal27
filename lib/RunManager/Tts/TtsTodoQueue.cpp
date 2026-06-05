@@ -1,8 +1,8 @@
 /**
  * @file TtsTodoQueue.cpp
  * @brief Self-consuming TTS render-queue from SD card
- * @version 260604E
- * @date 2026-06-04
+ * @version 260605B
+ * @date 2026-06-05
  *
  * Implementation of plan() / cb_ttsTodoBoot / cb_ttsTodoNext.
  * See TtsTodoQueue.h and docs/pseudo_ttsqueue.md.
@@ -230,9 +230,8 @@ void cb_ttsTodoNext() {
         pl.text, pl.voice, pl.tempo, pl.file, pl.dir);
 
     if (durationMs == 0) {
-        PL("[TTS-Q] render failed (network/SD), retry next boot");
-        timers.cancel(cb_ttsTodoNext);
-        return;
+        PL("[TTS-Q] render failed (network/SD), retrying");
+        return;  // infinite timer retries automatically
     }
 
     if (!commentOutFirstActiveLine()) {
@@ -283,6 +282,11 @@ namespace TtsTodoQueue {
 void plan() {
     // Deferred boot scan — give WiFi + SD time to stabilize after verdict
     timers.create(BOOT_DELAY_MS, 1, cb_ttsTodoBoot);
+}
+
+void startNow() {
+    timers.cancel(cb_ttsTodoBoot);  // annuleer eventuele lopende boot-delay
+    cb_ttsTodoBoot();               // direct uitvoeren
 }
 
 }  // namespace TtsTodoQueue

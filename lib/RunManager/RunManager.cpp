@@ -10,7 +10,7 @@
 #include <SD.h>
 #include <WiFi.h>
 #include "LightController.h"
-#include "TvShow.h"
+#include "RingRenderer.h"
 #include "TimerManager.h"
 #include "SensorController.h"
 #include "RunManager.h"
@@ -628,6 +628,12 @@ void RunManager::requestSayRTCtemperature() {
     AudioPolicy::requestSentence(sentence);
 }
 
+void RunManager::requestSetDemoVolume() {
+    float shiftedHi = getVolumeShiftedHi();
+    float mult = (shiftedHi > 0.0f) ? (Globals::volumeHi / shiftedHi) : 1.0f;
+    audio.setVolumeWebMultiplier(mult);  // direct, no expiry timer
+}
+
 float pendingAudioLevel = 1.0f;
 void cb_applyAudioLevel();
 
@@ -794,9 +800,9 @@ void cb_tvTimeout() {
 }
 
 void cb_tvScene() {
-    TvZoneTarget targets[TV_ZONES];
+    RingTarget targets[RING_COUNT];
 
-    for (int z = 0; z < TV_ZONES; z++) {
+    for (int z = 0; z < RING_COUNT; z++) {
         CRGB color;
         uint8_t bri;
         bool instant = (random(100) < 35);  // 35% hard cut
@@ -824,7 +830,7 @@ void cb_tvScene() {
         targets[z].instant    = instant;
     }
 
-    setTvZoneTargets(targets);
+    setRingTargets(targets);
     timers.restart(random(100, 900), 1, cb_tvScene);
 }
 
