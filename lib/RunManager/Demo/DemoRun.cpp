@@ -1,9 +1,9 @@
 /**
  * @file DemoRun.cpp
  * @brief 31-chapter demo orchestrator
- * @version 260607B
+ * @version 260607F
  * @date 2026-06-07
- *
+ * this demo is a fuck up by copilot-new-style - it costed >$120 to create this mess
  * Per chapter (3-step state machine):
  *   Step 0: lux-check + set pattern/colors + start TTS, schedule lightChange
  *           at LIGHT_DELAY_BASE_MS after TTS start.
@@ -38,6 +38,7 @@
 #include "LightController.h"
 #include "RingRenderer.h"
 #include "WebGuiStatus.h"
+#include "PRTClock.h"
 #include <FastLED.h>
 
 namespace {
@@ -68,27 +69,22 @@ struct Chapter {
 static const Chapter chapters[] = {
     // tts  aud   audMs  pat  col  flags                          maxLux
     {  1,  51,  5000,    0,   0, CF_NONE,                            253},  // 01 witte flitsen
-    {  2,  52,  5000,    2,  30, CF_NONE,                            253},  // 02 welkom (Emerald Isle)
+    {  2,  52,  5000,   26,  30, CF_NONE,                            253},  // 02 welkom (Emerald Isle)
     {  3,  53,  5000,   27,   2, CF_NONE,                            253},  // 03 blauwe ringen
-    {  4,  54,  5000,   27,  40, CF_NONE,                            253},  // 04 witte ringen
-    {  5,  55,  5000,    9,  34, CF_NONE,                            253},  // 05 blauw-in-wit (Gentle Waves)
+//    {  4,  54,  5000,   27,  40, CF_NONE,                            253},  // 04 witte ringen
+//    {  5,  55,  5000,    9,  34, CF_NONE,                            253},  // 05 blauw-in-wit (Gentle Waves)
     {  6,  56,  8000,    0,   0, CF_RING_SCENE,                      253},  // 06 extreem zappa
-    {  7,  57,  8000,    0,   0, CF_RING_SCENE,                      253},  // 07 kermis
-    {  8,  58,  8000,    3,  13, CF_NONE,                            253},  // 08 disco (Magenta Dream)
+    {  8,  58,  8000,    3,  38, CF_NONE,                            253},  // 08 disco (Magenta Dream)
     {  9,  59, 30000,   32,  32, CF_NONE,                            253},  // 09 spectrum
-    {  0,   0,  2000,    0,   0, CF_NONE,                            253},  // 10 placeholder (skip)
     { 11,  61,  8000,    7,  41, CF_NONE,                            253},  // 11 lounge (Radiant Glow)
-    { 12,  62,  8000,    2,   2, CF_NONE,                            253},  // 12 ademen
     { 13,  63,  8000,   27,  25, CF_NONE,                            253},  // 13 noorderlicht
-    { 14,  64,  8000,    7,  22, CF_NONE,                            253},  // 14 gloed (Amber Light)
-    { 15,  65,  8000,    8,  37, CF_NONE,                            253},  // 15 sterren (Sky Blue)
+    { 15,  65,  8000,   28,   8, CF_NONE,                            253},  // 15 sterren (Sky Blue)
     { 16,  66,  8000,    5,  38, CF_NONE,                            253},  // 16 rust (Plum Purple)
     { 17,  86,  3000,    5,  18, CF_LIVE_TTS,                          0},  // 17 tijd (Golden Glow)
     { 18,  87,  3000,    7,   0, CF_LIVE_TTS|CF_DYN_COLOR,             0},  // 18 kamer-temp
     { 19,  88,  4000,    1,   0, CF_LIVE_TTS|CF_DYN_COLOR,             0},  // 19 zon
     { 20,  89,  3000,    5,  16, CF_LIVE_TTS,                        253},  // 20 maan (Lavender Mist)
-    { 21,  90,  4000,    0,   0, CF_LIVE_TTS|CF_DYN_COLOR|CF_DYN_PATTERN, 253},  // 21 kalender
-    { 29,   0,  5000,    0,   0, CF_TV_START,                        253},  // 22 TV-sim: 45s
+    { 29,  79,  5000,    0,   0, CF_TV_START,                        253},  // 22 TV-sim: 20s
     { 30,  80,  6000,   28,   5, CF_NONE,                            253},  // 23 vuurwerk
     { 31,  81,  8000,    2,  10, CF_NONE,                            253},  // 24 afscheid
 };
@@ -197,10 +193,9 @@ uint8_t selectColorForTemp(float tempC) {
 }
 
 uint8_t selectColorForDaypart(const ContextController::TimeState& t) {
-    int nowMins     = t.hour * 60 + t.minute;
-    int sunriseMins = t.sunriseHour * 60 + t.sunriseMinute;
-    int sunsetMins  = t.sunsetHour  * 60 + t.sunsetMinute;
-    if (sunriseMins == 0 && sunsetMins == 0) return 5;  // no data → Sunny Yellow
+    int nowMins     = prtClock.getHour() * 60 + prtClock.getMinute();
+    int sunriseMins = prtClock.getSunriseHour() * 60 + prtClock.getSunriseMinute();
+    int sunsetMins  = prtClock.getSunsetHour()  * 60 + prtClock.getSunsetMinute();
     if (nowMins < sunriseMins)         return 11;  // Midnight Blue
     if (nowMins < sunriseMins + 90)    return 31;  // Sunrise Pink
     if (nowMins < sunsetMins  - 60)    return  5;  // Sunny Yellow
@@ -234,7 +229,7 @@ void appendLiveTtsLines() {
     // 17 tijd
     snprintf(buf, sizeof(buf),
         "Bram; -1; 99; 150; 86; het is nu %u uur %u",
-        t.hour, t.minute);
+        prtClock.getHour(), prtClock.getMinute());
     appendCsvLine(buf);
 
     // 18 buiten-temp (via weather fetch)
@@ -249,21 +244,16 @@ void appendLiveTtsLines() {
     }
     appendCsvLine(buf);
 
-    // 19 zon — skip chapter als sunrise niet beschikbaar
-    if (t.sunriseHour == 0 && t.sunriseMinute == 0 &&
-        t.sunsetHour  == 0 && t.sunsetMinute  == 0) {
-        // geen data: geen regel toevoegen; ch19 wordt later geskipt via missing-file check
-    } else {
-        snprintf(buf, sizeof(buf),
-            "Bram; -1; 99; 150; 88; de zon kwam vanmorgen om %u uur %u op en gaat onder om %u uur %u",
-            t.sunriseHour, t.sunriseMinute, t.sunsetHour, t.sunsetMinute);
-        appendCsvLine(buf);
-    }
+    // 19 zon
+    snprintf(buf, sizeof(buf),
+        "Bram; -1; 99; 150; 88; de zon kwam vanmorgen om %u uur %u op en gaat onder om %u uur %u",
+        prtClock.getSunriseHour(), prtClock.getSunriseMinute(), prtClock.getSunsetHour(), prtClock.getSunsetMinute());
+    appendCsvLine(buf);
 
     // 20 maan
     snprintf(buf, sizeof(buf),
         "Bram; -1; 99; 150; 89; vanavond zien we een %s maan",
-        moonPhaseWord(t.moonPhase));
+        moonPhaseWord(prtClock.getMoonPhaseValue()));
     appendCsvLine(buf);
 
     // 21 kalender — gebruik gecachede next event van calendarSelector
@@ -312,9 +302,9 @@ void cb_demoLightChange() {
         FastLED.setBrightness(Globals::tvMaxBrightness);
         demoRingActive_    = true;
         ringHue_           = 0;
-        if (Globals::demoChapterIdx == 5) {  // ch06 zappa
+        if (ch.ttsFile == 6) {  // ch06 zappa
             timers.create(120, 0, cb_demoRingCh06);
-        } else if (Globals::demoChapterIdx == 6) {  // ch07 kermis
+        } else if (ch.ttsFile == 7) {  // ch07 kermis
             timers.create(80, 0, cb_demoThunder);
         }
         return;
@@ -330,12 +320,12 @@ void cb_demoLightChange() {
 
     if (ch.flags & CF_DYN_COLOR) {
         const auto& t = ContextController::time();
-        if (Globals::demoChapterIdx == 17) {  // ch18
+        if (ch.ttsFile == 18) {  // ch18: kamer-temp
             float avg = t.hasWeather ? (t.weatherMinC + t.weatherMaxC) / 2.0f : 15.0f;
             col = selectColorForTemp(avg);
-        } else if (Globals::demoChapterIdx == 18) {  // ch19
+        } else if (ch.ttsFile == 19) {  // ch19: zon
             col = selectColorForDaypart(t);
-        } else if (Globals::demoChapterIdx == 20) {  // ch21: today → today's colors, else next event's colors
+        } else if (ch.ttsFile == 21) {  // ch21: kalender (today → today's colors, else next event's colors)
             const CalendarData& cal = calendarSelector.calendarData();
             if (cal.valid && cal.day.valid && cal.day.colorId != 0) {
                 col = cal.day.colorId;
@@ -375,7 +365,7 @@ void cb_demoStep1() {
     const Chapter& ch = chapters[Globals::demoChapterIdx];
 
     // Ch1: flash renderer instead of audio
-    if (Globals::demoChapterIdx == 0) {
+    if (ch.ttsFile == 1) {
         startFlashSequence(5);
         uint32_t waitMs = scaledAudioMs(ch.audioMaxMs);
         if (waitMs < MIN_STEP_MS) waitMs = MIN_STEP_MS;
@@ -384,7 +374,7 @@ void cb_demoStep1() {
     }
 
     if (ch.audioFile == 0) {
-        // ch29 (CF_TV_START) schedules cb_demoStep2 itself via 45s timer — don't double-schedule
+        // ch29 (CF_TV_START) schedules cb_demoStep2 itself via 20s timer — don't double-schedule
         if (!(ch.flags & CF_TV_START)) {
             timers.create(MIN_STEP_MS, 1, cb_demoStep2);
         }
@@ -456,11 +446,11 @@ void startStep0() {
 
     const Chapter& ch = chapters[Globals::demoChapterIdx];
 
-    // TV-mode trigger (ch29): 45s demo-preview dan terug naar normale demo
+    // TV-mode trigger (ch29): 20s demo-preview dan terug naar normale demo
     if (ch.flags & CF_TV_START) {
-        PL("[Demo] tvMode preview (45s)");
+        PL("[Demo] tvMode preview (20s)");
         RunManager::enterTvMode(1);
-        timers.create(SECONDS(45), 1, cb_demoStep2, 1.0f, 2);  // token=2: anders dan step-advance token
+        timers.create(SECONDS(20), 1, cb_demoStep2, 1.0f, 2);  // token=2: anders dan step-advance token
         return;
     }
 
@@ -564,7 +554,7 @@ void stop() {
     timers.cancel(cb_demoLightChange);
     timers.cancel(cb_demoStep1);
     timers.cancel(cb_demoStep2);        // token=1 (chapter advance)
-    timers.cancel(cb_demoStep2, 2);     // token=2 (TV-sim 45s)
+    timers.cancel(cb_demoStep2, 2);     // token=2 (TV-sim 20s)
     timers.cancel(cb_demoFlash);
     timers.cancel(cb_demoRingCh06);
     timers.cancel(cb_demoFlash); timers.cancel(cb_demoThunder);
