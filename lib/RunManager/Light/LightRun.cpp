@@ -1,8 +1,8 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260313C
- * @date 2026-03-13
+ * @version 260607A
+ * @date 2026-06-07
  */
 #include "LightRun.h"
 
@@ -580,6 +580,12 @@ bool LightRun::previewPattern(JsonVariantConst body, String &errorMessage) {
         }
         PF("[LightRun] previewPattern reject: %s\n", errorMessage.c_str());
         return false;
+    }
+
+    if (obj.containsKey("id")) {
+        params.id = static_cast<uint8_t>(obj["id"].as<int>());
+    } else {
+        params.id = patternCatalog.getActiveParams().id;
     }
 
     // Parse colors from body.color

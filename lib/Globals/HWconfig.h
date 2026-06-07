@@ -1,8 +1,8 @@
 /**
  * @file HWconfig.h
  * @brief Hardware pin definitions and configuration
- * @version 260215B
- * @date 2026-02-15
+ * @version 260607A
+ * @date 2026-06-07
  */
 #pragma once
 
@@ -112,8 +112,8 @@
 #define LUX_MAX_LUX 800.0f    // Clamp ambient lux readings
 #define LUX_MIN_BASE 70       // Minimum base brightness (0-255)
 // ======================= Audio Configuration =======================
-#define MAX_VOLUME                    0.57f // Maximum audio output volume
-#define MAX_SPEAK_VOLUME_MULTIPLIER   1.5f  // Boot greeting volume multiplier (>2.0 clips VoiceRSS audio)
+#define MAX_VOLUME                    0.67f // Maximum audio output volume
+#define MAX_SPEAK_VOLUME_MULTIPLIER   1.7f  // Boot greeting volume multiplier (>2.0 clips VoiceRSS audio)
 
 
 

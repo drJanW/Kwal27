@@ -5,7 +5,7 @@
  * ║  Build:  cd webgui-src; .\build.ps1                           ║
  * ╚═══════════════════════════════════════════════════════════════╝
  *
- * Kwal WebGUI v260605D - Built 2026-06-05 20:56
+ * Kwal WebGUI v260607A - Built 2026-06-07 12:54
  */
 
 // === js/namespace.js ===
@@ -17,7 +17,7 @@
  * Kwal - Global namespace
  */
 var Kwal = Kwal || {};
-window.KWAL_JS_VERSION = '260605D';  // Injected by build.ps1
+window.KWAL_JS_VERSION = '260607A';  // Injected by build.ps1
 
 /**
  * Logarithmic slider mapping (power curve).
@@ -1161,10 +1161,12 @@ Kwal.pattern = (function() {
 
   function doPreview() {
     if (!currentParams) return;
+    var payload = { params: currentParams };
+    if (editingId) payload.id = editingId;
     fetch('/api/patterns/preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ params: currentParams })
+      body: JSON.stringify(payload)
     });
   }
 

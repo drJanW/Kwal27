@@ -1,7 +1,7 @@
 /**
  * @file    pattern.js
- * @version 260312A
- * @date    2026-03-12
+ * @version 260607A
+ * @date    2026-06-07
  *
  * Kwal - Pattern module
  * API: GET /api/patterns, POST /api/patterns/select, POST /api/patterns/preview
@@ -269,10 +269,12 @@ Kwal.pattern = (function() {
 
   function doPreview() {
     if (!currentParams) return;
+    var payload = { params: currentParams };
+    if (editingId) payload.id = editingId;
     fetch('/api/patterns/preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ params: currentParams })
+      body: JSON.stringify(payload)
     });
   }
 

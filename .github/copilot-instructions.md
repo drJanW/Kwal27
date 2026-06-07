@@ -12,7 +12,6 @@ ESP32 ambient art installation (jellyfish sculpture) with LED lights, audio play
    - **Per-file headers**: update `@version` and `@date` in every edited `.h`/`.cpp` Doxygen header
 2. **Never edit `sdroot/kwal.js`** — edit sources in `sdroot/webgui-src/js/*.js`, then run `build.ps1`.
 3. **Never run `pio` or `deploy.ps1`** — after firmware changes say **"Compileer Versie YYMMDDX"** (with the actual version code) and stop.
-4. **Never upload to 188 (MARMER)** — unless the user explicitly says so. HOUT (189) is the safe target.
 5. **Only TimerManager for timing** — no `millis()`, `delay()`, `esp_timer`, `Ticker`, or any other timing mechanism.
 6. **Web handlers: memory only** — no SD I/O, no network I/O, no blocking calls from a web handler. Defer work to timer callbacks.
 7. **Never run `upload_csv.ps1`** — CSV uploads are the user's responsibility.

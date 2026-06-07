@@ -1,8 +1,8 @@
 /**
  * @file LightController.cpp
  * @brief LED control implementation via FastLED library
- * @version 260604D
- * @date 2026-06-04
+ * @version 260607A
+ * @date 2026-06-07
  */
 #include <Arduino.h>
 #include "Globals.h"
@@ -140,7 +140,10 @@ void updateLightController() {
     float dy = pos.y - centerY;
     float dist = sqrtf(dx * dx + dy * dy);
 
-    float blend = MathUtils::clamp(fabsf(dist - animRadius) / showParams.fadeWidth, 0.0f, 1.0f);
+    float fw = showParams.fadeWidth;
+    if (fw < 0.001f) fw = 0.001f;
+
+    float blend = MathUtils::clamp(fabsf(dist - animRadius) / fw, 0.0f, 1.0f);
 
     float fade = 1.0f - blend;
     fade = fade * fade;

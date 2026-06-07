@@ -1,8 +1,8 @@
 /**
  * @file DemoRun.cpp
  * @brief 31-chapter demo orchestrator
- * @version 260605R
- * @date 2026-06-05
+ * @version 260607B
+ * @date 2026-06-07
  *
  * Per chapter (3-step state machine):
  *   Step 0: lux-check + set pattern/colors + start TTS, schedule lightChange

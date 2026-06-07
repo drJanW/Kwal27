@@ -1,8 +1,8 @@
 /**
  * @file RunManager.cpp
  * @brief Central run coordinator for all Kwal modules
- * @version 260409A
- * @date 2026-04-09
+ * @version 260607C
+ * @date 2026-06-07
  */
 #include <Arduino.h>
 #include <math.h>
@@ -337,7 +337,7 @@ void cb_sayRTCtemperature() {
 }
 
 void cb_playFragment() {
-    if (Globals::demoActive) {
+    if (Globals::demoActive && !Globals::tvMode) {
         // Demo orchestrator owns audio; reschedule far out
         timers.restart(SECONDS(30), 1, cb_playFragment);
         return;
