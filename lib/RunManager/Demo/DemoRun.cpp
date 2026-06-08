@@ -1,8 +1,8 @@
 /**
  * @file DemoRun.cpp
  * @brief 31-chapter demo orchestrator
- * @version 260607F
- * @date 2026-06-07
+ * @version 260608C
+ * @date 2026-06-08
  * this demo is a fuck up by copilot-new-style - it costed >$120 to create this mess
  * Per chapter (3-step state machine):
  *   Step 0: lux-check + set pattern/colors + start TTS, schedule lightChange
@@ -31,6 +31,7 @@
 #include "StatusFlags.h"
 #include "StatusBits.h"
 #include "Alert/AlertState.h"
+#include "Alert/AlertRGB.h"
 #include "RunManager.h"
 #include "AudioState.h"
 #include "HWconfig.h"
@@ -228,7 +229,7 @@ void appendLiveTtsLines() {
 
     // 17 tijd
     snprintf(buf, sizeof(buf),
-        "Bram; -1; 99; 150; 86; het is nu %u uur %u",
+        "NL; 1; -1; 150; 86; het is nu %u uur %u",
         prtClock.getHour(), prtClock.getMinute());
     appendCsvLine(buf);
 
@@ -236,23 +237,28 @@ void appendLiveTtsLines() {
     if (t.hasWeather) {
         float avg = (t.weatherMinC + t.weatherMaxC) / 2.0f;
         snprintf(buf, sizeof(buf),
-            "Bram; -1; 99; 150; 87; het is buiten %.0f graden",
+            "NL; 1; -1; 150; 87; het is buiten %.0f graden",
             avg);
     } else {
         snprintf(buf, sizeof(buf),
-            "Bram; -1; 99; 150; 87; de buitentemperatuur kan ik nu niet meten");
+            "NL; 1; -1; 150; 87; de buitentemperatuur kan ik nu niet meten");
     }
     appendCsvLine(buf);
 
-    // 19 zon
-    snprintf(buf, sizeof(buf),
-        "Bram; -1; 99; 150; 88; de zon kwam vanmorgen om %u uur %u op en gaat onder om %u uur %u",
-        prtClock.getSunriseHour(), prtClock.getSunriseMinute(), prtClock.getSunsetHour(), prtClock.getSunsetMinute());
-    appendCsvLine(buf);
+    // 19 zon — skip if sunrise not yet fetched
+    if (prtClock.getSunriseHour() == 0 && prtClock.getSunriseMinute() == 0) {
+        PL("[Demo] ch19 skip: sunrise not yet fetched");
+    } else {
+        snprintf(buf, sizeof(buf),
+            "NL; 1; -1; 150; 88; de zon kwam vanmorgen om %u uur %u op en gaat onder om %u uur %u",
+            prtClock.getSunriseHour(), prtClock.getSunriseMinute(),
+            prtClock.getSunsetHour(), prtClock.getSunsetMinute());
+        appendCsvLine(buf);
+    }
 
     // 20 maan
     snprintf(buf, sizeof(buf),
-        "Bram; -1; 99; 150; 89; vanavond zien we een %s maan",
+        "NL; 1; -1; 150; 89; vanavond zien we een %s maan",
         moonPhaseWord(prtClock.getMoonPhaseValue()));
     appendCsvLine(buf);
 
@@ -263,19 +269,19 @@ void appendLiveTtsLines() {
     bool hasNext = calendarSelector.getNextEvent(nxt);
     if (hasToday && hasNext && nxt.daysFromToday > 0) {
         snprintf(buf, sizeof(buf),
-            "Bram; -1; 99; 150; 90; vandaag is %s - de eerstvolgende bijzondere dag is over %u dagen",
+            "NL; 1; -1; 150; 90; vandaag is %s - de eerstvolgende bijzondere dag is over %u dagen",
             cal.day.ttsSentence.c_str(), nxt.daysFromToday);
     } else if (hasToday) {
         snprintf(buf, sizeof(buf),
-            "Bram; -1; 99; 150; 90; vandaag is %s",
+            "NL; 1; -1; 150; 90; vandaag is %s",
             cal.day.ttsSentence.c_str());
     } else if (hasNext && nxt.daysFromToday > 0) {
         snprintf(buf, sizeof(buf),
-            "Bram; -1; 99; 150; 90; vandaag is een gewone dag - de eerstvolgende bijzondere dag is over %u dagen",
+            "NL; 1; -1; 150; 90; vandaag is een gewone dag - de eerstvolgende bijzondere dag is over %u dagen",
             nxt.daysFromToday);
     } else {
         snprintf(buf, sizeof(buf),
-            "Bram; -1; 99; 150; 90; vandaag is een gewone dag in kwal's kalender");
+            "NL; 1; -1; 150; 90; vandaag is een gewone dag in kwal's kalender");
     }
     appendCsvLine(buf);
 }
@@ -512,6 +518,11 @@ namespace DemoRun {
 
 void start() {
     if (Globals::demoActive) return;
+
+    // Stop any running audio and error-flash before taking over lights/audio
+    RunManager::requestStopAudio();
+    AlertRGB::stopFlashing();
+
     Globals::demoActive     = true;
     Globals::demoChapterIdx = 0;
 
