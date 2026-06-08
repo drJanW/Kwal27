@@ -1,7 +1,7 @@
 /**
  * @file FetchController.cpp
  * @brief HTTP fetch for weather/sunrise APIs and NTP time
- * @version 260608F
+ * @version 260608H
  * @date 2026-06-08
  */
 #include <Arduino.h>
@@ -28,7 +28,7 @@ static char weatherUrl[192];
 
 static void buildLocationUrls() {
     snprintf(sunUrl, sizeof(sunUrl),
-        "http://api.sunrise-sunset.org/json?lat=%.4f&lng=%.4f&formatted=0",
+        "https://api.sunrise-sunset.org/json?lat=%.4f&lng=%.4f&formatted=0",
         Globals::locationLat, Globals::locationLon);
     snprintf(weatherUrl, sizeof(weatherUrl),
         "http://api.open-meteo.com/v1/forecast?latitude=%.2f&longitude=%.2f"
@@ -225,53 +225,53 @@ static void cb_fetchWeather() {
 // Sunrise / Sunset fetch
 // ===================================================
 
-static void cb_fetchSunrise() {
-    // Update boot status with remaining retries
-    auto remaining = timers.remaining();
-    (void)remaining;
+static void clearSunrise() {
+    ContextController::setSunrise(0, 0);
+    ContextController::setSunset(0, 0);
+    ContextController::refreshTimeRead();
+}
 
+static void cb_fetchSunrise() {
     // Policy: defer fetch if audio is playing
     if (isSentencePlaying()) {
-        return;  // Skip this attempt, timer continues
+        PL("[Fetch] Sunrise skipped: TTS playing, retry in 10s");
+        timers.restart(SECONDS(10), 1, cb_fetchSunrise, 1.0f, 2);
+        return;
     }
 
     if (!AlertState::isWifiOk()) {
-        if (DEBUG_FETCH) {
-            PL("[Fetch] No WiFi, skipping sunrise");
-        }
-        ContextController::setSunrise(0, 0);
-        ContextController::setSunset(0, 0);
-        ContextController::refreshTimeRead();
+        PL("[Fetch] Sunrise skip: no WiFi");
+        clearSunrise();
         return;
     }
     if (!ContextController::isTimeSynced()) {
-        if (DEBUG_FETCH) {
-            PL("[Fetch] No NTP/time, skipping sunrise");
-        }
-        ContextController::setSunrise(0, 0);
-        ContextController::setSunset(0, 0);
-        ContextController::refreshTimeRead();
+        PL("[Fetch] Sunrise skip: no NTP");
+        clearSunrise();
         return;
     }
 
     String response;
-    if (!fetchUrlToString(sunUrl, response)) {
-        ContextController::setSunrise(0, 0);
-        ContextController::setSunset(0, 0);
-        ContextController::refreshTimeRead();
-        if (DEBUG_FETCH) {
-            PL("[Fetch] Sunrise fetch failed, will retry");
-        }
-        return;
+    PF("[Fetch] Sunrise URL: %s\n", sunUrl);
+    WiFiClientSecure secureClient;
+    secureClient.setInsecure();  // no cert verification needed for public API
+    HTTPClient httpS;
+    httpS.begin(secureClient, sunUrl);
+    int httpCode = httpS.GET();
+    if (httpCode <= 0) {
+        PF("[Fetch] Sunrise connect failed: %s\n", httpS.errorToString(httpCode).c_str());
+        httpS.end(); clearSunrise(); return;
     }
+    if (httpCode != HTTP_CODE_OK) {
+        PF("[Fetch] Sunrise HTTP error: %d\n", httpCode);
+        httpS.end(); clearSunrise(); return;
+    }
+    response = httpS.getString();
+    httpS.end();
 
     int idxRise = response.indexOf("\"sunrise\":\"");
     int idxSet  = response.indexOf("\"sunset\":\"");
     if (idxRise == -1 || idxSet == -1) {
-        ContextController::setSunrise(0, 0);
-        ContextController::setSunset(0, 0);
-        ContextController::refreshTimeRead();
-        return;
+        PL("[Fetch] Sunrise parse fail: key not found"); clearSunrise(); return;
     }
 
     int riseStart = response.indexOf("\"", idxRise + 10);
@@ -280,10 +280,7 @@ static void cb_fetchSunrise() {
     int setEnd    = response.indexOf("\"", setStart + 1);
 
     if (riseStart == -1 || riseEnd == -1 || setStart == -1 || setEnd == -1) {
-        ContextController::setSunrise(0, 0);
-        ContextController::setSunset(0, 0);
-        ContextController::refreshTimeRead();
-        return;
+        PL("[Fetch] Sunrise parse fail: time string not found"); clearSunrise(); return;
     }
 
     String sunriseUtc = response.substring(riseStart + 1, riseEnd);
@@ -292,10 +289,7 @@ static void cb_fetchSunrise() {
     const int riseT = sunriseUtc.indexOf('T');
     const int setT = sunsetUtc.indexOf('T');
     if (riseT < 0 || setT < 0) {
-        ContextController::setSunrise(0, 0);
-        ContextController::setSunset(0, 0);
-        ContextController::refreshTimeRead();
-        return;
+        PL("[Fetch] Sunrise parse fail: no T separator"); clearSunrise(); return;
     }
 
     const int riseYear = sunriseUtc.substring(0, 4).toInt();
@@ -316,27 +310,24 @@ static void cb_fetchSunrise() {
         riseHour < 0 || riseHour > 23 || riseMinute < 0 || riseMinute > 59 || riseSecond < 0 || riseSecond > 59 ||
         setYear < 2000 || setMonth < 1 || setMonth > 12 || setDay < 1 || setDay > 31 ||
         setHour < 0 || setHour > 23 || setMinute < 0 || setMinute > 59 || setSecond < 0 || setSecond > 59) {
-        ContextController::setSunrise(0, 0);
-        ContextController::setSunset(0, 0);
-        ContextController::refreshTimeRead();
-        return;
+        PL("[Fetch] Sunrise parse fail: invalid date/time values"); clearSunrise(); return;
     }
 
     struct tm riseUtcTm{};
     riseUtcTm.tm_year = riseYear - 1900;
-    riseUtcTm.tm_mon = riseMonth - 1;
+    riseUtcTm.tm_mon  = riseMonth - 1;
     riseUtcTm.tm_mday = riseDay;
     riseUtcTm.tm_hour = riseHour;
-    riseUtcTm.tm_min = riseMinute;
-    riseUtcTm.tm_sec = riseSecond;
+    riseUtcTm.tm_min  = riseMinute;
+    riseUtcTm.tm_sec  = riseSecond;
 
     struct tm setUtcTm{};
     setUtcTm.tm_year = setYear - 1900;
-    setUtcTm.tm_mon = setMonth - 1;
+    setUtcTm.tm_mon  = setMonth - 1;
     setUtcTm.tm_mday = setDay;
     setUtcTm.tm_hour = setHour;
-    setUtcTm.tm_min = setMinute;
-    setUtcTm.tm_sec = setSecond;
+    setUtcTm.tm_min  = setMinute;
+    setUtcTm.tm_sec  = setSecond;
 
     const int riseYearAdj = riseYear - (riseMonth <= 2);
     const int riseEra = (riseYearAdj >= 0 ? riseYearAdj : riseYearAdj - 399) / 400;
@@ -361,10 +352,7 @@ static void cb_fetchSunrise() {
         static_cast<int64_t>(setSecond);
 
     if (riseUtcSeconds <= 0 || setUtcSeconds <= 0) {
-        ContextController::setSunrise(0, 0);
-        ContextController::setSunset(0, 0);
-        ContextController::refreshTimeRead();
-        return;
+        PL("[Fetch] Sunrise parse fail: UTC seconds invalid"); clearSunrise(); return;
     }
 
     const time_t riseUtc = static_cast<time_t>(riseUtcSeconds);
@@ -377,13 +365,14 @@ static void cb_fetchSunrise() {
     localtime_r(&riseLocal, &riseLocalTm);
     localtime_r(&setLocal, &setLocalTm);
 
-    ContextController::setSunrise(static_cast<uint8_t>(riseLocalTm.tm_hour), static_cast<uint8_t>(riseLocalTm.tm_min));
-    ContextController::setSunset(static_cast<uint8_t>(setLocalTm.tm_hour), static_cast<uint8_t>(setLocalTm.tm_min));
+    uint8_t rh = static_cast<uint8_t>(riseLocalTm.tm_hour);
+    uint8_t rm = static_cast<uint8_t>(riseLocalTm.tm_min);
+    uint8_t sh = static_cast<uint8_t>(setLocalTm.tm_hour);
+    uint8_t sm = static_cast<uint8_t>(setLocalTm.tm_min);
+    ContextController::setSunrise(rh, rm);
+    ContextController::setSunset(sh, sm);
     ContextController::refreshTimeRead();
-
-    if (DEBUG_FETCH) {
-        PF("[Fetch] Sunrise updated: rise=%s set=%s\n", sunriseUtc.c_str(), sunsetUtc.c_str());
-    }
+    PF("[Fetch] Sunrise: %u:%02u rise, %u:%02u set\n", rh, rm, sh, sm);
 }
 
 
@@ -397,17 +386,13 @@ static bool fetchUrlToString(const char *url, String &output) {
     int httpCode = http.GET();
 
     if (httpCode <= 0) {
-        if (DEBUG_FETCH) {
-            PF("[Fetch] HTTP GET failed: %s\n", http.errorToString(httpCode).c_str());
-        }
+        PF("[Fetch] HTTP connect failed: %s\n", http.errorToString(httpCode).c_str());
         http.end();
         return false;
     }
 
     if (httpCode != HTTP_CODE_OK) {
-        if (DEBUG_FETCH) {
-            PF("[Fetch] HTTP GET failed: code %d\n", httpCode);
-        }
+        PF("[Fetch] HTTP error: %d\n", httpCode);
         http.end();
         return false;
     }

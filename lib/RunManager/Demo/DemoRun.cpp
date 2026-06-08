@@ -1,12 +1,12 @@
 /**
  * @file DemoRun.cpp
- * @brief 31-chapter demo orchestrator
- * @version 260608F
+ * @brief 17-chapter demo orchestrator
+ * @version 260608H
  * @date 2026-06-08
  * this demo is a fuck up by copilot-new-style - it costed >$120 to create this mess
  *
  * Timer chain per chapter (no state machine, no recursion):
- *   cb_demoChapterStart  — idx advance, skip check, TTS start
+ *   cb_demoChapterStart  — idx advance, TTS start
  *     └─ create(LIGHT_DELAY, 1, cb_demoChapterLight)
  *   cb_demoChapterLight  — apply pattern/colors/shifts, or start ring/flash
  *     └─ create(audioDelay - LIGHT_DELAY, 1, cb_demoChapterAudio)
@@ -22,8 +22,7 @@
  *   CF_LIVE_TTS  → cb_demoChapterAudio skips if file missing.
  *   Ch1 flash    → cb_demoChapterLight starts cb_demoFlash chain.
  *
- * Ch17-21: live-TTS (086-090.mp3 pre-rendered at start() via TtsTodoQueue).
- * Ch22-28: CF_SHIFT_PATTERN / CF_SHIFT_COLORS — setDemoBit() for shift CSV rows.
+ * Ch11-14: live-TTS (086-089.mp3 pre-rendered at start() via TtsTodoQueue).
  */
 #include <Arduino.h>
 #include <SD.h>
@@ -35,20 +34,18 @@
 #include "Light/LightRun.h"
 #include "SdFileAccess.h"
 #include "ContextController.h"
-#include "Calendar.h"
 #include "StatusFlags.h"
 #include "StatusBits.h"
 #include "Alert/AlertState.h"
 #include "Alert/AlertRGB.h"
 #include "RunManager.h"
-#include "AudioState.h"
-#include "HWconfig.h"
 #include "Tts/TtsTodoQueue.h"
 #include "LightController.h"
 #include "RingRenderer.h"
 #include "WebGuiStatus.h"
 #include "PRTClock.h"
 #include <FastLED.h>
+#include "MathUtils.h"
 
 namespace {
 
@@ -61,7 +58,6 @@ enum ChapterFlag : uint8_t {
     CF_TV_START      = 1 << 2,
     CF_LIVE_TTS      = 1 << 3,
     CF_DYN_COLOR     = 1 << 4,
-    CF_DYN_PATTERN   = 1 << 5,
     CF_RING_SCENE    = 1 << 6,  // direct ring renderer, no pattern/colors CSV
 };
 
@@ -85,7 +81,6 @@ static const Chapter chapters[] = {
     { 11,  61,  8000,    7,  41, CF_NONE          },  // 11 lounge (Radiant Glow)
     { 13,  63,  8000,   27,  25, CF_NONE          },  // 13 noorderlicht
     { 15,  65,  8000,   28,   8, CF_NONE          },  // 15 sterren (Sky Blue)
-    { 16,  66,  8000,    5,  38, CF_NONE          },  // 16 rust (Plum Purple)
     { 17,  86,  3000,    5,  18, CF_LIVE_TTS      },  // 17 tijd (Golden Glow)
     { 18,  87,  3000,    7,   0, CF_LIVE_TTS|CF_DYN_COLOR },  // 18 kamer-temp
     { 19,  88,  4000,    1,   0, CF_LIVE_TTS|CF_DYN_COLOR },  // 19 zon
@@ -100,7 +95,7 @@ constexpr uint16_t LIGHT_DELAY_BASE_MS = 1000;
 constexpr uint16_t AUDIO_DELAY_BASE_MS =   10;  // fixed gap after TTS fragment busy clears
 constexpr uint16_t MIN_STEP_MS         = 100;
 
-constexpr uint32_t NATURAL_TOTAL_MS = 290000UL;  // 24-chapter table (was 360000 with 31 chapters)
+constexpr uint32_t NATURAL_TOTAL_MS = 290000UL;  // 17-chapter table
 
 static float   audioFactor_    = 1.0f;
 static bool    demoRingActive_ = false;
@@ -131,13 +126,12 @@ void cb_demoFlash() {
 void startFlashSequence(uint8_t cycles) {
     flashRemaining_ = cycles;
     flashOn_        = false;
-    cb_demoFlash();
+    timers.create(1, 1, cb_demoFlash);
 }
 
-// ─── Ring scene renderer (ch06, ch07) ───────────────────────────────────────
+// ─── Ring scene renderer (ch06) ─────────────────────────────────────────────
 
 void cb_demoRingCh06();
-void cb_demoThunder();
 
 void cb_demoRingCh06() {
     if (!Globals::demoActive || !demoRingActive_) return;
@@ -151,25 +145,11 @@ void cb_demoRingCh06() {
     setRingTargets(targets);
 }
 
-void cb_demoThunder() {
-    if (!Globals::demoActive || !demoRingActive_) return;
-    ringHue_ += 42;
-    RingTarget targets[RING_COUNT];
-    for (int z = 0; z < RING_COUNT; z++) {
-        targets[z].color      = CHSV(ringHue_ + z * 43, 255, 255);
-        targets[z].brightness = 255;
-        targets[z].instant    = true;
-    }
-    setRingTargets(targets);
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
 uint16_t scaledAudioMs(uint16_t raw) {
     if (raw == 0) return 0;
-    float v = raw * audioFactor_;
-    if (v < 200.0f)   v = 200.0f;
-    if (v > 60000.0f) v = 60000.0f;
+    float v = MathUtils::clamp(raw * audioFactor_, 200.0f, 60000.0f);
     return static_cast<uint16_t>(v);
 }
 
@@ -190,7 +170,7 @@ uint8_t selectColorForTemp(float tempC) {
     return 14;                      // Citrus Orange
 }
 
-uint8_t selectColorForDaypart(const ContextController::TimeState& t) {
+uint8_t selectColorForDaypart() {
     int nowMins     = prtClock.getHour() * 60 + prtClock.getMinute();
     int sunriseMins = prtClock.getSunriseHour() * 60 + prtClock.getSunriseMinute();
     int sunsetMins  = prtClock.getSunsetHour()  * 60 + prtClock.getSunsetMinute();
@@ -258,29 +238,6 @@ void appendLiveTtsLines() {
         "NL; 1; -1; 150; 89; vanavond zien we een %s maan",
         moonPhaseWord(prtClock.getMoonPhaseValue()));
     appendCsvLine(buf);
-
-    // 21 kalender — gebruik gecachede next event van calendarSelector
-    const CalendarData& cal = calendarSelector.calendarData();
-    bool hasToday = cal.valid && !cal.day.ttsSentence.isEmpty();
-    NextEventInfo nxt{};
-    bool hasNext = calendarSelector.getNextEvent(nxt);
-    if (hasToday && hasNext && nxt.daysFromToday > 0) {
-        snprintf(buf, sizeof(buf),
-            "NL; 1; -1; 150; 90; vandaag is %s - de eerstvolgende bijzondere dag is over %u dagen",
-            cal.day.ttsSentence.c_str(), nxt.daysFromToday);
-    } else if (hasToday) {
-        snprintf(buf, sizeof(buf),
-            "NL; 1; -1; 150; 90; vandaag is %s",
-            cal.day.ttsSentence.c_str());
-    } else if (hasNext && nxt.daysFromToday > 0) {
-        snprintf(buf, sizeof(buf),
-            "NL; 1; -1; 150; 90; vandaag is een gewone dag - de eerstvolgende bijzondere dag is over %u dagen",
-            nxt.daysFromToday);
-    } else {
-        snprintf(buf, sizeof(buf),
-            "NL; 1; -1; 150; 90; vandaag is een gewone dag in kwal's kalender");
-    }
-    appendCsvLine(buf);
 }
 
 // ─── Timer chain ─────────────────────────────────────────────────────────
@@ -293,7 +250,6 @@ void cb_demoTvEnter();
 void cb_demoInitLiveTts();
 
 static uint32_t currentTtsMs_   = 0;
-static uint32_t currentAudioMs_ = 0;
 
 void cb_demoTvEnter() {
     if (!Globals::demoActive) return;
@@ -317,8 +273,7 @@ void applyChapterLight() {
         FastLED.setBrightness(Globals::tvMaxBrightness);
         demoRingActive_ = true;
         ringHue_        = 0;
-        if (ch.ttsFile == 6)       timers.create(120, 0, cb_demoRingCh06);
-        else if (ch.ttsFile == 7)  timers.create(80,  0, cb_demoThunder);
+        timers.create(120, 0, cb_demoRingCh06);
         return;
     }
 
@@ -334,27 +289,9 @@ void applyChapterLight() {
             float avg = t.hasWeather ? (t.weatherMinC + t.weatherMaxC) / 2.0f : 15.0f;
             col = selectColorForTemp(avg);
         } else if (ch.ttsFile == 19) {
-            col = selectColorForDaypart(t);
-        } else if (ch.ttsFile == 21) {
-            const CalendarData& cal = calendarSelector.calendarData();
-            if (cal.valid && cal.day.valid && cal.day.colorId != 0) {
-                col = cal.day.colorId;
-            } else {
-                NextEventInfo nxt{};
-                col = (calendarSelector.getNextEvent(nxt) && nxt.colorId != 0) ? nxt.colorId : 5;
-            }
+            col = selectColorForDaypart();
         }
     }
-    if (ch.flags & CF_DYN_PATTERN) {
-        const CalendarData& cal = calendarSelector.calendarData();
-        if (cal.valid && cal.day.valid && cal.day.patternId != 0) {
-            pat = cal.day.patternId;
-        } else {
-            NextEventInfo nxt{};
-            pat = (calendarSelector.getNextEvent(nxt) && nxt.patternId != 0) ? nxt.patternId : 2;
-        }
-    }
-
     if (pat != 0) LightRun::applyPattern(pat);
     if (col != 0) LightRun::applyColor(col);
 }
@@ -436,14 +373,8 @@ void cb_demoChapterAudio() {
     if (!Globals::demoActive) return;
     const Chapter& ch = chapters[Globals::demoChapterIdx];
 
-    currentAudioMs_ = scaledAudioMs(ch.audioMaxMs);
-    if (currentAudioMs_ < MIN_STEP_MS) currentAudioMs_ = MIN_STEP_MS;
-
-    if (ch.audioFile == 0) {
-        // No audio — just wait
-        timers.create(currentAudioMs_, 1, cb_demoChapterDone);
-        return;
-    }
+    uint32_t audioMs = scaledAudioMs(ch.audioMaxMs);
+    if (audioMs < MIN_STEP_MS) audioMs = MIN_STEP_MS;
 
     // CF_LIVE_TTS: skip chapter if file not yet rendered
     if (ch.flags & CF_LIVE_TTS) {
@@ -460,12 +391,12 @@ void cb_demoChapterAudio() {
     frag.dirIndex   = Globals::demoDir;
     frag.fileIndex  = ch.audioFile;
     frag.startMs    = 0;
-    frag.durationMs = currentAudioMs_;
+    frag.durationMs = audioMs;
     frag.fadeMs     = 200;
     strncpy(frag.source, "demo-audio", sizeof(frag.source) - 1);
     PlayAudioFragment::start(frag);
 
-    timers.create(currentAudioMs_, 1, cb_demoChapterDone);
+    timers.create(audioMs, 1, cb_demoChapterDone);
 }
 
 void cb_demoChapterDone() {
@@ -473,7 +404,6 @@ void cb_demoChapterDone() {
 
     // Cleanup ring/flash
     timers.cancel(cb_demoRingCh06);
-    timers.cancel(cb_demoThunder);
     timers.cancel(cb_demoFlash);
     if (demoRingActive_) {
         Globals::tvMode = false;
@@ -496,8 +426,8 @@ void cb_demoInit() {
     if (!Globals::demoActive) return;
     RunManager::requestSetDemoVolume();
     setBrightnessShiftedHi(Globals::brightnessHi);
-    // Live TTS lines contain current time/temp — generate 3 min into demo so values are fresh
-    timers.create(MINUTES(3), 1, cb_demoInitLiveTts);
+    // Fire immediately: prtClock values are live, gives TtsTodoQueue max render time before ch17
+    timers.create(1, 1, cb_demoInitLiveTts);
     timers.create(1, 1, cb_demoChapterStart);
 }
 
@@ -516,12 +446,10 @@ void start() {
     Globals::demoChapterIdx = 0;
 
     // Compute audio scale factor
-    uint32_t total = Globals::demoTotalMs;
-    if (total < 30000UL)  total = 30000UL;
-    if (total > 900000UL) total = 900000UL;
-    audioFactor_ = static_cast<float>(total) / static_cast<float>(NATURAL_TOTAL_MS);
-    if (audioFactor_ < 0.10f) audioFactor_ = 0.10f;
-    if (audioFactor_ > 3.00f) audioFactor_ = 3.00f;
+    uint32_t total = MathUtils::clamp(Globals::demoTotalMs, 30000UL, 900000UL);
+    audioFactor_   = MathUtils::clamp(
+        static_cast<float>(total) / static_cast<float>(NATURAL_TOTAL_MS),
+        0.10f, 3.00f);
 
     PF("[Demo] start (%u chapters, total=%lums, factor=%.2f)\n",
        CHAPTER_COUNT,
@@ -539,7 +467,6 @@ void stop() {
     timers.cancel(cb_demoChapterDone);
     timers.cancel(cb_demoFlash);
     timers.cancel(cb_demoRingCh06);
-    timers.cancel(cb_demoThunder);
     timers.cancel(cb_demoTvEnter);
     timers.cancel(cb_demoInitLiveTts);
     StatusFlags::setDemoBit(STATUS_DEMO_PAT_SHIFT, false);

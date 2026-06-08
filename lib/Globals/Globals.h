@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260608F"
+#define FIRMWARE_VERSION_CODE "260608K"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
@@ -26,7 +26,7 @@
 #define MAX_THEME_DIRS 500
 
 // Timer pool capacity (TimerManager slot count)
-#define MAX_TIMERS 40
+#define MAX_TIMERS 50
 
 // Debug flags
 #define SHOW_TIMER_STATUS LOG_BOOT_SPAM  // Set true to see timer usage in serial
