@@ -11,7 +11,7 @@
 # Demo Kwal2 v1.0 — 30 chapters (chapter 10 = placeholder, geen TTS)
 # Chapters 17-21 hebben ook live TTS in /150/086-090, gerenderd bij demo-start
 #
-NL; 1; -1; 150; 001; Demonstratie voor Kwal twee, versie een punt twee
+NL; 1; -1; 150; 001; Demonstratie voor Kwal twee, de opvolger van Kwal een van Katinka
 NL; 1; -1; 150; 002; welkom.  deze kwal heeft beperkt licht en geluidsvolume, zorg dat het stil, en donker is.
 NL; 1; -1; 150; 003; eerst wat voorbeelden van wat ik allemaal kan 
 NL; 1; -1; 150; 004; eerst voorbeelden van wat er allemaal kan
@@ -33,4 +33,4 @@ NL; 1; -1; 150; 018; kwal kent de buitentemperatuur
 #NL; 1; -1; 150; 021; kwal volgt de kalender - vandaag en wat komen gaat
 NL; 1; -1; 150;  029; kwal kan  televisie nabootsen - SIMULATIE
 #NL; 1; -1; 150; 030; tot besluit - vuurwerk!
-#NL; 1; -1; 150; 031; bedankt voor het kijken naar kwal twee - tot ziens.
+NL; 1; -1; 150; 031; bedankt voor het kijken en luisteren,tot ziens.

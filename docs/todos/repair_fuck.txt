@@ -1,0 +1,45 @@
+DemoRun.cpp — violations to fix (260608F state)
+
+REGEL 6 OVERTREDINGEN (web handlers / SD I/O buiten timer callback)
+--------------------------------------------------------------------
+1. estimateTtsMs() — opent SD.open() direct, NIET in een timer callback.
+   Gevolg: SD I/O vanuit cb_demoChapterStart (timer callback, maar SD mag
+   niet zomaar in elke callback). Moet: AlertState::isSdBusy() check VOOR
+   SD.open(), en als busy → return 0 en chapter overslaan of herschedulen.
+   Huidige isSdBusy() check staat er wel, maar de functie wordt ook direct
+   aangeroepen vanuit de chain zonder busy-wait.
+
+2. appendCsvLine() — doet SD.open(FILE_APPEND) zonder isSdBusy() check.
+   Status: er staat al een isSdBusy() check IN de functie → dit is correct.
+   GEEN bug. Streep door #2.
+
+DEAD CODE
+--------------------------------------------------------------------
+3. cb_demoThunder() — volledig geimplementeerd, geen enkel chapter gebruikt
+   CF_RING_SCENE met ttsFile==7. Bestaat alleen in applyChapterLight().
+   Actie: verwijder cb_demoThunder en de else-if branch die het aanroept.
+
+4. CF_DYN_PATTERN flag — gedefinieerd in enum, geen enkel chapter heeft deze
+   flag gezet. Actie: verwijder de flag uit enum EN de if-branch in
+   applyChapterLight() die erop test.
+
+MATHUTILS NIET GEBRUIKT
+--------------------------------------------------------------------
+5. scaledAudioMs() gebruikt handmatige if/if voor clamp (v < 200, v > 60000).
+   Moet: clamp(v, 200.0f, 60000.0f) uit MathUtils.h.
+
+STALE COMMENTS
+--------------------------------------------------------------------
+6. NATURAL_TOTAL_MS comment: "24-chapter table (was 360000 with 31 chapters)"
+   Moet: "17-chapter table"
+
+FLASH RENDERER
+--------------------------------------------------------------------
+7. startFlashSequence() roept cb_demoFlash() direct aan (geen timer voor
+   eerste vuur). Gevolg: eerste flash loopt synchroon op de call stack van
+   cb_demoChapterLight. Moet: timers.create(1, 1, cb_demoFlash) als kickoff,
+   zodat de keten altijd via TimerManager loopt.
+
+PRIORITEIT
+--------------------------------------------------------------------
+Fix volgorde: 3+4 (dead code, veilig) → 5+6 (style) → 7 (correctheid) → 1 (SD)

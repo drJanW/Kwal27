@@ -1,8 +1,8 @@
 /**
  * @file FetchController.cpp
  * @brief HTTP fetch for weather/sunrise APIs and NTP time
- * @version 260407D
- * @date 2026-04-07
+ * @version 260608F
+ * @date 2026-06-08
  */
 #include <Arduino.h>
 #include "FetchController.h"
@@ -482,7 +482,8 @@ bool bootFetchController() {
     // Weather: boot retries with growing intervals, switches to periodic on success
     weatherFetched = false;
     timers.create(Globals::weatherBootstrapIntervalMs, 100, cb_fetchWeather, Globals::wifiRetryGrowth);
-    // Sunrise/sunset fetch timer (starts after NTP success)
+    // Sunrise/sunset fetch timer: boot one-shot (token=2) + periodic (token=1)
+    timers.create(SECONDS(30), 1, cb_fetchSunrise, 1.0f, 2);  // boot fetch after NTP settles
     timers.create(Globals::sunRefreshIntervalMs, 0, cb_fetchSunrise);
 
     return true;

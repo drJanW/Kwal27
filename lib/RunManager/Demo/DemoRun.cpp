@@ -1,19 +1,28 @@
 /**
  * @file DemoRun.cpp
  * @brief 31-chapter demo orchestrator
- * @version 260608C
+ * @version 260608F
  * @date 2026-06-08
  * this demo is a fuck up by copilot-new-style - it costed >$120 to create this mess
- * Per chapter (3-step state machine):
- *   Step 0: lux-check + set pattern/colors + start TTS, schedule lightChange
- *           at LIGHT_DELAY_BASE_MS after TTS start.
- *   cb_demoLightChange: apply pattern + colors (with optional shifts).
- *   cb_demoStep1: start audio, scheduled at (estTtsMs + AUDIO_DELAY_BASE_MS).
- *   cb_demoStep2: advance to next chapter.
  *
- * Ch1: own flash renderer (PlayLightShow CRGB::White/Black, restart() for varying interval).
+ * Timer chain per chapter (no state machine, no recursion):
+ *   cb_demoChapterStart  — idx advance, skip check, TTS start
+ *     └─ create(LIGHT_DELAY, 1, cb_demoChapterLight)
+ *   cb_demoChapterLight  — apply pattern/colors/shifts, or start ring/flash
+ *     └─ create(audioDelay - LIGHT_DELAY, 1, cb_demoChapterAudio)
+ *   cb_demoChapterAudio  — start audio fragment
+ *     └─ create(audioMs, 1, cb_demoChapterDone)
+ *   cb_demoChapterDone   — cleanup ring/flash, idx++
+ *     └─ create(1, 1, cb_demoChapterStart)   (1ms breaks call stack)
+ *
+ * Exceptions:
+ *   CF_TV_START  → cb_demoChapterStart calls enterTvMode + stop, chain ends.
+ *   CF_RING_SCENE → cb_demoChapterLight starts infinite ring timer;
+ *                   cb_demoChapterDone cancels it.
+ *   CF_LIVE_TTS  → cb_demoChapterAudio skips if file missing.
+ *   Ch1 flash    → cb_demoChapterLight starts cb_demoFlash chain.
+ *
  * Ch17-21: live-TTS (086-090.mp3 pre-rendered at start() via TtsTodoQueue).
- * Ch29: CF_TV_START — enter tvMode(4h) and stop demo.
  * Ch22-28: CF_SHIFT_PATTERN / CF_SHIFT_COLORS — setDemoBit() for shift CSV rows.
  */
 #include <Arduino.h>
@@ -25,7 +34,6 @@
 #include "PlayFragment.h"
 #include "Light/LightRun.h"
 #include "SdFileAccess.h"
-#include "SensorController.h"
 #include "ContextController.h"
 #include "Calendar.h"
 #include "StatusFlags.h"
@@ -64,35 +72,32 @@ struct Chapter {
     uint8_t  patternId;
     uint8_t  colorId;
     uint8_t  flags;
-    uint8_t  maxLux;
 };
 
 static const Chapter chapters[] = {
-    // tts  aud   audMs  pat  col  flags                          maxLux
-    {  1,  51,  5000,    0,   0, CF_NONE,                            253},  // 01 witte flitsen
-    {  2,  52,  5000,   26,  30, CF_NONE,                            253},  // 02 welkom (Emerald Isle)
-    {  3,  53,  5000,   27,   2, CF_NONE,                            253},  // 03 blauwe ringen
-//    {  4,  54,  5000,   27,  40, CF_NONE,                            253},  // 04 witte ringen
-//    {  5,  55,  5000,    9,  34, CF_NONE,                            253},  // 05 blauw-in-wit (Gentle Waves)
-    {  6,  56,  8000,    0,   0, CF_RING_SCENE,                      253},  // 06 extreem zappa
-    {  8,  58,  8000,    3,  38, CF_NONE,                            253},  // 08 disco (Magenta Dream)
-    {  9,  59, 30000,   32,  32, CF_NONE,                            253},  // 09 spectrum
-    { 11,  61,  8000,    7,  41, CF_NONE,                            253},  // 11 lounge (Radiant Glow)
-    { 13,  63,  8000,   27,  25, CF_NONE,                            253},  // 13 noorderlicht
-    { 15,  65,  8000,   28,   8, CF_NONE,                            253},  // 15 sterren (Sky Blue)
-    { 16,  66,  8000,    5,  38, CF_NONE,                            253},  // 16 rust (Plum Purple)
-    { 17,  86,  3000,    5,  18, CF_LIVE_TTS,                          0},  // 17 tijd (Golden Glow)
-    { 18,  87,  3000,    7,   0, CF_LIVE_TTS|CF_DYN_COLOR,             0},  // 18 kamer-temp
-    { 19,  88,  4000,    1,   0, CF_LIVE_TTS|CF_DYN_COLOR,             0},  // 19 zon
-    { 20,  89,  3000,    5,  16, CF_LIVE_TTS,                        253},  // 20 maan (Lavender Mist)
-    { 29,  79,  5000,    0,   0, CF_TV_START,                        253},  // 22 TV-sim: 20s
-    { 30,  80,  6000,   28,   5, CF_NONE,                            253},  // 23 vuurwerk
-    { 31,  81,  8000,    2,  10, CF_NONE,                            253},  // 24 afscheid
+    // tts  aud   audMs  pat  col  flags
+    {  1,  51,  5000,    0,   0, CF_NONE          },  // 01 witte flitsen
+    {  2,  52,  5000,   26,  30, CF_NONE          },  // 02 welkom (Emerald Isle)
+    {  3,  53,  5000,   27,   2, CF_NONE          },  // 03 blauwe ringen
+    {  6,  56,  8000,    0,   0, CF_RING_SCENE    },  // 06 extreem zappa
+    {  8,  58,  8000,    3,  38, CF_NONE          },  // 08 disco (Magenta Dream)
+    {  9,  59, 30000,   32,  32, CF_NONE          },  // 09 spectrum
+    { 11,  61,  8000,    7,  41, CF_NONE          },  // 11 lounge (Radiant Glow)
+    { 13,  63,  8000,   27,  25, CF_NONE          },  // 13 noorderlicht
+    { 15,  65,  8000,   28,   8, CF_NONE          },  // 15 sterren (Sky Blue)
+    { 16,  66,  8000,    5,  38, CF_NONE          },  // 16 rust (Plum Purple)
+    { 17,  86,  3000,    5,  18, CF_LIVE_TTS      },  // 17 tijd (Golden Glow)
+    { 18,  87,  3000,    7,   0, CF_LIVE_TTS|CF_DYN_COLOR },  // 18 kamer-temp
+    { 19,  88,  4000,    1,   0, CF_LIVE_TTS|CF_DYN_COLOR },  // 19 zon
+    { 20,  89,  3000,    5,  16, CF_LIVE_TTS      },  // 20 maan (Lavender Mist)
+    { 29,  79,  5000,    0,   0, CF_TV_START      },  // TV-sim: 20s
+    { 30,  80,  6000,   28,   5, CF_NONE          },  // vuurwerk
+    { 31,  81,  8000,    2,  10, CF_NONE          },  // afscheid
 };
 static constexpr uint8_t CHAPTER_COUNT = sizeof(chapters) / sizeof(chapters[0]);
 
 constexpr uint16_t LIGHT_DELAY_BASE_MS = 1000;
-constexpr uint16_t AUDIO_DELAY_BASE_MS =  800;  // fixed gap TTS→audio, not scaled
+constexpr uint16_t AUDIO_DELAY_BASE_MS =   10;  // fixed gap after TTS fragment busy clears
 constexpr uint16_t MIN_STEP_MS         = 100;
 
 constexpr uint32_t NATURAL_TOTAL_MS = 290000UL;  // 24-chapter table (was 360000 with 31 chapters)
@@ -100,14 +105,6 @@ constexpr uint32_t NATURAL_TOTAL_MS = 290000UL;  // 24-chapter table (was 360000
 static float   audioFactor_    = 1.0f;
 static bool    demoRingActive_ = false;
 static uint8_t ringHue_        = 0;
-
-// Pair-drop table (last pair first)
-static const uint8_t dropPairs[][2] = {
-    {31, 30}, {29, 28}, {27, 21}, {26, 20}, {25, 19},
-    {24, 18}, {23, 17}, {22, 16},
-};
-static constexpr uint8_t DROP_PAIR_COUNT = sizeof(dropPairs) / sizeof(dropPairs[0]);
-static bool skipChapter_[CHAPTER_COUNT] = {};
 
 // ─── Flash renderer (ch1) ─────────────────────────────────────────────────
 
@@ -286,65 +283,65 @@ void appendLiveTtsLines() {
     appendCsvLine(buf);
 }
 
-// ─── State machine ────────────────────────────────────────────────────────
+// ─── Timer chain ─────────────────────────────────────────────────────────
 
-void cb_demoRingCh06();
-void cb_demoThunder();
-void cb_demoInit();
-void cb_demoLightChange();
-void cb_demoStep1();
-void cb_demoStep2();
-void startStep0();
+void cb_demoChapterStart();
+void cb_demoChapterLight();
+void cb_demoChapterAudio();
+void cb_demoChapterDone();
+void cb_demoTvEnter();
+void cb_demoInitLiveTts();
 
-static uint32_t currentTtsMs_ = 0;
+static uint32_t currentTtsMs_   = 0;
+static uint32_t currentAudioMs_ = 0;
 
-void cb_demoLightChange() {
+void cb_demoTvEnter() {
     if (!Globals::demoActive) return;
+    PL("[Demo] tvMode preview (20s)");
+    RunManager::enterTvMode(1);
+    timers.create(SECONDS(20), 1, cb_demoChapterDone);
+}
+
+void cb_demoInitLiveTts() {
+    if (!Globals::demoActive) return;
+    appendLiveTtsLines();
+    TtsTodoQueue::startNow();
+}
+
+// Apply pattern + colors for current chapter (shared by light callback)
+void applyChapterLight() {
     const Chapter& ch = chapters[Globals::demoChapterIdx];
 
-    // Ring scene chapters: activate direct ring renderer
     if (ch.flags & CF_RING_SCENE) {
-        Globals::tvMode    = true;
+        Globals::tvMode = true;
         FastLED.setBrightness(Globals::tvMaxBrightness);
-        demoRingActive_    = true;
-        ringHue_           = 0;
-        if (ch.ttsFile == 6) {  // ch06 zappa
-            timers.create(120, 0, cb_demoRingCh06);
-        } else if (ch.ttsFile == 7) {  // ch07 kermis
-            timers.create(80, 0, cb_demoThunder);
-        }
+        demoRingActive_ = true;
+        ringHue_        = 0;
+        if (ch.ttsFile == 6)       timers.create(120, 0, cb_demoRingCh06);
+        else if (ch.ttsFile == 7)  timers.create(80,  0, cb_demoThunder);
         return;
     }
 
-    // Set demo shift bits
     StatusFlags::setDemoBit(STATUS_DEMO_PAT_SHIFT, ch.flags & CF_SHIFT_PATTERN);
     StatusFlags::setDemoBit(STATUS_DEMO_COL_SHIFT,  ch.flags & CF_SHIFT_COLORS);
 
-    // Resolve dynamic color/pattern
     uint8_t pat = ch.patternId;
     uint8_t col = ch.colorId;
 
     if (ch.flags & CF_DYN_COLOR) {
         const auto& t = ContextController::time();
-        if (ch.ttsFile == 18) {  // ch18: kamer-temp
+        if (ch.ttsFile == 18) {
             float avg = t.hasWeather ? (t.weatherMinC + t.weatherMaxC) / 2.0f : 15.0f;
             col = selectColorForTemp(avg);
-        } else if (ch.ttsFile == 19) {  // ch19: zon
+        } else if (ch.ttsFile == 19) {
             col = selectColorForDaypart(t);
-        } else if (ch.ttsFile == 21) {  // ch21: kalender (today → today's colors, else next event's colors)
+        } else if (ch.ttsFile == 21) {
             const CalendarData& cal = calendarSelector.calendarData();
             if (cal.valid && cal.day.valid && cal.day.colorId != 0) {
                 col = cal.day.colorId;
-                PF("[Demo] ch21 col=today:%u\n", col);
             } else {
                 NextEventInfo nxt{};
-                if (calendarSelector.getNextEvent(nxt) && nxt.colorId != 0) {
-                    col = nxt.colorId;
-                    PF("[Demo] ch21 col=next:%u\n", col);
-                } else {
-                    col = 5;   // fallback Sunny Yellow
-                    PF("[Demo] ch21 col=fallback:21\n");
-                }
+                col = (calendarSelector.getNextEvent(nxt) && nxt.colorId != 0) ? nxt.colorId : 5;
             }
         }
     }
@@ -354,10 +351,7 @@ void cb_demoLightChange() {
             pat = cal.day.patternId;
         } else {
             NextEventInfo nxt{};
-            if (calendarSelector.getNextEvent(nxt) && nxt.patternId != 0)
-                pat = nxt.patternId;
-            else
-                pat = 2;  // fallback Slow Breathing
+            pat = (calendarSelector.getNextEvent(nxt) && nxt.patternId != 0) ? nxt.patternId : 2;
         }
     }
 
@@ -365,85 +359,8 @@ void cb_demoLightChange() {
     if (col != 0) LightRun::applyColor(col);
 }
 
-void cb_demoStep1() {
+void cb_demoChapterStart() {
     if (!Globals::demoActive) return;
-    if (Globals::demoChapterIdx >= CHAPTER_COUNT) { DemoRun::stop(); return; }
-    const Chapter& ch = chapters[Globals::demoChapterIdx];
-
-    // Ch1: flash renderer instead of audio
-    if (ch.ttsFile == 1) {
-        startFlashSequence(5);
-        uint32_t waitMs = scaledAudioMs(ch.audioMaxMs);
-        if (waitMs < MIN_STEP_MS) waitMs = MIN_STEP_MS;
-        timers.create(waitMs, 1, cb_demoStep2);
-        return;
-    }
-
-    if (ch.audioFile == 0) {
-        // ch29 (CF_TV_START) schedules cb_demoStep2 itself via 20s timer — don't double-schedule
-        if (!(ch.flags & CF_TV_START)) {
-            timers.create(MIN_STEP_MS, 1, cb_demoStep2);
-        }
-        return;
-    }
-
-    // For CF_LIVE_TTS chapters: check if file exists
-    if (ch.flags & CF_LIVE_TTS) {
-        const char* path = getMP3Path(Globals::demoDir, ch.audioFile);
-        if (!SD.exists(path)) {
-            PF("[Demo] live-TTS %u/%u missing, skip ch%u\n",
-               Globals::demoDir, ch.audioFile,
-               Globals::demoChapterIdx + 1);
-            Globals::demoChapterIdx++;
-            startStep0();
-            return;
-        }
-    }
-
-    uint16_t playMs = scaledAudioMs(ch.audioMaxMs);
-    AudioFragment frag = {};
-    frag.dirIndex   = Globals::demoDir;
-    frag.fileIndex  = ch.audioFile;
-    frag.startMs    = 0;
-    frag.durationMs = playMs;
-    frag.fadeMs     = 200;
-    strncpy(frag.source, "demo-audio", sizeof(frag.source) - 1);
-    PlayAudioFragment::start(frag);
-
-    timers.create(playMs, 1, cb_demoStep2);
-}
-
-void cb_demoStep2() {
-    if (!Globals::demoActive) return;
-    timers.cancel(cb_demoRingCh06);
-    timers.cancel(cb_demoFlash); timers.cancel(cb_demoThunder);
-    if (demoRingActive_) {
-        Globals::tvMode = false;
-        demoRingActive_ = false;
-    } else if (Globals::tvMode) {
-        RunManager::exitTvMode();
-    }
-    Globals::demoChapterIdx++;
-    startStep0();
-}
-
-void startStep0() {
-    if (!Globals::demoActive) return;
-
-    // Skip finished or marked-skip chapters
-    while (Globals::demoChapterIdx < CHAPTER_COUNT) {
-        if (skipChapter_[Globals::demoChapterIdx]) {
-            Globals::demoChapterIdx++;
-            continue;
-        }
-        const Chapter& ch = chapters[Globals::demoChapterIdx];
-        if (ch.ttsFile == 0 && ch.audioFile == 0) {
-            // Placeholder (ch10): skip silently
-            Globals::demoChapterIdx++;
-            continue;
-        }
-        break;
-    }
 
     if (Globals::demoChapterIdx >= CHAPTER_COUNT) {
         DemoRun::stop();
@@ -452,29 +369,31 @@ void startStep0() {
 
     const Chapter& ch = chapters[Globals::demoChapterIdx];
 
-    // TV-mode trigger (ch29): 20s demo-preview dan terug naar normale demo
-    if (ch.flags & CF_TV_START) {
-        PL("[Demo] tvMode preview (20s)");
-        RunManager::enterTvMode(1);
-        timers.create(SECONDS(20), 1, cb_demoStep2, 1.0f, 2);  // token=2: anders dan step-advance token
-        return;
-    }
-
-    // Lux check
-    if (ch.maxLux > 0) {
-        float lux = SensorController::ambientLux();
-        if (lux > static_cast<float>(ch.maxLux)) {
-            PF("[Demo] skip ch%u (lux %.0f > %u)\n",
-               Globals::demoChapterIdx + 1, lux, ch.maxLux);
-            Globals::demoChapterIdx++;
-            startStep0();
-            return;
-        }
-    }
-
-    PF("[Demo] ch%u/%u tts=%u audio=%u pat=%u col=%u flags=%u\n",
+    PF("[Demo] ch%u/%u tts=%u audio=%u pat=%u col=%u flags=0x%02x\n",
        Globals::demoChapterIdx + 1, CHAPTER_COUNT,
        ch.ttsFile, ch.audioFile, ch.patternId, ch.colorId, ch.flags);
+
+    // CF_TV_START: play TTS announcement, then enter TV mode
+    if (ch.flags & CF_TV_START) {
+        currentTtsMs_ = 0;
+        if (ch.ttsFile != 0) {
+            currentTtsMs_ = estimateTtsMs(Globals::demoDir, ch.ttsFile);
+            if (currentTtsMs_ > 0) {
+                AudioFragment frag = {};
+                frag.dirIndex   = Globals::demoDir;
+                frag.fileIndex  = ch.ttsFile;
+                frag.startMs    = 0;
+                frag.durationMs = currentTtsMs_ + 1000;
+                frag.fadeMs     = 0;
+                strncpy(frag.source, "demo-tts", sizeof(frag.source) - 1);
+                PlayAudioFragment::start(frag);
+            }
+        }
+        uint32_t delay = currentTtsMs_ + 1000 + AUDIO_DELAY_BASE_MS;
+        if (delay < MIN_STEP_MS) delay = MIN_STEP_MS;
+        timers.create(delay, 1, cb_demoTvEnter);
+        return;
+    }
 
     // Start TTS
     currentTtsMs_ = 0;
@@ -492,24 +411,94 @@ void startStep0() {
         }
     }
 
-    // Schedule light change at LIGHT_DELAY_BASE_MS after TTS start
-    uint32_t lightDelayMs = LIGHT_DELAY_BASE_MS;
-    if (lightDelayMs < MIN_STEP_MS) lightDelayMs = MIN_STEP_MS;
-    timers.create(lightDelayMs, 1, cb_demoLightChange);
+    // Light change after LIGHT_DELAY_BASE_MS from TTS start
+    timers.create(LIGHT_DELAY_BASE_MS, 1, cb_demoChapterLight);
+}
 
-    // Schedule audio at tts_done + fixed AUDIO_DELAY_BASE_MS (not scaled)
-    uint32_t audioDelayMs = currentTtsMs_ + AUDIO_DELAY_BASE_MS;
-    if (audioDelayMs < MIN_STEP_MS) audioDelayMs = MIN_STEP_MS;
-    timers.create(audioDelayMs, 1, cb_demoStep1);
+void cb_demoChapterLight() {
+    if (!Globals::demoActive) return;
+    const Chapter& ch = chapters[Globals::demoChapterIdx];
+
+    // Ch1: flash renderer
+    if (ch.ttsFile == 1) {
+        startFlashSequence(5);
+    } else {
+        applyChapterLight();
+    }
+
+    // Schedule audio after TTS fragment busy window (currentTtsMs_ + 1000) plus gap
+    uint32_t remaining = currentTtsMs_ + AUDIO_DELAY_BASE_MS;
+    if (remaining < MIN_STEP_MS) remaining = MIN_STEP_MS;
+    timers.create(remaining, 1, cb_demoChapterAudio);
+}
+
+void cb_demoChapterAudio() {
+    if (!Globals::demoActive) return;
+    const Chapter& ch = chapters[Globals::demoChapterIdx];
+
+    currentAudioMs_ = scaledAudioMs(ch.audioMaxMs);
+    if (currentAudioMs_ < MIN_STEP_MS) currentAudioMs_ = MIN_STEP_MS;
+
+    if (ch.audioFile == 0) {
+        // No audio — just wait
+        timers.create(currentAudioMs_, 1, cb_demoChapterDone);
+        return;
+    }
+
+    // CF_LIVE_TTS: skip chapter if file not yet rendered
+    if (ch.flags & CF_LIVE_TTS) {
+        const char* path = getMP3Path(Globals::demoDir, ch.audioFile);
+        if (!SD.exists(path)) {
+            PF("[Demo] live-TTS %u/%03u missing, skip\n",
+               Globals::demoDir, ch.audioFile);
+            timers.create(MIN_STEP_MS, 1, cb_demoChapterDone);
+            return;
+        }
+    }
+
+    AudioFragment frag = {};
+    frag.dirIndex   = Globals::demoDir;
+    frag.fileIndex  = ch.audioFile;
+    frag.startMs    = 0;
+    frag.durationMs = currentAudioMs_;
+    frag.fadeMs     = 200;
+    strncpy(frag.source, "demo-audio", sizeof(frag.source) - 1);
+    PlayAudioFragment::start(frag);
+
+    timers.create(currentAudioMs_, 1, cb_demoChapterDone);
+}
+
+void cb_demoChapterDone() {
+    if (!Globals::demoActive) return;
+
+    // Cleanup ring/flash
+    timers.cancel(cb_demoRingCh06);
+    timers.cancel(cb_demoThunder);
+    timers.cancel(cb_demoFlash);
+    if (demoRingActive_) {
+        Globals::tvMode = false;
+        demoRingActive_ = false;
+    } else if (Globals::tvMode) {
+        RunManager::exitTvMode();
+    }
+
+    // Clear shift bits
+    StatusFlags::setDemoBit(STATUS_DEMO_PAT_SHIFT, false);
+    StatusFlags::setDemoBit(STATUS_DEMO_COL_SHIFT,  false);
+
+    Globals::demoChapterIdx++;
+
+    // 1ms delay breaks the call stack — no recursion
+    timers.create(1, 1, cb_demoChapterStart);
 }
 
 void cb_demoInit() {
     if (!Globals::demoActive) return;
-    RunManager::requestSetDemoVolume();            // max volume, no web expiry
-    setBrightnessShiftedHi(Globals::brightnessHi); // force max brightness directly
-    appendLiveTtsLines();
-    TtsTodoQueue::startNow();
-    startStep0();
+    RunManager::requestSetDemoVolume();
+    setBrightnessShiftedHi(Globals::brightnessHi);
+    // Live TTS lines contain current time/temp — generate 3 min into demo so values are fresh
+    timers.create(MINUTES(3), 1, cb_demoInitLiveTts);
+    timers.create(1, 1, cb_demoChapterStart);
 }
 
 }  // anonymous namespace
@@ -526,9 +515,6 @@ void start() {
     Globals::demoActive     = true;
     Globals::demoChapterIdx = 0;
 
-    // Clear skip table
-    memset(skipChapter_, 0, sizeof(skipChapter_));
-
     // Compute audio scale factor
     uint32_t total = Globals::demoTotalMs;
     if (total < 30000UL)  total = 30000UL;
@@ -536,21 +522,6 @@ void start() {
     audioFactor_ = static_cast<float>(total) / static_cast<float>(NATURAL_TOTAL_MS);
     if (audioFactor_ < 0.10f) audioFactor_ = 0.10f;
     if (audioFactor_ > 3.00f) audioFactor_ = 3.00f;
-
-    // Pair-drop for short demos
-    // Drop pairs while factor <= 0.75 (slider < 75% of natural duration)
-    uint8_t dropIdx = 0;
-    while (audioFactor_ <= 0.75f && dropIdx < DROP_PAIR_COUNT) {
-        uint8_t a = dropPairs[dropIdx][0] - 1;  // 0-based
-        uint8_t b = dropPairs[dropIdx][1] - 1;
-        if (a < CHAPTER_COUNT) skipChapter_[a] = true;
-        if (b < CHAPTER_COUNT) skipChapter_[b] = true;
-        dropIdx++;
-        // Recompute factor with fewer chapters (rough: subtract 8000ms per dropped pair)
-        total += 8000;
-        audioFactor_ = static_cast<float>(Globals::demoTotalMs) /
-                       static_cast<float>(NATURAL_TOTAL_MS - dropIdx * 8000UL);
-    }
 
     PF("[Demo] start (%u chapters, total=%lums, factor=%.2f)\n",
        CHAPTER_COUNT,
@@ -562,13 +533,15 @@ void start() {
 
 void stop() {
     Globals::demoActive = false;
-    timers.cancel(cb_demoLightChange);
-    timers.cancel(cb_demoStep1);
-    timers.cancel(cb_demoStep2);        // token=1 (chapter advance)
-    timers.cancel(cb_demoStep2, 2);     // token=2 (TV-sim 20s)
+    timers.cancel(cb_demoChapterStart);
+    timers.cancel(cb_demoChapterLight);
+    timers.cancel(cb_demoChapterAudio);
+    timers.cancel(cb_demoChapterDone);
     timers.cancel(cb_demoFlash);
     timers.cancel(cb_demoRingCh06);
-    timers.cancel(cb_demoFlash); timers.cancel(cb_demoThunder);
+    timers.cancel(cb_demoThunder);
+    timers.cancel(cb_demoTvEnter);
+    timers.cancel(cb_demoInitLiveTts);
     StatusFlags::setDemoBit(STATUS_DEMO_PAT_SHIFT, false);
     StatusFlags::setDemoBit(STATUS_DEMO_COL_SHIFT,  false);
     if (demoRingActive_) {
