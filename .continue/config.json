@@ -1,0 +1,36 @@
+{
+  "models": [
+    {
+      "title": "DeepSeek V4 Pro",
+      "provider": "deepseek",
+      "model": "deepseek-v4-pro",
+      "apiKey": "sk-2b3d2a872c9046f8a309b15a1200c22a",
+      "apiBase": "https://api.deepseek.com",
+      "contextLength": 128000,
+      "temperature": 0.3,
+      "maxTokens": 4096
+    },
+    {
+      "title": "DeepSeek V4 Flash",
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "apiKey": "sk-2b3d2a872c9046f8a309b15a1200c22a",
+      "apiBase": "https://api.deepseek.com",
+      "contextLength": 128000,
+      "temperature": 0.0,
+      "maxTokens": 256
+    }
+  ],
+  "tabAutocompleteModel": {
+    "title": "DeepSeek V4 Flash",
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "apiKey": "sk-2b3d2a872c9046f8a309b15a1200c22a",
+    "apiBase": "https://api.deepseek.com"
+  },
+  "tabAutocompleteOptions": {
+    "debounceDelay": 300,
+    "multilineCompletions": "always",
+    "maxPromptTokens": 2048
+  }
+}

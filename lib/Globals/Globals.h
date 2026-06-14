@@ -1,8 +1,8 @@
 /**
  * @file Globals.h
  * @brief Global constants, timing intervals, and utility functions
- * @version 260607A
- * @date 2026-06-07
+ * @version 260614A
+ * @date 2026-06-14
  */
 #pragma once
 
@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Firmware version code (no device prefix)
-#define FIRMWARE_VERSION_CODE "260608K"
+#define FIRMWARE_VERSION_CODE "260614A"
 
 // === Compile-time constants (NOT overridable) ===
 #define SECONDS_TICK 1000
