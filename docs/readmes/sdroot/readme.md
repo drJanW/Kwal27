@@ -1,6 +1,6 @@
 # SD Card Root Files
 
-> Version: 260319A | Updated: 2026-03-19
+> Version: 260614B | Updated: 2026-06-14
 
 This folder contains all files that should be copied to the SD card root for the Kwal27 installation.
 
@@ -42,7 +42,7 @@ tracked in git, the SD card copy will be consistent and git status stays clean.
 | File | Purpose | Format |
 |------|---------|--------|
 | `calendar.csv` | Daily events/themes | date;theme_box_id;... |
-| `light_patterns.csv` | LED animation definitions | 16 columns, semicolon-delimited |
+| `light_patterns.csv` | LED animation definitions | 18 columns (v260614B), semicolon-delimited |
 | `light_colors.csv` | Color palette entries | id;name;rgb1_hex;rgb2_hex |
 | `theme_boxes.csv` | Theme box configuration | theme_box_id;name;audio_dirs;... |
 | `audioShifts.csv` | Per-time-band audio volume/fade/interval shifts | status;volume;fadeMs;themeBoxAdd;speakMin;speakMax;fragmentMin;fragmentMax |

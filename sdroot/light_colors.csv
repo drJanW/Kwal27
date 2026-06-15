@@ -30,14 +30,14 @@ light_colors_id;light_colors_name;rgb1_hex;rgb2_hex;cnf
 29;Cobalt Blue;#0047AB;#002255;4.5416
 30;Emerald Isle;#50C878;#227744;1.5980
 31;Sunrise Pink;#FFB6C1;#AA5566;1.4044
-32;Spectrum;#FF0000;#8000FF;1.0000
-33;Buttercup Yellow;#FFFACD;#AAAA55;1.0324
+32;Spectrum;#FF0000;#FF00FF;1.0000
+33;Ocean Rainbow;#00FFFF;#0000FF;1.0000
 34;Periwinkle Blue;#F5F5F8;#6565F6;1.4223
-35;Crimson Red;#DC143C;#551111;4.3876
+35;Crimson Rainbow;#DC143C;#FF69B4;4.3876
 36;Olive Green;#808000;#444400;2.3371
 37;Sky Blue;#87CEEB;#4488AA;1.3407
 38;Plum Purple;#DDA0DD;#AA55AA;1.4830
-39;Sunset Orange;#FF4500;#552200;2.9120
+39;Warm Rainbow;#FF7F00;#FF0000;2.9120
 40;Ice White;#F0F8FF;#AAAAFF;1.0049
 41;Lemon Yellow;#FFF44F;#AAAA22;1.0770
 42;Inner White Outer Red;#FFFFFF;#FF0000;1.3745

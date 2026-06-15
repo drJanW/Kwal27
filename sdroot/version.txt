@@ -1,3 +1,4 @@
+FIRMWARE_VERSION_CODE 260615A
 SDCONTROLLER V2.01
 Index format V3
 All MP3 files: mono, 128 kbps (max)

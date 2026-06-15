@@ -1,6 +1,6 @@
 # LightController
 
-> Version: 260319A | Updated: 2026-03-19
+> Version: 260614B | Updated: 2026-06-14
 
 LED control interface for 160 WS2812B LEDs via FastLED, with pattern playback, brightness management, and TV simulator mode.
 
@@ -8,10 +8,11 @@ LED control interface for 160 WS2812B LEDs via FastLED, with pattern playback, b
 
 | File | Version | Purpose |
 |------|---------|---------|
-| `LightController.h/.cpp` | 260307A | Main LED control: brightness, patterns, color cycles, show playback |
+| `LightController.h/.cpp` | 260607A | Main LED control: brightness, patterns, color cycles, show playback |
 | `LightManager.cpp` | — | Lifecycle management (implementation-only, no .h) |
 | `LEDMap.h/.cpp` | 260227B | Physical LED strip mapping to logical (x,y) positions via `ledmap.bin` |
 | `TvShow.h/.cpp` | 260307C | TV simulator renderer — 6 ring zones matching PMMA circles |
+| `RingShow.h/.cpp` | 260615A | Ring renderer dispatch for any pattern with `pattern_type` set; replaces Spectrum |
 
 ## Architecture
 
@@ -62,6 +63,30 @@ Adding a new show:
 1. Define `ExtraXXParams` struct in `LightController.h`
 2. Add to `enum LightShow`
 3. Add play entry point and update switch/case in `updateLightController()` and `PlayLightShow()`
+
+## RingShow — Universal Ring Renderer (v260615A)
+
+Replaces the old Spectrum module (removed). **Any pattern** can use 6-ring rendering
+by setting `pattern_type` in `light_patterns.csv` (columns 18-19):
+
+- `pattern_type` — selects the ring renderer: `Rainbow`, `Blended`, `Static`
+- `ring_colors` — semicolon-separated `r,g,b` triples for `Static` renderer (6 rings)
+
+Leave both fields empty for traditional CircleShow rendering.
+
+**Renderers:**
+
+| Type | Behavior | Uses RGB1/RGB2? | Uses ringColors? |
+|------|----------|-----------------|------------------|
+| `Rainbow` | User-chosen gradient spread across 6 rings | Yes | No |
+| `Blended` | Same layout as Rainbow, alternate name | Yes | No |
+| `Static` | Fixed colors per ring from CSV | No | Yes |
+
+**Dispatch:** `updateLightController()` checks `!patternType.isEmpty()`, 
+so any pattern with a `pattern_type` value triggers RingShow. The assigned color set always
+provides RGB1→RGB2 via `generateColorGradient()`. Patterns never pick their own colors.
+- `Rainbow`/`Blended` → `generateColorGradient(RGB1, RGB2)` 
+- `Static` → no gradient needed (uses `ring_colors` CSV field)
 
 ## TvShow — TV Simulator (v260307C)
 

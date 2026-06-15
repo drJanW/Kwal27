@@ -1,6 +1,6 @@
 # README Index
 
-> Updated: 2026-03-14
+> Updated: 2026-06-14
 
 Central index of README files moved into docs/readmes/.
 
@@ -10,7 +10,7 @@ Central index of README files moved into docs/readmes/.
 - [ClockController/readme.md](ClockController/readme.md) — DS3231 RTC module
 - [ContextController/readme.md](ContextController/readme.md) — Runtime state aggregation
 - [Globals/readme.md](Globals/readme.md) — Shared config, utilities, state accessors
-- [LightController/readme.md](LightController/readme.md) — LED shows, TvShow renderer
+- [LightController/readme.md](LightController/readme.md) — LED shows, TvShow, RingShow renderers
 - [RunManager/readme.md](RunManager/readme.md) — Orchestration layer, BootSequencer
 - [RunManager_Audio/readme.md](RunManager_Audio/readme.md) — Audio run, distance PCM, shifts
 - [RunManager_Light/readme.md](RunManager_Light/readme.md) — Pattern/color catalogs, LuxCalibration

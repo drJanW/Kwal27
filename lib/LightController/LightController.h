@@ -32,9 +32,13 @@ struct LightShowParams {
   int   windowWidth;
   uint8_t id{0};  // Pattern ID from CSV (0 = unset = use default circle renderer)
 
+  // RingShow columns (pattern #32) — non-trivial types, not used in constexpr ctor
+  String patternType;   // "Spectrum", "Rainbow", etc. (empty = circle renderer or default)
+  String ringColors;    // "r1,g1,b1;r2,g2,b2;..." — 6 ring colors for non-trivial types
+
    LightShowParams() = default;
 
-  constexpr LightShowParams(
+   LightShowParams(
     CRGB a, CRGB b, uint8_t cCol, uint8_t cBrt, float fW, uint8_t minB, float gS,
     float cx, float cy, float r, int wW, float rOsc, float xA, float yA,
     uint8_t xC, uint8_t yC)

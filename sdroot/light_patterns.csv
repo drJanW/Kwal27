@@ -1,5 +1,5 @@
 # active_pattern=24
-light_pattern_id;light_pattern_name;color_cycle_sec;bright_cycle_sec;fade_width;min_brightness;gradient_speed;center_x;center_y;radius;window_width;radius_osc;x_amp;y_amp;x_cycle_sec;y_cycle_sec;pnf
+light_pattern_id;light_pattern_name;color_cycle_sec;bright_cycle_sec;fade_width;min_brightness;gradient_speed;center_x;center_y;radius;window_width;radius_osc;x_amp;y_amp;x_cycle_sec;y_cycle_sec;pnf;pattern_type;ring_colors
 1;Misty Bloom;18;14;99.000;12;0.600;0.000;0.000;22.000;24;4.000;3.500;2.500;22;20;0.6546
 2;Slow Breathing;30;28;16.000;8;0.300;22.000;0.000;18.000;28;2.000;2.000;2.000;32;34;0.4667
 3;Rapid Sparks;8;6;44.000;20;1.200;33.000;0.000;10.000;14;6.000;5.000;55.000;9;11;0.5667
@@ -31,4 +31,4 @@ light_pattern_id;light_pattern_name;color_cycle_sec;bright_cycle_sec;fade_width;
 29;Pulse;8;99;400.000;29;1.000;-33.000;4.500;45.500;69;164.000;30.000;104.000;2;8;0.7800
 30;Static Situation;255;255;208.000;122;0.010;14.500;19.000;0.000;1;0.000;0.000;0.000;255;255;0.9999
 31;Some Split;255;255;8.000;128;0.000;0.000;0.000;0.000;6;6.500;0.000;0.000;255;255;0.6941
-32;Spectrum;30;255;0.000;0;0.000;0.000;0.000;0.000;0;0.000;0.000;0.000;255;255;1.0000
+32;Spectrum;30;255;0.000;0;0.000;0.000;0.000;0.000;0;0.000;0.000;0.000;255;255;1.0000;Rainbow;

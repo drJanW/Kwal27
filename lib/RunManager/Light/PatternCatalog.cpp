@@ -112,6 +112,16 @@ String PatternCatalog::buildJson(const char* source) const {
         out += F(",\"y_amp\":");          out += String(entry.params.yAmp, 3);
         out += F(",\"x_cycle_sec\":");    out += entry.params.xCycleSec;
         out += F(",\"y_cycle_sec\":");    out += entry.params.yCycleSec;
+        if (!entry.params.patternType.isEmpty()) {
+            out += F(",\"pattern_type\":\"");
+            out += entry.params.patternType;
+            out += '"';
+        }
+        if (!entry.params.ringColors.isEmpty()) {
+            out += F(",\"ring_colors\":\"");
+            out += entry.params.ringColors;
+            out += '"';
+        }
         out += F("},\"pnf\":");
         out += String(entry.pnf, 4);
         out += '}';
@@ -369,6 +379,8 @@ bool PatternCatalog::parseParams(JsonVariantConst src, LightShowParams& out, Str
     out.yAmp           = obj["y_amp"].as<float>();
     out.xCycleSec      = obj["x_cycle_sec"].as<uint8_t>();
     out.yCycleSec      = obj["y_cycle_sec"].as<uint8_t>();
+    out.patternType    = obj["pattern_type"].as<String>();
+    out.ringColors     = obj["ring_colors"].as<String>();
     return true;
 }
 
@@ -477,6 +489,16 @@ bool PatternCatalog::loadFromSD() {
         if (columns.size() > 16) {
             entry.pnf = columns[16].toFloat();
         }
+        // Column 17: pattern_type (RingShow dispatch key)
+        if (columns.size() > 17) {
+            entry.params.patternType = columns[17];
+            entry.params.patternType.trim();
+        }
+        // Column 18: ring_colors (semicolon-separated RGB triples for Static renderer)
+        if (columns.size() > 18) {
+            entry.params.ringColors = columns[18];
+            entry.params.ringColors.trim();
+        }
         patterns_.push_back(entry);
     }
 
@@ -499,7 +521,7 @@ bool PatternCatalog::saveToSD() const {
         file.println(activePatternId_);
     }
 
-    file.println(F("light_pattern_id;light_pattern_name;color_cycle_sec;bright_cycle_sec;fade_width;min_brightness;gradient_speed;center_x;center_y;radius;window_width;radius_osc;x_amp;y_amp;x_cycle_sec;y_cycle_sec;pnf"));
+    file.println(F("light_pattern_id;light_pattern_name;color_cycle_sec;bright_cycle_sec;fade_width;min_brightness;gradient_speed;center_x;center_y;radius;window_width;radius_osc;x_amp;y_amp;x_cycle_sec;y_cycle_sec;pnf;pattern_type;ring_colors"));
     file.flush();  // commit header to SD before data (prevents sector-boundary corruption)
 
     for (const auto& entry : patterns_) {
@@ -536,6 +558,10 @@ bool PatternCatalog::saveToSD() const {
         file.print(entry.params.yCycleSec);
         file.print(';');
         file.print(entry.pnf, 4);
+        file.print(';');
+        file.print(entry.params.patternType);
+        file.print(';');
+        file.print(entry.params.ringColors);
         file.println();
     }
 
@@ -551,7 +577,7 @@ bool PatternCatalog::saveToSD() const {
             while (csv::readLine(check, line)) {
                 line.trim();
                 if (line.isEmpty() || line.charAt(0) == '#') continue;
-                headerOk = line.endsWith(F(";pnf"));
+                headerOk = line.startsWith(F("light_pattern_id"));
                 break;
             }
             SDController::closeFile(check);

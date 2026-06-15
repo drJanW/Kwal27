@@ -7,7 +7,7 @@
 #include <Arduino.h>
 #include "Globals.h"
 #include "LightController.h"
-#include "Spectrum.h"
+#include "RingShow.h"
 #include <FastLED.h>
 //#include <math.h>
 #include "AudioState.h"
@@ -92,13 +92,18 @@ void updateLightController() {
 
   applyBrightness();
 
-  // Spectrum (pattern #32) — 6 rings, evenly-spaced hue sweep, scrolling.
-  // Uses full HSV rainbow (hue 0-255) so each ring shows a clearly distinct color.
-  if (showParams.id == 32) {
-    for (int i = 0; i < GRADIENT_SIZE; i++) {
-      colorGradient[i] = CHSV(i, 255, 255);
+  // RingShow dispatch — any pattern with pattern_type set uses 6-ring renderer.
+  // Patterns never pick their own colors; the assigned color set always
+  // provides RGB1→RGB2 via generateColorGradient().
+  // Supported types: Rainbow, Blended, Static.
+  if (!showParams.patternType.isEmpty()) {
+    const String& ptype = showParams.patternType;
+    if (ptype.equalsIgnoreCase("Rainbow") || ptype.equalsIgnoreCase("Blended")) {
+      // Use user-chosen RGB1→RGB2 gradient from assigned color set
+      generateColorGradient(showParams.RGB1, showParams.RGB2, colorGradient, GRADIENT_SIZE);
     }
-    renderSpectrum(colorGradient, colorPhase, getBrightnessBaseHi());
+    // Static: no gradient needed (uses ringColors CSV field directly)
+    updateRingShow(showParams, colorGradient, colorPhase, getBrightnessBaseHi());
     FastLED.show();
     return;
   }
