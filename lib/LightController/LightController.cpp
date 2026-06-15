@@ -13,7 +13,6 @@
 #include "AudioState.h"
 #include "MathUtils.h"
 #include "TimerManager.h"
-#include "RingRenderer.h"
 
 LightController lightController;
 

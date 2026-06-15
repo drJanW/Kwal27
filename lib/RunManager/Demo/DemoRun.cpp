@@ -41,7 +41,7 @@
 #include "RunManager.h"
 #include "Tts/TtsTodoQueue.h"
 #include "LightController.h"
-#include "RingRenderer.h"
+#include "RingShow.h"
 #include "WebGuiStatus.h"
 #include "PRTClock.h"
 #include <FastLED.h>

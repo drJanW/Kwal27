@@ -1,13 +1,14 @@
 /**
  * @file RingShow.h
- * @brief Ring renderer dispatch for pattern #32 — multiple ring visualisation types
- * @version 260614B
- * @date 2026-06-14
+ * @brief Unified 6-ring renderer — gradient scrolling + lerp targets
+ * @version 260615B
+ * @date 2026-06-15
  *
- * Replaces the old Spectrum module with a cleaner, extensible ring-renderer
- * system.  Pattern #32 entries in light_patterns.csv carry a pattern_type
- * field and a ring_colors list.  The dispatch selects the renderer by type;
- * each renderer reads only the CSV columns it needs.
+ * Merges old RingShow (pattern dispatch) + RingRenderer (lerp targets).
+ * Single ringStart[] layout, single renderRings() entry point.
+ * Two color inputs:
+ *   - lerp targets via setRingTargets() (TV simulator, demo RingScene)
+ *   - gradient scrolling via updateRingShow() (pattern_type patterns)
  */
 #pragma once
 
@@ -15,10 +16,23 @@
 #include "Globals.h"
 #include "LightController.h"
 
-/// Ring show entry point: fill leds[] for pattern #32.
+#define RING_COUNT 6
+
+struct RingTarget {
+    CRGB    color;
+    uint8_t brightness;
+    bool    instant;    // true = hard cut (no lerp), false = smooth fade
+};
+
+/// Set new target color/brightness per ring (TV simulator, demo RingScene)
+void setRingTargets(const RingTarget targets[RING_COUNT]);
+
+/// Render one frame: lerp current → target, write to leds[], call FastLED.show()
+void renderRings();
+
+/// Ring show pattern entry point: fill leds[] for pattern_type patterns.
 /// @param params      Current LightShowParams (CSV columns available)
-/// @param gradient    256-entry color gradient (RGB1→RGB2) —
-///                    pre-filled by the caller; renderers may ignore.
+/// @param gradient    256-entry color gradient (RGB1→RGB2) — pre-filled by caller
 /// @param colorPhase  Scroll phase 0..255 (advances via cb_colorCycle)
 /// @param maxBri      Brightness scale (0..255)
 void updateRingShow(const LightShowParams& params,

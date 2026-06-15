@@ -10,7 +10,7 @@
 #include <SD.h>
 #include <WiFi.h>
 #include "LightController.h"
-#include "RingRenderer.h"
+#include "RingShow.h"
 #include "TimerManager.h"
 #include "SensorController.h"
 #include "RunManager.h"
