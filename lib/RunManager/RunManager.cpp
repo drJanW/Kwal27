@@ -293,7 +293,7 @@ void cb_clockUpdate() {
 }
 
 void cb_sayTime() {
-    if (Globals::demoActive) {
+    if (Globals::isBackgroundSuspended()) {
         timers.restart(SECONDS(10), 1, cb_sayTime);
         return;
     }
@@ -325,7 +325,7 @@ String buildTemperatureSentence(float tempC) {
 }
 
 void cb_sayRTCtemperature() {
-    if (Globals::demoActive) {
+    if (Globals::isBackgroundSuspended()) {
         timers.restart(SECONDS(10), 1, cb_sayRTCtemperature);
         return;
     }
@@ -337,14 +337,9 @@ void cb_sayRTCtemperature() {
 }
 
 void cb_playFragment() {
-    if (Globals::demoActive && !Globals::tvMode) {
-        // Demo orchestrator owns audio; reschedule far out
+    if (Globals::isBackgroundSuspended()) {
+        // Foreground mode owns audio; reschedule far out
         timers.restart(SECONDS(30), 1, cb_playFragment);
-        return;
-    }
-    // Don't try to start a new fragment while one is still playing
-    if (Globals::tvMode && isFragmentPlaying()) {
-        timers.restart(SECONDS(5), 1, cb_playFragment);
         return;
     }
     RunManager::requestPlayFragment();
@@ -879,6 +874,11 @@ void RunManager::enterTvMode(uint8_t hours) {
 
 void RunManager::exitTvMode() {
     Globals::tvMode = false;
+    PL("[RunManager::exitTvMode] Reboot in 5s");
+    timers.create(SECONDS(5), 1, []() {
+        Serial.flush();
+        ESP.restart();
+    });
 
     PlayAudioFragment::stop(500);
 

@@ -267,6 +267,13 @@ struct Globals {
     // read by LightController. Lives in Globals for cross-library visibility.
     inline static bool brightnessFading = false;
 
+    // True while tvMode or demoActive owns the LED output.
+    // Background tasks (lux, color/pattern rotation, PNF cal, brightness) are
+    // suspended; the foreground mode drives lights directly.
+    inline static bool isBackgroundSuspended() {
+        return tvMode || demoActive;
+    }
+
     // ─────────────────────────────────────────────────────────────
     // LUX CALIBRATION — cross-library state for Part 2
     // ─────────────────────────────────────────────────────────────

@@ -1,8 +1,8 @@
 /**
  * @file PatternCatalog.cpp
  * @brief LED pattern storage implementation
- * @version 260305G
- * @date 2026-03-05
+ * @version 260615E
+ * @date 2026-06-15
  */
 #define LOCAL_LOG_LEVEL LOG_LEVEL_INFO
 #include "PatternCatalog.h"
@@ -117,11 +117,9 @@ String PatternCatalog::buildJson(const char* source) const {
             out += entry.params.patternType;
             out += '"';
         }
-        if (!entry.params.ringColors.isEmpty()) {
-            out += F(",\"ring_colors\":\"");
-            out += entry.params.ringColors;
-            out += '"';
-        }
+        out += F(",\"angle_weight\":"); out += String(entry.params.angleWeight, 3);
+        out += F(",\"slice_count\":");  out += entry.params.sliceCount;
+        out += F(",\"slice_width\":");  out += String(entry.params.sliceWidth, 4);
         out += F("},\"pnf\":");
         out += String(entry.pnf, 4);
         out += '}';
@@ -380,7 +378,9 @@ bool PatternCatalog::parseParams(JsonVariantConst src, LightShowParams& out, Str
     out.xCycleSec      = obj["x_cycle_sec"].as<uint8_t>();
     out.yCycleSec      = obj["y_cycle_sec"].as<uint8_t>();
     out.patternType    = obj["pattern_type"].as<String>();
-    out.ringColors     = obj["ring_colors"].as<String>();
+    out.angleWeight    = obj["angle_weight"].as<float>();
+    out.sliceCount     = obj["slice_count"].as<uint8_t>();
+    out.sliceWidth     = obj["slice_width"].as<float>();
     return true;
 }
 
@@ -494,10 +494,17 @@ bool PatternCatalog::loadFromSD() {
             entry.params.patternType = columns[17];
             entry.params.patternType.trim();
         }
-        // Column 18: ring_colors (semicolon-separated RGB triples for Static renderer)
+        // Column 18: angle_weight (0 = pure distance, 1 = pure angle)
         if (columns.size() > 18) {
-            entry.params.ringColors = columns[18];
-            entry.params.ringColors.trim();
+            entry.params.angleWeight = columns[18].toFloat();
+        }
+        // Column 19: slice_count (number of radial slices, 1 = single wedge)
+        if (columns.size() > 19) {
+            entry.params.sliceCount = static_cast<uint8_t>(columns[19].toInt());
+        }
+        // Column 20: slice_width (angular width per slice as fraction of circle, 0 = disabled)
+        if (columns.size() > 20) {
+            entry.params.sliceWidth = columns[20].toFloat();
         }
         patterns_.push_back(entry);
     }
@@ -521,7 +528,7 @@ bool PatternCatalog::saveToSD() const {
         file.println(activePatternId_);
     }
 
-    file.println(F("light_pattern_id;light_pattern_name;color_cycle_sec;bright_cycle_sec;fade_width;min_brightness;gradient_speed;center_x;center_y;radius;window_width;radius_osc;x_amp;y_amp;x_cycle_sec;y_cycle_sec;pnf;pattern_type;ring_colors"));
+    file.println(F("light_pattern_id;light_pattern_name;color_cycle_sec;bright_cycle_sec;fade_width;min_brightness;gradient_speed;center_x;center_y;radius;window_width;radius_osc;x_amp;y_amp;x_cycle_sec;y_cycle_sec;pnf;pattern_type;angle_weight;slice_count;slice_width"));
     file.flush();  // commit header to SD before data (prevents sector-boundary corruption)
 
     for (const auto& entry : patterns_) {
@@ -561,8 +568,11 @@ bool PatternCatalog::saveToSD() const {
         file.print(';');
         file.print(entry.params.patternType);
         file.print(';');
-        file.print(entry.params.ringColors);
-        file.println();
+        file.print(entry.params.angleWeight, 3);
+        file.print(';');
+        file.print(entry.params.sliceCount);
+        file.print(';');
+        file.println(entry.params.sliceWidth, 5);
     }
 
     SDController::closeFile(file);

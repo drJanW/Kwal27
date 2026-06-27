@@ -1,7 +1,7 @@
 /**
  * @file RingShow.cpp
  * @brief Unified 6-ring renderer — gradient scrolling + lerp targets
- * @version 260615B
+ * @version 260615E
  * @date 2026-06-15
  *
  * Merges old RingShow (4 pattern renderers) + RingRenderer (lerp target state).
@@ -67,7 +67,7 @@ void renderRings() {
     FastLED.show();
 }
 
-// ─── Gradient-scrolling renderer (Rainbow/Blended) ───────────────────────────
+// ─── Gradient-scrolling renderer ──────────────────────────────────────────────
 
 static constexpr uint8_t ringOffset[6] = { 0, 42, 85, 128, 170, 213 };
 
@@ -86,63 +86,12 @@ static void renderGradientRings(const CRGB* gradient, uint8_t scrollPhase, uint8
     }
 }
 
-// ─── Static ring-color renderer ──────────────────────────────────────────────
-
-static void renderStaticRings(const String& ringColors, uint8_t maxBri) {
-    if (ringColors.isEmpty()) return;
-
-    CRGB colors[6];
-    int parsed = 0;
-    int start = 0;
-    for (int ring = 0; ring < 6; ring++) {
-        int semi = ringColors.indexOf(';', start);
-        String token = (semi >= 0)
-            ? ringColors.substring(start, semi)
-            : ringColors.substring(start);
-        token.trim();
-
-        int comma1 = token.indexOf(',');
-        int comma2 = (comma1 >= 0) ? token.indexOf(',', comma1 + 1) : -1;
-        if (comma1 >= 0 && comma2 >= 0) {
-            colors[ring].r = static_cast<uint8_t>(token.substring(0, comma1).toInt());
-            colors[ring].g = static_cast<uint8_t>(token.substring(comma1 + 1, comma2).toInt());
-            colors[ring].b = static_cast<uint8_t>(token.substring(comma2 + 1).toInt());
-            parsed++;
-        } else {
-            colors[ring] = CRGB::Black;
-        }
-
-        if (semi < 0) break;
-        start = semi + 1;
-    }
-
-    if (parsed == 0) return;
-
-    for (uint8_t z = 0; z < 6 && z < (uint8_t)parsed; z++) {
-        CRGB color = colors[z];
-        if (maxBri == 0) {
-            color = CRGB::Black;
-        } else if (maxBri < 255) {
-            color.nscale8_video(maxBri);
-        }
-        for (int i = ringStart[z]; i < ringStart[z + 1]; i++) {
-            leds[i] = color;
-        }
-    }
-}
-
 // ─── Dispatch ────────────────────────────────────────────────────────────────
 
 void updateRingShow(const LightShowParams& params,
                     const CRGB* gradient,
                     uint8_t colorPhase,
                     uint8_t maxBri) {
-    const String& type = params.patternType;
-
-    if (type.equalsIgnoreCase("Static") && !params.ringColors.isEmpty()) {
-        renderStaticRings(params.ringColors, maxBri);
-    } else {
-        // Rainbow, Blended, empty-string, or any unknown type → gradient scrolling
-        renderGradientRings(gradient, colorPhase, maxBri);
-    }
+    // "RingGradient" = 6-ring gradient scroll; all else falls through to CircleShow
+    renderGradientRings(gradient, colorPhase, maxBri);
 }

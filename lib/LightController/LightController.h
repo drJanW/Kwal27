@@ -1,7 +1,7 @@
 /**
  * @file LightController.h
  * @brief LED control interface via FastLED library
- * @version 260604D
+ * @version 260615E
  * @date 2026-06-04
  */
 #pragma once
@@ -32,9 +32,13 @@ struct LightShowParams {
   int   windowWidth;
   uint8_t id{0};  // Pattern ID from CSV (0 = unset = use default circle renderer)
 
-  // RingShow columns (pattern #32) — non-trivial types, not used in constexpr ctor
-  String patternType;   // "Spectrum", "Rainbow", etc. (empty = circle renderer or default)
-  String ringColors;    // "r1,g1,b1;r2,g2,b2;..." — 6 ring colors for non-trivial types
+  // RingShow column (pattern #32)
+  String patternType;   // "RingGradient" = 6-ring gradient scroll, empty = CircleShow
+
+  // Radial slice columns (angle blends into existing distance blend)
+  float   angleWeight = 0.0f;   // 0 = pure distance (existing), 1 = pure angle, 0..1 = blend
+  uint8_t sliceCount  = 1;      // number of radial slices: 1 = single wedge, N = N slices
+  float   sliceWidth  = 0.0f;   // angular width per slice as fraction of circle (0..1). 0 = disabled
 
    LightShowParams() = default;
 

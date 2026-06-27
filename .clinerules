@@ -1,0 +1,40 @@
+# Kwal27 Project Rules for Cline
+
+## Version Bumping (AUTOMATIC)
+- **When any .cpp/.h/.ino source file is modified**, bump its `@version` header AND `sdroot/version.txt` to the current date in `YYMMDDx` format (e.g. `260615C`).
+- The letter suffix increments per-change on the same day: A→B→C→...
+- If multiple source files are touched in one change, bump ALL of them to the same new version.
+- If `sdroot/version.txt` already matches the day's letter, just bump the letter.
+- **NEVER skip this step.** It is automatic.
+
+## CSV Header Changes
+- When adding columns to `sdroot/light_patterns.csv`, always add them as the **rightmost columns** (append).
+- Sync `excel/light_patterns.csv` with the same changes.
+- Existing rows get sensible defaults for new columns (e.g. `0;1` for angle_weight;petal_count).
+
+## Light Pattern Rendering
+- All patterns run through the same `CircleShow` per-LED loop in `LightController.cpp`.
+- No new "pattern_type" values are needed—non-trivial renders (Rainbow, Static) use `patternType` + `ringColors` in RingShow, everything else extends the distance/angle blend math.
+- `angleWeight` (0..1) and `petalCount` (1..N) control radial angular patterns, merged with existing distance blend via lerp.
+- CSV reference columns: 19=angle_weight, 20=petal_count.
+
+## Compiling & Uploading (USER ONLY)
+- **Cline NEVER compiles, uploads firmware, or deploys to the ESP32 device.** These are always user actions.
+- Cline only tells you what commands/files to use for compiling/uploading.
+- Exception: uploading CSV/SD files via `upload_csv.ps1` **is allowed and expected** (no firmware changes). Cline can and should do this.
+
+## Code Style
+- ESP32 / PlatformIO project, C++17.
+- Use `PL()`, `PF()`, `LOG_DEBUG()`, `LOG_WARN()` macros for logging (from Globals.h).
+- FastLED via `leds[]` array (CRGB), 160 LEDs across 6 concentric rings.
+- Ring LED layout defined in `RingShow.cpp::ringStart[]` = { 0, 8, 24, 48, 80, 116, 160 }.
+
+## Web GUI
+- Served from `sdroot/index.html` + `sdroot/kwal.js` + `sdroot/styles.css`.
+- Source files for the web GUI are in `sdroot/webgui-src/`.
+- After editing webgui-src, build minified output with `build_js.ps1`.
+
+## SD Card Files
+- All CSV files live in both `sdroot/` (deployed to SD) and `excel/` (source of truth for Excel editing).
+- `sdroot/version.txt` — firmware version code.
+- CSV format: semicolon-delimited, `#` comment lines allowed, first non-comment line is header.

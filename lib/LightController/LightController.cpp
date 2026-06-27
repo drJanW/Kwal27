@@ -1,15 +1,15 @@
 /**
  * @file LightController.cpp
  * @brief LED control implementation via FastLED library
- * @version 260607A
- * @date 2026-06-07
+ * @version 260627A
+ * @date 2026-06-27
  */
 #include <Arduino.h>
 #include "Globals.h"
 #include "LightController.h"
 #include "RingShow.h"
 #include <FastLED.h>
-//#include <math.h>
+#include <math.h>
 #include "AudioState.h"
 #include "MathUtils.h"
 #include "TimerManager.h"
@@ -87,7 +87,7 @@ static void cb_yPhase() { yPhase++; }
 
 // === Update ===
 void updateLightController() {
-  if (Globals::tvMode) { renderRings(); return; }
+  if (Globals::isBackgroundSuspended()) { renderRings(); return; }
 
   applyBrightness();
 
@@ -97,11 +97,10 @@ void updateLightController() {
   // Supported types: Rainbow, Blended, Static.
   if (!showParams.patternType.isEmpty()) {
     const String& ptype = showParams.patternType;
-    if (ptype.equalsIgnoreCase("Rainbow") || ptype.equalsIgnoreCase("Blended")) {
+    if (ptype.equalsIgnoreCase("RingGradient") || ptype.equalsIgnoreCase("Blended")) {
       // Use user-chosen RGB1→RGB2 gradient from assigned color set
       generateColorGradient(showParams.RGB1, showParams.RGB2, colorGradient, GRADIENT_SIZE);
     }
-    // Static: no gradient needed (uses ringColors CSV field directly)
     updateRingShow(showParams, colorGradient, colorPhase, getBrightnessBaseHi());
     FastLED.show();
     return;
@@ -147,12 +146,53 @@ void updateLightController() {
     float fw = showParams.fadeWidth;
     if (fw < 0.001f) fw = 0.001f;
 
-    float blend = MathUtils::clamp(fabsf(dist - animRadius) / fw, 0.0f, 1.0f);
+    // Distance-based blend (existing, always computed)
+    float distBlend = MathUtils::clamp(fabsf(dist - animRadius) / fw, 0.0f, 1.0f);
+
+    // Angle-based blend (radial slices: N independent wedges, each with own gradient subrange)
+    float angleBlend = 0.0f;
+    float angleWeight = showParams.angleWeight;
+    int sliceGradientOffset = 0;
+    float sliceWidth = showParams.sliceWidth;
+    uint8_t sliceCountVal = showParams.sliceCount;
+
+    if (angleWeight > 0.0f && sliceWidth > 0.0f && sliceCountVal > 0) {
+        float rawAngle = atan2f(dy, dx);
+        float norm     = (rawAngle + M_PI) / (2.0f * M_PI);        // 0..1 full circle
+
+        // Rotate into slice frame (colorPhase scrolls all slices together)
+        float sliceRotate = colorPhase / 255.0f;
+        float localNorm   = fmodf(norm + sliceRotate, 1.0f);
+        if (localNorm < 0.0f) localNorm += 1.0f;
+
+        // Determine which slice this LED belongs to
+        float sliceSpan  = 1.0f / (float)sliceCountVal;
+        int   sliceIdx   = (int)floorf(localNorm / sliceSpan);
+        if (sliceIdx >= sliceCountVal) sliceIdx = sliceCountVal - 1;
+
+        // Center of this slice in localNorm space
+        float sliceCenter = ((float)sliceIdx + 0.5f) * sliceSpan;
+        float angleDist   = fabsf(localNorm - sliceCenter);
+        // Wrap: shortest distance around the circle
+        if (angleDist > 0.5f) angleDist = 1.0f - angleDist;
+
+        // angleBlend: 0 at slice center-line, 1 at slice boundary
+        float halfW = sliceWidth * 0.5f;
+        angleBlend = (halfW > 0.0f) ? MathUtils::clamp(angleDist / halfW, 0.0f, 1.0f) : 0.0f;
+
+        // Each slice gets a different offset into the 256-entry gradient
+        sliceGradientOffset = sliceIdx * (GRADIENT_SIZE / sliceCountVal);
+    }
+
+    // Lerp between distance and angle blend based on angleWeight
+    float blend = (angleWeight > 0.0f)
+        ? MathUtils::lerp(distBlend, angleBlend, angleWeight)
+        : distBlend;
 
     float fade = 1.0f - blend;
     fade = fade * fade;
 
-    int gradIdx = (windowStart + int(blend * (windowWidth - 1))) % GRADIENT_SIZE;
+    int gradIdx = (windowStart + sliceGradientOffset + int(blend * (windowWidth - 1))) % GRADIENT_SIZE;
     if (gradIdx < 0) gradIdx += GRADIENT_SIZE;
 
     CRGB color = colorGradient[gradIdx];
@@ -200,8 +240,8 @@ void PlayLightShow(const LightShowParams &p) {
 void applyBrightness() {
   // Skip while fade callbacks own FastLED brightness (lux measurement cycle)
   if (Globals::brightnessFading) return;
-  // TV simulator owns brightness — skip normal calculation
-  if (Globals::tvMode) return;
+  // Foreground mode owns brightness — skip normal calculation
+  if (Globals::isBackgroundSuspended()) return;
 
   // sliderPct is derived from shiftedHi, which already includes webMultiplier
   int sliderPct = getSliderPct();
@@ -223,22 +263,17 @@ void applyBrightness() {
 }
 
 // === RGB/Helpers ===
+// Linear one-way A→B gradient (replaces old A→B→A palindrome).
+// Entry 0 = pure colorA, entry (n-1) = pure colorB.
+// Makes CSV rgb1/rgb2 order meaningful: rgb1 sits at blend=0 (bright center),
+// rgb2 sits at blend=1 (dark edge).
 void generateColorGradient(const CRGB &colorA, const CRGB &colorB, CRGB *grad, int n) {
   for (int i = 0; i < n; ++i) {
     float t = (float)i / (float)(n - 1);
-    uint8_t blend;
-    if (t < 0.5f) {
-      blend = (uint8_t)(t * 2.0f * 255.0f);
-      grad[i] = CRGB(
-        lerp8by8(colorA.r, colorB.r, blend),
-        lerp8by8(colorA.g, colorB.g, blend),
-        lerp8by8(colorA.b, colorB.b, blend));
-    } else {
-      blend = (uint8_t)((1.0f - (t - 0.5f) * 2.0f) * 255.0f);
-      grad[i] = CRGB(
-        lerp8by8(colorA.r, colorB.r, blend),
-        lerp8by8(colorA.g, colorB.g, blend),
-        lerp8by8(colorA.b, colorB.b, blend));
-    }
+    uint8_t blend = (uint8_t)(t * 255.0f);
+    grad[i] = CRGB(
+      lerp8by8(colorA.r, colorB.r, blend),
+      lerp8by8(colorA.g, colorB.g, blend),
+      lerp8by8(colorA.b, colorB.b, blend));
   }
 }

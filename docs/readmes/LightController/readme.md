@@ -1,23 +1,32 @@
 # LightController
 
-> Version: 260614B | Updated: 2026-06-14
+> Version: 260615C | Updated: 2026-06-15
 
-LED control interface for 160 WS2812B LEDs via FastLED, with pattern playback, brightness management, and TV simulator mode.
+LED control interface for 160 WS2812B LEDs via FastLED, with pattern playback, brightness management, TV simulator mode, and demo mode.
 
 ## Files
 
 | File | Version | Purpose |
 |------|---------|---------|
-| `LightController.h/.cpp` | 260607A | Main LED control: brightness, patterns, color cycles, show playback |
-| `LightManager.cpp` | — | Lifecycle management (implementation-only, no .h) |
-| `LEDMap.h/.cpp` | 260227B | Physical LED strip mapping to logical (x,y) positions via `ledmap.bin` |
-| `TvShow.h/.cpp` | 260307C | TV simulator renderer — 6 ring zones matching PMMA circles |
-| `RingShow.h/.cpp` | 260615A | Ring renderer dispatch for any pattern with `pattern_type` set; replaces Spectrum |
+| | `LightController.h/.cpp` | 260615C | Main LED control: brightness, patterns, color cycles, show playback |
+| | `LightManager.cpp` | — | Lifecycle management (implementation-only, no .h) |
+| | `LEDMap.h/.cpp` | 260227B | Physical LED strip mapping to logical (x,y) positions via `ledmap.bin` |
+| | `TvShow.h/.cpp` | 260307C | TV simulator renderer — 6 ring zones matching PMMA circles |
+| | `RingShow.h/.cpp` | 260615C | Unified 6-ring renderer: gradient scrolling + lerp targets (merged RingRenderer) |
 
 ## Architecture
 
 LightController is a **Controller** layer module — it owns the FastLED hardware driver.
 Pattern orchestration lives in `lib/RunManager/Light/` (LightRun, LightPolicy, LightDirector).
+
+**Background suspension** (v260615C): TV mode and demo mode are "foreground" modes
+that suspend normal ring activities. A unified gate `Globals::isBackgroundSuspended()`
+(replaces separate `tvMode`/`demoActive` checks) blocks:
+- Light: `updateLightController()`, `applyBrightness()`, lux measurements, PNF calibration, color/pattern change callbacks
+- Audio: `cb_sayTime()`, `cb_sayRTCtemperature()`, `cb_playFragment()`
+- Calendar: reloads
+
+Both modes exit via reboot (5s delay).
 
 ## API
 
@@ -46,9 +55,10 @@ void generateColorGradient(const CRGB& colorA, const CRGB& colorB, CRGB* gradien
 LEDPos getLEDPos(int index);
 bool loadLEDMapFromSD(const char* path);
 
-// TvShow.h — TV simulator
-void setTvZoneTargets(const TvZoneTarget targets[TV_ZONES]);
-void updateTvShow();
+// RingShow.h — unified ring renderer
+void setRingTargets(const RingTarget targets[RING_COUNT]);  // TV simulator, demo RingScene
+void renderRings();                                           // lerp render one frame
+void updateRingShow(const LightShowParams& params, const CRGB* gradient, uint8_t colorPhase, uint8_t maxBri);
 ```
 
 ## Light Shows
@@ -64,12 +74,14 @@ Adding a new show:
 2. Add to `enum LightShow`
 3. Add play entry point and update switch/case in `updateLightController()` and `PlayLightShow()`
 
-## RingShow — Universal Ring Renderer (v260615A)
+## RingShow — Unified 6-Ring Renderer (v260615C)
 
-Replaces the old Spectrum module (removed). **Any pattern** can use 6-ring rendering
-by setting `pattern_type` in `light_patterns.csv` (columns 18-19):
+**Merged**: Former `RingShow` (pattern dispatch) + `RingRenderer` (lerp targets) are now
+one module. The old `RingRenderer.h/.cpp` and `Spectrum.h/.cpp` are removed.
 
-- `pattern_type` — selects the ring renderer: `Rainbow`, `Blended`, `Static`
+**Any pattern** can use 6-ring rendering by setting `pattern_type` in `light_patterns.csv`:
+
+- `pattern_type` — selects the ring renderer: `Gradient` or `Static`
 - `ring_colors` — semicolon-separated `r,g,b` triples for `Static` renderer (6 rings)
 
 Leave both fields empty for traditional CircleShow rendering.
@@ -78,23 +90,69 @@ Leave both fields empty for traditional CircleShow rendering.
 
 | Type | Behavior | Uses RGB1/RGB2? | Uses ringColors? |
 |------|----------|-----------------|------------------|
-| `Rainbow` | User-chosen gradient spread across 6 rings | Yes | No |
-| `Blended` | Same layout as Rainbow, alternate name | Yes | No |
+| `Gradient` | User-chosen gradient scrolls across 6 rings | Yes | No |
 | `Static` | Fixed colors per ring from CSV | No | Yes |
 
 **Dispatch:** `updateLightController()` checks `!patternType.isEmpty()`, 
-so any pattern with a `pattern_type` value triggers RingShow. The assigned color set always
-provides RGB1→RGB2 via `generateColorGradient()`. Patterns never pick their own colors.
-- `Rainbow`/`Blended` → `generateColorGradient(RGB1, RGB2)` 
+so any pattern with a `pattern_type` value triggers `updateRingShow()`. The assigned color
+set always provides RGB1→RGB2 via `generateColorGradient()`.
+- `Gradient` → `generateColorGradient(RGB1, RGB2)` — scrolls via `colorPhase`
 - `Static` → no gradient needed (uses `ring_colors` CSV field)
 
-## TvShow — TV Simulator (v260307C)
+**Lerp targets**: `setRingTargets()` / `renderRings()` are also exported for direct
+per-ring control (TV simulator, demo RingScene). These bypass `updateLightController()`
+entirely — they write to `leds[]` and call `FastLED.show()` directly.
 
-Ring-based TV simulator for the 6 concentric PMMA ring zones:
-- **6 zones** (0-5, innermost to outermost): 8→16→24→32→36→44 LEDs per ring (160 total)
-- `setTvZoneTargets(targets[6])` — set target colors per ring
-- `updateTvShow()` — lerp-based smooth rendering
-- Controlled via `tv.js` in the WebGUI
+## Radial Patterns / Angle Blend (v260615C)
+
+**New in `light_patterns.csv`** — columns 19–20:
+- `angle_weight` (float 0..1): 0 = pure distance blend (classic), 1 = pure angle blend
+- `petal_count` (uint8_t): angular fold count for repeating patterns (1 = no repetition, 6 = 6-fold symmetry)
+
+These columns **extend the existing CircleShow renderer** — no new renderer or `pattern_type` 
+is needed. When `angle_weight > 0.0` and `petal_count > 0`, the per-LED blend switches from 
+pure distance to a lerp between distance and angle blends.
+
+### Angle Blend Math
+
+For each LED at polar coordinate `(r, θ)`:
+1. Normalize θ to 0..1
+2. Fold into `petal_count` segments: `fmod(θ × petalCount, 1)`
+3. Compute distance from each petal center (0.5): `|folded - 0.5| × 2` → 0 at center, 1 at edge
+4. Blend this against distance blend using `angleWeight` as lerp factor
+
+### Use Cases
+
+| angleWeight | petalCount | Effect |
+|-------------|------------|--------|
+| 0.0 | 1 | Classic concentric rings (distance only) |
+| 0.5 | 4 | 4-fold flower petals fading toward center |
+| 1.0 | 6 | Pure angular — 6 "pie wedges" (mandala) |
+| 1.0 | 1 | Lighthouse / rotating spotlight (add radius_osc + x_amp/y_amp for motion) |
+| 0.3 | 8 | 8-pointed star with soft distance falloff |
+
+Combining with existing parameters:
+- `radius_osc` + `angleWeight=1.0` + `petalCount=1` = rotating lighthouse beam
+- `window_width` influences angular softness (wider = softer angle transitions)
+- `center_x`/`center_y` offset the center of both distance AND angle calculations
+
+### Parameters in `LightShowParams`
+
+```cpp
+struct LightShowParams {
+    // ... existing fields unchanged ...
+    float angleWeight  = 0.0f;   // 0 = pure distance, 1 = pure angle
+    uint8_t petalCount  = 1;     // angular fold count (must be > 0 for angle blend)
+};
+```
+
+### CSV Format
+
+Existing patterns gain `;0;1` at end (distance-only, 1 petal = no folding).
+New radial pattern example (pattern 33 in CSV):
+```
+33;Radial Mandala;18;16;12.000;12;0.600;0.000;0.000;28.000;36;4.000;0.000;0.000;24;22;0.0000;;;1.000;6
+```
 
 ## Ambient Lux Coordination
 

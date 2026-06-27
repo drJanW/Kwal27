@@ -1,7 +1,7 @@
 /**
  * @file RingShow.h
  * @brief Unified 6-ring renderer — gradient scrolling + lerp targets
- * @version 260615B
+ * @version 260615E
  * @date 2026-06-15
  *
  * Merges old RingShow (pattern dispatch) + RingRenderer (lerp targets).

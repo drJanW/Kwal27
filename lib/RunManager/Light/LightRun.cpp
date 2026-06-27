@@ -1,7 +1,7 @@
 /**
  * @file LightRun.cpp
  * @brief LED show state management implementation
- * @version 260607A
+ * @version 260615D
  * @date 2026-06-07
  */
 #include "LightRun.h"
@@ -241,8 +241,8 @@ void LightRun::cb_shiftTimer() {
 }
 
 void LightRun::cb_luxMeasure() {
-    // Block lux measurement during demo — prevents sensor from dimming lights
-    if (Globals::demoActive) return;
+    // Block lux measurement when foreground active — prevents sensor from dimming lights
+    if (Globals::isBackgroundSuspended()) return;
     // Skip if no lux sensor present (preserves boot default brightness)
     if (!AlertState::isLuxSensorOk()) return;
     if (brightnessFading) return;  // Guard: fade already in progress
@@ -884,7 +884,7 @@ bool LightRun::isPnfCalibrating() {
 }
 
 void LightRun::cb_changeColor() {
-    if (Globals::demoActive) return;
+    if (Globals::isBackgroundSuspended()) return;
     if (colorSource != LightSource::MANUAL) {
         ColorsCatalog& colCat = getColorsCatalog();
         if (colCat.selectRandomColor()) {
@@ -897,7 +897,7 @@ void LightRun::cb_changeColor() {
 }
 
 void LightRun::cb_changePattern() {
-    if (Globals::demoActive) return;
+    if (Globals::isBackgroundSuspended()) return;
     if (patternSource != LightSource::MANUAL) {
         PatternCatalog& patCat = getPatternCatalog();
         if (patCat.selectRandom()) {
@@ -912,8 +912,8 @@ void LightRun::cb_changePattern() {
 // ─── PNF calibration callbacks ──────────────────────────────
 
 void LightRun::cb_pnfCalNext() {
-    // TV mode takes priority — defer calibration
-    if (Globals::tvMode) {
+    // Foreground mode takes priority — defer calibration
+    if (Globals::isBackgroundSuspended()) {
         timers.create(SECONDS(30), 1, cb_pnfCalNext);
         return;
     }
@@ -960,8 +960,8 @@ void LightRun::cb_pnfCalNext() {
 }
 
 void LightRun::cb_pnfCalSample() {
-    // TV mode interrupted calibration — discard samples, retry later
-    if (Globals::tvMode) {
+    // Foreground interrupted calibration — discard samples, retry later
+    if (Globals::isBackgroundSuspended()) {
         timers.cancel(cb_pnfCalSample);
         pnfCalSampleCount = 0;
         memset(pnfCalHistogram, 0, sizeof(pnfCalHistogram));
